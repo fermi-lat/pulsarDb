@@ -19,10 +19,13 @@
 #include "tip/IFileSvc.h"
 #include "tip/TipException.h"
 
+static const std::string s_cvs_id("$Name$");
+
 namespace pulsarDb {
 
   PulsarDbApp::PulsarDbApp(): m_tpl_file() {
     setName("gtpulsardb");
+    setVersion(s_cvs_id);
   }
 
   PulsarDbApp::~PulsarDbApp() throw() {}
