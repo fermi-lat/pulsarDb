@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Feb 25 13:44:09 PST 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Allow option to append info to existing file.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Feb 25 13:34:57 PST 2005
 pulsarDb/data/outref
 
