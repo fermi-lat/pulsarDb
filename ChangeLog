@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: peachey  Thu Jan  6 11:19:48 PST 2005
+pulsarDb/data
+
+Modified Files:
+	PulsarEph.tpl 
+Added Files:
+	groD4-dc2v4.fits 
+Log Message:
+Migrate to newest D4 format.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v0r0p1, operation: add
 Package: pulsarDb
