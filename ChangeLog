@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Mar 18 07:37:22 PST 2005
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Add version number from CVS tag.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v0r1p0, operation: add
 Package: pulsarDb
