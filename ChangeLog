@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Fri Jan 21 12:39:38 PST 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Avoid infinite recursion by using a temporary FrequencyEph to
+compute phi0 in DatabaseEph.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Jan 21 12:39:38 PST 2005
 pulsarDb/src
 
 Modified Files:
