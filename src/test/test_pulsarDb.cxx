@@ -12,6 +12,7 @@
 #include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/GlastTime.h"
 #include "pulsarDb/PulsarDb.h"
+#include "pulsarDb/TextPulsarDb.h"
 #include "pulsarDb/TimingModel.h"
 
 #include "st_app/StApp.h"
@@ -84,7 +85,14 @@ class PulsarDbTest : public st_app::StApp {
     /// Test TimingModel class.
     virtual void testTimingModel();
 
+    /// Test appending ephemerides to an existing file.
+    virtual void testAppend();
+
+    /// Test TextPulsarDb class.
+    virtual void testTextPulsarDb();
+
   private:
+    std::string m_data_dir;
     std::string m_in_file;
     std::string m_out_file;
 };
@@ -94,10 +102,10 @@ using namespace pulsarDb;
 void PulsarDbTest::run() {
 
   // Find data directory for this app.
-  std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
+  m_data_dir = st_facilities::Env::getDataDir("pulsarDb");
 
   // Find test file.
-  m_in_file = st_facilities::Env::appendFileName(data_dir, "groD4-dc2v4.fits");
+  m_in_file = st_facilities::Env::appendFileName(m_data_dir, "groD4-dc2v4.fits");
 
   // Output file.
   m_out_file = "spud.fits";
@@ -110,8 +118,10 @@ void PulsarDbTest::run() {
   testAbsoluteTime();
   testPulsarEph();
   testTimingModel();
+  testAppend();
   testExpression();
   testChooser();
+  testTextPulsarDb();
 
   // Failures.
   testBadInterval();
@@ -476,6 +486,42 @@ void PulsarDbTest::testTimingModel() {
       correct_t << std::endl;
   }
 
+}
+
+void PulsarDbTest::testAppend() {
+  std::string method_name = "testAppend";
+
+  PulsarDb database(st_facilities::Env::appendFileName(m_data_dir, "groD4-dc2v4.fits"));
+  database.save("groD4-dc2v4_twice.fits");
+  database.save("groD4-dc2v4_twice.fits", true);
+}
+
+void PulsarDbTest::testTextPulsarDb() {
+  std::string method_name = "testTextPulsarDb";
+
+  // Ingest one of each type of table.
+  TextPulsarDb text_psrdb_spin(st_facilities::Env::appendFileName(m_data_dir, "psrdb_spin.txt"));
+  TextPulsarDb text_psrdb_binary(st_facilities::Env::appendFileName(m_data_dir, "psrdb_binary.txt"));
+  TextPulsarDb text_psrdb_obs(st_facilities::Env::appendFileName(m_data_dir, "psrdb_obs.txt"));
+  TextPulsarDb text_psrdb_name(st_facilities::Env::appendFileName(m_data_dir, "psrdb_name.txt"));
+
+  // Save all tables into one FITS file.
+  std::string filename("psrdb_all.fits");
+  text_psrdb_binary.save(filename);
+  text_psrdb_spin.save(filename, true);
+  text_psrdb_obs.save(filename, true);
+  text_psrdb_name.save(filename, true);
+
+  // Copy an existing FITS database.
+  PulsarDb fits_psrdb("crab_db.fits");
+  filename = "psrdb_append.fits";
+  fits_psrdb.save(filename);
+
+  // Append all tables into the FITS database.
+  text_psrdb_name.save(filename, true);
+  text_psrdb_obs.save(filename, true);
+  text_psrdb_binary.save(filename, true);
+  text_psrdb_spin.save(filename, true);
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
