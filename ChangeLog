@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Apr  5 17:56:46 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	TextPulsarDb.cxx 
+Log Message:
+Include algorithm, needed for std::find.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v0r1p1, operation: add
 Package: pulsarDb
