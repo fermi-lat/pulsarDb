@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Fri Feb 25 13:46:25 PST 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests for appending data to existing files, and for the
+text version of pulsar db data input.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Feb 25 13:45:34 PST 2005
 pulsarDb/src
 
