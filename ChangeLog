@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Feb 23 11:36:56 PST 2005
+pulsarDb/pulsarDb
+
+Added Files:
+	TextPulsarDb.h 
+Log Message:
+Implementation of pulsar database accessor which reads
+formatted text files instead of FITS files.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Feb 16 14:06:56 PST 2005
 pulsarDb/pulsarDb
 
