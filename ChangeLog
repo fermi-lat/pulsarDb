@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Fri Mar  4 12:56:17 PST 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	TextPulsarDb.h 
+Log Message:
+Get rid of append flag for save. Pass save a template file.
+Use native tip memory file support.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Mar  4 12:56:17 PST 2005
 pulsarDb/src
 
 Modified Files:
