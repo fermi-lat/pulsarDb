@@ -2,9 +2,15 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.1.1.1 2004/11/24 18:36:02 peachey Exp $
+$Id: release.notes,v 1.2 2004/12/17 18:49:55 peachey Exp $
 
 \verbatim
+07-mar-2005    v0r1p0 JP  Add AbsoluteTime and subclasses for handling
+                          different time systems. Add TextPulsarDb class for
+                          handling ephemerides contained in text files.
+                          Changed application to handle any number of input
+                          files, in arbitrary mixtures of FITS/text formats.
+                          Major infrastructure refactoring.
 17-dec-2004    v0r0p1 JP  Added missing #include file.
 24-nov-2004        v0 JP  Initial import.
 \endverbatim
