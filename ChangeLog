@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: peachey  Fri Feb 25 13:34:57 PST 2005
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits 
+Added Files:
+	crab_twice.fits groD4-dc2v4_twice.fits psrdb_all.fits 
+	psrdb_append.fits 
+Log Message:
+New reference test output data.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Feb 25 13:32:52 PST 2005
 pulsarDb/data
 
