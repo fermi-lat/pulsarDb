@@ -1,0 +1,34 @@
+------------------------------------------------------------
+User: peachey  Wed Nov 24 10:36:04 PST 2004
+pulsarDb
+
+Log Message:
+Pulsar ephemeris database access package.
+
+Status:
+
+Vendor Tag:	GLAST
+Release Tags:	v0
+		
+N pulsarDb/cmt/requirements
+N pulsarDb/src/PulsarDb.cxx
+N pulsarDb/src/PulsarDbApp.cxx
+N pulsarDb/src/PulsarEph.cxx
+N pulsarDb/src/mainpage.h
+N pulsarDb/src/.mainpage.h.swp
+N pulsarDb/src/test/test_pulsarDb.cxx
+N pulsarDb/src/gtpulsardb/gtpulsardb.cxx
+N pulsarDb/doc/release.notes
+N pulsarDb/data/groD4-dc2v3.fits
+N pulsarDb/data/PulsarEph.tpl
+N pulsarDb/data/outref/crab_db.fits
+N pulsarDb/data/outref/f2not0_db.fits
+N pulsarDb/data/outref/chooser_db.fits
+N pulsarDb/pfiles/gtpulsardb.par
+N pulsarDb/pulsarDb/PulsarDbApp.h
+N pulsarDb/pulsarDb/PulsarEph.h
+N pulsarDb/pulsarDb/PulsarDb.h
+
+No conflicts created by this import
+
+    *
