@@ -4,6 +4,7 @@
              James Peachey, HEASARC/GSSC
 */
 #include <algorithm>
+#include <ctime>
 #include <iostream>
 #include <cmath>
 #include <cctype>
@@ -12,6 +13,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/PulsarDb.h"
@@ -19,6 +21,7 @@
 
 #include "st_facilities/Env.h"
 
+#include "tip/Header.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
@@ -100,23 +103,30 @@ namespace pulsarDb {
     filter(expression);
   }
 
-  void PulsarDb::save(const std::string & out_file, bool append) const {
+  void PulsarDb::save(const std::string & out_file, const std::string & tpl_file) const {
     // Get alias to tip's file service, for brevity.
     IFileSvc & file_svc(IFileSvc::instance());
 
     // Find data directory for this app.
     std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
 
-    // Find template file.
-    std::string tpl_file = st_facilities::Env::appendFileName(data_dir, "PulsarEph.tpl");
-
-    if (!append || !file_svc.fileExists(out_file)) {
+    if (!file_svc.fileExists(out_file)) {
       // Create output file.
       file_svc.createFile(out_file, tpl_file);
     }
 
-    // Loop over remaining extensions in output file.
+    // Loop over all extensions in input file.
     FileSummary::const_iterator ext_itor = m_summary.begin();
+
+    // TODO: should this be an error?
+    // If input file was empty, just return.
+    if (m_summary.end() == ext_itor) return;
+
+    // Update keywords only in primary extension.
+    std::auto_ptr<Extension> primary(file_svc.editExtension(out_file, ext_itor->getExtId()));
+
+    // Update standard keywords.
+    updateKeywords(*primary);
 
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
     for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
@@ -130,6 +140,9 @@ namespace pulsarDb {
       // Open output table.
       std::auto_ptr<Table> out_table(file_svc.editTable(out_file, ext_itor->getExtId()));
 
+      // Update standard keywords.
+      updateKeywords(*out_table);
+
       // Start at beginning of both tables.
       Table::ConstIterator in_itor = in_table->begin();
       Table::Iterator out_itor = out_table->end();
@@ -140,6 +153,17 @@ namespace pulsarDb {
       // Copy all rows in table.
       for (; in_itor != in_table->end(); ++in_itor, ++out_itor) *out_itor = *in_itor;
     }
+  }
+
+  void PulsarDb::updateKeywords(tip::Extension & ext) const {
+    // Update necessary keywords.
+    tip::Header::KeyValCont_t keywords;
+    tip::Header & header(ext.getHeader());
+
+    keywords.push_back(tip::Header::KeyValPair_t("DATE", header.formatTime(time(0))));
+    keywords.push_back(tip::Header::KeyValPair_t("CREATOR", "gtpulsardb"));
+
+    header.update(keywords);
   }
 
 #if 0
