@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Jan 12 12:34:11 PST 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Tests for PulsarEph, PulsarEphCont, PulsarDb scheme.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jan 12 12:32:53 PST 2005
 pulsarDb/src
 
