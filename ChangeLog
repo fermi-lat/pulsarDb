@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Apr  6 16:28:23 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove an unused local variable.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v0r1p3, operation: add
 Package: pulsarDb
