@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/TimingModel.h"
 
@@ -26,8 +27,7 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  PulsarDb::PulsarDb(const std::string & in_file, bool bary_toa): m_in_file(in_file), m_spin_par_table(0), m_psr_name_table(0),
-    m_bary_toa(bary_toa) {
+  PulsarDb::PulsarDb(const std::string & in_file): m_in_file(in_file), m_spin_par_table(0), m_psr_name_table(0) {
     m_spin_par_table = IFileSvc::instance().editTable(in_file, "SPIN_PARAMETERS", "#row>0");
     m_psr_name_table = IFileSvc::instance().readTable(in_file, "ALTERNATIVE_NAMES");
   }
@@ -193,8 +193,8 @@ namespace pulsarDb {
     cont.clear();
 
     // Determine which columns hold toa info.
-    std::string toa_int_col = m_bary_toa ? "TOABARY_INT" : "TOAGEO_INT";
-    std::string toa_frac_col = m_bary_toa ? "TOABARY_FRAC" : "TOAGEO_FRAC";
+    std::string toa_int_col = "TOABARY_INT";
+    std::string toa_frac_col = "TOABARY_FRAC";
 
     // Iterate over current selection.
 // TODO: why doesn't ConstIterator work here???
@@ -215,16 +215,19 @@ namespace pulsarDb {
       r[toa_frac_col].get(toa_frac);
 
       // Combine separate parts of epoch and toa to get long double values.
-      long double epoch = (long double)(epoch_int) + epoch_frac;
+      TdbTime epoch = (long double)(epoch_int) + epoch_frac;
       long double toa = (long double)(toa_int) + toa_frac;
+
+      // TODO confirm that db uses tdb!
+      TdbTime valid_since = r["VALID_SINCE"].get();
 
       // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
       // whereas the valid_until argument to DatabaseEph is the absolute cutoff.
-      long double valid_until = r["VALID_UNTIL"].get() + 1.L;
+      TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
 
       // Add the ephemeris to the container.
-      cont.insertEph(DatabaseEph(m_model, r["VALID_SINCE"].get(), valid_until, epoch, toa, r["F0"].get(), r["F1"].get(),
-        r["F2"].get()));
+      cont.insertEph(DatabaseEph(m_model, valid_since, valid_until, epoch, TdbTime(toa),
+        r["F0"].get(), r["F1"].get(), r["F2"].get()));
     }
   }
 
@@ -232,26 +235,26 @@ namespace pulsarDb {
     return m_spin_par_table->getNumRecords();
   }
 
-  const PulsarEph & PulsarEphCont::chooseEph(long double mjd, bool strict_validity) const {
+  const PulsarEph & PulsarEphCont::chooseEph(const AbsoluteTime & t, bool strict_validity) const {
     if (m_ephemerides.empty()) throw std::runtime_error("PulsarEphCont::chooseEph found no candidate ephemerides");
 
     if (!strict_validity) {
       try {
-        return chooseFromValidEph(mjd);
+        return chooseFromValidEph(t);
       } catch (const std::exception &) {
-        return chooseFromAllEph(mjd);
+        return chooseFromAllEph(t);
       }
     }
 
-    return chooseFromValidEph(mjd);
+    return chooseFromValidEph(t);
   }
 
-  const PulsarEph & PulsarEphCont::chooseFromValidEph(long double mjd) const {
+  const PulsarEph & PulsarEphCont::chooseFromValidEph(const AbsoluteTime & t) const {
     Cont_t::const_iterator candidate = m_ephemerides.end();
 
     for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
-      // See if this ephemeris contains the mjd.
-      if ((*itor)->valid_since() <= mjd && mjd < (*itor)->valid_until()) {
+      // See if this ephemeris contains the time.
+      if ((*itor)->valid_since() <= t && t < (*itor)->valid_until()) {
 
         // See if this is the first candidate, which is automatically accepted.
         if (m_ephemerides.end() == candidate) {
@@ -271,20 +274,20 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (m_ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "PulsarEphCont::chooseFromValidEph could not find an ephemeris for time " << mjd;
+      os << "PulsarEphCont::chooseFromValidEph could not find an ephemeris for time " << t;
       throw std::runtime_error(os.str());
     }
 
     return *(*candidate);
   }
 
-  const PulsarEph & PulsarEphCont::chooseFromAllEph(long double mjd) const {
+  const PulsarEph & PulsarEphCont::chooseFromAllEph(const AbsoluteTime & t) const {
     Cont_t::const_iterator candidate = m_ephemerides.begin();
 
-    double diff = std::min(fabs(mjd - (*candidate)->valid_since()), fabs(mjd - (*candidate)->valid_until()));
+    Duration diff = std::min((t - (*candidate)->valid_since()).op(fabs), (t - (*candidate)->valid_until()).op(fabs));
     
     for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
-      double new_diff = std::min(fabs(mjd - (*itor)->valid_since()), fabs(mjd - (*itor)->valid_until()));
+      Duration new_diff = std::min((t - (*candidate)->valid_since()).op(fabs), (t - (*candidate)->valid_until()).op(fabs));
       if (new_diff < diff) {
         candidate = itor;
         diff = new_diff;
@@ -294,7 +297,7 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (m_ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "PulsarEphCont::chooseFromAllEph could not find an ephemeris for time " << mjd;
+      os << "PulsarEphCont::chooseFromAllEph could not find an ephemeris for time " << t;
       throw std::runtime_error(os.str());
     }
 
