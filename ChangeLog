@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Mar  4 12:52:10 PST 2005
+pulsarDb/data
+
+Modified Files:
+	PulsarEph.tpl 
+Log Message:
+Use empty strings rather than blanks for ORIGIN and AUTHOR.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Feb 25 13:46:25 PST 2005
 pulsarDb/src/test
 
