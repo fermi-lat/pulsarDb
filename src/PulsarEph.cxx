@@ -8,11 +8,6 @@
 
 namespace pulsarDb {
 
-  DatabaseEph::DatabaseEph(const TimingModel & model, long double valid_since, long double valid_until, long epoch_int,
-    double epoch_frac, long toa_int, double toa_frac, double f0, double f1, double f2):
-    PulsarEph(valid_since, valid_until, (long double)(epoch_int) + epoch_frac), m_model(&model),
-    m_toa((long double)(toa_int) + toa_frac), m_f0(f0), m_f1(f1), m_f2(f2) {}
-
   DatabaseEph::DatabaseEph(const TimingModel & model, long double valid_since, long double valid_until, long double epoch,
     long double toa, double f0, double f1, double f2): PulsarEph(valid_since, valid_until, epoch), m_model(&model),
     m_toa(toa), m_f0(f0), m_f1(f1), m_f2(f2) {}

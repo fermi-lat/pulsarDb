@@ -45,20 +45,6 @@ namespace pulsarDb {
       /** \brief Create pulsar ephemeris with the given properties.
           \param valid_since The start time of the valid interval.
           \param valid_until The stop time of the valid interval.
-          \param epoch_int The integer portion of the epoch (time origin).
-          \param epoch_frac The fractional portion of the epoch (time origin).
-          \param toa_int The integer portion of the pulse arrival time.
-          \param toa_frac The fractional portion of the pulse arrival time.
-          \param f0 The frequency at the epoch (time origin).
-          \param f1 The first time derivative of the frequency at the epoch (time origin).
-          \param f2 The second time derivative of the frequency at the epoch (time origin).
-      */
-      DatabaseEph(const TimingModel & model, long double valid_since, long double valid_until, long epoch_int, double epoch_frac,
-        long toa_int, double toa_frac, double f0, double f1, double f2);
-
-      /** \brief Create pulsar ephemeris with the given properties.
-          \param valid_since The start time of the valid interval.
-          \param valid_until The stop time of the valid interval.
           \param epoch The epoch (time origin).
           \param toa_int The pulse arrival time.
           \param f0 The frequency at the epoch (time origin).
