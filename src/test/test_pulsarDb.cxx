@@ -9,9 +9,9 @@
 #include <string>
 
 #include "pulsarDb/AbsoluteTime.h"
+#include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/GlastTime.h"
 #include "pulsarDb/PulsarDb.h"
-#include "pulsarDb/TimeSystemTime.h"
 #include "pulsarDb/TimingModel.h"
 
 #include "st_app/StApp.h"
@@ -177,7 +177,7 @@ void PulsarDbTest::testChooser() {
   // Write this output to form basis for comparing future tests.
   database.save("chooser_db.fits");
 
-  double pick_time = 54012.5;
+  TdbTime pick_time = 54012.5;
 
   PulsarEphCont eph_cont;
 
@@ -185,17 +185,17 @@ void PulsarDbTest::testChooser() {
 
   // Test one with no tiebreaking needed.
   const PulsarEph * chosen = &eph_cont.chooseEph(pick_time);
-  if (54262. != chosen->epoch())
+  if (TdbTime(54262.) != chosen->epoch())
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
 
   // Test one with tiebreaking.
-  pick_time = 53545.5;
+  pick_time.setMjd(53545.5);
   chosen = &eph_cont.chooseEph(pick_time);
-  if (53891. != chosen->epoch())
+  if (TdbTime(53891.) != chosen->epoch())
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
 
   // Test one which is too early.
-  pick_time = 53544.5;
+  pick_time.setMjd(53544.5);
   try {
     chosen = &eph_cont.chooseEph(pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -204,7 +204,7 @@ void PulsarDbTest::testChooser() {
   }
 
   // Test one which is too late.
-  pick_time = 55579.5;
+  pick_time.setMjd(55579.5);
   try {
     chosen = &eph_cont.chooseEph(pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -213,7 +213,7 @@ void PulsarDbTest::testChooser() {
   }
 
   // Try one which is too late, but without being strict about validity.
-  pick_time = 55579.5;
+  pick_time.setMjd(55579.5);
   try {
     chosen = &eph_cont.chooseEph(pick_time, false);
   } catch (const std::runtime_error &) {
@@ -230,7 +230,7 @@ void PulsarDbTest::testChooser() {
   database.getEph(eph_cont);
 
   // Try to choose an ephemeris from the empty set.
-  pick_time = 55579.5;
+  pick_time.setMjd(55579.5);
   try {
     chosen = &eph_cont.chooseEph(pick_time);
     ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
@@ -338,21 +338,21 @@ void PulsarDbTest::testAbsoluteTime() {
 
   std::cerr.precision(24);
 
-  TtSystemTime tt = 32.184L / 86400.;
-  TaiSystemTime tai(tt);
+  TtTime tt = 32.184L / 86400.;
+  TaiTime tai(tt);
   if (0.L != tai.mjd())
-    ErrorMsg(method_name) << "after TaiSystemTime tai(tt), tai.mjd() returned " << tai.mjd() << ", not 0.L." << std::endl;
+    ErrorMsg(method_name) << "after TaiTime tai(tt), tai.mjd() returned " << tai.mjd() << ", not 0.L." << std::endl;
 
-  tai = TaiSystemTime(-tt.mjd());
+  tai = TaiTime(-tt.mjd());
   if (-tt.mjd() != tai.mjd())
-    ErrorMsg(method_name) << "after tai = TaiSystemTime(-tt.mjd()), tai.mjd() returned " << tai.mjd() << ", not " << -tt.mjd() <<
+    ErrorMsg(method_name) << "after tai = TaiTime(-tt.mjd()), tai.mjd() returned " << tai.mjd() << ", not " << -tt.mjd() <<
       std::endl;
 
   tt = tai;
   if (0.L != tt.mjd())
     ErrorMsg(method_name) << "after tt = tai, tt.mjd() returned " << tt.mjd() << ", not 0.L." << std::endl;
 
-  GlastTtSystemTime gtt;
+  GlastTtTime gtt;
   tt = gtt;
   if (54101.L != tt.mjd())
     ErrorMsg(method_name) << "after tt = gtt, tt.mjd() returned " << tt.mjd() << ", not 54101.L." << std::endl;
@@ -362,12 +362,12 @@ void PulsarDbTest::testAbsoluteTime() {
     ErrorMsg(method_name) << "after tai = gtt, tai.mjd() returned " << tai.mjd() << ", not " << 54101.L - 32.184L / 86400.L <<
       std::endl;
 
-  gtt = GlastTtSystemTime(100.);
+  gtt = GlastTtTime(100.);
   gtt = tt;
   if (0. != gtt.elapsed())
     ErrorMsg(method_name) << "after gtt = tt, gtt.elapsed() returned " << gtt.elapsed() << ", not 0.L." << std::endl;
 
-  gtt = GlastTtSystemTime(100.);
+  gtt = GlastTtTime(100.);
   gtt = tai;
   if (0. != gtt.elapsed())
     ErrorMsg(method_name) << "after gtt = tai, gtt.elapsed() returned " << gtt.elapsed() << ", not 0.L." << std::endl;
@@ -379,14 +379,16 @@ void PulsarDbTest::testPulsarEph() {
   double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph(0., 1., 123.456789, 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
   // Create a period ephemeris.
   // This is a set of values known to be the inverses of the frequency coefficients above.
-  PeriodEph p_eph(0., 1., 123.456789, 0.11, 88.8888888888888888888889, 1.777777777777777777777778, 0.0177777777777777777777778);
+  PeriodEph p_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 88.8888888888888888888889,
+    1.777777777777777777777778, 0.0177777777777777777777778);
 
   // They should agree completely.
-  if (fabs(f_eph.epoch() / p_eph.epoch() - 1.) > epsilon)
+  //if (fabs(f_eph.epoch() / p_eph.epoch() - 1.) > epsilon)
+  if (f_eph.epoch() != p_eph.epoch())
     ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
 
   if (fabs(f_eph.phi0() / p_eph.phi0() - 1.) > epsilon)
@@ -408,19 +410,19 @@ void PulsarDbTest::testTimingModel() {
   double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph(0., 1., 123.456789, 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
   TimingModel model;
 
-  double phase = model.calcPhase(f_eph, 223.456789);
+  double phase = model.calcPhase(f_eph, GlastTtTime(223.456789));
 
   // Result determined independently.
   if (fabs(phase/.235 - 1.) > epsilon)
     ErrorMsg(method_name) << "TimingModel::calcPhase produced phase == " << phase << " not .235" << std::endl;
 
   // Change ephemeris to produce a noticeable effect.
-  FrequencyEph f_eph2(0., 1., 123.4567891234567, .11, 1.125e-2, -2.25e-4, 13.5e-6);
-  double ev_time = 223.4567891234567;
+  FrequencyEph f_eph2(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.4567891234567), .11, 1.125e-2, -2.25e-4, 13.5e-6);
+  GlastTtTime ev_time = 223.4567891234567;
 
   // Test frequency computation.
   FrequencyEph f_eph3 = model.calcEphemeris(f_eph2, ev_time);
@@ -439,7 +441,8 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
   }
 
-  double pdot_t = model.calcPdotCorr(f_eph2, ev_time);
+  model.correctPdot(f_eph2, ev_time);
+  double pdot_t = ev_time.elapsed();
   double correct_t = 323.4567891234567;
 
   // For this test, time difference between these two values must be << 1.e-6. (1 microsecond.)

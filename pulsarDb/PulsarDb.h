@@ -17,6 +17,8 @@ namespace tip {
 
 namespace pulsarDb {
 
+  class AbsoluteTime;
+
   /** \class PulsarEphCont
       \brief Abstraction providing access to a container of pulsar ephemerides.
   */
@@ -24,9 +26,13 @@ namespace pulsarDb {
     public:
       typedef std::vector<PulsarEph *> Cont_t;
 
-      virtual ~PulsarEphCont() {}
+      virtual ~PulsarEphCont() { clear(); }
 
-      void clear() { m_ephemerides.clear(); }
+      void clear() {
+        for (Cont_t::reverse_iterator itor = m_ephemerides.rbegin(); itor != m_ephemerides.rend(); ++itor)
+          delete (*itor);
+        m_ephemerides.clear();
+      }
 
       void insertEph(const PulsarEph & eph) { m_ephemerides.push_back(eph.clone()); }
 
@@ -37,17 +43,17 @@ namespace pulsarDb {
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
-          \param mjd The MJD time (TT system).
+          \param t The time of interest.
           \param strict_validity If false, the ephemeris closest to the given time will be returned even if the time
                  is outside its interval of validity. If true, only an ephemeris which contains the time in its interval
                  of validity will be returned. In either case, if no ephemeris meets the requirements, an exception
                  is thrown.
       */
-      virtual const PulsarEph & chooseEph(long double mjd, bool strict_validity = true) const;
+      virtual const PulsarEph & chooseEph(const AbsoluteTime & t, bool strict_validity = true) const;
 
     protected:
-      virtual const PulsarEph & chooseFromAllEph(long double mjd) const;
-      virtual const PulsarEph & chooseFromValidEph(long double mjd) const;
+      virtual const PulsarEph & chooseFromAllEph(const AbsoluteTime & t) const;
+      virtual const PulsarEph & chooseFromValidEph(const AbsoluteTime & t) const;
 
       Cont_t m_ephemerides;
   };
@@ -61,9 +67,8 @@ namespace pulsarDb {
                  This opens a copy of the file in memory. The version on disk will be
                  unaffected.
           \param in_file The input file name.
-          \param bary_toa Flag indicating whether toa is barycentered or geocentered.
       */
-      PulsarDb(const std::string & in_file, bool bary_toa = true);
+      PulsarDb(const std::string & in_file);
 
       virtual ~PulsarDb();
 
@@ -110,7 +115,6 @@ namespace pulsarDb {
       std::string m_in_file;
       tip::Table * m_spin_par_table;
       const tip::Table * m_psr_name_table;
-      bool m_bary_toa;
   };
 
 }
