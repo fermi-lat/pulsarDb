@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: peachey  Fri Dec 17 10:48:55 PST 2004
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Include cmath.
+    *
+------------------------------------------------------------
 User: peachey  Wed Nov 24 10:36:04 PST 2004
 pulsarDb
 
