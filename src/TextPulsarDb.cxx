@@ -3,6 +3,7 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <cctype>
 #include <fstream>
 #include <stdexcept>
 
@@ -54,6 +55,7 @@ namespace pulsarDb {
     Row field_name;
 
     // Read table until extension name is found.
+    std::string extension;
     while (in_table) {
       // Get next line.
       in_table.getline(buf, s_line_size);
@@ -63,7 +65,7 @@ namespace pulsarDb {
 
       if (row.size() > 1) throw std::runtime_error(std::string("Expected name of an extension on line ") + buf);
       else if (row.size() == 1) {
-        std::string extension = *row.begin();
+        extension = *row.begin();
         out_table.reset(IFileSvc::instance().editTable(m_in_file, extension));
         // Get list of fields in the table.
         Table::FieldCont field = out_table->getValidFields();
@@ -83,6 +85,11 @@ namespace pulsarDb {
       parseLine(buf, row);
 
       if (row.size() > 0) {
+        for (Row::iterator itor = row.begin(); itor != row.end(); ++itor) {
+          // Convert to lowercase, because field names are all lowercase.
+          for (std::string::iterator s_itor = itor->begin(); s_itor != itor->end(); ++s_itor) *s_itor = tolower(*s_itor);
+        }
+
         // Populate input_column number as a function of output column name.
         for (Row::iterator itor = field_name.begin(); itor != field_name.end(); ++itor) {
           std::vector<std::string>::iterator found_itor = std::find(row.begin(), row.end(), *itor);
@@ -94,6 +101,9 @@ namespace pulsarDb {
       }
     }
   
+    if (found_map.empty())
+      throw std::runtime_error("File " + in_file + " does not have any columns in common with output extension " + extension);
+
     // Populate output table starting at the beginning.
     Table::Iterator out_itor = out_table->begin();
 
@@ -108,9 +118,9 @@ namespace pulsarDb {
       if (row.size() == 0) continue;
 
       // Make sure the correct number of fields are found.
-      if (row.size() != field_name.size()) {
+      if (row.size() != found_map.size()) {
         std::ostringstream os;
-        os << "Line " << buf << " has " << row.size() << " row, not " << field_name.size() << ", as expected";
+        os << "Line " << buf << " has " << row.size() << " row, not " << found_map.size() << ", as expected";
         throw std::runtime_error(os.str());
       }
   
