@@ -32,8 +32,7 @@ namespace pulsarDb {
 
       /** \brief Choose the best ephemeris for the given MJD time. Throws an exception if no ephemeris is found.
 
-                 The ephmeris returned contains the time in the half-open interval [VALID_SINCE, VALID_UNTIL + 1.)
-                 (One is added to the endpoint because the validity expires at the end of that day.)
+                 The ephmeris returned contains the time in the half-open interval [VALID_SINCE, VALID_UNTIL)
                  If more than one candidate ephemeris contains the time, the ephemeris with the latest start
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris

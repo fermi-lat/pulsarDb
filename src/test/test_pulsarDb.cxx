@@ -185,20 +185,20 @@ void PulsarDbTest::testChooser() {
 
   // Test one with no tiebreaking needed.
   const PulsarEph * chosen = &eph_cont.chooseEph(pick_time);
-  if (54514 != chosen->valid_until())
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with VALID_UNTIL == " << chosen->valid_until() << std::endl;
+  if (54262. != chosen->epoch())
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
 
   // Test one with tiebreaking.
   pick_time = 53545.5;
   chosen = &eph_cont.chooseEph(pick_time);
-  if (54238 != chosen->valid_until())
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with VALID_UNTIL == " << chosen->valid_until() << std::endl;
+  if (53891. != chosen->epoch())
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
 
   // Test one which is too early.
   pick_time = 53544.5;
   try {
     chosen = &eph_cont.chooseEph(pick_time);
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with VALID_UNTIL == " << chosen->valid_until() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
@@ -207,12 +207,12 @@ void PulsarDbTest::testChooser() {
   pick_time = 55579.5;
   try {
     chosen = &eph_cont.chooseEph(pick_time);
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with VALID_UNTIL == " << chosen->valid_until() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
 
-  // Extrapolate one which is too late.
+  // Try one which is too late, but without being strict about validity.
   pick_time = 55579.5;
   try {
     chosen = &eph_cont.chooseEph(pick_time, false);

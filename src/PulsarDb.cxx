@@ -202,15 +202,29 @@ namespace pulsarDb {
       // For convenience, get record from iterator.
       Table::ConstRecord & r(*itor);
 
-      // Integral values must be looked up less conveniently.
+      // Epoch and toa are split into int and frac parts.
       long epoch_int = 0;
+      double epoch_frac = 0.;
       long toa_int = 0;
+      double toa_frac = 0.;
+
+      // Read the separate parts from the file.
       r["EPOCH_INT"].get(epoch_int);
+      r["EPOCH_FRAC"].get(epoch_frac);
       r[toa_int_col].get(toa_int);
+      r[toa_frac_col].get(toa_frac);
+
+      // Combine separate parts of epoch and toa to get long double values.
+      long double epoch = (long double)(epoch_int) + epoch_frac;
+      long double toa = (long double)(toa_int) + toa_frac;
+
+      // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
+      // whereas the valid_until argument to DatabaseEph is the absolute cutoff.
+      long double valid_until = r["VALID_UNTIL"].get() + 1.L;
 
       // Add the ephemeris to the container.
-      cont.insertEph(DatabaseEph(m_model, r["VALID_SINCE"].get(), r["VALID_UNTIL"].get(), epoch_int, r["EPOCH_FRAC"].get(),
-        toa_int, r[toa_frac_col].get(), r["F0"].get(), r["F1"].get(), r["F2"].get()));
+      cont.insertEph(DatabaseEph(m_model, r["VALID_SINCE"].get(), valid_until, epoch, toa, r["F0"].get(), r["F1"].get(),
+        r["F2"].get()));
     }
   }
 
@@ -237,7 +251,7 @@ namespace pulsarDb {
 
     for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
       // See if this ephemeris contains the mjd.
-      if ((*itor)->valid_since() <= mjd && mjd < (*itor)->valid_until() + 1.) {
+      if ((*itor)->valid_since() <= mjd && mjd < (*itor)->valid_until()) {
 
         // See if this is the first candidate, which is automatically accepted.
         if (m_ephemerides.end() == candidate) {
