@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: peachey  Wed Jan 19 13:58:34 PST 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h PulsarEph.h 
+Added Files:
+	AbsoluteTime.h CanonicalTime.h Duration.h GlastTime.h 
+	TimeConstants.h TimingModel.h 
+Log Message:
+Use new AbsoluteTime and related classes instead of hard-wired
+MJD TT time system. Remove option for using geocentric toa since this gives
+wrong results. Fix some memory leaks and an access bugs related to the use
+of clone().
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jan 12 13:52:51 PST 2005
 pulsarDb/src/test
 
