@@ -28,36 +28,7 @@ namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & in_file, bool edit_in_place): m_in_file(in_file), m_summary(), m_table(),
     m_spin_par_table(0), m_psr_name_table(0) {
-    // Alias for file service singleton.
-    IFileSvc & file_svc(IFileSvc::instance());
-
-    // Get summary of extensions in input file.
-    file_svc.getFileSummary(in_file, m_summary);
-
-    // Loop over remaining extensions in output file.
-    FileSummary::const_iterator ext_itor = m_summary.begin();
-
-    // Skip the primary by incrementing the iterator in the first clause of the for loop.
-    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
-      Table * table = 0;
-      std::string ext_name = ext_itor->getExtId();
-      if (edit_in_place) {
-        table = file_svc.editTable(in_file, ext_name);
-      } else {
-        table = file_svc.editTable(in_file, ext_name, "#row>0");
-      }
-      m_table.insert(std::make_pair(ext_name, table));
-    }
-
-    // Find spin parameter table.
-    TableCont::iterator itor = m_table.find("SPIN_PARAMETERS");
-    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
-    m_spin_par_table = itor->second;
-    
-    // Find pulsar name table.
-    itor = m_table.find("ALTERNATIVE_NAMES");
-    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
-    m_psr_name_table = itor->second;
+    loadTables(edit_in_place);
   }
 
   PulsarDb::~PulsarDb() {
@@ -129,7 +100,53 @@ namespace pulsarDb {
     filter(expression);
   }
 
-  void PulsarDb::save(const std::string & out_file) {
+  void PulsarDb::save(const std::string & out_file, bool append) const {
+    // Get alias to tip's file service, for brevity.
+    IFileSvc & file_svc(IFileSvc::instance());
+
+    // Find data directory for this app.
+    std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
+
+    // Find template file.
+    std::string tpl_file = st_facilities::Env::appendFileName(data_dir, "PulsarEph.tpl");
+
+    if (!append || !file_svc.fileExists(out_file)) {
+      // Create output file.
+      file_svc.createFile(out_file, tpl_file);
+    }
+
+    // Loop over remaining extensions in output file.
+    FileSummary::const_iterator ext_itor = m_summary.begin();
+
+    // Skip the primary by incrementing the iterator in the first clause of the for loop.
+    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
+      TableCont::const_iterator table_itor = m_table.find(ext_itor->getExtId());
+      if (m_table.end() == table_itor)
+        throw std::logic_error("Could not find extension \"" + ext_itor->getExtId() + "\" in file \"" + m_in_file + "\"");
+
+      // Input table pointer.
+      const Table * in_table = table_itor->second;
+
+      // Open output table.
+      std::auto_ptr<Table> out_table(file_svc.editTable(out_file, ext_itor->getExtId()));
+
+      // Start at beginning of both tables.
+      Table::ConstIterator in_itor = in_table->begin();
+      Table::Iterator out_itor = out_table->end();
+
+      // TODO: Resize output to match input. Requires tip to handle random access iterators.
+//      out_table->setNumRecords(in_table->getNumRecords() + out_table->getNumRecords());
+
+      // Copy all rows in table.
+      for (; in_itor != in_table->end(); ++in_itor, ++out_itor) *out_itor = *in_itor;
+    }
+  }
+
+#if 0
+// TODO: This was originally a save() method which removed unneeded information. If we want such
+// a "pruning" capability, it could be modified to prune the input file. Then it would work similarly
+// to the filter methods, which also affect the input file.
+  void PulsarDb::prune() {
     // Get alias to tip's file service, for brevity.
     IFileSvc & file_svc(IFileSvc::instance());
 
@@ -155,15 +172,17 @@ namespace pulsarDb {
       observer_codes.insert(tmp);
     }
 
-    // Create output file.
-    file_svc.createFile(out_file, tpl_file);
+    if (!append || !file_svc.fileExists(out_file)) {
+      // Create output file.
+      file_svc.createFile(out_file, tpl_file);
+    }
 
     // Loop over remaining extensions in output file.
     FileSummary::const_iterator ext_itor = m_summary.begin();
 
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
     for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
-      TableCont::iterator table_itor = m_table.find(ext_itor->getExtId());
+      TableCont::const_iterator table_itor = m_table.find(ext_itor->getExtId());
       if (m_table.end() == table_itor)
         throw std::logic_error("Could not find extension \"" + ext_itor->getExtId() + "\" in file \"" + m_in_file + "\"");
 
@@ -175,7 +194,7 @@ namespace pulsarDb {
 
       // Start at beginning of both tables.
       Table::ConstIterator in_itor = in_table->begin();
-      Table::Iterator out_itor = out_table->begin();
+      Table::Iterator out_itor = out_table->end();
 
       if (ext_itor->getExtId() == "ORBITAL_PARAMETERS" || ext_itor->getExtId() == "ALTERNATIVE_NAMES") {
         // Copy only records which match the selected pulsar name.
@@ -203,13 +222,14 @@ namespace pulsarDb {
         }
       } else {
         // Resize output to match input.
-        out_table->setNumRecords(in_table->getNumRecords());
+//        out_table->setNumRecords(in_table->getNumRecords());
 
         // Copy all rows in table.
         for (; in_itor != in_table->end(); ++in_itor, ++out_itor) *out_itor = *in_itor;
       }
     }
   }
+#endif
 
   void PulsarDb::getEph(PulsarEphCont & cont) const {
     // Refill this container.
@@ -325,6 +345,42 @@ namespace pulsarDb {
     }
 
     return *(*candidate);
+  }
+
+  PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_psr_name_table(0) {
+  }
+
+  void PulsarDb::loadTables(bool edit_in_place) {
+    // Alias for file service singleton.
+    IFileSvc & file_svc(IFileSvc::instance());
+
+    // Get summary of extensions in input file.
+    file_svc.getFileSummary(m_in_file, m_summary);
+
+    // Loop over remaining extensions in output file.
+    FileSummary::const_iterator ext_itor = m_summary.begin();
+
+    // Skip the primary by incrementing the iterator in the first clause of the for loop.
+    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
+      Table * table = 0;
+      std::string ext_name = ext_itor->getExtId();
+      if (edit_in_place) {
+        table = file_svc.editTable(m_in_file, ext_name);
+      } else {
+        table = file_svc.editTable(m_in_file, ext_name, "#row>0");
+      }
+      m_table.insert(std::make_pair(ext_name, table));
+    }
+
+    // Find spin parameter table.
+    TableCont::iterator itor = m_table.find("SPIN_PARAMETERS");
+    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
+    m_spin_par_table = itor->second;
+    
+    // Find pulsar name table.
+    itor = m_table.find("ALTERNATIVE_NAMES");
+    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
+    m_psr_name_table = itor->second;
   }
 
 }
