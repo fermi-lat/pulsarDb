@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: peachey  Wed Jan 19 13:58:34 PST 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use new AbsoluteTime and related classes instead of hard-wired
+MJD TT time system. Remove option for using geocentric toa since this gives
+wrong results. Fix some memory leaks and an access bugs related to the use
+of clone().
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Jan 19 13:58:34 PST 2005
 pulsarDb/src
 
 Modified Files:
