@@ -14,6 +14,7 @@
 #include <string>
 
 #include "pulsarDb/PulsarDb.h"
+#include "pulsarDb/TimingModel.h"
 
 #include "st_facilities/Env.h"
 
@@ -25,12 +26,13 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  PulsarDb::PulsarDb(const std::string & in_file): m_in_file(in_file), m_spin_par_table(0), m_psr_name_table(0) {
+  PulsarDb::PulsarDb(const std::string & in_file, bool bary_toa): m_in_file(in_file), m_spin_par_table(0), m_psr_name_table(0),
+    m_bary_toa(bary_toa) {
     m_spin_par_table = IFileSvc::instance().editTable(in_file, "SPIN_PARAMETERS", "#row>0");
     m_psr_name_table = IFileSvc::instance().readTable(in_file, "ALTERNATIVE_NAMES");
   }
 
-  PulsarDb::~PulsarDb() throw() { delete m_psr_name_table; delete m_spin_par_table; }
+  PulsarDb::~PulsarDb() { delete m_psr_name_table; delete m_spin_par_table; }
 
   void PulsarDb::filter(const std::string & expression) {
     m_spin_par_table->filterRows(expression);
@@ -186,11 +188,38 @@ namespace pulsarDb {
     }
   }
 
-  const PulsarEph & PulsarDb::chooseEph(long double mjd, bool extrapolate) const {
-    // Make sure ephemerides are already loaded.
-    getEph();
-    
-    if (m_ephemerides.empty()) throw std::runtime_error("PulsarDb::chooseEph found no candidate ephemerides");
+  void PulsarDb::getEph(PulsarEphCont & cont) const {
+    // Refill this container.
+    cont.clear();
+
+    // Determine which columns hold toa info.
+    std::string toa_int_col = m_bary_toa ? "TOABARY_INT" : "TOAGEO_INT";
+    std::string toa_frac_col = m_bary_toa ? "TOABARY_FRAC" : "TOAGEO_FRAC";
+
+    // Iterate over current selection.
+// TODO: why doesn't ConstIterator work here???
+    for (Table::Iterator itor = m_spin_par_table->begin(); itor != m_spin_par_table->end(); ++itor) {
+      // For convenience, get record from iterator.
+      Table::ConstRecord & r(*itor);
+
+      // Integral values must be looked up less conveniently.
+      long epoch_int = 0;
+      long toa_int = 0;
+      r["EPOCH_INT"].get(epoch_int);
+      r[toa_int_col].get(toa_int);
+
+      // Add the ephemeris to the container.
+      cont.insertEph(DatabaseEph(m_model, r["VALID_SINCE"].get(), r["VALID_UNTIL"].get(), epoch_int, r["EPOCH_FRAC"].get(),
+        toa_int, r[toa_frac_col].get(), r["F0"].get(), r["F1"].get(), r["F2"].get()));
+    }
+  }
+
+  int PulsarDb::getNumEph() const {
+    return m_spin_par_table->getNumRecords();
+  }
+
+  const PulsarEph & PulsarEphCont::chooseEph(long double mjd, bool extrapolate) const {
+    if (m_ephemerides.empty()) throw std::runtime_error("PulsarEphCont::chooseEph found no candidate ephemerides");
 
     if (extrapolate) {
       try {
@@ -203,51 +232,23 @@ namespace pulsarDb {
     return chooseValidEph(mjd);
   }
 
-  const PulsarEphCont & PulsarDb::getEph() const {
-    // Refill this container.
-    m_ephemerides.clear();
+  const PulsarEph & PulsarEphCont::chooseValidEph(long double mjd) const {
+    Cont_t::const_iterator candidate = m_ephemerides.end();
 
-    // Iterate over current selection.
-// TODO: why doesn't ConstIterator work here???
-    for (Table::Iterator itor = m_spin_par_table->begin(); itor != m_spin_par_table->end(); ++itor) {
-      // For convenience, get record from iterator.
-      Table::ConstRecord & r(*itor);
-
-      // Integral values must be looked up less conveniently.
-      long epoch_int = 0;
-      long toa_int = 0;
-      r["EPOCH_INT"].get(epoch_int);
-      r["TOAGEO_INT"].get(toa_int);
-
-      // Add the ephemeris to the container.
-      m_ephemerides.push_back(PulsarEph(r["VALID_SINCE"].get(), r["VALID_UNTIL"].get(), epoch_int, r["EPOCH_FRAC"].get(),
-        toa_int, r["TOAGEO_FRAC"].get(), 0., r["F0"].get(), r["F1"].get(), r["F2"].get()));
-    }
-
-    return m_ephemerides;
-  }
-
-  int PulsarDb::getNumEph() const {
-    return m_spin_par_table->getNumRecords();
-  }
-
-  const PulsarEph & PulsarDb::chooseValidEph(long double mjd) const {
-    PulsarEphCont::const_iterator candidate = m_ephemerides.end();
-
-    for (PulsarEphCont::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
+    for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
       // See if this ephemeris contains the mjd.
-      if (itor->m_since <= mjd && mjd < itor->m_until + 1.) {
+      if ((*itor)->valid_since() <= mjd && mjd < (*itor)->valid_until() + 1.) {
 
         // See if this is the first candidate, which is automatically accepted.
         if (m_ephemerides.end() == candidate) {
           candidate = itor;
         // Otherwise, prefer the eph which starts later.
-        } else if (itor->m_since > candidate->m_since) {
+        } else if ((*itor)->valid_since() > (*candidate)->valid_since()) {
           candidate = itor;
-        } else if (itor->m_since == candidate->m_since) {
+        } else if ((*itor)->valid_since() == (*candidate)->valid_since()) {
           // The two start at the same time, so break the tie based on which one is valid longer.
           // Note that in a tie here, the one selected is the one appearing last in the sequence.
-          if (itor->m_until >= candidate->m_until)
+          if ((*itor)->valid_until() >= (*candidate)->valid_until())
             candidate = itor;
         }
       }
@@ -256,33 +257,28 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (m_ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "PulsarDb::chooseValidEph could not find an ephemeris for time " << mjd;
+      os << "PulsarEphCont::chooseValidEph could not find an ephemeris for time " << mjd;
       throw std::runtime_error(os.str());
     }
 
-// START HERE: Using TimingModel to compute phi0 from toa_geo/toa_bary
-// Caller must specify time system.
-// Then m_toa in PulsarEph goes away.
-    // computePhi0(*candidate);
-
-    return *candidate;
+    return *(*candidate);
   }
 
   // Note this method assumes there is at least one candidate ephemeris.
-  const PulsarEph & PulsarDb::extrapolateEph(long double mjd) const {
-    PulsarEphCont::const_iterator candidate = m_ephemerides.begin();
+  const PulsarEph & PulsarEphCont::extrapolateEph(long double mjd) const {
+    Cont_t::const_iterator candidate = m_ephemerides.begin();
 
-    double diff = std::min(fabs(mjd - candidate->m_since), fabs(mjd - candidate->m_until));
+    double diff = std::min(fabs(mjd - (*candidate)->valid_since()), fabs(mjd - (*candidate)->valid_until()));
     
-    for (PulsarEphCont::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
-      double new_diff = std::min(fabs(mjd - itor->m_since), fabs(mjd - itor->m_until));
+    for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
+      double new_diff = std::min(fabs(mjd - (*itor)->valid_since()), fabs(mjd - (*itor)->valid_until()));
       if (new_diff < diff) {
         candidate = itor;
         diff = new_diff;
       }
     }
 
-    return *candidate;
+    return *(*candidate);
   }
 
 }

@@ -9,12 +9,46 @@
 #include <string>
 
 #include "pulsarDb/PulsarEph.h"
+#include "pulsarDb/TimingModel.h"
 
 namespace tip {
   class Table;
 }
 
 namespace pulsarDb {
+
+  /** \class PulsarEphCont
+      \brief Abstraction providing access to a container of pulsar ephemerides.
+  */
+  class PulsarEphCont {
+    public:
+      typedef std::vector<PulsarEph *> Cont_t;
+
+      virtual ~PulsarEphCont() {}
+
+      void clear() { m_ephemerides.clear(); }
+
+      void insertEph(const PulsarEph & eph) { m_ephemerides.push_back(eph.clone()); }
+
+      /** \brief Choose the best ephemeris for the given MJD time. Throws an exception if no ephemeris is found.
+
+                 The ephmeris returned contains the time in the half-open interval [VALID_SINCE, VALID_UNTIL + 1.)
+                 (One is added to the endpoint because the validity expires at the end of that day.)
+                 If more than one candidate ephemeris contains the time, the ephemeris with the latest start
+                 time is chosen. If more than one candidate has the same start time, the one with the latest
+                 stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
+                 which appears last in the table is selected.
+          \param mjd The MJD time (TT system).
+          \param extrapolate Flag to determine whether to return an ephemeris if no candidate ephemerides contain the mjd.
+      */
+      virtual const PulsarEph & chooseEph(long double mjd, bool extrapolate = false) const;
+
+    protected:
+      virtual const PulsarEph & chooseValidEph(long double mjd) const;
+      virtual const PulsarEph & extrapolateEph(long double mjd) const;
+
+      Cont_t m_ephemerides;
+  };
 
   /** \class PulsarDb
       \brief Abstraction providing access to pulsar ephemerides database.
@@ -25,10 +59,11 @@ namespace pulsarDb {
                  This opens a copy of the file in memory. The version on disk will be
                  unaffected.
           \param in_file The input file name.
+          \param bary_toa Flag indicating whether toa is barycentered or geocentered.
       */
-      PulsarDb(const std::string & in_file);
+      PulsarDb(const std::string & in_file, bool bary_toa = true);
 
-      virtual ~PulsarDb() throw();
+      virtual ~PulsarDb();
 
       /** \brief Filter the current database using the given row filtering expression. The filtering is
                  performed in place.
@@ -62,33 +97,18 @@ namespace pulsarDb {
       */
       virtual void save(const std::string & out_file);
 
-      /** \brief Choose the best ephemeris for the given MJD time. Throws an exception if no ephemeris is found.
-
-                 The ephmeris returned contains the time in the half-open interval [VALID_SINCE, VALID_UNTIL + 1.)
-                 (One is added to the endpoint because the validity expires at the end of that day.)
-                 If more than one candidate ephemeris contains the time, the ephemeris with the latest start
-                 time is chosen. If more than one candidate has the same start time, the one with the latest
-                 stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
-                 which appears last in the table is selected.
-          \param mjd The MJD time (TT system).
-      */
-      virtual const PulsarEph & chooseEph(long double mjd, bool extrapolate = false) const;
-
       /// \brief Get the currently selected container of ephemerides.
-      virtual const PulsarEphCont & getEph() const;
+      virtual void getEph(PulsarEphCont & cont) const;
 
       /// \brief Get the number of currently selected ephemerides.
       virtual int getNumEph() const;
 
-    protected:
-      virtual const PulsarEph & chooseValidEph(long double mjd) const;
-      virtual const PulsarEph & extrapolateEph(long double mjd) const;
-
     private:
+      TimingModel m_model;
       std::string m_in_file;
-      mutable PulsarEphCont m_ephemerides;
       tip::Table * m_spin_par_table;
       const tip::Table * m_psr_name_table;
+      bool m_bary_toa;
   };
 
 }
