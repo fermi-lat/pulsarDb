@@ -1,0 +1,18 @@
+OBSERVERS
+OBSERVER_CODE OBSERVATORY CONTACT_PERSON REFERENCE
+
+A "Australia Telescope National Facility" "Dick Manchester" "Kaspi, V. M., Manchester, R. N., Bailes, M., Johnston, S., Lyne, A. G., D'Amico, N., 1995, GRO/radio timing data base, Princeton University."
+
+B Bologna "Nichi D'Amico" "D'Amico, N., Nicastro, L., 1992, GRO/radio timing data base, Princeton University."
+
+C Cornell/Carleton "Jim Cordes, Joel Weisberg" "Cordes, J. M., Backer, D. C., Foster, R. S., Weisberg, J. M., Lundgren, S., 1992, GRO/radio timing data base, Princeton University."
+
+G GRO-EGRET N/A "Mattox et al., 1996, A&A Supp."
+
+J "Jodrell Bank" "Andrew Lyne" "Lyne, A. G., Shemar, S. L., Pritchard, R.S. 1992, GRO/radio timing data base, Princeton University."
+
+P Princeton "Joe Taylor" "Arzoumanian, Z., Nice, D., Taylor, J. H., 1992, GRO/radio timing data base, Princeton University."
+
+#
+# end of table
+#
