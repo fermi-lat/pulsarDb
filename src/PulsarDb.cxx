@@ -19,7 +19,6 @@
 
 #include "st_facilities/Env.h"
 
-#include "tip/FileSummary.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
@@ -27,12 +26,47 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  PulsarDb::PulsarDb(const std::string & in_file): m_in_file(in_file), m_spin_par_table(0), m_psr_name_table(0) {
-    m_spin_par_table = IFileSvc::instance().editTable(in_file, "SPIN_PARAMETERS", "#row>0");
-    m_psr_name_table = IFileSvc::instance().readTable(in_file, "ALTERNATIVE_NAMES");
+  PulsarDb::PulsarDb(const std::string & in_file, bool edit_in_place): m_in_file(in_file), m_summary(), m_table(),
+    m_spin_par_table(0), m_psr_name_table(0) {
+    // Alias for file service singleton.
+    IFileSvc & file_svc(IFileSvc::instance());
+
+    // Get summary of extensions in input file.
+    file_svc.getFileSummary(in_file, m_summary);
+
+    // Loop over remaining extensions in output file.
+    FileSummary::const_iterator ext_itor = m_summary.begin();
+
+    // Skip the primary by incrementing the iterator in the first clause of the for loop.
+    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
+      Table * table = 0;
+      std::string ext_name = ext_itor->getExtId();
+      if (edit_in_place) {
+        table = file_svc.editTable(in_file, ext_name);
+      } else {
+        table = file_svc.editTable(in_file, ext_name, "#row>0");
+      }
+      m_table.insert(std::make_pair(ext_name, table));
+    }
+
+    // Find spin parameter table.
+    TableCont::iterator itor = m_table.find("SPIN_PARAMETERS");
+    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
+    m_spin_par_table = itor->second;
+    
+    // Find pulsar name table.
+    itor = m_table.find("ALTERNATIVE_NAMES");
+    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
+    m_psr_name_table = itor->second;
   }
 
-  PulsarDb::~PulsarDb() { delete m_psr_name_table; delete m_spin_par_table; }
+  PulsarDb::~PulsarDb() {
+    // TODO: CHANge Tip so it has reverse_iterator, then use it to delete in the correct order.
+    for (FileSummary::const_iterator itor = m_summary.begin(); itor != m_summary.end(); ++itor) {
+      TableCont::iterator table_itor = m_table.find(itor->getExtId());
+      if (m_table.end() != table_itor) delete table_itor->second;
+    }
+  }
 
   void PulsarDb::filter(const std::string & expression) {
     m_spin_par_table->filterRows(expression);
@@ -124,28 +158,17 @@ namespace pulsarDb {
     // Create output file.
     file_svc.createFile(out_file, tpl_file);
 
-    // Get summary of extensions in output file.
-    FileSummary summary;
-    file_svc.getFileSummary(out_file, summary);
-
     // Loop over remaining extensions in output file.
-    FileSummary::const_iterator ext_itor = summary.begin();
+    FileSummary::const_iterator ext_itor = m_summary.begin();
 
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
-    for (++ext_itor; ext_itor != summary.end(); ++ext_itor) {
-      // Input table pointer.
-      const Table * in_table = 0;
+    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
+      TableCont::iterator table_itor = m_table.find(ext_itor->getExtId());
+      if (m_table.end() == table_itor)
+        throw std::logic_error("Could not find extension \"" + ext_itor->getExtId() + "\" in file \"" + m_in_file + "\"");
 
-      // Autopointer which is used iff a new table is read.
-      std::auto_ptr<const Table> auto_table(0);
-      if (ext_itor->getExtId() == "SPIN_PARAMETERS") {
-        // Just reuse the open, filtered, fully prepared table.
-        in_table = m_spin_par_table;
-      } else {
-        // Read the extension from the input file.
-        auto_table.reset(file_svc.readTable(m_in_file, ext_itor->getExtId()));
-        in_table = auto_table.get();
-      }
+      // Input table pointer.
+      const Table * in_table = table_itor->second;
 
       // Open output table.
       std::auto_ptr<Table> out_table(file_svc.editTable(out_file, ext_itor->getExtId()));

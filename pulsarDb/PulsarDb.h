@@ -6,10 +6,13 @@
 #ifndef pulsarDb_PulsarDb_h
 #define pulsarDb_PulsarDb_h
 
+#include <map>
 #include <string>
 
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TimingModel.h"
+
+#include "tip/FileSummary.h"
 
 namespace tip {
   class Table;
@@ -63,12 +66,15 @@ namespace pulsarDb {
   */
   class PulsarDb {
     public:
+      typedef std::map<std::string, tip::Table *> TableCont;
+
       /** \brief Create a data base access object for the given ephermerides db file.
                  This opens a copy of the file in memory. The version on disk will be
                  unaffected.
           \param in_file The input file name.
+          \param edit_in_place Changes will affect input file.
       */
-      PulsarDb(const std::string & in_file);
+      PulsarDb(const std::string & in_file, bool edit_in_place = false);
 
       virtual ~PulsarDb();
 
@@ -113,6 +119,8 @@ namespace pulsarDb {
     private:
       TimingModel m_model;
       std::string m_in_file;
+      tip::FileSummary m_summary;
+      TableCont m_table;
       tip::Table * m_spin_par_table;
       const tip::Table * m_psr_name_table;
   };
