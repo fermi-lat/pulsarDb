@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Apr  6 11:34:43 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	TextPulsarDb.cxx 
+Log Message:
+Conform to C++ standard for vector::insert.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v0r1p2, operation: add
 Package: pulsarDb
