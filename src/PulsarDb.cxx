@@ -218,21 +218,21 @@ namespace pulsarDb {
     return m_spin_par_table->getNumRecords();
   }
 
-  const PulsarEph & PulsarEphCont::chooseEph(long double mjd, bool extrapolate) const {
+  const PulsarEph & PulsarEphCont::chooseEph(long double mjd, bool strict_validity) const {
     if (m_ephemerides.empty()) throw std::runtime_error("PulsarEphCont::chooseEph found no candidate ephemerides");
 
-    if (extrapolate) {
+    if (!strict_validity) {
       try {
-        return chooseValidEph(mjd);
+        return chooseFromValidEph(mjd);
       } catch (const std::exception &) {
-        return extrapolateEph(mjd);
+        return chooseFromAllEph(mjd);
       }
     }
 
-    return chooseValidEph(mjd);
+    return chooseFromValidEph(mjd);
   }
 
-  const PulsarEph & PulsarEphCont::chooseValidEph(long double mjd) const {
+  const PulsarEph & PulsarEphCont::chooseFromValidEph(long double mjd) const {
     Cont_t::const_iterator candidate = m_ephemerides.end();
 
     for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
@@ -257,15 +257,14 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (m_ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "PulsarEphCont::chooseValidEph could not find an ephemeris for time " << mjd;
+      os << "PulsarEphCont::chooseFromValidEph could not find an ephemeris for time " << mjd;
       throw std::runtime_error(os.str());
     }
 
     return *(*candidate);
   }
 
-  // Note this method assumes there is at least one candidate ephemeris.
-  const PulsarEph & PulsarEphCont::extrapolateEph(long double mjd) const {
+  const PulsarEph & PulsarEphCont::chooseFromAllEph(long double mjd) const {
     Cont_t::const_iterator candidate = m_ephemerides.begin();
 
     double diff = std::min(fabs(mjd - (*candidate)->valid_since()), fabs(mjd - (*candidate)->valid_until()));
@@ -276,6 +275,13 @@ namespace pulsarDb {
         candidate = itor;
         diff = new_diff;
       }
+    }
+
+    // If no candidate was found, throw an exception.
+    if (m_ephemerides.end() == candidate) {
+      std::ostringstream os;
+      os << "PulsarEphCont::chooseFromAllEph could not find an ephemeris for time " << mjd;
+      throw std::runtime_error(os.str());
     }
 
     return *(*candidate);

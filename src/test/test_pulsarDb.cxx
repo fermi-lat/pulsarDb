@@ -215,9 +215,10 @@ void PulsarDbTest::testChooser() {
   // Extrapolate one which is too late.
   pick_time = 55579.5;
   try {
-    chosen = &eph_cont.chooseEph(pick_time, true);
+    chosen = &eph_cont.chooseEph(pick_time, false);
   } catch (const std::runtime_error &) {
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser could not extrapolate an ephemeris" << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser did not find an ephemeris even with strict_validity == false" <<
+      std::endl;
   }
 
   // Make a selection which will result in an empty container of ephemerides.
