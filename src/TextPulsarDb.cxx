@@ -3,6 +3,7 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <stdexcept>
