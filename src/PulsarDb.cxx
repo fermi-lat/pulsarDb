@@ -5,6 +5,7 @@
 */
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 #include <cctype>
 #include <memory>
 #include <set>
