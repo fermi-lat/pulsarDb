@@ -12,6 +12,7 @@
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TimingModel.h"
 
+#include "tip/Extension.h"
 #include "tip/FileSummary.h"
 
 namespace tip {
@@ -107,9 +108,11 @@ namespace pulsarDb {
                  For example, if none of the ephemerides are for binary pulsars, the output ORBITAL_PARAMETERS
                  table will not include any ephemerides.
           \param out_file The name of the output file.
-          \param append Flag indicating whether to overwrite or append.
+          \param tpl_file The name of the template file, only used if the output file does not already exist.
       */
-      virtual void save(const std::string & out_file, bool append = false) const;
+      virtual void save(const std::string & out_file, const std::string & tpl_file) const;
+
+      void updateKeywords(tip::Extension & ext) const;
 
       /// \brief Get the currently selected container of ephemerides.
       virtual void getEph(PulsarEphCont & cont) const;
