@@ -46,6 +46,8 @@ namespace pulsarDb {
 
       virtual long double mjd() const = 0;
 
+      virtual double value() const { return mjd(); }
+
   };
 
   /** \class TaiTime
@@ -131,7 +133,7 @@ namespace pulsarDb {
       return;
     }
 
-    throw std::logic_error(std::string("TaiTime cannot convert to time system") + timeSystemName());
+    throw std::logic_error(std::string("Cannot convert from time system ") + timeSystemName() + " to " + t.timeSystemName());
   }
 
   inline void CanonicalTime::write(std::ostream & os) const {
