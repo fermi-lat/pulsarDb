@@ -13,7 +13,7 @@
 
 namespace pulsarDb {
 
-  PulsarDbApp::PulsarDbApp() {}
+  PulsarDbApp::PulsarDbApp() { setName("gtpulsardb"); }
 
   PulsarDbApp::~PulsarDbApp() throw() {}
 
