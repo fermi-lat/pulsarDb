@@ -388,7 +388,7 @@ void PulsarDbTest::testPulsarEph() {
 
   // Create a database ephemeris.
   TimingModel model;
-  DatabaseEph db_eph(model, GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), GlastTtTime(223.456789),
+  DatabaseEph db_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), GlastTtTime(223.456789),
     1.125e-2, -2.25e-4, 6.75e-6);
 
   // All three should agree completely.

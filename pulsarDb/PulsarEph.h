@@ -62,10 +62,10 @@ namespace pulsarDb {
           \param f1 The first time derivative of the frequency at the epoch (time origin).
           \param f2 The second time derivative of the frequency at the epoch (time origin).
       */
-      DatabaseEph(const TimingModel & model, const AbsoluteTime & valid_since, const AbsoluteTime & valid_until,
+      DatabaseEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until,
         const AbsoluteTime & epoch, const AbsoluteTime & toa, double f0, double f1, double f2);
 
-      DatabaseEph(const DatabaseEph & eph): PulsarEph(eph), m_model(eph.m_model), m_toa(eph.m_toa->clone()),
+      DatabaseEph(const DatabaseEph & eph): PulsarEph(eph), m_toa(eph.m_toa->clone()),
         m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
 
       virtual ~DatabaseEph();
@@ -73,7 +73,6 @@ namespace pulsarDb {
       DatabaseEph & operator =(const DatabaseEph & eph) {
         PulsarEph::operator =(eph);
         delete m_toa; m_toa = eph.m_toa->clone();
-        m_model = eph.m_model;
         m_f0 = eph.m_f0;
         m_f1 = eph.m_f1;
         m_f2 = eph.m_f2;
@@ -89,7 +88,6 @@ namespace pulsarDb {
       virtual PulsarEph * clone() const { return new DatabaseEph(*this); }
 
     private:
-      const TimingModel * m_model;
       AbsoluteTime * m_toa;
       double m_f0;
       double m_f1;
