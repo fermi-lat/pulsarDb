@@ -46,6 +46,8 @@ namespace pulsarDb {
 
       double elapsed() const { return m_elapsed; }
 
+      virtual double value() const { return m_elapsed; }
+
     private:
       double m_elapsed;
   };
