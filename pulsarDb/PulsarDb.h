@@ -107,8 +107,9 @@ namespace pulsarDb {
                  For example, if none of the ephemerides are for binary pulsars, the output ORBITAL_PARAMETERS
                  table will not include any ephemerides.
           \param out_file The name of the output file.
+          \param append Flag indicating whether to overwrite or append.
       */
-      virtual void save(const std::string & out_file);
+      virtual void save(const std::string & out_file, bool append = false) const;
 
       /// \brief Get the currently selected container of ephemerides.
       virtual void getEph(PulsarEphCont & cont) const;
@@ -116,7 +117,10 @@ namespace pulsarDb {
       /// \brief Get the number of currently selected ephemerides.
       virtual int getNumEph() const;
 
-    private:
+    protected:
+      PulsarDb();
+      virtual void loadTables(bool edit_in_place);
+
       TimingModel m_model;
       std::string m_in_file;
       tip::FileSummary m_summary;
