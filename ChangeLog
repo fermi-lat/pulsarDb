@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Wed Jan 12 12:32:53 PST 2005
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Change PulsarEph to base class, and add subclasses DatabaseEph,
+FrequencyEph and PeriodEph to handle the several ways to express ephemerides.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Jan 12 12:32:53 PST 2005
 pulsarDb/pulsarDb
 
 Modified Files:
