@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.4 2005/03/18 22:09:32 peachey Exp $
+$Id: release.notes,v 1.5 2005/04/06 00:58:43 peachey Exp $
 
 \verbatim
+06-apr-2005    v0r1p3 JP  Fix a non-standard C++ construct which broke on Windows.
 05-apr-2005    v0r1p2 JP  Added missing include <algorithm>
 18-mar-2005    v0r1p1 JP  Add version number from cvs tag. Add units to prompts for
                           start/stop time filter.
