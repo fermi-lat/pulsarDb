@@ -215,13 +215,13 @@ namespace pulsarDb {
 
       // Integral values must be looked up less conveniently.
       long epoch_int = 0;
-      long t0_int = 0;
+      long toa_int = 0;
       r["EPOCH_INT"].get(epoch_int);
-      r["T0GEO_INT"].get(t0_int);
+      r["TOAGEO_INT"].get(toa_int);
 
       // Add the ephemeris to the container.
       m_ephemerides.push_back(PulsarEph(r["VALID_SINCE"].get(), r["VALID_UNTIL"].get(), epoch_int, r["EPOCH_FRAC"].get(),
-        t0_int, r["T0GEO_FRAC"].get(), r["F0"].get(), r["F1"].get(), r["F2"].get()));
+        toa_int, r["TOAGEO_FRAC"].get(), 0., r["F0"].get(), r["F1"].get(), r["F2"].get()));
     }
 
     return m_ephemerides;
@@ -259,6 +259,12 @@ namespace pulsarDb {
       os << "PulsarDb::chooseValidEph could not find an ephemeris for time " << mjd;
       throw std::runtime_error(os.str());
     }
+
+// START HERE: Using TimingModel to compute phi0 from toa_geo/toa_bary
+// Caller must specify time system.
+// Then m_toa in PulsarEph goes away.
+    // computePhi0(*candidate);
+
     return *candidate;
   }
 

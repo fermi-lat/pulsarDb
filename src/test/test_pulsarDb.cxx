@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "pulsarDb/GlastTime.h"
 #include "pulsarDb/PulsarDb.h"
 
 #include "st_app/StApp.h"
@@ -84,7 +85,7 @@ void PulsarDbTest::run() {
   std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
 
   // Find test file.
-  m_in_file = st_facilities::Env::appendFileName(data_dir, "groD4-dc2v3.fits");
+  m_in_file = st_facilities::Env::appendFileName(data_dir, "groD4-dc2v4.fits");
 
   // Output file.
   m_out_file = "spud.fits";
