@@ -18,21 +18,18 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  TextPulsarDb::TextPulsarDb(const std::string & in_file): PulsarDb() {
+  TextPulsarDb::TextPulsarDb(const std::string & in_file, const std::string & tpl_file): PulsarDb() {
     // Find data directory for this app.
     std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
-
-    // Find template file.
-    std::string tpl_file = st_facilities::Env::appendFileName(data_dir, "PulsarEph.tpl");
 
     // Alias for file service singleton.
     IFileSvc & file_svc(IFileSvc::instance());
 
-    // Name input file after temporary memory file.
-    m_in_file = "mem://text_pulsardb.fits";
-
     // Create a temporary FITS file in memory.
-    file_svc.createFile(m_in_file, tpl_file);
+    m_tip_file = file_svc.createMemFile("text_pulsardb.fits", tpl_file);
+
+    // Assign name of temporary memory file to the file name from the base class.
+    m_in_file = m_tip_file.getName();
 
     // Read the input text file and store it in the temporary FITS file in memory.
     readTextFile(in_file);
@@ -66,7 +63,7 @@ namespace pulsarDb {
       if (row.size() > 1) throw std::runtime_error(std::string("Expected name of an extension on line ") + buf);
       else if (row.size() == 1) {
         extension = *row.begin();
-        out_table.reset(IFileSvc::instance().editTable(m_in_file, extension));
+        out_table.reset(m_tip_file.editTable(extension));
         // Get list of fields in the table.
         Table::FieldCont field = out_table->getValidFields();
         field_name.assign(field.begin(), field.end());
