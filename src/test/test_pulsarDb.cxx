@@ -386,9 +386,15 @@ void PulsarDbTest::testPulsarEph() {
   PeriodEph p_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 88.8888888888888888888889,
     1.777777777777777777777778, 0.0177777777777777777777778);
 
-  // They should agree completely.
-  //if (fabs(f_eph.epoch() / p_eph.epoch() - 1.) > epsilon)
-  if (f_eph.epoch() != p_eph.epoch())
+  // Create a database ephemeris.
+  TimingModel model;
+  DatabaseEph db_eph(model, GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), GlastTtTime(223.456789),
+    1.125e-2, -2.25e-4, 6.75e-6);
+
+  // All three should agree completely.
+  // First, compare frequency & period.
+  const long double nano_sec = 1.e-9;
+  if (Duration(nano_sec, UnitSec) < (f_eph.epoch() - p_eph.epoch()))
     ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
 
   if (fabs(f_eph.phi0() / p_eph.phi0() - 1.) > epsilon)
@@ -402,10 +408,28 @@ void PulsarDbTest::testPulsarEph() {
 
   if (fabs(f_eph.f2() / p_eph.f2() - 1.) > epsilon)
     ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for f2" << std::endl;
+
+  // Next, compare frequency & database.
+  if (Duration(nano_sec, UnitSec) < (f_eph.epoch() - db_eph.epoch()))
+    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for epoch" << std::endl;
+
+  // Correct phi0 is 1. - (1.125e-2 * 100 - 2.25e-4*10000 / 2. + 6.75e-6 * 1000000 / 6.) = -.125 -> .875
+  if (fabs(db_eph.phi0() / .875 - 1.) > epsilon)
+    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for phi0" << std::endl;
+
+  if (fabs(f_eph.f0() / db_eph.f0() - 1.) > epsilon)
+    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f0" << std::endl;
+
+  if (fabs(f_eph.f1() / db_eph.f1() - 1.) > epsilon)
+    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f1" << std::endl;
+
+  if (fabs(f_eph.f2() / db_eph.f2() - 1.) > epsilon)
+    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f2" << std::endl;
+
 }
 
 void PulsarDbTest::testTimingModel() {
-  std::string method_name = "testPulsarEph";
+  std::string method_name = "testTimingModel";
 
   double epsilon = 1.e-8;
 

@@ -15,8 +15,16 @@ namespace pulsarDb {
   DatabaseEph::~DatabaseEph() { delete m_toa; }
 
   double DatabaseEph::phi0() const {
-    // The phase is computed from the phase of the toa.
-    return -m_model->calcPhase(*this, *m_toa);
+    // Create temporary copy of this ephemeris with phi0 == 0.
+    FrequencyEph tmp(*m_since, *m_until, *m_epoch, 0., m_f0, m_f1, m_f2);
+
+    // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
+    double r = - m_model->calcPhase(tmp, *m_toa);
+
+    // Make sure it is in the range [0, 1). calcPhase is bounded in this way.
+    if (0. > r) r += 1.;
+
+    return r;
   }
 
 }
