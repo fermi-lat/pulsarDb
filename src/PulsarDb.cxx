@@ -226,7 +226,7 @@ namespace pulsarDb {
       TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
 
       // Add the ephemeris to the container.
-      cont.insertEph(DatabaseEph(m_model, valid_since, valid_until, epoch, TdbTime(toa),
+      cont.insertEph(DatabaseEph(valid_since, valid_until, epoch, TdbTime(toa),
         r["F0"].get(), r["F1"].get(), r["F2"].get()));
     }
   }
