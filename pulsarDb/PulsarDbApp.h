@@ -24,6 +24,11 @@ namespace pulsarDb {
       virtual ~PulsarDbApp() throw();
 
       virtual void run();
+
+      PulsarDb * openDbFile(const std::string & in_file, bool edit_in_place = false);
+
+    private:
+      std::string m_tpl_file;
   };
 
 }
