@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id$
+$Id: release.notes,v 1.1.1.1 2004/11/24 18:36:02 peachey Exp $
 
 \verbatim
+17-dec-2004    v0r0p1 JP  Added missing #include file.
 24-nov-2004        v0 JP  Initial import.
 \endverbatim
 */
