@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Feb 16 14:05:45 PST 2005
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Read all extensions in the constructor, and keep track of them in a container.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jan 28 12:48:41 PST 2005
 pulsarDb/src
 
