@@ -3,6 +3,7 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -95,6 +96,7 @@ class PulsarDbTest : public st_app::StApp {
     std::string m_data_dir;
     std::string m_in_file;
     std::string m_out_file;
+    std::string m_tpl_file;
 };
 
 using namespace pulsarDb;
@@ -109,6 +111,9 @@ void PulsarDbTest::run() {
 
   // Output file.
   m_out_file = "spud.fits";
+
+  // Find template file.
+  m_tpl_file = st_facilities::Env::appendFileName(m_data_dir, "PulsarEph.tpl");
 
   // Successful tests.
   testNoOp();
@@ -149,7 +154,8 @@ void PulsarDbTest::testAlternateName() {
     ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for the crab, not 36" << std::endl;
 
   // Write this output to form basis for comparing future tests.
-  database.save("crab_db.fits");
+  remove("crab_db.fits");
+  database.save("crab_db.fits", m_tpl_file);
 }
 
 void PulsarDbTest::testBadInterval() {
@@ -185,7 +191,8 @@ void PulsarDbTest::testChooser() {
     ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for " << pulsar_name << ", not 8" << std::endl;
 
   // Write this output to form basis for comparing future tests.
-  database.save("chooser_db.fits");
+  remove("chooser_db.fits");
+  database.save("chooser_db.fits", m_tpl_file);
 
   TdbTime pick_time = 54012.5;
 
@@ -280,7 +287,8 @@ void PulsarDbTest::testExpression() {
     ErrorMsg(method_name) << "found " << num_eph << " ephemerides with F2 != 0., not 837" << std::endl;
 
   // Test saving this for basis of comparing future test output.
-  database.save("f2not0_db.fits");
+  remove("f2not0_db.fits");
+  database.save("f2not0_db.fits", m_tpl_file);
 }
 
 void PulsarDbTest::testNoOp() {
@@ -492,36 +500,39 @@ void PulsarDbTest::testAppend() {
   std::string method_name = "testAppend";
 
   PulsarDb database(st_facilities::Env::appendFileName(m_data_dir, "groD4-dc2v4.fits"));
-  database.save("groD4-dc2v4_twice.fits");
-  database.save("groD4-dc2v4_twice.fits", true);
+  remove("groD4-dc2v4_twice.fits");
+  database.save("groD4-dc2v4_twice.fits", m_tpl_file);
+  database.save("groD4-dc2v4_twice.fits", m_tpl_file);
 }
 
 void PulsarDbTest::testTextPulsarDb() {
   std::string method_name = "testTextPulsarDb";
 
   // Ingest one of each type of table.
-  TextPulsarDb text_psrdb_spin(st_facilities::Env::appendFileName(m_data_dir, "psrdb_spin.txt"));
-  TextPulsarDb text_psrdb_binary(st_facilities::Env::appendFileName(m_data_dir, "psrdb_binary.txt"));
-  TextPulsarDb text_psrdb_obs(st_facilities::Env::appendFileName(m_data_dir, "psrdb_obs.txt"));
-  TextPulsarDb text_psrdb_name(st_facilities::Env::appendFileName(m_data_dir, "psrdb_name.txt"));
+  TextPulsarDb text_psrdb_spin(st_facilities::Env::appendFileName(m_data_dir, "psrdb_spin.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_binary(st_facilities::Env::appendFileName(m_data_dir, "psrdb_binary.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_obs(st_facilities::Env::appendFileName(m_data_dir, "psrdb_obs.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_name(st_facilities::Env::appendFileName(m_data_dir, "psrdb_name.txt"), m_tpl_file);
 
   // Save all tables into one FITS file.
   std::string filename("psrdb_all.fits");
-  text_psrdb_binary.save(filename);
-  text_psrdb_spin.save(filename, true);
-  text_psrdb_obs.save(filename, true);
-  text_psrdb_name.save(filename, true);
+  remove(filename.c_str());
+  text_psrdb_binary.save(filename, m_tpl_file);
+  text_psrdb_spin.save(filename, m_tpl_file);
+  text_psrdb_obs.save(filename, m_tpl_file);
+  text_psrdb_name.save(filename, m_tpl_file);
 
   // Copy an existing FITS database.
   PulsarDb fits_psrdb("crab_db.fits");
   filename = "psrdb_append.fits";
-  fits_psrdb.save(filename);
+  remove(filename.c_str());
+  fits_psrdb.save(filename, m_tpl_file);
 
   // Append all tables into the FITS database.
-  text_psrdb_name.save(filename, true);
-  text_psrdb_obs.save(filename, true);
-  text_psrdb_binary.save(filename, true);
-  text_psrdb_spin.save(filename, true);
+  text_psrdb_name.save(filename, m_tpl_file);
+  text_psrdb_obs.save(filename, m_tpl_file);
+  text_psrdb_binary.save(filename, m_tpl_file);
+  text_psrdb_spin.save(filename, m_tpl_file);
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
