@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Fri Jan 28 12:48:41 PST 2005
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Bug fix: DatabaseEph does not retain pointer to TimingModel, but
+uses local TimingModel.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jan 28 12:47:43 PST 2005
 pulsarDb/pulsarDb
 
