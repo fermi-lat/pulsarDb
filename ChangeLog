@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Feb 25 13:32:52 PST 2005
+pulsarDb/data
+
+Added Files:
+	psrdb_binary.txt psrdb_name.txt psrdb_obs.txt psrdb_spin.txt 
+Log Message:
+New text files containing test ephemeris data entries.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Feb 25 13:32:26 PST 2005
 pulsarDb/data
 
