@@ -1,0 +1,10 @@
+/** \file release.notes
+    \brief Pulsar database access package.
+    \authors Masaharu Hirayama, GSSC,
+             James Peachey, HEASARC/GSSC
+$Id$
+
+\verbatim
+24-nov-2004        v0 JP  Initial import.
+\endverbatim
+*/
