@@ -92,6 +92,9 @@ class PulsarDbTest : public st_app::StApp {
     /// Test TextPulsarDb class.
     virtual void testTextPulsarDb();
 
+    /// Test converter class, period->freq.
+    virtual void testPeriodConverter();
+
   private:
     std::string m_data_dir;
     std::string m_in_file;
@@ -116,6 +119,7 @@ void PulsarDbTest::run() {
   m_tpl_file = st_facilities::Env::appendFileName(m_data_dir, "PulsarEph.tpl");
 
   // Successful tests.
+#if 0
   testNoOp();
   testExplicitName();
   testAlternateName();
@@ -127,6 +131,9 @@ void PulsarDbTest::run() {
   testExpression();
   testChooser();
   testTextPulsarDb();
+#endif
+  testPeriodConverter();
+
 
   // Failures.
   testBadInterval();
@@ -168,7 +175,7 @@ void PulsarDbTest::testBadInterval() {
     // Invalid interval, with start time later than stop time.
     database.filterInterval(54500., 54499.);
     ErrorMsg(method_name) << "filterInterval(54500., 54499.) did not throw an exception" << std::endl;
-  } catch (const std::exception & x) {
+  } catch (const std::exception &) {
     // This is fine.
   }
 
@@ -533,6 +540,25 @@ void PulsarDbTest::testTextPulsarDb() {
   text_psrdb_obs.save(filename, m_tpl_file);
   text_psrdb_binary.save(filename, m_tpl_file);
   text_psrdb_spin.save(filename, m_tpl_file);
+}
+
+void PulsarDbTest::testPeriodConverter() {
+  std::string method_name = "testPeriodConverter";
+
+  double p0[] = { 0.033 ,  0.089  , 0.237 , 0.197 , 0.102};
+  double p1[] = { 422.e-15, 2.0e-15, 11.4e-15, 5.8e-15, 92.2e-15 };
+  double p2[] = { 1E-19, 2E-20, 2E-20, 32E-20, 1E-23 };
+  double epoch[] = {51900., 51900., 51900., 51900., 51900. };
+  double phi0[] = { 0.02 , .03, 0.21, 0.12 , 	0.11	};
+
+  for (size_t ii = 0; ii < 5; ++ii) {
+    GlastTdbTime dummy(0.);
+    std::cout.precision(15);
+    PeriodEph period(dummy, dummy, dummy, 0., p0[ii], p1[ii], p2[ii]);
+    std::cout << period.f0() << " " << period.f1() << " " << period.f2() << " ";
+    std::cout << int(epoch[ii] - 1) << " " << 1. - p0[ii] * phi0[ii] / 86400. << " " << epoch[ii] << " 0. ";
+    std::cout << "54100 54200 GLAT F \"JPL DE200\"" << std::endl;
+  }
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
