@@ -39,13 +39,16 @@ namespace pulsarDb {
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
           \param mjd The MJD time (TT system).
-          \param extrapolate Flag to determine whether to return an ephemeris if no candidate ephemerides contain the mjd.
+          \param strict_validity If false, the ephemeris closest to the given time will be returned even if the time
+                 is outside its interval of validity. If true, only an ephemeris which contains the time in its interval
+                 of validity will be returned. In either case, if no ephemeris meets the requirements, an exception
+                 is thrown.
       */
-      virtual const PulsarEph & chooseEph(long double mjd, bool extrapolate = false) const;
+      virtual const PulsarEph & chooseEph(long double mjd, bool strict_validity = true) const;
 
     protected:
-      virtual const PulsarEph & chooseValidEph(long double mjd) const;
-      virtual const PulsarEph & extrapolateEph(long double mjd) const;
+      virtual const PulsarEph & chooseFromAllEph(long double mjd) const;
+      virtual const PulsarEph & chooseFromValidEph(long double mjd) const;
 
       Cont_t m_ephemerides;
   };
