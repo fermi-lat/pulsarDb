@@ -44,13 +44,7 @@ namespace pulsarDb {
       bool operator !=(const AbsoluteTime & t) const { return *this - t != Duration(0., UnitSec); }
       bool operator <(const AbsoluteTime & t) const { return *this - t < Duration(0., UnitSec); }
       bool operator >(const AbsoluteTime & t) const { return *this - t > Duration(0., UnitSec); }
-      bool operator <=(const AbsoluteTime & t) const {
-Duration d = operator -(t);
-Duration zero(0., UnitSec);
-bool r =  d <= zero;
-return r;
-return *this - t <= Duration(0., UnitSec);
-}
+      bool operator <=(const AbsoluteTime & t) const { return *this - t <= Duration(0., UnitSec); }
       bool operator >=(const AbsoluteTime & t) const { return *this - t >= Duration(0., UnitSec); }
   };
 
