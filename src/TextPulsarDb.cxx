@@ -173,7 +173,7 @@ namespace pulsarDb {
       // Unquoted space is taken as the end of this field.
       if (!in_quote && isspace(*current)) {
         // Add a new field at the end of the container.
-        current_field = row.insert(row.end());
+        current_field = row.insert(row.end(), "");
 
         // Skip spaces after this field.
         while (isspace(*current)) ++current;
