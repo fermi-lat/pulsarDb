@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Fri May  6 14:01:57 PDT 2005
+pulsarDb/src
+
+Added Files:
+	TimingModel.cxx 
+Log Message:
+Add modulateBinary and demodulateBinary methods.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri May  6 14:01:57 PDT 2005
 pulsarDb/pulsarDb
 
 Modified Files:
