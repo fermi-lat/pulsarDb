@@ -35,10 +35,17 @@ namespace pulsarDb {
       */
       virtual AbsoluteTime & operator +=(const Duration & d) { m_elapsed += d.sec(); return *this; }
 
+      /** \brief Subtract the given duration from this time.
+          \param d The duration (elapsed time, relative time) being added.
+      */
+      virtual AbsoluteTime & operator -=(const Duration & d) { m_elapsed -= d.sec(); return *this; }
+
       /** \brief Convert this time to a CanonicalTime representation of it.
           \param t The target time system time.
       */
       virtual void to(CanonicalTime & t) const;
+
+      inline void from(const AbsoluteTime & t);
 
       virtual void write(std::ostream & os) const;
 
@@ -56,17 +63,7 @@ namespace pulsarDb {
   static long double s_mjdref = 54101.L;
 
   template <typename ACanonicalTime>
-  inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0.) {
-    // See if other time happens to be already in GlastTime.
-    const GlastTime * glast_t = dynamic_cast<const GlastTime *>(&t);
-    if (0 != glast_t) {
-      m_elapsed = glast_t->m_elapsed;
-    } else {
-      // Convert the other time to the canonical time system implied by this GlastTime, and assign from that.
-      ACanonicalTime other_t(t);
-      m_elapsed = (other_t.mjd() - s_mjdref) * SecPerDay();
-    }
-  }
+  inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0.) { from(t); }
 
   template <typename ACanonicalTime>
   inline Duration GlastTime<ACanonicalTime>::operator -(const AbsoluteTime & t) const {
@@ -81,6 +78,19 @@ namespace pulsarDb {
     // Convert this time to the canonical time system implied by this GlastTime, and use that to convert to the target time.
     ACanonicalTime my_time(s_mjdref + m_elapsed * DayPerSec());
     my_time.to(t);
+  }
+
+  template <typename ACanonicalTime>
+  inline void GlastTime<ACanonicalTime>::from(const AbsoluteTime & t) {
+    // See if other time happens to be already in GlastTime.
+    const GlastTime * glast_t = dynamic_cast<const GlastTime *>(&t);
+    if (0 != glast_t) {
+      m_elapsed = glast_t->m_elapsed;
+    } else {
+      // Convert the other time to the canonical time system implied by this GlastTime, and assign from that.
+      ACanonicalTime other_t(t);
+      m_elapsed = (other_t.mjd() - s_mjdref) * SecPerDay();
+    }
   }
 
   template <typename ACanonicalTime>

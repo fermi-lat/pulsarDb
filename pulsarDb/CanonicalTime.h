@@ -29,6 +29,11 @@ namespace pulsarDb {
       */
       virtual void to(CanonicalTime & t) const;
 
+      /** \brief Assign from some other absolute time.
+          \param t The other time.
+      */
+      virtual void from(const AbsoluteTime & t);
+
       virtual void write(std::ostream & os) const;
 
       /** \brief Assign this object's time to a TaiTime object.
@@ -75,6 +80,11 @@ namespace pulsarDb {
       */
       virtual AbsoluteTime & operator +=(const Duration & d);
 
+      /** \brief Subtract the given duration from this time.
+          \param d The duration (elapsed time, relative time) being added.
+      */
+      virtual AbsoluteTime & operator -=(const Duration & d);
+
       virtual AbsoluteTime * clone() const { return new TaiTime(*this); }
 
       virtual void toSystem(TaiTime & t) const { t.m_mjd = m_mjd; }
@@ -100,6 +110,11 @@ namespace pulsarDb {
       virtual Duration operator -(const AbsoluteTime & t) const;
 
       virtual AbsoluteTime & operator +=(const Duration & d);
+
+      /** \brief Subtract the given duration from this time.
+          \param d The duration (elapsed time, relative time) being added.
+      */
+      virtual AbsoluteTime & operator -=(const Duration & d);
 
       virtual AbsoluteTime * clone() const { return new TtTime(*this); }
 
@@ -136,6 +151,8 @@ namespace pulsarDb {
     throw std::logic_error(std::string("Cannot convert from time system ") + timeSystemName() + " to " + t.timeSystemName());
   }
 
+  inline void CanonicalTime::from(const AbsoluteTime & t) { t.to(*this); }
+
   inline void CanonicalTime::write(std::ostream & os) const {
     os << mjd() << " MJD " << timeSystemName();
   }
@@ -150,6 +167,11 @@ namespace pulsarDb {
     return *this;
   }
 
+  inline AbsoluteTime & TaiTime::operator -=(const Duration & d) {
+    m_mjd -= d.day();
+    return *this;
+  }
+
   inline void TaiTime::toSystem(TtTime & t) const { t.setMjd(m_mjd + TtMinusTaiDay()); }
 
   inline Duration TtTime::operator -(const AbsoluteTime & t) const {
@@ -159,6 +181,11 @@ namespace pulsarDb {
 
   inline AbsoluteTime & TtTime::operator +=(const Duration & d) {
     m_mjd += d.day();
+    return *this;
+  }
+
+  inline AbsoluteTime & TtTime::operator -=(const Duration & d) {
+    m_mjd -= d.day();
     return *this;
   }
 
