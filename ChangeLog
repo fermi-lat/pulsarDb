@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri May  6 14:04:08 PDT 2005
+pulsarDb/pulsarDb
+
+Added Files:
+	OrbitalEph.h 
+Log Message:
+OrbitalEph class, which encapsulates binary ephemeral data.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri May  6 14:03:21 PDT 2005
 pulsarDb/src/test
 
