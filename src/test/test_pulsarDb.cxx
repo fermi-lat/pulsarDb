@@ -12,7 +12,9 @@
 #include "pulsarDb/AbsoluteTime.h"
 #include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/GlastTime.h"
+#include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarDb.h"
+#include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TextPulsarDb.h"
 #include "pulsarDb/TimingModel.h"
 
@@ -95,6 +97,12 @@ class PulsarDbTest : public st_app::StApp {
     /// Test converter class, period->freq.
     virtual void testPeriodConverter();
 
+    /// Test orbital ephemerides classes.
+    virtual void testOrbitalEph();
+
+    /// Test duration class.
+    virtual void testDuration();
+
   private:
     std::string m_data_dir;
     std::string m_in_file;
@@ -119,7 +127,6 @@ void PulsarDbTest::run() {
   m_tpl_file = st_facilities::Env::appendFileName(m_data_dir, "PulsarEph.tpl");
 
   // Successful tests.
-#if 0
   testNoOp();
   testExplicitName();
   testAlternateName();
@@ -131,9 +138,9 @@ void PulsarDbTest::run() {
   testExpression();
   testChooser();
   testTextPulsarDb();
-#endif
   testPeriodConverter();
-
+  testOrbitalEph();
+  testDuration();
 
   // Failures.
   testBadInterval();
@@ -396,6 +403,37 @@ void PulsarDbTest::testAbsoluteTime() {
   gtt = tai;
   if (0. != gtt.elapsed())
     ErrorMsg(method_name) << "after gtt = tai, gtt.elapsed() returned " << gtt.elapsed() << ", not 0.L." << std::endl;
+
+  GlastTtTime gtt1(100.);
+  GlastTtTime gtt2(200.);
+  if (gtt1.elapsed() == gtt2.elapsed())
+    ErrorMsg(method_name) << "After initializing gtt1 and gtt2 with different values, elapsed() returned same value." << std::endl;
+
+  AbsoluteTime * abs_ref1(&gtt1);
+  AbsoluteTime * abs_ref2(&gtt2);
+  *abs_ref1 = *abs_ref2;
+  if (gtt1.elapsed() != gtt2.elapsed())
+    ErrorMsg(method_name) << "After *abs_ref1 = *abs_ref2, gtt1.elapsed() returned " << gtt1.elapsed() << ", not " <<
+      gtt2.elapsed() << " as expected." << std::endl;
+
+  TaiTime tai1(GlastTtTime(100.));
+  long double expected = 54101.L - 32.184L / 86400.L + 100.L / 86400.L;
+  if (expected != tai1.mjd())
+    ErrorMsg(method_name) << "After creating tai1 from GlastTtTime(100.), tai1.mjd() returned " << tai1.mjd() << ", not " <<
+      expected << ", as expected." << std::endl;
+
+  TaiTime tai2(GlastTtTime(200.));
+  expected = 54101.L - 32.184L / 86400.L + 200.L / 86400.L;
+  if (expected != tai2.mjd())
+    ErrorMsg(method_name) << "After creating tai2 from GlastTtTime(200.), tai2.mjd() returned " << tai2.mjd() << ", not " <<
+      expected << ", as expected." << std::endl;
+
+  abs_ref1 = &tai1;
+  // Note: abs_ref2 still -> gtt2.
+  *abs_ref1 = *abs_ref2;
+  if (tai1.mjd() != tai2.mjd())
+    ErrorMsg(method_name) << "After *abs_ref1 = *abs_ref2, tai1.mjd() returned " << tai1.mjd() << ", not " <<
+      tai2.mjd() << " as expected." << std::endl;
 }
 
 void PulsarDbTest::testPulsarEph() {
@@ -559,6 +597,73 @@ void PulsarDbTest::testPeriodConverter() {
     std::cout << int(epoch[ii] - 1) << " " << 1. - p0[ii] * phi0[ii] / 86400. << " " << epoch[ii] << " 0. ";
     std::cout << "54100 54200 GLAT F \"JPL DE200\"" << std::endl;
   }
+}
+
+void PulsarDbTest::testOrbitalEph() {
+  std::string method_name = "testOrbitalEph";
+
+  // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
+  double binary_par[] = {
+    27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0
+  };
+
+  OrbitalEph eph1(binary_par);
+
+  // MJD's: { {original-MJD, modulated-MJD}, ... }
+  long double mjd_test_values[][2] = {
+    { 4.59881172486599971307e+04L, 4.59881172823346967320e+04L },
+    { 4.59881519708822161192e+04L, 4.59881520057480382526e+04L },
+    { 4.59881866931044423836e+04L, 4.59881867233097334768e+04L },
+    { 4.59882214153266613721e+04L, 4.59882214303721880313e+04L },
+    { 4.59882561375488876365e+04L, 4.59882561254377882811e+04L },
+    { 4.59882908597711066250e+04L, 4.59882908532530402717e+04L },
+    { 4.59883255819933328894e+04L, 4.59883255877721779576e+04L },
+    { 4.59883603042155518779e+04L, 4.59883603213319299883e+04L },
+    { 4.59883950264377781423e+04L, 4.59883950526724878252e+04L },
+    { 4.59884297486599971307e+04L, 4.59884297811300504257e+04L },
+    { 4.59884644708822161192e+04L, 4.59884645058955188297e+04L }
+  };
+
+  // Permitted difference is 100 nanoseconds.
+  long double delta = 100.L * 1.e-9 / 86400.;
+
+  TimingModel model;
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(long double[2]); ++ii) {
+    TdbTime tdb_mjd(mjd_test_values[ii][0]);
+    model.modulateBinary(eph1, tdb_mjd);
+    if (fabs(tdb_mjd.mjd() - mjd_test_values[ii][1]) > delta)
+      ErrorMsg(method_name) << "Binary modulation of " << mjd_test_values[ii][0] << " was computed to be " << tdb_mjd.mjd() <<
+        ", not " << mjd_test_values[ii][1] << ", as expected." << std::endl;
+  }
+
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(long double[2]); ++ii) {
+    TdbTime tdb_mjd(mjd_test_values[ii][1]);
+    model.demodulateBinary(eph1, tdb_mjd);
+    if (fabs(tdb_mjd.mjd() - mjd_test_values[ii][0]) > delta)
+      ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd.mjd() <<
+        ", not " << mjd_test_values[ii][0] << ", as expected." << std::endl;
+  }
+
+} 
+
+void PulsarDbTest::testDuration() {
+  std::string method_name = "testDuration";
+
+  Duration six_days(6., UnitDay);
+  if (6. != six_days.day())
+    ErrorMsg(method_name) << "After Duration six_days(6., UnitDay), six_days.day() returned " << six_days.day() <<
+      ", not 6. as expected." << std::endl;
+  if (6. * 86400. != six_days.sec())
+    ErrorMsg(method_name) << "After Duration six_days(6., UnitDay), six_days.sec() returned " << six_days.sec() <<
+      ", not " << 6. * 86400. << " as expected." << std::endl;
+
+  Duration six_sec(6., UnitSec);
+  if (6. / 86400. != six_sec.day())
+    ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.day() returned " << six_sec.day() <<
+      ", not " << 6. / 86400. << " as expected." << std::endl;
+  if (6. != six_sec.sec())
+    ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.sec() returned " << six_sec.sec() <<
+      ", not " << 6. << " as expected." << std::endl;
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
