@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Fri May  6 13:58:42 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	Duration.h 
+Log Message:
+Add operators - and -=. Correct hideous bug: SecPerDay and DayPerSec
+were switched!!! Add space to improve printed output.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri May  6 13:57:14 PDT 2005
 pulsarDb/pulsarDb
 
