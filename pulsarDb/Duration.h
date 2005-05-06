@@ -40,6 +40,10 @@ namespace pulsarDb {
 
       Duration op(double (*func)(double)) const;
 
+      Duration & operator -=(const Duration & dur);
+
+      Duration operator -(const Duration & dur) const;
+
       bool operator !=(const Duration & dur) const { return sec() != dur.sec(); }
       bool operator ==(const Duration & dur) const { return sec() == dur.sec(); }
       bool operator <(const Duration & dur) const { return sec() < dur.sec(); }
@@ -59,7 +63,7 @@ namespace pulsarDb {
       case UnitDay:
         break; // No modifcation necessary.
       case UnitSec:
-        return m_t * SecPerDay();
+        return m_t * DayPerSec();
     }
     return m_t;
   }
@@ -67,7 +71,7 @@ namespace pulsarDb {
   inline double Duration::sec() const {
     switch (m_unit) {
       case UnitDay:
-        return m_t * DayPerSec();
+        return m_t * SecPerDay();
       case UnitSec:
         break; // No modifcation necessary.
     }
@@ -76,8 +80,26 @@ namespace pulsarDb {
 
   inline Duration Duration::op(double (*func)(double)) const { return Duration(func(m_t), m_unit); }
 
+  inline Duration & Duration::operator -=(const Duration & dur) {
+    switch (m_unit) {
+      case UnitDay:
+        m_t -= dur.day();
+        break;
+      case UnitSec:
+        m_t -= dur.sec();
+        break;
+    }
+    return *this;
+  }
+
+  inline Duration Duration::operator -(const Duration & dur) const {
+    Duration result(*this);
+    result -= dur;
+    return result;
+  }
+
   inline void Duration::write(std::ostream & os) const {
-    os << m_t << (m_unit == UnitDay ? "day" : "second");
+    os << m_t << (m_unit == UnitDay ? " day" : " second");
     if (m_t == 1.) os << "s";
   }
 
