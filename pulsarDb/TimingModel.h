@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "pulsarDb/Duration.h"
+#include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
 namespace pulsarDb {
@@ -34,6 +36,7 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
+      // TODO: rename correctPdot cancelPdot?
       virtual void correctPdot(const PulsarEph & eph, AbsoluteTime & ev_time) const {
         double dt = (ev_time - eph.epoch()).sec();
         double dt_squared = dt * dt;
@@ -45,6 +48,8 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
+      // TODO: create calcOrbitalPhase.
+      // TODO: related to calcOrbitalPhase, rename calcPhase calcPulsePhase?
       virtual double calcPhase(const PulsarEph & eph, const AbsoluteTime & ev_time) const {
         double dt = (ev_time - eph.epoch()).sec();
         double int_part; // ignored, needed for modf.
@@ -54,6 +59,22 @@ namespace pulsarDb {
         return phase;
       }
 
+      /** \brief
+          \param eph The ephemeris.
+          \param ev_time Before this method executes, this is the time the photon was emitted at the pulsar.
+          After this method executes, this is the time the photon was detected by the instrument.
+      */
+      virtual void modulateBinary(const OrbitalEph & eph, AbsoluteTime & emission_time) const;
+
+      /** \brief
+          \param eph The ephemeris.
+          \param ev_time Before this method executes, this is the time the photon was detected by the instrument.
+          After this method executes, this is the time the photon was emitted at the pulsar.
+      */
+      virtual void demodulateBinary(const OrbitalEph & eph, AbsoluteTime & arrival_time) const;
+
+    protected:
+      Duration calcOrbitalDelay(const OrbitalEph & eph, const AbsoluteTime & emission_time) const;
   };
 
 }
