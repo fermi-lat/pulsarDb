@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri May  6 14:03:21 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests for Duration and OrbitalEph.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri May  6 14:01:57 PDT 2005
 pulsarDb/src
 
