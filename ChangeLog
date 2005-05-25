@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed May 25 14:25:39 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Remove PulsarEphCont class, which is now a typedef.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed May 25 14:24:46 PDT 2005
 pulsarDb/pulsarDb
 
