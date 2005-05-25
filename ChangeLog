@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed May 25 14:27:01 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change unit test to use/test EphChooser instead of old PulsarEphCont class.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed May 25 14:26:18 PDT 2005
 pulsarDb/pulsarDb
 
