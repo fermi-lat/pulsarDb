@@ -3,13 +3,9 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
-#include <algorithm>
 #include <ctime>
-#include <iostream>
-#include <cmath>
 #include <cctype>
 #include <memory>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -293,82 +289,13 @@ namespace pulsarDb {
       TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
 
       // Add the ephemeris to the container.
-      cont.insertEph(DatabaseEph(valid_since, valid_until, epoch, TdbTime(toa),
-        r["F0"].get(), r["F1"].get(), r["F2"].get()));
+      cont.push_back(DatabaseEph(valid_since, valid_until, epoch, TdbTime(toa),
+        r["F0"].get(), r["F1"].get(), r["F2"].get()).clone());
     }
   }
 
   int PulsarDb::getNumEph() const {
     return m_spin_par_table->getNumRecords();
-  }
-
-  const PulsarEph & PulsarEphCont::chooseEph(const AbsoluteTime & t, bool strict_validity) const {
-    if (m_ephemerides.empty()) throw std::runtime_error("PulsarEphCont::chooseEph found no candidate ephemerides");
-
-    if (!strict_validity) {
-      try {
-        return chooseFromValidEph(t);
-      } catch (const std::exception &) {
-        return chooseFromAllEph(t);
-      }
-    }
-
-    return chooseFromValidEph(t);
-  }
-
-  const PulsarEph & PulsarEphCont::chooseFromValidEph(const AbsoluteTime & t) const {
-    Cont_t::const_iterator candidate = m_ephemerides.end();
-
-    for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
-      // See if this ephemeris contains the time.
-      if ((*itor)->valid_since() <= t && t < (*itor)->valid_until()) {
-
-        // See if this is the first candidate, which is automatically accepted.
-        if (m_ephemerides.end() == candidate) {
-          candidate = itor;
-        // Otherwise, prefer the eph which starts later.
-        } else if ((*itor)->valid_since() > (*candidate)->valid_since()) {
-          candidate = itor;
-        } else if ((*itor)->valid_since() == (*candidate)->valid_since()) {
-          // The two start at the same time, so break the tie based on which one is valid longer.
-          // Note that in a tie here, the one selected is the one appearing last in the sequence.
-          if ((*itor)->valid_until() >= (*candidate)->valid_until())
-            candidate = itor;
-        }
-      }
-    }
-
-    // If no candidate was found, throw an exception.
-    if (m_ephemerides.end() == candidate) {
-      std::ostringstream os;
-      os << "PulsarEphCont::chooseFromValidEph could not find an ephemeris for time " << t;
-      throw std::runtime_error(os.str());
-    }
-
-    return *(*candidate);
-  }
-
-  const PulsarEph & PulsarEphCont::chooseFromAllEph(const AbsoluteTime & t) const {
-    Cont_t::const_iterator candidate = m_ephemerides.begin();
-
-    Duration diff = std::min((t - (*candidate)->valid_since()).op(fabs), (t - (*candidate)->valid_until()).op(fabs));
-    
-    for (Cont_t::const_iterator itor = m_ephemerides.begin(); itor != m_ephemerides.end(); ++itor) {
-      Duration new_diff = std::min((t - (*candidate)->valid_since()).op(fabs), (t - (*candidate)->valid_until()).op(fabs));
-      if (new_diff < diff) {
-        candidate = itor;
-        diff = new_diff;
-      }
-    }
-
-    // If no candidate was found, throw an exception.
-    if (m_ephemerides.end() == candidate) {
-      std::ostringstream os;
-      os << "PulsarEphCont::chooseFromAllEph could not find an ephemeris for time " << t;
-      throw std::runtime_error(os.str());
-    }
-
-    return *(*candidate);
   }
 
   PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_psr_name_table(0) {

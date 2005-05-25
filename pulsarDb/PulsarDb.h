@@ -10,57 +10,17 @@
 #include <string>
 
 #include "pulsarDb/PulsarEph.h"
-#include "pulsarDb/TimingModel.h"
 
-#include "tip/Extension.h"
 #include "tip/FileSummary.h"
 
 namespace tip {
+  class Extension;
   class Table;
 }
 
 namespace pulsarDb {
 
   class AbsoluteTime;
-
-  /** \class PulsarEphCont
-      \brief Abstraction providing access to a container of pulsar ephemerides.
-  */
-  class PulsarEphCont {
-    public:
-      typedef std::vector<PulsarEph *> Cont_t;
-
-      virtual ~PulsarEphCont() { clear(); }
-
-      void clear() {
-        for (Cont_t::reverse_iterator itor = m_ephemerides.rbegin(); itor != m_ephemerides.rend(); ++itor)
-          delete (*itor);
-        m_ephemerides.clear();
-      }
-
-      void insertEph(const PulsarEph & eph) { m_ephemerides.push_back(eph.clone()); }
-
-      /** \brief Choose the best ephemeris for the given MJD time. Throws an exception if no ephemeris is found.
-
-                 The ephmeris returned contains the time in the half-open interval [VALID_SINCE, VALID_UNTIL)
-                 If more than one candidate ephemeris contains the time, the ephemeris with the latest start
-                 time is chosen. If more than one candidate has the same start time, the one with the latest
-                 stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
-                 which appears last in the table is selected.
-          \param t The time of interest.
-          \param strict_validity If false, the ephemeris closest to the given time will be returned even if the time
-                 is outside its interval of validity. If true, only an ephemeris which contains the time in its interval
-                 of validity will be returned. In either case, if no ephemeris meets the requirements, an exception
-                 is thrown.
-      */
-      virtual const PulsarEph & chooseEph(const AbsoluteTime & t, bool strict_validity = true) const;
-
-    protected:
-      virtual const PulsarEph & chooseFromAllEph(const AbsoluteTime & t) const;
-      virtual const PulsarEph & chooseFromValidEph(const AbsoluteTime & t) const;
-
-      Cont_t m_ephemerides;
-  };
 
   /** \class PulsarDb
       \brief Abstraction providing access to pulsar ephemerides database.
@@ -124,7 +84,6 @@ namespace pulsarDb {
       PulsarDb();
       virtual void loadTables(bool edit_in_place);
 
-      TimingModel m_model;
       std::string m_in_file;
       tip::FileSummary m_summary;
       TableCont m_table;
