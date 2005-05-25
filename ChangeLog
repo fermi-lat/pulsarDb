@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed May 25 14:27:31 PDT 2005
+pulsarDb/pulsarDb
+
+Added Files:
+	EphChooser.h 
+Log Message:
+Add EphChooser which picks best ephemeris from PulsarEphCont.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed May 25 14:27:01 PDT 2005
 pulsarDb/src/test
 
