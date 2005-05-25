@@ -30,7 +30,11 @@ namespace pulsarDb {
         m_par[SHAPIRO_R] *= s_sec_per_microsec;
       }
 
+      virtual ~OrbitalEph() {}
+
       const double & operator [](size_type index) const { return m_par[index]; }
+
+      virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
 
     private:
       std::vector<double> m_par;
