@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed May 25 14:26:18 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	TextPulsarDb.h 
+Log Message:
+Clean up: remove unneeded header file.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed May 25 14:26:00 PDT 2005
 pulsarDb/pulsarDb
 
