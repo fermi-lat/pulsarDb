@@ -6,7 +6,6 @@
 #ifndef pulsarDb_TextPulsarDb_h
 #define pulsarDb_TextPulsarDb_h
 
-#include <map>
 #include <string>
 #include <vector>
 
