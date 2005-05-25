@@ -11,6 +11,7 @@
 
 #include "pulsarDb/AbsoluteTime.h"
 #include "pulsarDb/CanonicalTime.h"
+#include "pulsarDb/EphChooser.h"
 #include "pulsarDb/GlastTime.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarDb.h"
@@ -214,21 +215,23 @@ void PulsarDbTest::testChooser() {
 
   database.getEph(eph_cont);
 
+  EphChooser chooser;
+
   // Test one with no tiebreaking needed.
-  const PulsarEph * chosen = &eph_cont.chooseEph(pick_time);
+  const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
   if (TdbTime(54262.) != chosen->epoch())
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
 
   // Test one with tiebreaking.
   pick_time.setMjd(53545.5);
-  chosen = &eph_cont.chooseEph(pick_time);
+  chosen = &chooser.choose(eph_cont, pick_time);
   if (TdbTime(53891.) != chosen->epoch())
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
 
   // Test one which is too early.
   pick_time.setMjd(53544.5);
   try {
-    chosen = &eph_cont.chooseEph(pick_time);
+    chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
@@ -237,7 +240,7 @@ void PulsarDbTest::testChooser() {
   // Test one which is too late.
   pick_time.setMjd(55579.5);
   try {
-    chosen = &eph_cont.chooseEph(pick_time);
+    chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
@@ -246,7 +249,7 @@ void PulsarDbTest::testChooser() {
   // Try one which is too late, but without being strict about validity.
   pick_time.setMjd(55579.5);
   try {
-    chosen = &eph_cont.chooseEph(pick_time, false);
+    chosen = &(SloppyEphChooser().choose(eph_cont, pick_time));
   } catch (const std::runtime_error &) {
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser did not find an ephemeris even with strict_validity == false" <<
       std::endl;
@@ -263,7 +266,7 @@ void PulsarDbTest::testChooser() {
   // Try to choose an ephemeris from the empty set.
   pick_time.setMjd(55579.5);
   try {
-    chosen = &eph_cont.chooseEph(pick_time);
+    chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
@@ -583,11 +586,11 @@ void PulsarDbTest::testTextPulsarDb() {
 void PulsarDbTest::testPeriodConverter() {
   std::string method_name = "testPeriodConverter";
 
-  double p0[] = { 0.033 ,  0.089  , 0.237 , 0.197 , 0.102};
+  double p0[] = { 0.033, 0.089, 0.237, 0.197, 0.102};
   double p1[] = { 422.e-15, 2.0e-15, 11.4e-15, 5.8e-15, 92.2e-15 };
   double p2[] = { 1E-19, 2E-20, 2E-20, 32E-20, 1E-23 };
   double epoch[] = {51900., 51900., 51900., 51900., 51900. };
-  double phi0[] = { 0.02 , .03, 0.21, 0.12 , 	0.11	};
+  double phi0[] = { 0.02, .03, 0.21, 0.12, 0.11 };
 
   for (size_t ii = 0; ii < 5; ++ii) {
     GlastTdbTime dummy(0.);
@@ -664,6 +667,6 @@ void PulsarDbTest::testDuration() {
   if (6. != six_sec.sec())
     ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.sec() returned " << six_sec.sec() <<
       ", not " << 6. << " as expected." << std::endl;
-}
+} 
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
