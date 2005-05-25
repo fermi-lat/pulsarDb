@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Wed May 25 14:27:31 PDT 2005
+pulsarDb/src
+
+Added Files:
+	EphChooser.cxx 
+Log Message:
+Add EphChooser which picks best ephemeris from PulsarEphCont.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed May 25 14:27:31 PDT 2005
 pulsarDb/pulsarDb
 
 Added Files:
