@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed May 25 14:26:00 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Add typedef for PulsarEphCont.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed May 25 14:25:39 PDT 2005
 pulsarDb/src
 
