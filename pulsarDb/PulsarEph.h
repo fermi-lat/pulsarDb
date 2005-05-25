@@ -158,6 +158,7 @@ namespace pulsarDb {
       double m_p2;
   };
 
+  typedef std::vector<PulsarEph *> PulsarEphCont;
 }
 
 #endif
