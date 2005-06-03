@@ -3,12 +3,12 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
 #include "pulsarDb/AbsoluteTime.h"
 #include "pulsarDb/EphChooser.h"
-#include "pulsarDb/PulsarEph.h"
 
 namespace pulsarDb {
 
@@ -37,7 +37,33 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "StrictEphChooser::choose could not find an ephemeris for time " << t;
+      os << "EphChooser::choose could not find a spin ephemeris for time " << t;
+      throw std::runtime_error(os.str());
+    }
+
+    return *(*candidate);
+  }
+
+  const OrbitalEph & EphChooser::choose(const OrbitalEphCont & ephemerides, const AbsoluteTime & t) const {
+    if (ephemerides.empty()) throw std::runtime_error("EphChooser::choose was passed empty container of ephemerides");
+    // Start with minimum = maximum value.
+    double min_time_diff = std::numeric_limits<double>::max();
+
+    OrbitalEphCont::const_iterator candidate = ephemerides.end();
+    
+    // Find the closest ephemeris time to the given time.
+    for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
+      double time_diff = fabs(((*itor)->t0() - t).sec());
+      if (time_diff < min_time_diff) {
+        candidate = itor;
+        min_time_diff = time_diff;
+      }
+    }
+
+    // If no candidate was found, throw an exception.
+    if (ephemerides.end() == candidate) {
+      std::ostringstream os;
+      os << "EphChooser::choose could not find an orbital ephemeris for time " << t;
       throw std::runtime_error(os.str());
     }
 
