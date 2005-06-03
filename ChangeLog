@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jun  3 14:28:00 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphChooser.h 
+Log Message:
+Add choose method for choosing orbital ephemerides.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jun  3 14:26:55 PDT 2005
 pulsarDb/src
 
