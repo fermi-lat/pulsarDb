@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jun  3 14:34:33 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests for OrbitalEph access throughout all the classes.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jun  3 14:33:45 PDT 2005
 pulsarDb/src
 
