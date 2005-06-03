@@ -6,13 +6,12 @@
 #ifndef pulsarDb_EphChooser_h
 #define pulsarDb_EphChooser_h
 
+#include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
 namespace pulsarDb {
 
   class AbsoluteTime;
-  class OrbitalEph;
-  class PulsarEph;
 
   /** \class EphChooser
       \brief Abstraction providing method for choosing best ephemeris from a container of candidate.
@@ -30,7 +29,7 @@ namespace pulsarDb {
                  which appears last in the table is selected.
           \param t The time of interest.
       */
-      virtual const PulsarEph & choose(const PulsarEphCont & cont, const AbsoluteTime & t) const;
+      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const;
 
       /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
 
@@ -41,7 +40,7 @@ namespace pulsarDb {
                  which appears last in the table is selected.
           \param t The time of interest.
       */
- //     virtual const OrbitalEph & choose(const OrbitalEphCont & cont, const AbsoluteTime & t) const;
+      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const AbsoluteTime & t) const;
   };
 
   /** \class SloppyEphChooser
@@ -60,7 +59,7 @@ namespace pulsarDb {
                  which appears last in the table is selected.
           \param t The time of interest.
       */
-      virtual const PulsarEph & choose(const PulsarEphCont & cont, const AbsoluteTime & t) const;
+      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const;
   };
 
 }
