@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 
+#include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
 #include "tip/FileSummary.h"
@@ -74,8 +75,11 @@ namespace pulsarDb {
 
       void updateKeywords(tip::Extension & ext) const;
 
-      /// \brief Get the currently selected container of ephemerides.
+      /// \brief Get the currently selected container of spin (pulsar) ephemerides.
       virtual void getEph(PulsarEphCont & cont) const;
+
+      /// \brief Get the currently selected container of orbital ephemerides.
+      virtual void getEph(OrbitalEphCont & cont) const;
 
       /// \brief Get the number of currently selected ephemerides.
       virtual int getNumEph() const;
@@ -88,6 +92,7 @@ namespace pulsarDb {
       tip::FileSummary m_summary;
       TableCont m_table;
       tip::Table * m_spin_par_table;
+      const tip::Table * m_orbital_par_table;
       const tip::Table * m_psr_name_table;
   };
 

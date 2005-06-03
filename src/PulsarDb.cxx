@@ -3,8 +3,10 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <cmath>
 #include <ctime>
 #include <cctype>
+#include <cstddef>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -26,7 +28,7 @@ using namespace tip;
 namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & in_file, bool edit_in_place): m_in_file(in_file), m_summary(), m_table(),
-    m_spin_par_table(0), m_psr_name_table(0) {
+    m_spin_par_table(0), m_orbital_par_table(0), m_psr_name_table(0) {
     loadTables(edit_in_place);
   }
 
@@ -259,6 +261,8 @@ namespace pulsarDb {
     std::string toa_int_col = "TOABARY_INT";
     std::string toa_frac_col = "TOABARY_FRAC";
 
+    cont.reserve(m_spin_par_table->getNumRecords());
+
     // Iterate over current selection.
 // TODO: why doesn't ConstIterator work here???
     for (Table::Iterator itor = m_spin_par_table->begin(); itor != m_spin_par_table->end(); ++itor) {
@@ -294,11 +298,66 @@ namespace pulsarDb {
     }
   }
 
+  void PulsarDb::getEph(OrbitalEphCont & cont) const {
+    // Empty container then refill it.
+    cont.clear();
+
+    if (0 != m_orbital_par_table) {
+      cont.reserve(m_orbital_par_table->getNumRecords());
+
+      for (Table::ConstIterator itor = m_orbital_par_table->begin(); itor != m_orbital_par_table->end(); ++itor) {
+        // For convenience, get record from iterator.
+        Table::ConstRecord & r(*itor);
+        
+        double par[] = {
+          r["PB"].get(),
+          r["PBDOT"].get(),
+          r["A1"].get(),
+          r["XDOT"].get(),
+          r["ECC"].get(),
+          r["ECCDOT"].get(),
+          r["OM"].get(),
+          r["OMDOT"].get(),
+          r["T0"].get(),
+          r["GAMMA"].get(),
+          r["SHAPIRO_R"].get(),
+          r["SHAPIRO_S"].get()
+        };
+
+        // Handle any INDEFs.
+        for (size_t index = 0; index != sizeof(par) / sizeof(double); ++index) {
+          if (0 != isnan(par[index])) {
+            switch (index) {
+              case PB:
+              case A1:
+              case ECC:
+              case OM:
+              case T0:
+                throw std::runtime_error("PulsarDb::getEph(): invalid orbital ephemeris");
+                break;
+              case PBDOT:
+              case XDOT:
+              case ECCDOT:
+              case OMDOT:
+              case GAMMA:
+              case SHAPIRO_R:
+              case SHAPIRO_S:
+              default:
+                par[index] = 0.;
+                break;
+            }
+          }
+        }
+        cont.push_back(new OrbitalEph(par));
+      }
+    }
+  }
+
   int PulsarDb::getNumEph() const {
     return m_spin_par_table->getNumRecords();
   }
 
-  PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_psr_name_table(0) {
+  PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_orbital_par_table(0), m_psr_name_table(0) {
   }
 
   void PulsarDb::loadTables(bool edit_in_place) {
@@ -325,8 +384,13 @@ namespace pulsarDb {
 
     // Find spin parameter table.
     TableCont::iterator itor = m_table.find("SPIN_PARAMETERS");
-    if (m_table.end() == itor) throw std::runtime_error("Could not find ALTERNATIVE_NAMES table in file " + m_in_file);
+    if (m_table.end() == itor) throw std::runtime_error("Could not find SPIN_PARAMETERS table in file " + m_in_file);
     m_spin_par_table = itor->second;
+    
+    // Find orbital parameter table.
+    itor = m_table.find("ORBITAL_PARAMETERS");
+    if (m_table.end() == itor) throw std::runtime_error("Could not find ORBITAL_PARAMETERS table in file " + m_in_file);
+    m_orbital_par_table = itor->second;
     
     // Find pulsar name table.
     itor = m_table.find("ALTERNATIVE_NAMES");
