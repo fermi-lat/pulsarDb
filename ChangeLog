@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jun  3 14:33:07 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Add getEph method for getting orbital ephemerides.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jun  3 14:32:22 PDT 2005
 pulsarDb/pulsarDb
 
