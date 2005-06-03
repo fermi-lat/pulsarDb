@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jun  3 14:33:45 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Add method for getting t0 as an Absolutetime, plus changes to constructor.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jun  3 14:33:07 PDT 2005
 pulsarDb/src
 
