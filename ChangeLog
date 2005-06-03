@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jun  3 14:32:22 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Add method for getting t0 as an Absolutetime.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jun  3 14:28:00 PDT 2005
 pulsarDb/src
 
