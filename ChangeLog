@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Fri Jun  3 14:26:55 PDT 2005
+pulsarDb/pulsarDb
+
+Added Files:
+	EphComputer.h 
+Log Message:
+Add EphComputer class, which uses EphChooser, TimingModel and containers of
+ephemerides to perform operations on event-by-event basis.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed May 25 14:27:31 PDT 2005
 pulsarDb/src
 
