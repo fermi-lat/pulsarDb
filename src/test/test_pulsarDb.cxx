@@ -12,6 +12,7 @@
 #include "pulsarDb/AbsoluteTime.h"
 #include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/EphChooser.h"
+#include "pulsarDb/EphComputer.h"
 #include "pulsarDb/GlastTime.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarDb.h"
@@ -104,6 +105,15 @@ class PulsarDbTest : public st_app::StApp {
     /// Test duration class.
     virtual void testDuration();
 
+    /// Test EphComputer class.
+    virtual void testEphComputer();
+
+    /// Test Eph getter in pulsarDb class.
+    virtual void testEphGetter();
+
+  protected:
+    void testEquality(const std::string & context, const pulsarDb::PulsarEph & eph1, const pulsarDb::PulsarEph & eph2) const;
+
   private:
     std::string m_data_dir;
     std::string m_in_file;
@@ -142,6 +152,8 @@ void PulsarDbTest::run() {
   testPeriodConverter();
   testOrbitalEph();
   testDuration();
+  testEphComputer();
+  testEphGetter();
 
   // Failures.
   testBadInterval();
@@ -272,6 +284,21 @@ void PulsarDbTest::testChooser() {
     // This is to be expected.
   }
 
+  // Test choosing OrbitalEph.
+  OrbitalEphCont orbital_cont;
+  database.getEph(orbital_cont);
+  
+  pick_time.setMjd(52500.);
+  try {
+    const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
+    double expected_mjd = 5.206084100795000e+04;
+    if (orbital_eph[T0] != expected_mjd) {
+      ErrorMsg(method_name) << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
+        expected_mjd << std::endl;
+    }
+  } catch (const std::runtime_error & x) {
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " << x.what() << std::endl;
+  }
 }
 
 void PulsarDbTest::testExplicitName() {
@@ -442,14 +469,12 @@ void PulsarDbTest::testAbsoluteTime() {
 void PulsarDbTest::testPulsarEph() {
   std::string method_name = "testPulsarEph";
 
-  double epsilon = 1.e-8;
-
   // Create a frequency ephemeris.
-  FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
 
   // Create a period ephemeris.
   // This is a set of values known to be the inverses of the frequency coefficients above.
-  PeriodEph p_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 88.8888888888888888888889,
+  PeriodEph p_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.875, 88.8888888888888888888889,
     1.777777777777777777777778, 0.0177777777777777777777778);
 
   // Create a database ephemeris.
@@ -457,28 +482,7 @@ void PulsarDbTest::testPulsarEph() {
   DatabaseEph db_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), GlastTtTime(223.456789),
     1.125e-2, -2.25e-4, 6.75e-6);
 
-  // All three should agree completely.
-  // First, compare frequency & period.
-  const long double nano_sec = 1.e-9;
-  if (Duration(nano_sec, UnitSec) < (f_eph.epoch() - p_eph.epoch()))
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
-
-  if (fabs(f_eph.phi0() / p_eph.phi0() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for phi0" << std::endl;
-
-  if (fabs(f_eph.f0() / p_eph.f0() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for f0" << std::endl;
-
-  if (fabs(f_eph.f1() / p_eph.f1() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for f1" << std::endl;
-
-  if (fabs(f_eph.f2() / p_eph.f2() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for f2" << std::endl;
-
-  // Next, compare frequency & database.
-  if (Duration(nano_sec, UnitSec) < (f_eph.epoch() - db_eph.epoch()))
-    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for epoch" << std::endl;
-
+#if 0
   // Correct phi0 is 1. - (1.125e-2 * 100 - 2.25e-4*10000 / 2. + 6.75e-6 * 1000000 / 6.) = -.125 -> .875
   if (fabs(db_eph.phi0() / .875 - 1.) > epsilon)
     ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for phi0" << std::endl;
@@ -492,6 +496,17 @@ void PulsarDbTest::testPulsarEph() {
   if (fabs(f_eph.f2() / db_eph.f2() - 1.) > epsilon)
     ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f2" << std::endl;
 
+  // All three should agree completely.
+  const long double nano_sec = 1.e-9;
+  if (Duration(nano_sec, UnitSec) < (f_eph.epoch() - p_eph.epoch()))
+    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
+#endif
+
+  // First, compare frequency & period.
+  testEquality("FrequencyEph and PeriodEph", f_eph, p_eph);
+
+  // Compare frequency and database
+  testEquality("FrequencyEph and DatabaseEph", f_eph, db_eph);
 }
 
 void PulsarDbTest::testTimingModel() {
@@ -586,7 +601,7 @@ void PulsarDbTest::testTextPulsarDb() {
 void PulsarDbTest::testPeriodConverter() {
   std::string method_name = "testPeriodConverter";
 
-  double p0[] = { 0.033, 0.089, 0.237, 0.197, 0.102};
+  double p0[] = { 0.033, 0.089, 0.237, 0.197, 0.102 };
   double p1[] = { 422.e-15, 2.0e-15, 11.4e-15, 5.8e-15, 92.2e-15 };
   double p2[] = { 1E-19, 2E-20, 2E-20, 32E-20, 1E-23 };
   double epoch[] = {51900., 51900., 51900., 51900., 51900. };
@@ -668,5 +683,115 @@ void PulsarDbTest::testDuration() {
     ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.sec() returned " << six_sec.sec() <<
       ", not " << 6. << " as expected." << std::endl;
 } 
+
+void PulsarDbTest::testEphComputer() {
+  std::string method_name = "testEphComputer";
+
+  // Set up pieces needed for computation.
+  TimingModel model;
+  EphChooser chooser;
+
+  // Get access to database.
+  PulsarDb database(m_in_file);
+
+  // Filter a pulsar known to be present.
+  database.filterName("PSr j0323+3944");
+
+  // First perform computations without the computer.
+  PulsarEphCont eph_cont;
+  database.getEph(eph_cont);
+
+  GlastTdbTime expected_gtdb(100.);
+  const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
+  model.correctPdot(eph, expected_gtdb);
+  double expected_pulse_phase = model.calcPhase(eph, expected_gtdb);
+  FrequencyEph expected_eph(model.calcEphemeris(eph, expected_gtdb));
+ 
+  // Repeat computations using the EphComputer class, and compare results.
+  // Create the computer.
+  EphComputer computer(&model, &chooser);
+
+  // Load the data from the database.
+  computer.load(database);
+
+  // Test cancelPdot, and compare result to previous result.
+  GlastTdbTime gtdb(100.);
+  computer.cancelPdot(gtdb);
+  if (expected_gtdb.elapsed() != gtdb.elapsed())
+    ErrorMsg(method_name) << "EphComputer::cancelPdot returned elapsed time " << gtdb.elapsed() << ", not " <<
+      expected_gtdb.elapsed() << ", as expected." << std::endl;
+
+  // Test calcPulsePhase, and compare result to previous result.
+  double pulse_phase = computer.calcPulsePhase(expected_gtdb);
+  if (expected_pulse_phase != pulse_phase)
+    ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
+      expected_pulse_phase << ", as expected." << std::endl;
+
+  // Test calcPulsarEph, and compare result to previous result.
+  FrequencyEph freq_eph = computer.calcPulsarEph(expected_gtdb);
+  testEquality("EphComputer::calcPulsarEph and TimingModel::calcEphemeris", freq_eph, expected_eph);
+
+  // Test binary modulation/demodulation.
+
+  // First perform computations without the computer.
+  OrbitalEphCont orbital_eph_cont;
+  database.getEph(orbital_eph_cont);
+
+  const OrbitalEph & orbital_eph(chooser.choose(orbital_eph_cont, gtdb));
+  expected_gtdb = gtdb;
+  model.modulateBinary(orbital_eph, expected_gtdb);
+  
+  computer.modulateBinary(gtdb);
+  if (expected_gtdb.elapsed() != gtdb.elapsed())
+    ErrorMsg(method_name) << "After EphComputer::modulateBinary, elapsed time was " << gtdb.elapsed() << ", not " <<
+      expected_gtdb.elapsed() << ", as expected." << std::endl;
+
+  expected_gtdb = gtdb;
+  model.demodulateBinary(orbital_eph, expected_gtdb);
+  
+  computer.demodulateBinary(gtdb);
+  if (expected_gtdb.elapsed() != gtdb.elapsed())
+    ErrorMsg(method_name) << "After EphComputer::demodulateBinary, elapsed time was " << gtdb.elapsed() << ", not " <<
+      expected_gtdb.elapsed() << ", as expected." << std::endl;
+}
+
+void PulsarDbTest::testEphGetter() {
+  std::string method_name = "testEphGetter";
+
+  PulsarDb database(m_in_file);
+  PulsarEphCont pulsar_eph_cont;
+  database.getEph(pulsar_eph_cont);
+  if (pulsar_eph_cont.size() != size_t(database.getNumEph()))
+    ErrorMsg(method_name) << "PulsarDb::getEph(PulsarEphCont &) got " << pulsar_eph_cont.size() << " ephemerides, not " <<
+      database.getNumEph() << ", as expected." << std::endl;
+
+  OrbitalEphCont orbital_eph_cont;
+  database.getEph(orbital_eph_cont);
+  size_t expected_orbital = 19;
+  if (orbital_eph_cont.size() != expected_orbital) 
+    ErrorMsg(method_name) << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
+      expected_orbital << ", as expected." << std::endl;
+}
+
+void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & eph1, const PulsarEph & eph2) const {
+  std::string method_name = "testEquality";
+  double epsilon = 1.e-8;
+  const long double nano_sec = 1.e-9;
+
+  if (Duration(nano_sec, UnitSec) < (eph1.epoch() - eph2.epoch()))
+    ErrorMsg(method_name) << context << " give different values for epoch" << std::endl;
+
+  if (fabs(eph1.phi0() / eph2.phi0() - 1.) > epsilon)
+    ErrorMsg(method_name) << context << " give different values for phi0" << std::endl;
+
+  if (fabs(eph1.f0() / eph2.f0() - 1.) > epsilon)
+    ErrorMsg(method_name) << context << " give different values for f0" << std::endl;
+
+  if (fabs(eph1.f1() / eph2.f1() - 1.) > epsilon)
+    ErrorMsg(method_name) << context << " give different values for f1" << std::endl;
+
+  if (fabs(eph1.f2() / eph2.f2() - 1.) > epsilon)
+    ErrorMsg(method_name) << context << " give different values for f2" << std::endl;
+}
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
