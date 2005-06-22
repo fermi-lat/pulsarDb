@@ -3,6 +3,7 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <cctype>
 #include <cstdio>
 #include <memory>
 #include <stdexcept>
@@ -19,7 +20,7 @@
 #include "tip/IFileSvc.h"
 #include "tip/TipException.h"
 
-static const std::string s_cvs_id("$Name$");
+static const std::string s_cvs_id("$Name: v0r1p3 $");
 
 namespace pulsarDb {
 
@@ -37,16 +38,22 @@ namespace pulsarDb {
     AppParGroup & pars(getParGroup("gtpulsardb"));
 
     // Prompt and save.
-    pars.Prompt();
+    pars.Prompt("psrdbfile");
+    pars.Prompt("outfile");
+    pars.Prompt("filter");
+    std::string filter = pars["filter"];
+    for (std::string::iterator itor = filter.begin(); itor != filter.end(); ++itor) *itor = tolower(*itor);
+    if (filter == "name") {
+      pars.Prompt("psrname");
+    } else if (filter == "time") {
+      pars.Prompt("tstart");
+      pars.Prompt("tstop");
+    }
     pars.Save();
 
     // Interpret pars.
     std::string in_file = pars["psrdbfile"].Value();
-    std::string expression = pars["filter"];
     std::string out_file = pars["outfile"];
-    std::string psr_name = pars["psrname"];
-    double t_start = pars["tstart"];
-    double t_stop = pars["tstop"];
 
     // Find template file.
     m_tpl_file = st_facilities::Env::appendFileName(st_facilities::Env::getDataDir("pulsarDb"), "PulsarEph.tpl");
@@ -70,14 +77,16 @@ namespace pulsarDb {
     // Re-open the output file as the data_base object.
     std::auto_ptr<PulsarDb> data_base(openDbFile(out_file, true));
 
-    // Filter using user's expression.
-    data_base->filter(expression);
-
-    // Filter on pulsar name.
-    data_base->filterName(psr_name);
-
-    // Filter on time.
-    data_base->filterInterval(t_start, t_stop);
+    if (filter == "name") {
+      // Filter on pulsar name.
+      std::string psr_name = pars["psrname"];
+      data_base->filterName(psr_name);
+    } else if (filter == "time") {
+      // Filter on time.
+      double t_start = pars["tstart"];
+      double t_stop = pars["tstop"];
+      data_base->filterInterval(t_start, t_stop);
+    }
   }
 
   PulsarDb * PulsarDbApp::openDbFile(const std::string & in_file, bool edit_in_place) {

@@ -1,6 +1,6 @@
 psrdbfile,      f, a, , , , "Input pulsar ephemerides database file name"
 outfile,        f, a, , , ,"Output pulsar ephemerides database file name"
-filter,         s, a, , , , "General row filtering expresssion (optional)"
+filter,         s, a, NONE, NAME|TIME|NONE, , "Filter ephemerides"
 psrname,        s, a, "any", , , "Pulsar name"
 tstart,         r, a, 0., , , "Start time of observation in MJD"
 tstop,          r, a, 1.e5, , , "Stop time of observation in MJD"
