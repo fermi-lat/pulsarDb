@@ -8,6 +8,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
@@ -86,14 +87,31 @@ namespace pulsarDb {
 
     protected:
       PulsarDb();
+      /** \brief Load data tables from the associated pulsar ephemerides database file.
+          \param edit_in_place If true any filterings will affect the input file. If false, filtering
+          will take place on a copy of the file in memory only.
+      */
       virtual void loadTables(bool edit_in_place);
+
+      /** \brief Clean up all extensions based on current set of selected spin and orbital ephemerides. All
+          information in the OBSERVERS and ALTERNATIVE_NAMES extension which is not associated with a pulsar
+          contained in the SPIN_PARAMETERS or ORBITAL_PARAMETERS extensions will be removed.
+      */
+      virtual void clean();
+
+      /** \brief Creates a filtering expression from an input field name and a set of accepted values.
+          \param field_name The name of the field on which to filter.
+          \param values The set of allowed values.
+      */
+      virtual std::string createFilter(const std::string & field_name, const std::set<std::string> & values) const;
 
       std::string m_in_file;
       tip::FileSummary m_summary;
       TableCont m_table;
       tip::Table * m_spin_par_table;
-      const tip::Table * m_orbital_par_table;
-      const tip::Table * m_psr_name_table;
+      tip::Table * m_orbital_par_table;
+      tip::Table * m_obs_code_table;
+      tip::Table * m_psr_name_table;
   };
 
 }
