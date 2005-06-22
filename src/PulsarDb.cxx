@@ -28,7 +28,7 @@ using namespace tip;
 namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & in_file, bool edit_in_place): m_in_file(in_file), m_summary(), m_table(),
-    m_spin_par_table(0), m_orbital_par_table(0), m_psr_name_table(0) {
+    m_spin_par_table(0), m_orbital_par_table(0), m_obs_code_table(0), m_psr_name_table(0) {
     loadTables(edit_in_place);
   }
 
@@ -59,11 +59,11 @@ namespace pulsarDb {
     // This is logically equivalent to:
     // t_stop > VALID_SINCE && VALID_UNTIL > t_start
     os << t_stop << ">VALID_SINCE&&VALID_UNTIL>" << t_start;
-    filter(os.str());
+    m_spin_par_table->filterRows(os.str());
+    clean();
   }
 
   void PulsarDb::filterName(const std::string & name) {
-    std::string expression;
     std::string up_name = name;
 
     // Convert to uppercase.
@@ -72,8 +72,9 @@ namespace pulsarDb {
     // Check for the (limited) wildcard.
     if (up_name == "ALL" || up_name == "ANY") return;
 
+    std::set<std::string> name_matches;
     // Look up the given name in the extension containing alternate names.
-    for (Table::ConstIterator itor = m_psr_name_table->begin(); itor != m_psr_name_table->end(); ++itor) {
+    for (Table::Iterator itor = m_psr_name_table->begin(); itor != m_psr_name_table->end(); ++itor) {
       // See if there is an alternate name.
       std::string alt_name;
       (*itor)["ALTNAME"].get(alt_name);
@@ -85,20 +86,24 @@ namespace pulsarDb {
         // Found a match.
         std::string real_name;
         (*itor)["PSRNAME"].get(real_name);
-        expression = "(PSRNAME==\"" + real_name + "\")||";
+        name_matches.insert(real_name);
       }
     }
 
     // If the all-upper case name is different from the original name, add it.
     if (up_name != name) {
-      expression += "(PSRNAME==\"" + up_name + "\")||";
+      name_matches.insert(up_name);
     }
 
     // Finally (just to be sure) add the original name given.
-    expression += "(PSRNAME==\"" + name + "\")";
+    name_matches.insert(name);
 
-    // OK, do the filter for real on the spin parameters table.
-    filter(expression);
+    std::string expression = createFilter("PSRNAME", name_matches);
+
+    // OK, do the filter for real on the spin parameters and orbital parameters tables.
+    m_spin_par_table->filterRows(expression);
+    m_orbital_par_table->filterRows(expression);
+    clean();
   }
 
   void PulsarDb::save(const std::string & out_file, const std::string & tpl_file) const {
@@ -164,25 +169,12 @@ namespace pulsarDb {
     header.update(keywords);
   }
 
-#if 0
-// TODO: This was originally a save() method which removed unneeded information. If we want such
-// a "pruning" capability, it could be modified to prune the input file. Then it would work similarly
-// to the filter methods, which also affect the input file.
-  void PulsarDb::prune() {
-    // Get alias to tip's file service, for brevity.
-    IFileSvc & file_svc(IFileSvc::instance());
-
-    // Find data directory for this app.
-    std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
-
-    // Find template file.
-    std::string tpl_file = st_facilities::Env::appendFileName(data_dir, "PulsarEph.tpl");
-
+  void PulsarDb::clean() {
     // Set of pulsar names and observer codes.
     std::set<std::string> pulsar_names;
     std::set<std::string> observer_codes;
 
-    // Compose a set of all pulsar names and observer codes. This is used below
+    // Compose a set of all pulsar names and observer codes in spin extension. This is used below
     // to filter the other extensions in the file.
     for (Table::Iterator in_itor = m_spin_par_table->begin(); in_itor != m_spin_par_table->end(); ++in_itor) {
       std::string tmp;
@@ -194,64 +186,37 @@ namespace pulsarDb {
       observer_codes.insert(tmp);
     }
 
-    if (!append || !file_svc.fileExists(out_file)) {
-      // Create output file.
-      file_svc.createFile(out_file, tpl_file);
+    // Compose a set of all pulsar names and observer codes in orbital extension. This is used below
+    // to filter the other extensions in the file.
+    for (Table::Iterator in_itor = m_orbital_par_table->begin(); in_itor != m_orbital_par_table->end(); ++in_itor) {
+      std::string tmp;
+
+      (*in_itor)["PSRNAME"].get(tmp);
+      pulsar_names.insert(tmp);
+
+      (*in_itor)["OBSERVER_CODE"].get(tmp);
+      observer_codes.insert(tmp);
     }
 
-    // Loop over remaining extensions in output file.
-    FileSummary::const_iterator ext_itor = m_summary.begin();
+    // Filter observer codes based on codes found in the spin/orbital extensions.
+    std::string expression = createFilter("OBSERVER_CODE", observer_codes);
+    m_obs_code_table->filterRows(expression);
 
-    // Skip the primary by incrementing the iterator in the first clause of the for loop.
-    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
-      TableCont::const_iterator table_itor = m_table.find(ext_itor->getExtId());
-      if (m_table.end() == table_itor)
-        throw std::logic_error("Could not find extension \"" + ext_itor->getExtId() + "\" in file \"" + m_in_file + "\"");
+    // Filter alternative names based on names found in the spin/orbital extensions.
+    expression = createFilter("PSRNAME", pulsar_names);
+    m_psr_name_table->filterRows(expression);
 
-      // Input table pointer.
-      const Table * in_table = table_itor->second;
-
-      // Open output table.
-      std::auto_ptr<Table> out_table(file_svc.editTable(out_file, ext_itor->getExtId()));
-
-      // Start at beginning of both tables.
-      Table::ConstIterator in_itor = in_table->begin();
-      Table::Iterator out_itor = out_table->end();
-
-      if (ext_itor->getExtId() == "ORBITAL_PARAMETERS" || ext_itor->getExtId() == "ALTERNATIVE_NAMES") {
-        // Copy only records which match the selected pulsar name.
-        for (; in_itor != in_table->end(); ++in_itor) {
-          std::string match;
-
-          // Get the pulsar name.
-          (*in_itor)["PSRNAME"].get(match);
-
-          // Only copy the row if the name is in the set of names.
-          if (pulsar_names.end() != pulsar_names.find(match)) {
-            *out_itor = *in_itor;
-            ++out_itor;
-          }
-        }
-      } else if (ext_itor->getExtId() == "OBSERVERS") {
-        // Copy only records which match the selected observer codes.
-        for (; in_itor != in_table->end(); ++in_itor) {
-          std::string match;
-          (*in_itor)["OBSERVER_CODE"].get(match);
-          if (observer_codes.end() != observer_codes.find(match)) {
-            *out_itor = *in_itor;
-            ++out_itor;
-          }
-        }
-      } else {
-        // Resize output to match input.
-//        out_table->setNumRecords(in_table->getNumRecords());
-
-        // Copy all rows in table.
-        for (; in_itor != in_table->end(); ++in_itor, ++out_itor) *out_itor = *in_itor;
-      }
-    }
   }
-#endif
+
+  std::string PulsarDb::createFilter(const std::string & field_name, const std::set<std::string> & values) const {
+    std::string expression;
+    for (std::set<std::string>::const_iterator itor = values.begin(); itor != values.end(); ++itor) {
+      expression += "(" + field_name + "==\"" + *itor + "\")||";
+    }
+
+    // Trim off the last 2 characters ||
+    return expression.substr(0, expression.size() - 2);
+  }
 
   void PulsarDb::getEph(PulsarEphCont & cont) const {
     // Refill this container.
@@ -305,7 +270,7 @@ namespace pulsarDb {
     if (0 != m_orbital_par_table) {
       cont.reserve(m_orbital_par_table->getNumRecords());
 
-      for (Table::ConstIterator itor = m_orbital_par_table->begin(); itor != m_orbital_par_table->end(); ++itor) {
+      for (Table::Iterator itor = m_orbital_par_table->begin(); itor != m_orbital_par_table->end(); ++itor) {
         // For convenience, get record from iterator.
         Table::ConstRecord & r(*itor);
         
@@ -357,7 +322,8 @@ namespace pulsarDb {
     return m_spin_par_table->getNumRecords();
   }
 
-  PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_orbital_par_table(0), m_psr_name_table(0) {
+  PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_orbital_par_table(0), m_obs_code_table(0),
+    m_psr_name_table(0) {
   }
 
   void PulsarDb::loadTables(bool edit_in_place) {
@@ -391,6 +357,11 @@ namespace pulsarDb {
     itor = m_table.find("ORBITAL_PARAMETERS");
     if (m_table.end() == itor) throw std::runtime_error("Could not find ORBITAL_PARAMETERS table in file " + m_in_file);
     m_orbital_par_table = itor->second;
+    
+    // Find observer codes.
+    itor = m_table.find("OBSERVERS");
+    if (m_table.end() == itor) throw std::runtime_error("Could not find OBSERVERS table in file " + m_in_file);
+    m_obs_code_table = itor->second;
     
     // Find pulsar name table.
     itor = m_table.find("ALTERNATIVE_NAMES");

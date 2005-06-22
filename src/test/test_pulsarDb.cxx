@@ -285,9 +285,12 @@ void PulsarDbTest::testChooser() {
   }
 
   // Test choosing OrbitalEph.
+  // Get new independent access to database, to keep independent from the tests above.
+  PulsarDb database2(m_in_file);
+
   OrbitalEphCont orbital_cont;
-  database.getEph(orbital_cont);
-  
+  database2.filterName("PSR J1834-0010");
+  database2.getEph(orbital_cont);
   pick_time.setMjd(52500.);
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
@@ -732,15 +735,22 @@ void PulsarDbTest::testEphComputer() {
   testEquality("EphComputer::calcPulsarEph and TimingModel::calcEphemeris", freq_eph, expected_eph);
 
   // Test binary modulation/demodulation.
+  // Get new independent access to database, to keep independent from the tests above.
+  PulsarDb database2(m_in_file);
+
+  // Select a particular pulsar.
+  database2.filterName("PSR J1834-0010");
 
   // First perform computations without the computer.
   OrbitalEphCont orbital_eph_cont;
-  database.getEph(orbital_eph_cont);
+  database2.getEph(orbital_eph_cont);
 
   const OrbitalEph & orbital_eph(chooser.choose(orbital_eph_cont, gtdb));
   expected_gtdb = gtdb;
   model.modulateBinary(orbital_eph, expected_gtdb);
   
+  computer.load(database2);
+
   computer.modulateBinary(gtdb);
   if (expected_gtdb.elapsed() != gtdb.elapsed())
     ErrorMsg(method_name) << "After EphComputer::modulateBinary, elapsed time was " << gtdb.elapsed() << ", not " <<
