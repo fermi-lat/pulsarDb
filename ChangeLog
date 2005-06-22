@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 22 13:49:55 PDT 2005
+pulsarDb/pfiles
+
+Modified Files:
+	gtpulsardb.par 
+Log Message:
+Remove generic filter using arbitrary expression, and simplify
+prompts by selecting which filter to apply.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 22 13:14:57 PDT 2005
 pulsarDb/data/outref
 
