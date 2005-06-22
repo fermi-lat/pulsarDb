@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 22 13:14:35 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+1. Perform name filtering on orbital parameters and spin parameters in
+   parallel.
+2. All filters now filter (clean) observer codes and alternative names
+   extensions.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 22 13:14:34 PDT 2005
 pulsarDb/pulsarDb
 
