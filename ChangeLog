@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Fri Jul  1 11:42:16 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx TimingModel.cxx 
+Log Message:
+Add clone method.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Jul  1 11:42:16 PDT 2005
 pulsarDb/pulsarDb
 
 Modified Files:
