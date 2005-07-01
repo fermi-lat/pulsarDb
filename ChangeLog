@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Fri Jul  1 11:41:52 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx 
+Log Message:
+Add default constructor for EphComputer.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Jul  1 11:41:52 PDT 2005
 pulsarDb/pulsarDb
 
 Modified Files:
