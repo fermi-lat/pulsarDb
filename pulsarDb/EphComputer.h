@@ -21,7 +21,11 @@ namespace pulsarDb {
   */
   class EphComputer {
     public:
-      EphComputer(TimingModel * model, EphChooser * chooser);
+      EphComputer();
+
+      EphComputer(const TimingModel & model, const EphChooser & chooser);
+
+      ~EphComputer();
 
       void load(const PulsarDb & database);
 
