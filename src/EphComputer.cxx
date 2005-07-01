@@ -10,8 +10,16 @@
 
 namespace pulsarDb {
 
-  EphComputer::EphComputer(TimingModel * model, EphChooser * chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(),
-    m_model(model), m_chooser(chooser) {
+  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_model(new TimingModel), m_chooser(new EphChooser) {
+  }
+
+  EphComputer::EphComputer(const TimingModel & model, const EphChooser & chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(),
+    m_model(model.clone()), m_chooser(chooser.clone()) {
+  }
+
+  EphComputer::~EphComputer() {
+    delete m_chooser;
+    delete m_model;
   }
 
   void EphComputer::load(const PulsarDb & pulsar_db) {
