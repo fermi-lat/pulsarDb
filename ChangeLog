@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jul  1 11:42:28 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Test new EphComputer constructor.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jul  1 11:42:16 PDT 2005
 pulsarDb/src
 
