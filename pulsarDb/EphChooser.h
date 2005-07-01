@@ -41,6 +41,8 @@ namespace pulsarDb {
           \param t The time of interest.
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const AbsoluteTime & t) const;
+
+      virtual EphChooser * clone() const;
   };
 
   /** \class SloppyEphChooser
@@ -60,6 +62,8 @@ namespace pulsarDb {
           \param t The time of interest.
       */
       virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const;
+
+      virtual EphChooser * clone() const;
   };
 
 }

@@ -73,6 +73,8 @@ namespace pulsarDb {
       */
       virtual void demodulateBinary(const OrbitalEph & eph, AbsoluteTime & arrival_time) const;
 
+      virtual TimingModel * clone() const;
+
     protected:
       Duration calcOrbitalDelay(const OrbitalEph & eph, const AbsoluteTime & emission_time) const;
   };
