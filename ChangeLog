@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Jul  1 11:41:52 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h 
+Log Message:
+Add default constructor for EphComputer.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 22 13:49:55 PDT 2005
 pulsarDb/src
 
