@@ -712,7 +712,7 @@ void PulsarDbTest::testEphComputer() {
  
   // Repeat computations using the EphComputer class, and compare results.
   // Create the computer.
-  EphComputer computer(&model, &chooser);
+  EphComputer computer;
 
   // Load the data from the database.
   computer.load(database);
