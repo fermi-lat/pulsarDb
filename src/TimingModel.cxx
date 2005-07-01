@@ -94,6 +94,10 @@ namespace pulsarDb {
 
   }
 
+  TimingModel * TimingModel::clone() const {
+    return new TimingModel(*this);
+  }
+
   Duration TimingModel::calcOrbitalDelay(const OrbitalEph & eph, const AbsoluteTime & ev_time) const {
     // compute elapsed time from epoch of periastron in seconds
     double delta_second = (ev_time - TdbTime(eph[T0])).sec();

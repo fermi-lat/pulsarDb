@@ -70,6 +70,10 @@ namespace pulsarDb {
     return *(*candidate);
   }
 
+  EphChooser * EphChooser::clone() const {
+    return new EphChooser(*this);
+  }
+
   const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const {
     // First try to get a strictly correct choice.
     try {
@@ -98,6 +102,10 @@ namespace pulsarDb {
     }
 
     return *(*candidate);
+  }
+
+  EphChooser * SloppyEphChooser::clone() const {
+    return new SloppyEphChooser(*this);
   }
 
 }
