@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Wed Jul 13 14:22:32 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx PulsarEph.cxx 
+Log Message:
+Rename methods: calcPhase->calcPulsePhase and correctPdot->cancelPdot.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Jul 13 14:22:32 PDT 2005
 pulsarDb/pulsarDb
 
 Modified Files:
