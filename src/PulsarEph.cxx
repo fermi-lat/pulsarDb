@@ -21,9 +21,9 @@ namespace pulsarDb {
     FrequencyEph tmp(*m_since, *m_until, *m_epoch, 0., m_f0, m_f1, m_f2);
 
     // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
-    double r = - model.calcPhase(tmp, *m_toa);
+    double r = - model.calcPulsePhase(tmp, *m_toa);
 
-    // Make sure it is in the range [0, 1). calcPhase is bounded in this way.
+    // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
     if (0. > r) r += 1.;
 
     return r;
