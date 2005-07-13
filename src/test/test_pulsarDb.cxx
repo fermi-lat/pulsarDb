@@ -522,11 +522,11 @@ void PulsarDbTest::testTimingModel() {
 
   TimingModel model;
 
-  double phase = model.calcPhase(f_eph, GlastTtTime(223.456789));
+  double phase = model.calcPulsePhase(f_eph, GlastTtTime(223.456789));
 
   // Result determined independently.
   if (fabs(phase/.235 - 1.) > epsilon)
-    ErrorMsg(method_name) << "TimingModel::calcPhase produced phase == " << phase << " not .235" << std::endl;
+    ErrorMsg(method_name) << "TimingModel::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
 
   // Change ephemeris to produce a noticeable effect.
   FrequencyEph f_eph2(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.4567891234567), .11, 1.125e-2, -2.25e-4, 13.5e-6);
@@ -549,7 +549,7 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
   }
 
-  model.correctPdot(f_eph2, ev_time);
+  model.cancelPdot(f_eph2, ev_time);
   double pdot_t = ev_time.elapsed();
   double correct_t = 323.4567891234567;
 
@@ -706,8 +706,8 @@ void PulsarDbTest::testEphComputer() {
 
   GlastTdbTime expected_gtdb(100.);
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
-  model.correctPdot(eph, expected_gtdb);
-  double expected_pulse_phase = model.calcPhase(eph, expected_gtdb);
+  model.cancelPdot(eph, expected_gtdb);
+  double expected_pulse_phase = model.calcPulsePhase(eph, expected_gtdb);
   FrequencyEph expected_eph(model.calcEphemeris(eph, expected_gtdb));
  
   // Repeat computations using the EphComputer class, and compare results.

@@ -27,7 +27,7 @@ namespace pulsarDb {
         double dt = (ev_time - eph.epoch()).sec();
         double f0 = eph.f0() + eph.f1() * dt + eph.f2()/2.0 * dt * dt;
         double f1 = eph.f1() + eph.f2() * dt;
-        double phi0 = calcPhase(eph, ev_time);
+        double phi0 = calcPulsePhase(eph, ev_time);
         return FrequencyEph(eph.valid_since(), eph.valid_until(), eph.epoch(), phi0, f0, f1, eph.f2());
       }
 
@@ -36,8 +36,7 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
-      // TODO: rename correctPdot cancelPdot?
-      virtual void correctPdot(const PulsarEph & eph, AbsoluteTime & ev_time) const {
+      virtual void cancelPdot(const PulsarEph & eph, AbsoluteTime & ev_time) const {
         double dt = (ev_time - eph.epoch()).sec();
         double dt_squared = dt * dt;
         ev_time += Duration(eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared, UnitSec);
@@ -49,8 +48,7 @@ namespace pulsarDb {
           \param ev_time Time of the event.
       */
       // TODO: create calcOrbitalPhase.
-      // TODO: related to calcOrbitalPhase, rename calcPhase calcPulsePhase?
-      virtual double calcPhase(const PulsarEph & eph, const AbsoluteTime & ev_time) const {
+      virtual double calcPulsePhase(const PulsarEph & eph, const AbsoluteTime & ev_time) const {
         double dt = (ev_time - eph.epoch()).sec();
         double int_part; // ignored, needed for modf.
         double dt_squared = dt * dt;
