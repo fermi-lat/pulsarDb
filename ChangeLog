@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul 21 11:20:43 PDT 2005
+pulsarDb/src
+
+Added Files:
+	EphComputerApp.cxx 
+Log Message:
+New classes used for binary for displaying ephemeris selected for a given
+time and for computing estimated ephemerides.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jul 21 11:20:42 PDT 2005
 pulsarDb/pulsarDb
 
