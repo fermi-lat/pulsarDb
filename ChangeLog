@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul 21 11:17:45 PDT 2005
+pulsarDb/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Use st_stream and add gtephcomp task.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jul 21 11:16:44 PDT 2005
 pulsarDb/pulsarDb
 
