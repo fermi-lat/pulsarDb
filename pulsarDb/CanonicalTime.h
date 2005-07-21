@@ -36,6 +36,8 @@ namespace pulsarDb {
 
       virtual void write(std::ostream & os) const;
 
+      virtual void write(st_stream::OStream & os) const;
+
       /** \brief Assign this object's time to a TaiTime object.
           \param t The destination time object.
       */
@@ -154,6 +156,10 @@ namespace pulsarDb {
   inline void CanonicalTime::from(const AbsoluteTime & t) { t.to(*this); }
 
   inline void CanonicalTime::write(std::ostream & os) const {
+    os << mjd() << " MJD " << timeSystemName();
+  }
+
+  inline void CanonicalTime::write(st_stream::OStream & os) const {
     os << mjd() << " MJD " << timeSystemName();
   }
 

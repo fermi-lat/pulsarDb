@@ -6,6 +6,9 @@
 #ifndef pulsarDb_OrbitalEph_h
 #define pulsarDb_OrbitalEph_h
 
+#include "st_stream/Stream.h"
+
+#include <iostream>
 #include <vector>
 
 namespace pulsarDb {
@@ -39,12 +42,17 @@ namespace pulsarDb {
 
       virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
 
+      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+
     private:
       std::vector<double> m_par;
       AbsoluteTime * m_t0;
   };
 
   typedef std::vector<OrbitalEph *> OrbitalEphCont;
+
+  inline st_stream::OStream & operator <<(st_stream::OStream & os, const OrbitalEph & eph) { return eph.write(os); }
+
 }
 
 #endif
