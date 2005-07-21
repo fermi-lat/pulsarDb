@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul 21 11:16:17 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h 
+Log Message:
+Add forwarding methods for determining which ephemeris is chosen
+by the chooser inside an EphComputer.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jul 21 11:14:22 PDT 2005
 pulsarDb/src
 
