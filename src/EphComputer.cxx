@@ -68,4 +68,12 @@ namespace pulsarDb {
     return m_orbital_eph_cont;
   }
 
+  const PulsarEph & EphComputer::choosePulsarEph(const AbsoluteTime & ev_time) const {
+    return m_chooser->choose(m_pulsar_eph_cont, ev_time);
+  }
+
+  const OrbitalEph & EphComputer::chooseOrbitalEph(const AbsoluteTime & ev_time) const {
+    return m_chooser->choose(m_orbital_eph_cont, ev_time);
+  }
+
 }
