@@ -5,10 +5,12 @@ author James Peachey <peachey@lheamail.gsfc.nasa.gov>
 use STpolicy *
 use st_app *
 use st_facilities *
+use st_stream *
 use tip *
 
 #macro_append pulsarDbcppflags "" Linux "-g -Wall --pedantic -O0 "
 #macro_append pulsarDb_linkopts "" Linux "-g -O0 "
 
 apply_pattern ST_library option=-no_share
+application gtephcomp gtephcomp/*.cxx
 application gtpulsardb gtpulsardb/*.cxx
