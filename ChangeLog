@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul 21 11:18:53 PDT 2005
+pulsarDb/src/gtephcomp
+
+Added Files:
+	gtephcomp.cxx 
+Log Message:
+New binary for displaying ephemeris selected for a given
+time and for computing estimated ephemerides.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jul 21 11:17:45 PDT 2005
 pulsarDb/cmt
 
