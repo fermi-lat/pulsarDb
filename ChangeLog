@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul 21 11:16:44 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	GlastTime.h 
+Log Message:
+Add support for shifting to st_stream streams.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jul 21 11:16:18 PDT 2005
 pulsarDb/src
 
