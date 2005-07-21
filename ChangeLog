@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul 21 11:14:22 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	AbsoluteTime.h CanonicalTime.h OrbitalEph.h PulsarEph.h 
+Log Message:
+Add support for shifting to st_stream streams.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Jul 15 12:02:14 PDT 2005
 pulsarDb/src/gtephcomp
 
