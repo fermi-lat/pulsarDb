@@ -49,6 +49,8 @@ namespace pulsarDb {
 
       virtual void write(std::ostream & os) const;
 
+      virtual void write(st_stream::OStream & os) const;
+
       virtual AbsoluteTime * clone() const { return new GlastTime(*this); }
 
       double elapsed() const { return m_elapsed; }
@@ -95,6 +97,12 @@ namespace pulsarDb {
 
   template <typename ACanonicalTime>
   inline void GlastTime<ACanonicalTime>::write(std::ostream & os) const {
+    static const ACanonicalTime canonical_time(0.);
+    os << m_elapsed << " seconds GLAST MET " << canonical_time.timeSystemName();
+  }
+
+  template <typename ACanonicalTime>
+  inline void GlastTime<ACanonicalTime>::write(st_stream::OStream & os) const {
     static const ACanonicalTime canonical_time(0.);
     os << m_elapsed << " seconds GLAST MET " << canonical_time.timeSystemName();
   }

@@ -6,9 +6,11 @@
 #ifndef pulsarDb_PulsarEph_h
 #define pulsarDb_PulsarEph_h
 
+#include <iostream>
 #include <vector>
 
 #include "pulsarDb/AbsoluteTime.h"
+#include "st_stream/Stream.h"
 
 namespace pulsarDb {
 
@@ -47,6 +49,8 @@ namespace pulsarDb {
         return *this;
       }
   };
+
+  st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
 
   /** \class DatabaseEph
       \brief Class representing a single pulsar ephemeris.

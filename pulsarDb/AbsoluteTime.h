@@ -10,6 +10,8 @@
 
 #include "pulsarDb/Duration.h"
 
+#include "st_stream/Stream.h"
+
 namespace pulsarDb {
 
   class CanonicalTime;
@@ -53,6 +55,8 @@ namespace pulsarDb {
 
       virtual void write(std::ostream & os) const = 0;
 
+      virtual void write(st_stream::OStream & os) const = 0;
+
       virtual AbsoluteTime * clone() const = 0;
 
       virtual double value() const = 0;
@@ -66,6 +70,11 @@ namespace pulsarDb {
   };
 
   inline std::ostream & operator <<(std::ostream & os, const AbsoluteTime & t) {
+    t.write(os);
+    return os;
+  }
+
+  inline st_stream::OStream & operator <<(st_stream::OStream & os, const AbsoluteTime & t) {
     t.write(os);
     return os;
   }

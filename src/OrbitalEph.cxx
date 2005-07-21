@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iomanip>
 
 #include "pulsarDb/AbsoluteTime.h"
 #include "pulsarDb/CanonicalTime.h"
@@ -44,4 +45,24 @@ namespace pulsarDb {
 
   OrbitalEph::~OrbitalEph() { delete m_t0; }
 
+  st_stream::OStream & OrbitalEph::write(st_stream::OStream & os) const {
+    std::ios::fmtflags orig_flags = os.flags();
+    int orig_prec = os.precision(15);
+    os << std::right;
+    os.prefix().width(14); os << "PB = " << m_par[PB] << std::endl;
+    os.prefix().width(14); os << "PBDOT = " << m_par[PBDOT] << std::endl;
+    os.prefix().width(14); os << "A1 = " << m_par[A1] << std::endl;
+    os.prefix().width(14); os << "XDOT = " << m_par[XDOT] << std::endl;
+    os.prefix().width(14); os << "ECC = " << m_par[ECC] << std::endl;
+    os.prefix().width(14); os << "ECCDOT = " << m_par[ECCDOT] << std::endl;
+    os.prefix().width(14); os << "OM = " << m_par[OM] << std::endl;
+    os.prefix().width(14); os << "OMDOT = " << m_par[OMDOT] << std::endl;
+    os.prefix().width(14); os << "T0 = " << m_par[T0] << std::endl;
+    os.prefix().width(14); os << "GAMMA = " << m_par[GAMMA] << std::endl;
+    os.prefix().width(14); os << "SHAPIRO_R = " << m_par[SHAPIRO_R] << std::endl;
+    os.prefix().width(14); os << "SHAPIRO_S = " << m_par[SHAPIRO_S];
+    os.flags(orig_flags);
+    os.precision(orig_prec);
+    return os;
+  }
 }
