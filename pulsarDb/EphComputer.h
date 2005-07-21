@@ -47,6 +47,10 @@ namespace pulsarDb {
 
       const OrbitalEphCont & getOrbitalEphCont() const;
 
+      const PulsarEph & choosePulsarEph(const AbsoluteTime & ev_time) const;
+
+      const OrbitalEph & chooseOrbitalEph(const AbsoluteTime & ev_time) const;
+
     private:
       PulsarEphCont m_pulsar_eph_cont;
       OrbitalEphCont m_orbital_eph_cont;
