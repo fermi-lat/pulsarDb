@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Fri Aug 12 12:28:11 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx TimingModel.cxx 
+Log Message:
+Add and test computation of orbital phase in TimingModel
+and EphComputer classes.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Aug 12 12:28:11 PDT 2005
 pulsarDb/pulsarDb
 
 Modified Files:
