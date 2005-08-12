@@ -42,12 +42,11 @@ namespace pulsarDb {
         ev_time += Duration(eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared, UnitSec);
       }
 
-      /** \brief Compute the phase of the given time. Note: validity of the
+      /** \brief Compute the spin phase of the given time. Note: validity of the
                  ephemeris (valid since and valid until) are not checked.
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
-      // TODO: create calcOrbitalPhase.
       virtual double calcPulsePhase(const PulsarEph & eph, const AbsoluteTime & ev_time) const {
         double dt = (ev_time - eph.epoch()).sec();
         double int_part; // ignored, needed for modf.
@@ -56,6 +55,12 @@ namespace pulsarDb {
         if (phase < 0.) ++phase;
         return phase;
       }
+
+      /** \brief Compute the orbital phase of the given time.
+          \param eph The ephemeris.
+          \param ev_time Time of the event.
+      */
+      virtual double calcOrbitalPhase(const OrbitalEph & eph, const AbsoluteTime & ev_time) const;
 
       /** \brief
           \param eph The ephemeris.

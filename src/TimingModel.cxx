@@ -55,6 +55,23 @@ int atKepler(
 
 namespace pulsarDb {
 
+  double TimingModel::calcOrbitalPhase(const OrbitalEph & eph, const AbsoluteTime & ev_time) const {
+    // compute elapsed time from epoch of periastron in seconds
+    double delta_second = (ev_time - TdbTime(eph[T0])).sec();
+
+    // Compute the time difference as a fraction of the period.
+    double delta_period = delta_second / eph[PB];
+
+    // Compute the complete phase.
+    double phase = delta_period * (1. - delta_period * eph[PBDOT] / 2.0);
+
+    // Express phase as a value between 0. and 1.
+    double int_part;
+    phase = modf(phase, &int_part);
+    if (phase < 0.) ++phase;
+    return phase;
+  }
+
   void TimingModel::modulateBinary(const OrbitalEph & eph, AbsoluteTime & ev_time) const {
     ev_time += calcOrbitalDelay(eph, ev_time);
   }
