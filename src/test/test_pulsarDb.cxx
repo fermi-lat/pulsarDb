@@ -527,7 +527,7 @@ void PulsarDbTest::testTimingModel() {
   // Result determined independently.
   if (fabs(phase/.235 - 1.) > epsilon)
     ErrorMsg(method_name) << "TimingModel::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
-
+ 
   // Change ephemeris to produce a noticeable effect.
   FrequencyEph f_eph2(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.4567891234567), .11, 1.125e-2, -2.25e-4, 13.5e-6);
   GlastTtTime ev_time = 223.4567891234567;
@@ -559,6 +559,13 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "TimingModel::calcPdotCorr produced pdot-corrected time == " << pdot_t << " not " <<
       correct_t << std::endl;
   }
+
+  OrbitalEph o_eph(1000., .2, 0., 0., 0., 0., 0., 0., GlastTdbTime(123.456789), 0., 0., 0.);
+  phase = model.calcOrbitalPhase(o_eph, GlastTdbTime(223.456789));
+
+  // Result determined independently.
+  if (fabs(phase/.099 - 1.) > epsilon)
+    ErrorMsg(method_name) << "TimingModel::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
 }
 

@@ -42,6 +42,11 @@ namespace pulsarDb {
     return m_model->calcPulsePhase(eph, ev_time);
   }
 
+  double EphComputer::calcOrbitalPhase(const AbsoluteTime & ev_time) const {
+    const OrbitalEph & eph(m_chooser->choose(m_orbital_eph_cont, ev_time));
+    return m_model->calcOrbitalPhase(eph, ev_time);
+  }
+
   void EphComputer::modulateBinary(AbsoluteTime & emission_time) const {
     const OrbitalEph & eph(m_chooser->choose(m_orbital_eph_cont, emission_time));
     m_model->modulateBinary(eph, emission_time);

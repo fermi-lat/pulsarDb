@@ -35,6 +35,8 @@ namespace pulsarDb {
 
       double calcPulsePhase(const AbsoluteTime & ev_time) const;
 
+      double calcOrbitalPhase(const AbsoluteTime & ev_time) const;
+
       void modulateBinary(AbsoluteTime & emission_time) const;
 
       void demodulateBinary(AbsoluteTime & arrival_time) const;
