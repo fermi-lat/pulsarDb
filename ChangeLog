@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Aug 25 12:07:11 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Find isnan on Windows.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Aug 24 13:37:19 PDT 2005
 pulsarDb/src
 
