@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.6 2005/04/06 18:35:50 peachey Exp $
+$Id: release.notes,v 1.7 2005/08/23 13:05:55 peachey Exp $
 
 \verbatim
+25-aug-2005    v1r0p1 JP  Use _isnan on Windows.
 23-aug-2005        v1 JP  Add orbital phase calculation and binary correction.
                           Add gtephcomp, an ephemeris extractor/calculator.
 06-apr-2005    v0r1p3 JP  Fix a non-standard C++ construct which broke on Windows.
