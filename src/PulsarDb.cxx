@@ -3,6 +3,8 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+
+#include <cfloat>
 #include <cmath>
 #include <ctime>
 #include <cctype>
@@ -24,6 +26,18 @@
 #include "tip/Table.h"
 
 using namespace tip;
+
+namespace {
+
+  inline bool IsNotANumber(double x) {
+#ifdef WIN32
+    return 0 != _isnan(x);
+#else
+    return 0 != isnan(x);
+#endif
+  }
+
+}
 
 namespace pulsarDb {
 
@@ -291,7 +305,7 @@ namespace pulsarDb {
 
         // Handle any INDEFs.
         for (size_t index = 0; index != sizeof(par) / sizeof(double); ++index) {
-          if (0 != isnan(par[index])) {
+          if (0 != IsNotANumber(par[index])) {
             switch (index) {
               case PB:
               case A1:
