@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.7 2005/08/23 13:05:55 peachey Exp $
+$Id: release.notes,v 1.8 2005/08/25 19:08:06 peachey Exp $
 
 \verbatim
+29-aug-2005    v1r0p2 JP  Do not perform test of binary demodulation on Windows for now.
 25-aug-2005    v1r0p1 JP  Use _isnan on Windows.
 23-aug-2005        v1 JP  Add orbital phase calculation and binary correction.
                           Add gtephcomp, an ephemeris extractor/calculator.
