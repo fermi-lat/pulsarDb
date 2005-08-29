@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Mon Aug 29 09:50:14 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+Describe problem with binary demodulation on Windows.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v1r0p1, operation: add
 Package: pulsarDb
