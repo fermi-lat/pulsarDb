@@ -90,4 +90,7 @@ timesys = TDB [string]
 
 \endverbatim
 
+    \section Known issues
+    Binary demodulation does not work on Windows. Some kind of
+    floating-precision problem prevents convergence.
 */
