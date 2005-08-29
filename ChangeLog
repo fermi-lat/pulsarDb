@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Mon Aug 29 10:02:07 PDT 2005
+pulsarDb/src
+
+Modified Files:
+	TimingModel.cxx 
+Log Message:
+Remove unneeded comment.
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Aug 29 10:01:33 PDT 2005
 pulsarDb/doc
 
