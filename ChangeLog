@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Mon Aug 29 10:00:44 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Do not perform demodulateBinary test on Windows for now.
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Aug 29 09:50:14 PDT 2005
 pulsarDb/src
 
