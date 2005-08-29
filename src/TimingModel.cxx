@@ -86,7 +86,6 @@ namespace pulsarDb {
 
     // Initial guess of orbital delay.
     Duration delay = calcOrbitalDelay(eph, ev_time);
-    // SUGGESTION: Rename calcOrbitalDelay to calcOrbitalDelay.
 
     // Iterative approximation of demodulated time.
     int ii;
