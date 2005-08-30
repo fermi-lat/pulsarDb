@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Aug 30 07:55:52 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+No, really, do not perform demodulateBinary test on Windows for now.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v1r0p2, operation: add
 Package: pulsarDb
