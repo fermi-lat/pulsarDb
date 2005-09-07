@@ -12,5 +12,6 @@ use tip *
 #macro_append pulsarDb_linkopts "" Linux "-g -O0 "
 
 apply_pattern ST_library option=-no_share
+apply_pattern ST_pfiles
 application gtephcomp gtephcomp/*.cxx
 application gtpulsardb gtpulsardb/*.cxx
