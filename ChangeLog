@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Sep  7 09:44:27 PDT 2005
+pulsarDb/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Apply pfiles pattern to install par files.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v1r0p3, operation: add
 Package: pulsarDb
