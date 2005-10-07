@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Fri Oct  7 13:13:42 PDT 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change MJDREF to correct current definition, 51910., and test it.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Oct  7 13:13:42 PDT 2005
 pulsarDb/pulsarDb
 
 Modified Files:
