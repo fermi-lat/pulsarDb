@@ -62,7 +62,7 @@ namespace pulsarDb {
   };
 
   // TODO: This should be a member of GlastTime? Or a constant? Or in some other glast constant class?
-  static long double s_mjdref = 54101.L;
+  static long double s_mjdref = 51910.L;
 
   template <typename ACanonicalTime>
   inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0.) { from(t); }
