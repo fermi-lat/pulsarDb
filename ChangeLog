@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Fri Oct  7 13:13:42 PDT 2005
+pulsarDb/pulsarDb
+
+Modified Files:
+	GlastTime.h 
+Log Message:
+Change MJDREF to correct current definition, 51910., and test it.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v1r0p4, operation: add
 Package: pulsarDb
