@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.10 2005/08/30 14:56:24 peachey Exp $
+$Id: release.notes,v 1.11 2005/09/07 16:45:41 peachey Exp $
 
 \verbatim
+07-oct-2005      v1r1 JP  Update hardcoded MJDREF to current mission definition.
 07-sep-2005    v1r0p4 JP  Use ST_pfiles pattern to install parameter files.
 30-aug-2005    v1r0p3 JP  No, really, do not perform test of binary demodulation on Windows for now.
 29-aug-2005    v1r0p2 JP  Do not perform test of binary demodulation on Windows for now.
