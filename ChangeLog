@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: peachey  Wed Nov 16 13:38:39 PST 2005
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx EphComputer.cxx OrbitalEph.cxx PulsarEph.cxx 
+	TimingModel.cxx 
+Log Message:
+Change to using long double for most times, to improve
+computation precision and get around a failure of binary demodulation
+to converge.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Nov 16 13:38:39 PST 2005
 pulsarDb/pulsarDb
 
 Modified Files:
