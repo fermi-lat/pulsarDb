@@ -21,13 +21,13 @@ namespace pulsarDb {
     public:
       typedef std::vector<double>::size_type size_type;
 
-      static const double s_one_pi;
-      static const double s_two_pi;
-      static const double s_rad_per_deg;
-      static const double s_sec_per_day;
-      static const double s_sec_per_year;
-      static const double s_rad_year_per_deg_sec;
-      static const double s_sec_per_microsec;
+      static const long double s_one_pi;
+      static const long double s_two_pi;
+      static const long double s_rad_per_deg;
+      static const long double s_sec_per_day;
+      static const long double s_sec_per_year;
+      static const long double s_rad_year_per_deg_sec;
+      static const long double s_sec_per_microsec;
 
       OrbitalEph(double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot, double om, double om_dot,
         const AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);

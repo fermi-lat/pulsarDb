@@ -59,7 +59,7 @@ namespace pulsarDb {
 
       virtual AbsoluteTime * clone() const = 0;
 
-      virtual double value() const = 0;
+      virtual long double value() const = 0;
 
       bool operator ==(const AbsoluteTime & t) const { return *this - t == Duration(0., UnitSec); }
       bool operator !=(const AbsoluteTime & t) const { return *this - t != Duration(0., UnitSec); }

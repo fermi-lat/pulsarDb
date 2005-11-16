@@ -7,13 +7,13 @@
 
 namespace pulsarDb {
 
-  const double OrbitalEph::s_one_pi = M_PI;
-  const double OrbitalEph::s_two_pi = 2. * OrbitalEph::s_one_pi;
-  const double OrbitalEph::s_rad_per_deg  = OrbitalEph::s_one_pi / 180.0;
-  const double OrbitalEph::s_sec_per_day  = 86400.0;
-  const double OrbitalEph::s_sec_per_year = 365.0 * OrbitalEph::s_sec_per_day;
-  const double OrbitalEph::s_rad_year_per_deg_sec = OrbitalEph::s_rad_per_deg / OrbitalEph::s_sec_per_year;
-  const double OrbitalEph::s_sec_per_microsec = 1.e-6;
+  const long double OrbitalEph::s_one_pi = M_PI;
+  const long double OrbitalEph::s_two_pi = 2.L * OrbitalEph::s_one_pi;
+  const long double OrbitalEph::s_rad_per_deg  = OrbitalEph::s_one_pi / 180.0L;
+  const long double OrbitalEph::s_sec_per_day  = 86400.0L;
+  const long double OrbitalEph::s_sec_per_year = 365.0L * OrbitalEph::s_sec_per_day;
+  const long double OrbitalEph::s_rad_year_per_deg_sec = OrbitalEph::s_rad_per_deg / OrbitalEph::s_sec_per_year;
+  const long double OrbitalEph::s_sec_per_microsec = 1.e-6L;
 
   OrbitalEph::OrbitalEph(double parameters[NUMBER_ORBITAL_PAR]): m_par(parameters, parameters + NUMBER_ORBITAL_PAR),
     m_t0(new TdbTime(parameters[T0])) {

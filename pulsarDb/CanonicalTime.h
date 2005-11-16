@@ -53,7 +53,7 @@ namespace pulsarDb {
 
       virtual long double mjd() const = 0;
 
-      virtual double value() const { return mjd(); }
+      virtual long double value() const { return mjd(); }
 
   };
 

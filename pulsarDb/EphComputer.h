@@ -33,9 +33,9 @@ namespace pulsarDb {
 
       void cancelPdot(AbsoluteTime & ev_time) const;
 
-      double calcPulsePhase(const AbsoluteTime & ev_time) const;
+      long double calcPulsePhase(const AbsoluteTime & ev_time) const;
 
-      double calcOrbitalPhase(const AbsoluteTime & ev_time) const;
+      long double calcOrbitalPhase(const AbsoluteTime & ev_time) const;
 
       void modulateBinary(AbsoluteTime & emission_time) const;
 

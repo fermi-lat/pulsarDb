@@ -53,7 +53,7 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double time_diff = fabs(((*itor)->t0() - t).sec());
+      double time_diff = std::fabs(((*itor)->t0() - t).sec());
       if (time_diff < min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
@@ -75,6 +75,8 @@ namespace pulsarDb {
   }
 
   const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const {
+    using std::fabs;
+
     // First try to get a strictly correct choice.
     try {
       return EphChooser::choose(ephemerides, t);

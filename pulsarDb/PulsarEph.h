@@ -30,10 +30,10 @@ namespace pulsarDb {
       virtual const AbsoluteTime & valid_since() const { return *m_since; }
       virtual const AbsoluteTime & valid_until() const { return *m_until; }
       virtual const AbsoluteTime & epoch() const { return *m_epoch; }
-      virtual double phi0() const = 0;
-      virtual double f0() const = 0;
-      virtual double f1() const = 0;
-      virtual double f2() const = 0;
+      virtual long double phi0() const = 0;
+      virtual long double f0() const = 0;
+      virtual long double f1() const = 0;
+      virtual long double f2() const = 0;
       virtual PulsarEph * clone() const = 0;
 
     protected:
@@ -67,7 +67,7 @@ namespace pulsarDb {
           \param f2 The second time derivative of the frequency at the epoch (time origin).
       */
       DatabaseEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until,
-        const AbsoluteTime & epoch, const AbsoluteTime & toa, double f0, double f1, double f2);
+        const AbsoluteTime & epoch, const AbsoluteTime & toa, long double f0, long double f1, long double f2);
 
       DatabaseEph(const DatabaseEph & eph): PulsarEph(eph), m_toa(eph.m_toa->clone()),
         m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
@@ -83,19 +83,19 @@ namespace pulsarDb {
         return *this;
       }
 
-      virtual double phi0() const;
-      virtual double f0() const { return m_f0; }
-      virtual double f1() const { return m_f1; }
-      virtual double f2() const { return m_f2; }
+      virtual long double phi0() const;
+      virtual long double f0() const { return m_f0; }
+      virtual long double f1() const { return m_f1; }
+      virtual long double f2() const { return m_f2; }
 
       const AbsoluteTime & toa() const { return *m_toa; }
       virtual PulsarEph * clone() const { return new DatabaseEph(*this); }
 
     private:
       AbsoluteTime * m_toa;
-      double m_f0;
-      double m_f1;
-      double m_f2;
+      long double m_f0;
+      long double m_f1;
+      long double m_f2;
   };
 
   /** \class FrequencyEph
@@ -110,24 +110,24 @@ namespace pulsarDb {
           \param f2 The second time derivative of the frequency at the epoch (time origin).
       */
       FrequencyEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until, const AbsoluteTime & epoch,
-        double phi0, double f0, double f1, double f2): PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0), m_f0(f0),
+        long double phi0, long double f0, long double f1, long double f2): PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0), m_f0(f0),
         m_f1(f1), m_f2(f2) {}
 
       FrequencyEph(const FrequencyEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
 
       virtual ~FrequencyEph() {}
 
-      virtual double phi0() const { return m_phi0; }
-      virtual double f0() const { return m_f0; }
-      virtual double f1() const { return m_f1; }
-      virtual double f2() const { return m_f2; }
+      virtual long double phi0() const { return m_phi0; }
+      virtual long double f0() const { return m_f0; }
+      virtual long double f1() const { return m_f1; }
+      virtual long double f2() const { return m_f2; }
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
 
     private:
-      double m_phi0;
-      double m_f0;
-      double m_f1;
-      double m_f2;
+      long double m_phi0;
+      long double m_f0;
+      long double m_f1;
+      long double m_f2;
   };
 
   /** \class PeriodEph
@@ -141,25 +141,25 @@ namespace pulsarDb {
           \param p1 The first time derivative of the period at the epoch (time origin).
           \param p2 The second time derivative of the period at the epoch (time origin).
       */
-      PeriodEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until, const AbsoluteTime & epoch, double phi0,
-        double p0, double p1, double p2): PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0),
+      PeriodEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until, const AbsoluteTime & epoch, long double phi0,
+        long double p0, long double p1, long double p2): PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0),
         m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       PeriodEph(const PeriodEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_p0(eph.m_p0), m_p1(eph.m_p1), m_p2(eph.m_p2) {}
 
       virtual ~PeriodEph() {}
 
-      virtual double phi0() const { return m_phi0; }
-      virtual double f0() const { return 1. / m_p0; }
-      virtual double f1() const { return - m_p1 / (m_p0 * m_p0); }
-      virtual double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
+      virtual long double phi0() const { return m_phi0; }
+      virtual long double f0() const { return 1. / m_p0; }
+      virtual long double f1() const { return - m_p1 / (m_p0 * m_p0); }
+      virtual long double f2() const { long double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
       virtual PulsarEph * clone() const { return new PeriodEph(*this); }
 
     private:
-      double m_phi0;
-      double m_p0;
-      double m_p1;
-      double m_p2;
+      long double m_phi0;
+      long double m_p0;
+      long double m_p1;
+      long double m_p2;
   };
 
   typedef std::vector<PulsarEph *> PulsarEphCont;
