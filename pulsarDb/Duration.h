@@ -30,15 +30,15 @@ namespace pulsarDb {
           \param t The amount of time.
           \param unit The unit in which time t is measured.
       */
-      Duration(double t, TimeUnit_e unit): m_t(t), m_unit(unit) {}
+      Duration(long double t, TimeUnit_e unit): m_t(t), m_unit(unit) {}
 
       /// \brief Return the current value of this time in days.
-      double day() const;
+      long double day() const;
 
       /// \brief Return the current value of this time in seconds.
-      double sec() const;
+      long double sec() const;
 
-      Duration op(double (*func)(double)) const;
+      Duration op(long double (*func)(long double)) const;
 
       Duration & operator -=(const Duration & dur);
 
@@ -54,11 +54,11 @@ namespace pulsarDb {
       void write(std::ostream & os) const;
 
     private:
-      double m_t;
+      long double m_t;
       TimeUnit_e m_unit;
   };
 
-  inline double Duration::day() const {
+  inline long double Duration::day() const {
     switch (m_unit) {
       case UnitDay:
         break; // No modifcation necessary.
@@ -68,7 +68,7 @@ namespace pulsarDb {
     return m_t;
   }
 
-  inline double Duration::sec() const {
+  inline long double Duration::sec() const {
     switch (m_unit) {
       case UnitDay:
         return m_t * SecPerDay();
@@ -78,7 +78,7 @@ namespace pulsarDb {
     return m_t;
   }
 
-  inline Duration Duration::op(double (*func)(double)) const { return Duration(func(m_t), m_unit); }
+  inline Duration Duration::op(long double (*func)(long double)) const { return Duration(func(m_t), m_unit); }
 
   inline Duration & Duration::operator -=(const Duration & dur) {
     switch (m_unit) {

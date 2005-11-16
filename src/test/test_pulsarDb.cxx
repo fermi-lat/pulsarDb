@@ -300,7 +300,7 @@ void PulsarDbTest::testChooser() {
   pick_time.setMjd(52500.);
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
-    double expected_mjd = 5.206084100795000e+04;
+    long double expected_mjd = 5.206084100795000e+04;
     if (orbital_eph[T0] != expected_mjd) {
       ErrorMsg(method_name) << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
         expected_mjd << std::endl;
@@ -522,14 +522,14 @@ void PulsarDbTest::testPulsarEph() {
 void PulsarDbTest::testTimingModel() {
   std::string method_name = "testTimingModel";
 
-  double epsilon = 1.e-8;
+  long double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
   FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
   TimingModel model;
 
-  double phase = model.calcPulsePhase(f_eph, GlastTtTime(223.456789));
+  long double phase = model.calcPulsePhase(f_eph, GlastTtTime(223.456789));
 
   // Result determined independently.
   if (fabs(phase/.235 - 1.) > epsilon)
@@ -541,24 +541,24 @@ void PulsarDbTest::testTimingModel() {
 
   // Test frequency computation.
   FrequencyEph f_eph3 = model.calcEphemeris(f_eph2, ev_time);
-  double correct_f0 = 5.625e-2;
+  long double correct_f0 = 5.625e-2;
   if (fabs(f_eph3.f0() - correct_f0) > epsilon) {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f0 == " << f_eph3.f0() << " not " << correct_f0 << std::endl;
   }
   
-  double correct_f1 = 11.25e-4;
+  long double correct_f1 = 11.25e-4;
   if (fabs(f_eph3.f1() - correct_f1) > epsilon) {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f1 == " << f_eph3.f1() << " not " << correct_f1 << std::endl;
   }
   
-  double correct_f2 = 13.5e-6;
+  long double correct_f2 = 13.5e-6;
   if (fabs(f_eph3.f2() - correct_f2) > epsilon) {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
   }
 
   model.cancelPdot(f_eph2, ev_time);
-  double pdot_t = ev_time.elapsed();
-  double correct_t = 323.4567891234567;
+  long double pdot_t = ev_time.elapsed();
+  long double correct_t = 323.4567891234567;
 
   // For this test, time difference between these two values must be << 1.e-6. (1 microsecond.)
   epsilon = 1.e-6;
@@ -618,11 +618,11 @@ void PulsarDbTest::testTextPulsarDb() {
 void PulsarDbTest::testPeriodConverter() {
   std::string method_name = "testPeriodConverter";
 
-  double p0[] = { 0.033, 0.089, 0.237, 0.197, 0.102 };
-  double p1[] = { 422.e-15, 2.0e-15, 11.4e-15, 5.8e-15, 92.2e-15 };
-  double p2[] = { 1E-19, 2E-20, 2E-20, 32E-20, 1E-23 };
-  double epoch[] = {51900., 51900., 51900., 51900., 51900. };
-  double phi0[] = { 0.02, .03, 0.21, 0.12, 0.11 };
+  long double p0[] = { 0.033, 0.089, 0.237, 0.197, 0.102 };
+  long double p1[] = { 422.e-15, 2.0e-15, 11.4e-15, 5.8e-15, 92.2e-15 };
+  long double p2[] = { 1E-19, 2E-20, 2E-20, 32E-20, 1E-23 };
+  long double epoch[] = {51900., 51900., 51900., 51900., 51900. };
+  long double phi0[] = { 0.02, .03, 0.21, 0.12, 0.11 };
 
   for (size_t ii = 0; ii < 5; ++ii) {
     GlastTdbTime dummy(0.);
@@ -696,12 +696,12 @@ void PulsarDbTest::testDuration() {
       ", not " << 6. * 86400. << " as expected." << std::endl;
 
   Duration six_sec(6., UnitSec);
-  if (6. / 86400. != six_sec.day())
+  if (6.L / 86400.L != six_sec.day())
     ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.day() returned " << six_sec.day() <<
-      ", not " << 6. / 86400. << " as expected." << std::endl;
-  if (6. != six_sec.sec())
+      ", not " << 6.L / 86400.L << " as expected." << std::endl;
+  if (6.L != six_sec.sec())
     ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.sec() returned " << six_sec.sec() <<
-      ", not " << 6. << " as expected." << std::endl;
+      ", not " << 6.L << " as expected." << std::endl;
 } 
 
 void PulsarDbTest::testEphComputer() {
@@ -724,7 +724,7 @@ void PulsarDbTest::testEphComputer() {
   GlastTdbTime expected_gtdb(100. - s_mjd_offset * 86400.L);
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
   model.cancelPdot(eph, expected_gtdb);
-  double expected_pulse_phase = model.calcPulsePhase(eph, expected_gtdb);
+  long double expected_pulse_phase = model.calcPulsePhase(eph, expected_gtdb);
   FrequencyEph expected_eph(model.calcEphemeris(eph, expected_gtdb));
  
   // Repeat computations using the EphComputer class, and compare results.
@@ -742,7 +742,7 @@ void PulsarDbTest::testEphComputer() {
       expected_gtdb.elapsed() << ", as expected." << std::endl;
 
   // Test calcPulsePhase, and compare result to previous result.
-  double pulse_phase = computer.calcPulsePhase(expected_gtdb);
+  long double pulse_phase = computer.calcPulsePhase(expected_gtdb);
   if (expected_pulse_phase != pulse_phase)
     ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
@@ -774,7 +774,6 @@ void PulsarDbTest::testEphComputer() {
       expected_gtdb.elapsed() << ", as expected." << std::endl;
 
 // TODO: demodulateBinary is failing to converge on Linux since changing MJDREF.
-#if 0
 // TODO: demodulateBinary is failing to converge on Windows. Need to figure out why.
 #ifndef WIN32
   expected_gtdb = gtdb;
@@ -784,7 +783,6 @@ void PulsarDbTest::testEphComputer() {
   if (expected_gtdb.elapsed() != gtdb.elapsed())
     ErrorMsg(method_name) << "After EphComputer::demodulateBinary, elapsed time was " << gtdb.elapsed() << ", not " <<
       expected_gtdb.elapsed() << ", as expected." << std::endl;
-#endif
 #endif
 }
 
@@ -808,7 +806,7 @@ void PulsarDbTest::testEphGetter() {
 
 void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & eph1, const PulsarEph & eph2) const {
   std::string method_name = "testEquality";
-  double epsilon = 1.e-8;
+  long double epsilon = 1.e-8;
   const long double nano_sec = 1.e-9;
 
   if (Duration(nano_sec, UnitSec) < (eph1.epoch() - eph2.epoch()))

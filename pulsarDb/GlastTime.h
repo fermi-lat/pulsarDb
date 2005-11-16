@@ -21,7 +21,7 @@ namespace pulsarDb {
   template <typename ACanonicalTime>
   class GlastTime : public AbsoluteTime {
     public:
-      GlastTime(double elapsed = 0.): m_elapsed(elapsed) {}
+      GlastTime(long double elapsed = 0.): m_elapsed(elapsed) {}
 
       GlastTime(const AbsoluteTime & t);
 
@@ -53,12 +53,12 @@ namespace pulsarDb {
 
       virtual AbsoluteTime * clone() const { return new GlastTime(*this); }
 
-      double elapsed() const { return m_elapsed; }
+      long double elapsed() const { return m_elapsed; }
 
-      virtual double value() const { return m_elapsed; }
+      virtual long double value() const { return m_elapsed; }
 
     private:
-      double m_elapsed;
+      long double m_elapsed;
   };
 
   // TODO: This should be a member of GlastTime? Or a constant? Or in some other glast constant class?
