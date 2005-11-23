@@ -75,6 +75,7 @@ namespace pulsarDb {
   }
 
   const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const {
+    if (ephemerides.empty()) throw std::runtime_error("SloppyEphChooser::choose was passed empty container of ephemerides");
     using std::fabs;
 
     // First try to get a strictly correct choice.

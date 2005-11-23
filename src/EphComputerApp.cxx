@@ -99,16 +99,16 @@ namespace pulsarDb {
     try {
       const PulsarEph & eph(computer->choosePulsarEph(*abs_epoch));
       m_os.out() << prefix << "Spin ephemeris chosen from database was:" << std::endl << eph << std::endl;
+
+      // Report the calculated ephemeris.
+      try {
+        FrequencyEph eph(computer->calcPulsarEph(*abs_epoch));
+        m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time was:" << std::endl << eph << std::endl;
+      } catch (const std::exception & x) {
+        m_os.out() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
+      }
     } catch (const std::exception & x) {
-      m_os.out() << prefix << "No spin ephemeris was found in database." << std::endl << x.what() << std::endl;
-    }
-    
-    // Report the calculated ephemeris.
-    try {
-      FrequencyEph eph(computer->calcPulsarEph(*abs_epoch));
-      m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time was:" << std::endl << eph << std::endl;
-    } catch (const std::exception & x) {
-      m_os.out() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
+      m_os.out() << prefix << "No spin ephemeris was found in database." << std::endl;
     }
     
     // Report the best binary ephemeris.
@@ -116,7 +116,7 @@ namespace pulsarDb {
       const OrbitalEph & eph(computer->chooseOrbitalEph(*abs_epoch));
       m_os.out() << prefix << "Orbital ephemeris chosen from database was:" << std::endl << eph << std::endl;
     } catch (const std::exception & x) {
-      m_os.out() << prefix << "No orbital ephemeris was found in database." << std::endl << x.what() << std::endl;
+      m_os.out() << prefix << "No orbital ephemeris was found in database." << std::endl;
     }
   }
 }
