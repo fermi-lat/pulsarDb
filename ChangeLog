@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Nov 23 11:13:04 PST 2005
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx EphComputerApp.cxx 
+Log Message:
+Be more careful with handling errors to allow tool to exit with a
+sensible message rather than seg-faulting if pulsar name is not found in db.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Nov 16 13:38:39 PST 2005
 pulsarDb/src/test
 
