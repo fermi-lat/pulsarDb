@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: peachey  Wed Dec  7 13:14:33 PST 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Allow binary demodulation test to run always, and make necessary
+minimum changes for unit test to work with recent changes to
+time representations.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Dec  7 13:12:41 PST 2005
 pulsarDb/src
 
