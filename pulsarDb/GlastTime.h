@@ -21,7 +21,7 @@ namespace pulsarDb {
   template <typename ACanonicalTime>
   class GlastTime : public AbsoluteTime {
     public:
-      GlastTime(long double elapsed = 0.): m_elapsed(elapsed) {}
+      GlastTime(long double elapsed = 0.): m_elapsed(elapsed, UnitSec) {}
 
       GlastTime(const AbsoluteTime & t);
 
@@ -33,12 +33,12 @@ namespace pulsarDb {
       /** \brief Add the given time increment to this one.
           \param d The duration (elapsed time, relative time) being added.
       */
-      virtual AbsoluteTime & operator +=(const Duration & d) { m_elapsed += d.sec(); return *this; }
+      virtual AbsoluteTime & operator +=(const Duration & d) { m_elapsed += d; return *this; }
 
       /** \brief Subtract the given duration from this time.
           \param d The duration (elapsed time, relative time) being added.
       */
-      virtual AbsoluteTime & operator -=(const Duration & d) { m_elapsed -= d.sec(); return *this; }
+      virtual AbsoluteTime & operator -=(const Duration & d) { m_elapsed -= d; return *this; }
 
       /** \brief Convert this time to a CanonicalTime representation of it.
           \param t The target time system time.
@@ -53,23 +53,23 @@ namespace pulsarDb {
 
       virtual AbsoluteTime * clone() const { return new GlastTime(*this); }
 
-      long double elapsed() const { return m_elapsed; }
+      long double elapsed() const { return m_elapsed.sec(); }
 
-      virtual long double value() const { return m_elapsed; }
+      virtual long double value() const { return m_elapsed.sec(); }
 
     private:
-      long double m_elapsed;
+      Duration m_elapsed;
   };
 
   // TODO: This should be a member of GlastTime? Or a constant? Or in some other glast constant class?
   static long double s_mjdref = 51910.L;
 
   template <typename ACanonicalTime>
-  inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0.) { from(t); }
+  inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0., UnitSec) { from(t); }
 
   template <typename ACanonicalTime>
   inline Duration GlastTime<ACanonicalTime>::operator -(const AbsoluteTime & t) const {
-    return Duration(m_elapsed - GlastTime(t).m_elapsed, UnitSec);
+    return m_elapsed - GlastTime(t).m_elapsed;
   }
 
   /** \brief Convert this time to a CanonicalTime representation of it.
@@ -78,7 +78,8 @@ namespace pulsarDb {
   template <typename ACanonicalTime>
   inline void GlastTime<ACanonicalTime>::to(CanonicalTime & t) const {
     // Convert this time to the canonical time system implied by this GlastTime, and use that to convert to the target time.
-    ACanonicalTime my_time(s_mjdref + m_elapsed * DayPerSec());
+    ACanonicalTime my_time(s_mjdref);
+    my_time += m_elapsed;
     my_time.to(t);
   }
 
@@ -91,20 +92,20 @@ namespace pulsarDb {
     } else {
       // Convert the other time to the canonical time system implied by this GlastTime, and assign from that.
       ACanonicalTime other_t(t);
-      m_elapsed = (other_t.mjd() - s_mjdref) * SecPerDay();
+      m_elapsed = other_t.getMjd() - Duration(s_mjdref, UnitDay);
     }
   }
 
   template <typename ACanonicalTime>
   inline void GlastTime<ACanonicalTime>::write(std::ostream & os) const {
     static const ACanonicalTime canonical_time(0.);
-    os << m_elapsed << " seconds GLAST MET " << canonical_time.timeSystemName();
+    os << m_elapsed.sec() << " seconds GLAST MET " << canonical_time.timeSystemName();
   }
 
   template <typename ACanonicalTime>
   inline void GlastTime<ACanonicalTime>::write(st_stream::OStream & os) const {
     static const ACanonicalTime canonical_time(0.);
-    os << m_elapsed << " seconds GLAST MET " << canonical_time.timeSystemName();
+    os << m_elapsed.sec() << " seconds GLAST MET " << canonical_time.timeSystemName();
   }
 
   typedef GlastTime<TdbTime> GlastTdbTime;

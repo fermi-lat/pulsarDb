@@ -53,6 +53,8 @@ namespace pulsarDb {
 
       virtual long double mjd() const = 0;
 
+      virtual Duration getMjd() const { return Duration(mjd(), UnitDay); }
+
       virtual long double value() const { return mjd(); }
 
   };
@@ -65,12 +67,17 @@ namespace pulsarDb {
       /** \brief Create a TaiTime object from the given MJD time.
           \param mjd The time expressed in MJD.
       */
-      TaiTime(long double mjd): m_mjd(mjd) {}
+      TaiTime(long double mjd): m_mjd(mjd, UnitDay) {}
+
+      /** \brief Create a TaiTime object from the given MJD time, expressed as a duration.
+          \param mjd The time expressed in MJD.
+      */
+      TaiTime(const Duration & mjd): m_mjd(mjd) {}
 
       /** \brief Create a TaiTime object from the given AbsoluteTime object.
           \param t The absolute time object.
       */
-      TaiTime(const AbsoluteTime & t): m_mjd(0.) { t.to(*this); }
+      TaiTime(const AbsoluteTime & t): m_mjd(0., UnitDay) { t.to(*this); }
 
       /** \brief Determine the elapsed time difference between the given time object and this one.
           \param t The absolute time object.
@@ -95,19 +102,26 @@ namespace pulsarDb {
 
       virtual const char * timeSystemName() const { return "TAI"; }
 
-      virtual long double mjd() const { return m_mjd; }
+      virtual long double mjd() const { return m_mjd.day(); }
 
-      void setMjd(long double mjd) { m_mjd = mjd; }
+      void setMjd(const Duration & mjd) { m_mjd = mjd; }
+
+      void setMjd(long double mjd) { m_mjd = Duration(mjd, UnitDay); }
 
     private:
-      long double m_mjd;
+      Duration m_mjd;
   };
 
   class TtTime : public CanonicalTime {
     public:
-      TtTime(long double mjd): m_mjd(mjd) {}
+      TtTime(long double mjd): m_mjd(mjd, UnitDay) {}
 
-      TtTime(const AbsoluteTime & t): m_mjd(0.) { t.to(*this); }
+      /** \brief Create a TaiTime object from the given MJD time, expressed as a duration.
+          \param mjd The time expressed in MJD.
+      */
+      TtTime(const Duration & mjd): m_mjd(mjd) {}
+
+      TtTime(const AbsoluteTime & t): m_mjd(0., UnitDay) { t.to(*this); }
 
       virtual Duration operator -(const AbsoluteTime & t) const;
 
@@ -120,18 +134,22 @@ namespace pulsarDb {
 
       virtual AbsoluteTime * clone() const { return new TtTime(*this); }
 
-      virtual void toSystem(TaiTime & t) const { t.setMjd(m_mjd + TaiMinusTtDay()); }
+      virtual void toSystem(TaiTime & t) const { t.setMjd(m_mjd + Duration(TaiMinusTtDay(), UnitDay)); }
 
       virtual void toSystem(TtTime & t) const { t.m_mjd = m_mjd; }
 
       virtual const char * timeSystemName() const { return "TT"; }
 
-      virtual long double mjd() const { return m_mjd; }
+      virtual long double mjd() const { return m_mjd.day(); }
 
-      void setMjd(long double mjd) { m_mjd = mjd; }
+      virtual Duration getMjd() const { return m_mjd; }
+
+      void setMjd(const Duration & mjd) { m_mjd = mjd; }
+
+      void setMjd(long double mjd) { m_mjd = Duration(mjd, UnitDay); }
 
     private:
-      long double m_mjd;
+      Duration m_mjd;
   };
 
   // TODO: This is obviously not right!!!!!
@@ -165,33 +183,33 @@ namespace pulsarDb {
 
   inline Duration TaiTime::operator -(const AbsoluteTime & t) const {
     TaiTime my_sys_time(t);
-    return Duration(m_mjd - my_sys_time.m_mjd, UnitDay);
+    return m_mjd - my_sys_time.m_mjd;
   }
 
   inline AbsoluteTime & TaiTime::operator +=(const Duration & d) {
-    m_mjd += d.day();
+    m_mjd += d;
     return *this;
   }
 
   inline AbsoluteTime & TaiTime::operator -=(const Duration & d) {
-    m_mjd -= d.day();
+    m_mjd -= d;
     return *this;
   }
 
-  inline void TaiTime::toSystem(TtTime & t) const { t.setMjd(m_mjd + TtMinusTaiDay()); }
+  inline void TaiTime::toSystem(TtTime & t) const { t.setMjd(m_mjd + Duration(TtMinusTaiDay(), UnitDay)); }
 
   inline Duration TtTime::operator -(const AbsoluteTime & t) const {
     TtTime my_sys_time(t);
-    return Duration(m_mjd - my_sys_time.m_mjd, UnitDay);
+    return m_mjd - my_sys_time.m_mjd;
   }
 
   inline AbsoluteTime & TtTime::operator +=(const Duration & d) {
-    m_mjd += d.day();
+    m_mjd += d;
     return *this;
   }
 
   inline AbsoluteTime & TtTime::operator -=(const Duration & d) {
-    m_mjd -= d.day();
+    m_mjd -= d;
     return *this;
   }
 
