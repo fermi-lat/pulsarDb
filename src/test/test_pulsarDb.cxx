@@ -414,10 +414,10 @@ void PulsarDbTest::testAbsoluteTime() {
   if (0.L != tai.mjd())
     ErrorMsg(method_name) << "after TaiTime tai(tt), tai.mjd() returned " << tai.mjd() << ", not 0.L." << std::endl;
 
-  tai = TaiTime(-tt.mjd());
-  if (-tt.mjd() != tai.mjd())
-    ErrorMsg(method_name) << "after tai = TaiTime(-tt.mjd()), tai.mjd() returned " << tai.mjd() << ", not " << -tt.mjd() <<
-      std::endl;
+  tai = TaiTime(Duration(-32.184L, UnitSec));
+  if (Duration(0., UnitDay) != tt.getMjd() + tai.getMjd())
+    ErrorMsg(method_name) << "after tai = TaiTime(Duration(-32.184L, UnitSec)), tt.getMjd() + tai.getMjd() returned " <<
+      tt.getMjd() + tai.getMjd() << ", not " << Duration(0., UnitDay) << std::endl;
 
   tt = tai;
   if (0.L != tt.mjd())
@@ -457,23 +457,23 @@ void PulsarDbTest::testAbsoluteTime() {
       gtt2.elapsed() << " as expected." << std::endl;
 
   TaiTime tai1(GlastTtTime(100.));
-  long double expected = s_mjd_offset + 54101.L - 32.184L / 86400.L + 100.L / 86400.L;
-  if (expected != tai1.mjd())
-    ErrorMsg(method_name) << "After creating tai1 from GlastTtTime(100.), tai1.mjd() returned " << tai1.mjd() << ", not " <<
+  Duration expected = Duration(s_mjd_offset + 54101.L, UnitDay) + Duration(-32.184L + 100.L, UnitSec);
+  if (expected != tai1.getMjd())
+    ErrorMsg(method_name) << "After creating tai1 from GlastTtTime(100.), tai1.getMjd() returned " << tai1.getMjd() << ", not " <<
       expected << ", as expected." << std::endl;
 
   TaiTime tai2(GlastTtTime(200.));
-  expected = s_mjd_offset + 54101.L - 32.184L / 86400.L + 200.L / 86400.L;
-  if (expected != tai2.mjd())
-    ErrorMsg(method_name) << "After creating tai2 from GlastTtTime(200.), tai2.mjd() returned " << tai2.mjd() << ", not " <<
+  expected = Duration(s_mjd_offset + 54101.L, UnitDay) + Duration(-32.184L + 200.L, UnitSec);
+  if (expected != tai2.getMjd())
+    ErrorMsg(method_name) << "After creating tai2 from GlastTtTime(200.), tai2.getMjd() returned " << tai2.getMjd() << ", not " <<
       expected << ", as expected." << std::endl;
 
   abs_ref1 = &tai1;
   // Note: abs_ref2 still -> gtt2.
   *abs_ref1 = *abs_ref2;
-  if (tai1.mjd() != tai2.mjd())
-    ErrorMsg(method_name) << "After *abs_ref1 = *abs_ref2, tai1.mjd() returned " << tai1.mjd() << ", not " <<
-      tai2.mjd() << " as expected." << std::endl;
+  if (tai1.getMjd() != tai2.getMjd())
+    ErrorMsg(method_name) << "After *abs_ref1 = *abs_ref2, tai1.getMjd() returned " << tai1.getMjd() << ", not " <<
+      tai2.getMjd() << " as expected." << std::endl;
 }
 
 void PulsarDbTest::testPulsarEph() {
@@ -671,8 +671,6 @@ void PulsarDbTest::testOrbitalEph() {
         ", not " << mjd_test_values[ii][1] << ", as expected." << std::endl;
   }
 
-// TODO: demodulateBinary is failing to converge on Windows. Need to figure out why.
-#ifndef WIN32
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(long double[2]); ++ii) {
     TdbTime tdb_mjd(mjd_test_values[ii][1]);
     model.demodulateBinary(eph1, tdb_mjd);
@@ -680,7 +678,6 @@ void PulsarDbTest::testOrbitalEph() {
       ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd.mjd() <<
         ", not " << mjd_test_values[ii][0] << ", as expected." << std::endl;
   }
-#endif
 
 } 
 
@@ -773,9 +770,6 @@ void PulsarDbTest::testEphComputer() {
     ErrorMsg(method_name) << "After EphComputer::modulateBinary, elapsed time was " << gtdb.elapsed() << ", not " <<
       expected_gtdb.elapsed() << ", as expected." << std::endl;
 
-// TODO: demodulateBinary is failing to converge on Linux since changing MJDREF.
-// TODO: demodulateBinary is failing to converge on Windows. Need to figure out why.
-#ifndef WIN32
   expected_gtdb = gtdb;
   model.demodulateBinary(orbital_eph, expected_gtdb);
   
@@ -783,7 +777,6 @@ void PulsarDbTest::testEphComputer() {
   if (expected_gtdb.elapsed() != gtdb.elapsed())
     ErrorMsg(method_name) << "After EphComputer::demodulateBinary, elapsed time was " << gtdb.elapsed() << ", not " <<
       expected_gtdb.elapsed() << ", as expected." << std::endl;
-#endif
 }
 
 void PulsarDbTest::testEphGetter() {
