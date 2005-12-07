@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Dec  7 13:12:41 PST 2005
+pulsarDb/src
+
+Modified Files:
+	TimingModel.cxx 
+Log Message:
+Reduce max number of iterations for binary demodulation to 100, and
+use std:: qualification for math ops to make sure the correct overload is chosen.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Dec  7 13:11:15 PST 2005
 pulsarDb/pulsarDb
 
