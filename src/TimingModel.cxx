@@ -45,7 +45,7 @@ int atKepler(
     if (g == 0.) return 0;
 
     for (i=0; i<imax; i++) {
-        deltae = (g - *e + eccent * sin(*e)) / (1. - eccent * cos(*e));
+        deltae = (g - *e + eccent * std::sin(*e)) / (1. - eccent * std::cos(*e));
         *e += deltae;
         error = (d__1 = deltae / *e, std::fabs(d__1));
         if (error < eps) return 0;
@@ -79,8 +79,8 @@ namespace pulsarDb {
   }
 
   void TimingModel::demodulateBinary(const OrbitalEph & eph, AbsoluteTime & ev_time) const {
-    static const int s_max_iteration = 1000;
-    const long double epsilon = 10.0e-9; // 10 nanoseconds.
+    static const int s_max_iteration = 100;
+    const long double epsilon = 10.e-9; // 10 nanoseconds.
 
     // Save target arrival time (ev_time) in orig_time.
     // TODO: Do not use TdbTime explicitly.  Generalize it.
@@ -104,6 +104,8 @@ namespace pulsarDb {
       // Compare time difference between candidate demodulated time
       // (ev_time) and target arrival time (orig_time) with the
       // estimated orbital delay based on the binary model (delay).
+//      std::cerr << "orig_time is " << orig_time << ", ev_time is " << ev_time << ", delay is " << delay << std::endl;
+//      std::cerr << "deviation is " << ((orig_time - ev_time) - delay).sec() << std::endl;
       if (std::fabs(((orig_time - ev_time) - delay).sec()) < epsilon) break;
     }
 
@@ -136,8 +138,8 @@ namespace pulsarDb {
     }
 
     // convert eccentric anomaly to true anomaly
-    long double true_anomaly = 2.0 * atan(sqrt((1.0+eccen)/(1.0-eccen))
-                                     * tan(eccen_anomaly/2.0));
+    long double true_anomaly = 2.0 * std::atan(std::sqrt((1.0+eccen)/(1.0-eccen))
+        * std::tan(eccen_anomaly/2.0));
     true_anomaly += OrbitalEph::s_two_pi * floor((eccen_anomaly - true_anomaly)/ OrbitalEph::s_two_pi);
     while ((true_anomaly - eccen_anomaly) > OrbitalEph::s_one_pi) true_anomaly -= OrbitalEph::s_two_pi;
     while ((eccen_anomaly - true_anomaly) > OrbitalEph::s_one_pi) true_anomaly += OrbitalEph::s_two_pi;
@@ -150,12 +152,12 @@ namespace pulsarDb {
     long double semiax = eph[A1] + eph[XDOT] * delta_second;
 
     // compute time delays due to orbital motion
-    long double roemer_frac = sin(omega) * (cos(eccen_anomaly) - eccen)
-      + sqrt(1.0 - eccen*eccen) * cos(omega) * sin(eccen_anomaly);
+    long double roemer_frac = std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
+      + std::sqrt(1.0 - eccen*eccen) * std::cos(omega) * std::sin(eccen_anomaly);
     long double roemer = semiax * roemer_frac;
-    long double einstein = eph[GAMMA] * sin(eccen_anomaly);
+    long double einstein = eph[GAMMA] * std::sin(eccen_anomaly);
     long double shapiro = - 2.0 * eph[SHAPIRO_R]
-      * log(1.0 - eccen*cos(eccen_anomaly) - eph[SHAPIRO_S]*roemer_frac);
+      * std::log(1.0 - eccen*std::cos(eccen_anomaly) - eph[SHAPIRO_S]*roemer_frac);
 
     // return total delay
     return Duration(roemer + einstein + shapiro, UnitSec);
