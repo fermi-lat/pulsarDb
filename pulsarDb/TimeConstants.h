@@ -20,6 +20,10 @@ namespace pulsarDb {
 
   long double TtMinusTaiDay();
 
+  long double TaiMinusTtSec();
+
+  long double TtMinusTaiSec();
+
   // Definitions.
 
   // Unit conversion constants.
@@ -31,6 +35,10 @@ namespace pulsarDb {
   inline long double TaiMinusTtDay() { static long double r = -TtMinusTaiDay(); return r; }
 
   inline long double TtMinusTaiDay() { static long double r = 32.184L * DayPerSec(); return r;}
+
+  inline long double TaiMinusTtSec() { static long double r = -TtMinusTaiSec(); return r; }
+
+  inline long double TtMinusTaiSec() { static long double r = 32.184L; return r;}
 
 }
 
