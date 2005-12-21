@@ -12,6 +12,8 @@
 
 #include "pulsarDb/TimeConstants.h"
 
+#include "st_stream/Stream.h"
+
 namespace pulsarDb {
 
   /** \class Duration
@@ -59,6 +61,8 @@ namespace pulsarDb {
         { return m_time.first != dur.m_time.first ? m_time.first > dur.m_time.first : m_time.second >= dur.m_time.second; }
 
       void write(std::ostream & os) const;
+
+      void write(st_stream::OStream & os) const;
 
     private:
       typedef std::pair<long, double> time_type;
@@ -182,7 +186,21 @@ namespace pulsarDb {
     os.precision(prec);
   }
 
+  inline void Duration::write(st_stream::OStream & os) const {
+    os << m_time.first << " day";
+    if (m_time.first != 1) os << "s";
+    std::streamsize prec = os.precision(std::numeric_limits<double>::digits10);
+    os << ", " << m_time.second << " second";
+    if (m_time.second != 1.) os << "s";
+    os.precision(prec);
+  }
+
   inline std::ostream & operator <<(std::ostream & os, const Duration & dur) {
+    dur.write(os);
+    return os;
+  }
+
+  inline st_stream::OStream & operator <<(st_stream::OStream & os, const Duration & dur) {
     dur.write(os);
     return os;
   }

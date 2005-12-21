@@ -51,11 +51,7 @@ namespace pulsarDb {
       /// \brief Return a string identifying the name of time system used by this object.
       virtual const char * timeSystemName() const = 0;
 
-      virtual long double mjd() const = 0;
-
       virtual Duration getMjd() const = 0;
-
-      virtual long double value() const { return mjd(); }
 
   };
 
@@ -102,8 +98,6 @@ namespace pulsarDb {
 
       virtual const char * timeSystemName() const { return "TAI"; }
 
-      virtual long double mjd() const { return m_mjd.day(); }
-
       virtual Duration getMjd() const { return m_mjd; }
 
       void setMjd(const Duration & mjd) { m_mjd = mjd; }
@@ -140,8 +134,6 @@ namespace pulsarDb {
 
       virtual const char * timeSystemName() const { return "TT"; }
 
-      virtual long double mjd() const { return m_mjd.day(); }
-
       virtual Duration getMjd() const { return m_mjd; }
 
       void setMjd(const Duration & mjd) { m_mjd = mjd; }
@@ -172,11 +164,11 @@ namespace pulsarDb {
   inline void CanonicalTime::from(const AbsoluteTime & t) { t.to(*this); }
 
   inline void CanonicalTime::write(std::ostream & os) const {
-    os << mjd() << " MJD " << timeSystemName();
+    os << getMjd() << " MJD " << timeSystemName();
   }
 
   inline void CanonicalTime::write(st_stream::OStream & os) const {
-    os << mjd() << " MJD " << timeSystemName();
+    os << getMjd() << " MJD " << timeSystemName();
   }
 
   inline Duration TaiTime::operator -(const AbsoluteTime & t) const {

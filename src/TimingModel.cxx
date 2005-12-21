@@ -6,8 +6,6 @@
 #include <cmath>
 #include <stdexcept>
 
-#include <iostream>
-
 #include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
