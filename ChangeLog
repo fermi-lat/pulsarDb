@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Dec 21 09:11:48 PST 2005
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change unit test to run correctly with new Duration interface.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Dec 21 09:11:15 PST 2005
 pulsarDb/src
 
