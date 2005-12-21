@@ -2,9 +2,13 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.11 2005/09/07 16:45:41 peachey Exp $
+$Id: release.notes,v 1.12 2005/10/07 20:15:12 peachey Exp $
 
 \verbatim
+21-dec-2005      v1r2 JP  Refactor internal handling of times to use a long value for days
+                          and a double value for seconds. This retains necessary precision
+                          for consistent behavior without relying on non-portable characteristics
+                          of long double.
 07-oct-2005      v1r1 JP  Update hardcoded MJDREF to current mission definition.
 07-sep-2005    v1r0p4 JP  Use ST_pfiles pattern to install parameter files.
 30-aug-2005    v1r0p3 JP  No, really, do not perform test of binary demodulation on Windows for now.
