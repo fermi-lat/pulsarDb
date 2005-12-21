@@ -39,7 +39,7 @@ namespace pulsarDb {
       virtual void cancelPdot(const PulsarEph & eph, AbsoluteTime & ev_time) const {
         long double dt = (ev_time - eph.epoch()).sec();
         long double dt_squared = dt * dt;
-        ev_time += Duration(eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared, UnitSec);
+        ev_time += Duration(0, eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared);
       }
 
       /** \brief Compute the spin phase of the given time. Note: validity of the
@@ -51,7 +51,8 @@ namespace pulsarDb {
         long double dt = (ev_time - eph.epoch()).sec();
         long double int_part; // ignored, needed for modf.
         long double dt_squared = dt * dt;
-        long double phase = std::modf(eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared, &int_part);
+        long double phase =
+          std::modf(eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared, &int_part);
         if (phase < 0.) ++phase;
         return phase;
       }
