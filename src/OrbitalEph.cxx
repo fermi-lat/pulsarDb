@@ -32,7 +32,7 @@ namespace pulsarDb {
     m_par[ECCDOT] = ecc_dot;
     m_par[OM] = om;
     m_par[OMDOT] = om_dot;
-    m_par[T0] = TdbTime(t0).mjd();
+    m_par[T0] = TdbTime(t0).getMjd().day();
     m_par[GAMMA] = gamma;
     m_par[SHAPIRO_R] = shapiro_r;
     m_par[SHAPIRO_S] = shapiro_s;

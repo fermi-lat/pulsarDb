@@ -415,8 +415,10 @@ void PulsarDbTest::testAbsoluteTime() {
 
   TtTime tt = 32.184L / 86400.;
   TaiTime tai(tt);
-  if (0.L != tai.mjd())
-    ErrorMsg(method_name) << "after TaiTime tai(tt), tai.mjd() returned " << tai.mjd() << ", not 0.L." << std::endl;
+  Duration expected(0, 0.);
+  if (expected != tai.getMjd())
+    ErrorMsg(method_name) << "after TaiTime tai(tt), tai.getMjd() returned " << tai.getMjd() << ", not " << expected <<
+      ", as expected" << std::endl;
 
   tai = TaiTime(Duration(0, -32.184));
   if (-tt.getMjd() != tai.getMjd())
@@ -424,28 +426,32 @@ void PulsarDbTest::testAbsoluteTime() {
       " and tai.getMjd() is " << tai.getMjd() << std::endl;
 
   tt = tai;
-  if (0.L != tt.mjd())
-    ErrorMsg(method_name) << "after tt = tai, tt.mjd() returned " << tt.mjd() << ", not 0.L." << std::endl;
+  if (expected != tt.getMjd())
+    ErrorMsg(method_name) << "after tt = tai, tt.getMjd() returned " << tt.getMjd() << ", not " << expected <<
+      ", as expected" << std::endl;
 
   GlastTtTime gtt;
   tt = gtt;
-  if (s_mjd_offset + 54101.L != tt.mjd())
-    ErrorMsg(method_name) << "after tt = gtt, tt.mjd() returned " << tt.mjd() << ", not " <<
-      s_mjd_offset + 54101.L << "." << std::endl;
+  expected = Duration(s_mjd_offset + 54101, 0.);
+  if (expected != tt.getMjd())
+    ErrorMsg(method_name) << "after tt = gtt, tt.getMjd() returned " << tt.getMjd() << ", not " <<
+      expected << ", as expected." << std::endl;
 
   tai = gtt;
-  if (s_mjd_offset + 54101.L - 32.184L / 86400.L != tai.mjd())
-    ErrorMsg(method_name) << "after tai = gtt, tai.mjd() returned " << tai.mjd() << ", not " <<
-      s_mjd_offset + 54101.L - 32.184L / 86400.L << std::endl;
+  expected = Duration(s_mjd_offset + 54101, -32.184);
+  if (expected != tai.getMjd())
+    ErrorMsg(method_name) << "after tai = gtt, tai.getMjd() returned " << tai.getMjd() << ", not " <<
+      expected << ", as expected." << std::endl;
 
+  double tolerance = 1.e-10;
   gtt = GlastTtTime(100.);
   gtt = tt;
-  if (0. != gtt.elapsed())
+  if (tolerance < fabs(gtt.elapsed()))
     ErrorMsg(method_name) << "after gtt = tt, gtt.elapsed() returned " << gtt.elapsed() << ", not 0.L." << std::endl;
 
   gtt = GlastTtTime(100.);
   gtt = tai;
-  if (0. != gtt.elapsed())
+  if (tolerance < fabs(gtt.elapsed()))
     ErrorMsg(method_name) << "after gtt = tai, gtt.elapsed() returned " << gtt.elapsed() << ", not 0.L." << std::endl;
 
   GlastTtTime gtt1(100.);
@@ -461,7 +467,7 @@ void PulsarDbTest::testAbsoluteTime() {
       gtt2.elapsed() << " as expected." << std::endl;
 
   TaiTime tai1(GlastTtTime(100.));
-  Duration expected = Duration(s_mjd_offset + 54101, 0.) + Duration(0, -32.184 + 100.);
+  expected = Duration(s_mjd_offset + 54101, 0.) + Duration(0, -32.184 + 100.);
   if (expected != tai1.getMjd())
     ErrorMsg(method_name) << "After creating tai1 from GlastTtTime(100.), tai1.getMjd() returned " << tai1.getMjd() << ", not " <<
       expected << ", as expected." << std::endl;

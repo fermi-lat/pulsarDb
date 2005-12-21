@@ -12,6 +12,8 @@
 #include "pulsarDb/Duration.h"
 #include "pulsarDb/CanonicalTime.h"
 
+#include "st_stream/Stream.h"
+
 namespace pulsarDb {
 
   /** \class GlastTime
