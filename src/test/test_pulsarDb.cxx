@@ -4,6 +4,7 @@
              James Peachey, HEASARC/GSSC
 */
 #include <cstdio>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -18,6 +19,7 @@
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TextPulsarDb.h"
+#include "pulsarDb/TimeConstants.h"
 #include "pulsarDb/TimingModel.h"
 
 #include "st_app/StApp.h"
@@ -30,10 +32,10 @@
 
 using namespace tip;
 
-static long double s_orig_mjdref = 54101.L;
-static long double s_current_mjdref = 51910.L;
+static long s_orig_mjdref = 54101;
+static long s_current_mjdref = 51910;
 //static long double s_current_mjdref = s_orig_mjdref;
-static long double s_mjd_offset = s_current_mjdref - s_orig_mjdref;
+static long s_mjd_offset = s_current_mjdref - s_orig_mjdref;
 
 /** \class ErrorMsg
     \brief Trivial helper class for formatting output.
@@ -238,16 +240,18 @@ void PulsarDbTest::testChooser() {
   // Test one with no tiebreaking needed.
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
   if (TdbTime(54262.L) != chosen->epoch())
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
+      ", not " << TdbTime(54262.L) << " as expected." << std::endl;
 
   // Test one with tiebreaking.
-  pick_time.setMjd(53545.5);
+  pick_time.setMjd(Duration(53545, .5 * SecPerDay()));
   chosen = &chooser.choose(eph_cont, pick_time);
   if (TdbTime(53891.) != chosen->epoch())
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
+      ", not " << TdbTime(53891.L) << " as expected." << std::endl;
 
   // Test one which is too early.
-  pick_time.setMjd(53544.5);
+  pick_time.setMjd(Duration(53544, .5 * SecPerDay()));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -256,7 +260,7 @@ void PulsarDbTest::testChooser() {
   }
 
   // Test one which is too late.
-  pick_time.setMjd(55579.5);
+  pick_time.setMjd(Duration(55579, .5 * SecPerDay()));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -265,7 +269,7 @@ void PulsarDbTest::testChooser() {
   }
 
   // Try one which is too late, but without being strict about validity.
-  pick_time.setMjd(55579.5);
+  pick_time.setMjd(Duration(55579, .5 * SecPerDay()));
   try {
     chosen = &(SloppyEphChooser().choose(eph_cont, pick_time));
   } catch (const std::runtime_error &) {
@@ -282,7 +286,7 @@ void PulsarDbTest::testChooser() {
   database.getEph(eph_cont);
 
   // Try to choose an ephemeris from the empty set.
-  pick_time.setMjd(55579.5);
+  pick_time.setMjd(Duration(55579, .5 * SecPerDay()));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
@@ -297,7 +301,7 @@ void PulsarDbTest::testChooser() {
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
   database2.getEph(orbital_cont);
-  pick_time.setMjd(52500.);
+  pick_time.setMjd(Duration(52500, 0.));
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
     long double expected_mjd = 5.206084100795000e+04;
@@ -414,10 +418,10 @@ void PulsarDbTest::testAbsoluteTime() {
   if (0.L != tai.mjd())
     ErrorMsg(method_name) << "after TaiTime tai(tt), tai.mjd() returned " << tai.mjd() << ", not 0.L." << std::endl;
 
-  tai = TaiTime(Duration(-32.184L, UnitSec));
-  if (Duration(0., UnitDay) != tt.getMjd() + tai.getMjd())
-    ErrorMsg(method_name) << "after tai = TaiTime(Duration(-32.184L, UnitSec)), tt.getMjd() + tai.getMjd() returned " <<
-      tt.getMjd() + tai.getMjd() << ", not " << Duration(0., UnitDay) << std::endl;
+  tai = TaiTime(Duration(0, -32.184));
+  if (-tt.getMjd() != tai.getMjd())
+    ErrorMsg(method_name) << "after tai = TaiTime(Duration(0, -32.184)), -tt.getMjd() is " << -tt.getMjd() <<
+      " and tai.getMjd() is " << tai.getMjd() << std::endl;
 
   tt = tai;
   if (0.L != tt.mjd())
@@ -457,13 +461,13 @@ void PulsarDbTest::testAbsoluteTime() {
       gtt2.elapsed() << " as expected." << std::endl;
 
   TaiTime tai1(GlastTtTime(100.));
-  Duration expected = Duration(s_mjd_offset + 54101.L, UnitDay) + Duration(-32.184L + 100.L, UnitSec);
+  Duration expected = Duration(s_mjd_offset + 54101, 0.) + Duration(0, -32.184 + 100.);
   if (expected != tai1.getMjd())
     ErrorMsg(method_name) << "After creating tai1 from GlastTtTime(100.), tai1.getMjd() returned " << tai1.getMjd() << ", not " <<
       expected << ", as expected." << std::endl;
 
   TaiTime tai2(GlastTtTime(200.));
-  expected = Duration(s_mjd_offset + 54101.L, UnitDay) + Duration(-32.184L + 200.L, UnitSec);
+  expected = Duration(s_mjd_offset + 54101, 0.) + Duration(0, -32.184 + 200.);
   if (expected != tai2.getMjd())
     ErrorMsg(method_name) << "After creating tai2 from GlastTtTime(200.), tai2.getMjd() returned " << tai2.getMjd() << ", not " <<
       expected << ", as expected." << std::endl;
@@ -645,38 +649,58 @@ void PulsarDbTest::testOrbitalEph() {
   OrbitalEph eph1(binary_par);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
-  long double mjd_test_values[][2] = {
-    { 4.59881172486599971307e+04L, 4.59881172823346967320e+04L },
-    { 4.59881519708822161192e+04L, 4.59881520057480382526e+04L },
-    { 4.59881866931044423836e+04L, 4.59881867233097334768e+04L },
-    { 4.59882214153266613721e+04L, 4.59882214303721880313e+04L },
-    { 4.59882561375488876365e+04L, 4.59882561254377882811e+04L },
-    { 4.59882908597711066250e+04L, 4.59882908532530402717e+04L },
-    { 4.59883255819933328894e+04L, 4.59883255877721779576e+04L },
-    { 4.59883603042155518779e+04L, 4.59883603213319299883e+04L },
-    { 4.59883950264377781423e+04L, 4.59883950526724878252e+04L },
-    { 4.59884297486599971307e+04L, 4.59884297811300504257e+04L },
-    { 4.59884644708822161192e+04L, 4.59884645058955188297e+04L }
+  Duration mjd_test_values[][2] = {
+    { Duration(45988, SecPerDay() * .00001172486599971307e+04),
+      Duration(45988, SecPerDay() * .00001172823346967320e+04) },
+    { Duration(45988, SecPerDay() * .00001519708822161192e+04),
+      Duration(45988, SecPerDay() * .00001520057480382526e+04) },
+    { Duration(45988, SecPerDay() * .00001866931044423836e+04),
+      Duration(45988, SecPerDay() * .00001867233097334768e+04) },
+    { Duration(45988, SecPerDay() * .00002214153266613721e+04),
+      Duration(45988, SecPerDay() * .00002214303721880313e+04) },
+    { Duration(45988, SecPerDay() * .00002561375488876365e+04),
+      Duration(45988, SecPerDay() * .00002561254377882811e+04) },
+    { Duration(45988, SecPerDay() * .00002908597711066250e+04),
+      Duration(45988, SecPerDay() * .00002908532530402717e+04) },
+    { Duration(45988, SecPerDay() * .00003255819933328894e+04),
+      Duration(45988, SecPerDay() * .00003255877721779576e+04) },
+    { Duration(45988, SecPerDay() * .00003603042155518779e+04),
+      Duration(45988, SecPerDay() * .00003603213319299883e+04) },
+    { Duration(45988, SecPerDay() * .00003950264377781423e+04),
+      Duration(45988, SecPerDay() * .00003950526724878252e+04) },
+    { Duration(45988, SecPerDay() * .00004297486599971307e+04),
+      Duration(45988, SecPerDay() * .00004297811300504257e+04) },
+    { Duration(45988, SecPerDay() * .00004644708822161192e+04),
+      Duration(45988, SecPerDay() * .00004645058955188297e+04) }
   };
 
-  // Permitted difference is 100 nanoseconds.
-  long double delta = 100.L * 1.e-9 / 86400.;
+  // Permitted difference is 10 microseconds. This is not really good enough, because long double is different on Windows.
+  //long double delta = 10000.L * 1.e-9 / 86400.;
+  //long double delta = 100.L * 1.e-9 / 86400.;
+  long double delta = 100.L * 1.e-9;
 
   TimingModel model;
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(long double[2]); ++ii) {
+  std::cerr.precision(24);
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
     TdbTime tdb_mjd(mjd_test_values[ii][0]);
     model.modulateBinary(eph1, tdb_mjd);
-    if (fabs(tdb_mjd.mjd() - mjd_test_values[ii][1]) > delta)
-      ErrorMsg(method_name) << "Binary modulation of " << mjd_test_values[ii][0] << " was computed to be " << tdb_mjd.mjd() <<
+    if (std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][1]).sec()) > delta) {
+//      ErrorMsg(method_name) << "Difference is " << std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][1]).day()) <<
+//        " days." << std::endl;
+      ErrorMsg(method_name) << "Binary modulation of " << mjd_test_values[ii][0] << " was computed to be " << tdb_mjd.getMjd() <<
         ", not " << mjd_test_values[ii][1] << ", as expected." << std::endl;
+    }
   }
 
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(long double[2]); ++ii) {
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
     TdbTime tdb_mjd(mjd_test_values[ii][1]);
     model.demodulateBinary(eph1, tdb_mjd);
-    if (fabs(tdb_mjd.mjd() - mjd_test_values[ii][0]) > delta)
-      ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd.mjd() <<
+    if (std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][0]).sec()) > delta) {
+//      ErrorMsg(method_name) << "Difference is " << std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][0]).day()) <<
+//        " days." << std::endl;
+      ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd.getMjd() <<
         ", not " << mjd_test_values[ii][0] << ", as expected." << std::endl;
+    }
   }
 
 } 
@@ -684,20 +708,20 @@ void PulsarDbTest::testOrbitalEph() {
 void PulsarDbTest::testDuration() {
   std::string method_name = "testDuration";
 
-  Duration six_days(6., UnitDay);
+  Duration six_days(6, 0.);
   if (6. != six_days.day())
-    ErrorMsg(method_name) << "After Duration six_days(6., UnitDay), six_days.day() returned " << six_days.day() <<
+    ErrorMsg(method_name) << "After Duration six_days(6., 0.), six_days.day() returned " << six_days.day() <<
       ", not 6. as expected." << std::endl;
   if (6. * 86400. != six_days.sec())
-    ErrorMsg(method_name) << "After Duration six_days(6., UnitDay), six_days.sec() returned " << six_days.sec() <<
+    ErrorMsg(method_name) << "After Duration six_days(6., 0.), six_days.sec() returned " << six_days.sec() <<
       ", not " << 6. * 86400. << " as expected." << std::endl;
 
-  Duration six_sec(6., UnitSec);
+  Duration six_sec(0, 6.);
   if (6.L / 86400.L != six_sec.day())
-    ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.day() returned " << six_sec.day() <<
+    ErrorMsg(method_name) << "After Duration six_sec(6., 0.), six_sec.day() returned " << six_sec.day() <<
       ", not " << 6.L / 86400.L << " as expected." << std::endl;
   if (6.L != six_sec.sec())
-    ErrorMsg(method_name) << "After Duration six_sec(6., UnitDay), six_sec.sec() returned " << six_sec.sec() <<
+    ErrorMsg(method_name) << "After Duration six_sec(6., 0.), six_sec.sec() returned " << six_sec.sec() <<
       ", not " << 6.L << " as expected." << std::endl;
 } 
 
@@ -802,20 +826,20 @@ void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & e
   long double epsilon = 1.e-8;
   const long double nano_sec = 1.e-9;
 
-  if (Duration(nano_sec, UnitSec) < (eph1.epoch() - eph2.epoch()))
+  if (Duration(0, nano_sec) < (eph1.epoch() - eph2.epoch()))
     ErrorMsg(method_name) << context << " give different values for epoch" << std::endl;
 
-  if (fabs(eph1.phi0() / eph2.phi0() - 1.) > epsilon)
-    ErrorMsg(method_name) << context << " give different values for phi0" << std::endl;
-
-  if (fabs(eph1.f0() / eph2.f0() - 1.) > epsilon)
-    ErrorMsg(method_name) << context << " give different values for f0" << std::endl;
-
-  if (fabs(eph1.f1() / eph2.f1() - 1.) > epsilon)
-    ErrorMsg(method_name) << context << " give different values for f1" << std::endl;
-
-  if (fabs(eph1.f2() / eph2.f2() - 1.) > epsilon)
-    ErrorMsg(method_name) << context << " give different values for f2" << std::endl;
+  char * field[] = { "phi0", "f0", "f1" , "f2" };
+  double value1[] = { eph1.phi0(), eph1.f0(), eph1.f1(), eph1.f2() };
+  double value2[] = { eph2.phi0(), eph2.f0(), eph2.f1(), eph2.f2() };
+  for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
+    if (0. == value1[ii] || 0. == value2[ii]) {
+      if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
+        ErrorMsg(method_name) << context << " give absolutely different values for " << field[ii] << std::endl;
+    } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
+      ErrorMsg(method_name) << context << " give fractionally different values for " << field[ii] << std::endl;
+    }
+  }
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
