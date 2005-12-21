@@ -61,12 +61,12 @@ namespace pulsarDb {
 
       virtual long double value() const = 0;
 
-      bool operator ==(const AbsoluteTime & t) const { return *this - t == Duration(0., UnitSec); }
-      bool operator !=(const AbsoluteTime & t) const { return *this - t != Duration(0., UnitSec); }
-      bool operator <(const AbsoluteTime & t) const { return *this - t < Duration(0., UnitSec); }
-      bool operator >(const AbsoluteTime & t) const { return *this - t > Duration(0., UnitSec); }
-      bool operator <=(const AbsoluteTime & t) const { return *this - t <= Duration(0., UnitSec); }
-      bool operator >=(const AbsoluteTime & t) const { return *this - t >= Duration(0., UnitSec); }
+      bool operator ==(const AbsoluteTime & t) const { return *this - t < Duration(0, 1.e-10); }
+      bool operator !=(const AbsoluteTime & t) const { return *this - t > Duration(0, 1.e-10); }
+      bool operator <(const AbsoluteTime & t) const { return *this - t < Duration(0, 0.); }
+      bool operator >(const AbsoluteTime & t) const { return *this - t > Duration(0, 0.); }
+      bool operator <=(const AbsoluteTime & t) const { return *this - t <= Duration(0, 0.); }
+      bool operator >=(const AbsoluteTime & t) const { return *this - t >= Duration(0, 0.); }
   };
 
   inline std::ostream & operator <<(std::ostream & os, const AbsoluteTime & t) {

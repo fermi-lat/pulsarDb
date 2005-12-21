@@ -104,8 +104,6 @@ namespace pulsarDb {
       // Compare time difference between candidate demodulated time
       // (ev_time) and target arrival time (orig_time) with the
       // estimated orbital delay based on the binary model (delay).
-//      std::cerr << "orig_time is " << orig_time << ", ev_time is " << ev_time << ", delay is " << delay << std::endl;
-//      std::cerr << "deviation is " << ((orig_time - ev_time) - delay).sec() << std::endl;
       if (std::fabs(((orig_time - ev_time) - delay).sec()) < epsilon) break;
     }
 
@@ -160,7 +158,7 @@ namespace pulsarDb {
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - eph[SHAPIRO_S]*roemer_frac);
 
     // return total delay
-    return Duration(roemer + einstein + shapiro, UnitSec);
+    return Duration(0, roemer + einstein + shapiro);
   }
 
 }

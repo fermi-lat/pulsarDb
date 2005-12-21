@@ -21,7 +21,7 @@ namespace pulsarDb {
   template <typename ACanonicalTime>
   class GlastTime : public AbsoluteTime {
     public:
-      GlastTime(long double elapsed = 0.): m_elapsed(elapsed, UnitSec) {}
+      GlastTime(long double elapsed = 0.): m_elapsed(0, elapsed) {}
 
       GlastTime(const AbsoluteTime & t);
 
@@ -62,10 +62,10 @@ namespace pulsarDb {
   };
 
   // TODO: This should be a member of GlastTime? Or a constant? Or in some other glast constant class?
-  static long double s_mjdref = 51910.L;
+  static long s_mjdref = 51910;
 
   template <typename ACanonicalTime>
-  inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0., UnitSec) { from(t); }
+  inline GlastTime<ACanonicalTime>::GlastTime(const AbsoluteTime & t): m_elapsed(0, 0.) { from(t); }
 
   template <typename ACanonicalTime>
   inline Duration GlastTime<ACanonicalTime>::operator -(const AbsoluteTime & t) const {
@@ -92,7 +92,7 @@ namespace pulsarDb {
     } else {
       // Convert the other time to the canonical time system implied by this GlastTime, and assign from that.
       ACanonicalTime other_t(t);
-      m_elapsed = other_t.getMjd() - Duration(s_mjdref, UnitDay);
+      m_elapsed = other_t.getMjd() - Duration(s_mjdref, 0.);
     }
   }
 
