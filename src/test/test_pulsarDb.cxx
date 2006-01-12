@@ -420,7 +420,8 @@ void PulsarDbTest::testAbsoluteTime() {
     ErrorMsg(method_name) << "after TaiTime tai(tt), tai.getMjd() returned " << tai.getMjd() << ", not " << expected <<
       ", as expected" << std::endl;
 
-  tai = TaiTime(Duration(0, -32.184));
+//  tai = TaiTime(Duration(0, -32.184));
+  tai = TaiTime(-tt.getMjd());
   if (-tt.getMjd() != tai.getMjd())
     ErrorMsg(method_name) << "after tai = TaiTime(Duration(0, -32.184)), -tt.getMjd() is " << -tt.getMjd() <<
       " and tai.getMjd() is " << tai.getMjd() << std::endl;
