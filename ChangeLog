@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jan 12 12:41:15 PST 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Fix test message and remove commented out code.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jan 12 12:39:48 PST 2006
 pulsarDb/src/test
 
