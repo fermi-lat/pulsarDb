@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jan 12 12:39:48 PST 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Restore unary minus test to close to its previous state.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v1r2, operation: add
 Package: pulsarDb
