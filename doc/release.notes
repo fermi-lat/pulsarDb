@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.12 2005/10/07 20:15:12 peachey Exp $
+$Id: release.notes,v 1.13 2005/12/21 20:14:51 peachey Exp $
 
 \verbatim
+19-jan-2006    v1r2p1 JP  Changes to support gcc 3.3 and later.
 21-dec-2005      v1r2 JP  Refactor internal handling of times to use a long value for days
                           and a double value for seconds. This retains necessary precision
                           for consistent behavior without relying on non-portable characteristics
