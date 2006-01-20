@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jan 19 18:20:08 PST 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Use std::isnan instead of isnan, to support gcc3.3 and later.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Jan 12 12:41:15 PST 2006
 pulsarDb/src/test
 
