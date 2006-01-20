@@ -33,7 +33,7 @@ namespace {
 #ifdef WIN32
     return 0 != _isnan(x);
 #else
-    return 0 != isnan(x);
+    return 0 != std::isnan(x);
 #endif
   }
 
