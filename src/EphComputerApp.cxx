@@ -47,7 +47,7 @@ namespace pulsarDb {
     pars.Save();
 
     // Get parameters.
-    double epoch = pars["epoch"];
+    double ref_time = pars["reftime"];
     std::string time_format = pars["timeformat"];
     for (std::string::iterator itor = time_format.begin(); itor != time_format.end(); ++itor) *itor = toupper(*itor);
     std::string time_sys = pars["timesys"];
@@ -66,11 +66,11 @@ namespace pulsarDb {
     }
     std::string psr_name = pars["psrname"];
 
-    std::auto_ptr<AbsoluteTime> abs_epoch(0);
+    std::auto_ptr<AbsoluteTime> abs_ref_time(0);
     if (time_sys == "TDB") {
-      abs_epoch.reset(new GlastTdbTime(epoch));
+      abs_ref_time.reset(new GlastTdbTime(ref_time));
     } else if (time_sys == "TT") {
-      abs_epoch.reset(new GlastTtTime(epoch));
+      abs_ref_time.reset(new GlastTtTime(ref_time));
     } else {
       throw std::runtime_error("Only TDB or TT time systems are supported for now");
     }
@@ -93,16 +93,16 @@ namespace pulsarDb {
     // Load the selected ephemerides.
     computer->load(database);
     
-    m_os.out() << prefix << "User supplied time " << *abs_epoch << std::endl;
+    m_os.out() << prefix << "User supplied time " << *abs_ref_time << std::endl;
 
     // Report the best spin ephemeris.
     try {
-      const PulsarEph & eph(computer->choosePulsarEph(*abs_epoch));
+      const PulsarEph & eph(computer->choosePulsarEph(*abs_ref_time));
       m_os.out() << prefix << "Spin ephemeris chosen from database was:" << std::endl << eph << std::endl;
 
       // Report the calculated ephemeris.
       try {
-        FrequencyEph eph(computer->calcPulsarEph(*abs_epoch));
+        FrequencyEph eph(computer->calcPulsarEph(*abs_ref_time));
         m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time was:" << std::endl << eph << std::endl;
       } catch (const std::exception & x) {
         m_os.out() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
@@ -113,7 +113,7 @@ namespace pulsarDb {
     
     // Report the best binary ephemeris.
     try {
-      const OrbitalEph & eph(computer->chooseOrbitalEph(*abs_epoch));
+      const OrbitalEph & eph(computer->chooseOrbitalEph(*abs_ref_time));
       m_os.out() << prefix << "Orbital ephemeris chosen from database was:" << std::endl << eph << std::endl;
     } catch (const std::exception & x) {
       m_os.out() << prefix << "No orbital ephemeris was found in database." << std::endl;
