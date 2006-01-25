@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Jan 25 13:07:24 PST 2006
+pulsarDb/pfiles
+
+Modified Files:
+	gtephcomp.par 
+Log Message:
+Change epoch parameter to reftime and default timeformat to GLAST.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v1r2p1, operation: add
 Package: pulsarDb
