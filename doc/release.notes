@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.14 2006/01/20 02:20:25 peachey Exp $
+$Id: release.notes,v 1.15 2006/01/27 22:18:35 peachey Exp $
 
 \verbatim
+01-feb-2006    v2r0p1 JP  Throw exception if user tries to use TT time system (temporarily.)
 27-jan-2006        v2 JP  Use timesystem, timeformat parameters to generalize interpretation of epoch.
 19-jan-2006    v1r2p1 JP  Changes to support gcc 3.3 and later.
 21-dec-2005      v1r2 JP  Refactor internal handling of times to use a long value for days
