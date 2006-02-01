@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Feb  1 12:25:40 PST 2006
+pulsarDb/pfiles
+
+Modified Files:
+	gtpulsardb.par 
+Log Message:
+Clarify that tstart/tstop are MJD TDB.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v2, operation: add
 Package: pulsarDb
