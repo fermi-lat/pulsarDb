@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Feb  1 12:26:15 PST 2006
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+For the time being, throw exception if user tries to use TT time system.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Feb  1 12:25:40 PST 2006
 pulsarDb/pfiles
 
