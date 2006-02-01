@@ -66,6 +66,9 @@ namespace pulsarDb {
     }
     std::string psr_name = pars["psrname"];
 
+    // TODO Remove the following line when correct conversion from TT is implemented.
+    if (time_sys != "TDB") throw std::runtime_error("Only TDB time system is supported for now");
+
     std::auto_ptr<AbsoluteTime> abs_ref_time(0);
     if (time_sys == "TDB") {
       abs_ref_time.reset(new GlastTdbTime(ref_time));
