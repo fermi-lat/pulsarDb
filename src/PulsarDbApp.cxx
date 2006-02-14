@@ -20,11 +20,11 @@
 #include "tip/IFileSvc.h"
 #include "tip/TipException.h"
 
-static const std::string s_cvs_id("$Name: v0r1p3 $");
+static const std::string s_cvs_id("$Name:  $");
 
 namespace pulsarDb {
 
-  PulsarDbApp::PulsarDbApp(): m_tpl_file() {
+  PulsarDbApp::PulsarDbApp(): m_os("PulsarDbApp", "PulsarDbApp()", 2), m_tpl_file() {
     setName("gtpulsardb");
     setVersion(s_cvs_id);
   }
@@ -32,6 +32,7 @@ namespace pulsarDb {
   PulsarDbApp::~PulsarDbApp() throw() {}
 
   void PulsarDbApp::run() {
+    m_os.setMethod("run()");
     using namespace st_app;
 
     // Get parameters.
@@ -81,15 +82,19 @@ namespace pulsarDb {
       // Filter on pulsar name.
       std::string psr_name = pars["psrname"];
       data_base->filterName(psr_name);
+      
     } else if (filter == "time") {
       // Filter on time.
       double t_start = pars["tstart"];
       double t_stop = pars["tstop"];
       data_base->filterInterval(t_start, t_stop);
     }
+
+    if (0 >= data_base->getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
   }
 
   PulsarDb * PulsarDbApp::openDbFile(const std::string & in_file, bool edit_in_place) {
+    m_os.setMethod("openDbFile(const std::string &...)");
     PulsarDb * data_base = 0;
 
     // First try opening a tip file containing the ephemerides.
