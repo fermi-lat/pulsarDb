@@ -10,6 +10,8 @@
 
 #include "st_app/StApp.h"
 
+#include "st_stream/StreamFormatter.h"
+
 namespace pulsarDb {
 
   class PulsarDb;
@@ -28,6 +30,7 @@ namespace pulsarDb {
       PulsarDb * openDbFile(const std::string & in_file, bool edit_in_place = false);
 
     private:
+      st_stream::StreamFormatter m_os;
       std::string m_tpl_file;
   };
 
