@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Feb 14 10:57:17 PST 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Use st_stream to issue warning if no ephemerides are in the output database.
+
+    *
+------------------------------------------------------------
 User: peachey  Tue Feb 14 10:57:16 PST 2006
 pulsarDb/pulsarDb
 
