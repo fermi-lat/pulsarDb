@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Feb 14 10:57:16 PST 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDbApp.h 
+Log Message:
+Use st_stream to issue warning if no ephemerides are in the output database.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v2r0p1, operation: add
 Package: pulsarDb
