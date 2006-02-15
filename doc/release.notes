@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.16 2006/02/01 20:28:41 peachey Exp $
+$Id: release.notes,v 1.17 2006/02/14 18:57:29 peachey Exp $
 
 \verbatim
+15-feb-2006    v2r0p3 JP  Protect against overflow/underflow when converting times in Duration class.
 14-feb-2006    v2r0p2 JP  Issue a warning if no ephemerides are in the written database.
 01-feb-2006    v2r0p1 JP  Throw exception if user tries to use TT time system (temporarily.)
 27-jan-2006        v2 JP  Use timesystem, timeformat parameters to generalize interpretation of epoch.
