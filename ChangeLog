@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Feb 15 06:19:35 PST 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	Duration.h 
+Log Message:
+Add checks to prevent overflow/underflow when converting a floating point time
+into integral day value + floating point seconds.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v2r0p2, operation: add
 Package: pulsarDb
