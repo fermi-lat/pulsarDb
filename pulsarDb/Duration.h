@@ -9,6 +9,8 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <sstream>
+#include <stdexcept>
 
 #include "pulsarDb/TimeConstants.h"
 
@@ -109,7 +111,19 @@ namespace pulsarDb {
         } else {
           return time_type(0, sec);
         }
-        long day = long(std::floor(sec * DayPerSec()) + offset);
+        double double_day = std::floor(sec * DayPerSec()) + offset;
+        long day;
+        if (std::numeric_limits<long>::min() <= double_day && double_day <= std::numeric_limits<long>::max()) {
+          day = long(double_day);
+        } else if (std::numeric_limits<long>::min() > double_day) {
+          std::ostringstream os;
+          os << "Time " << double_day << " is too small to be expressed as a long integer";
+          throw std::runtime_error(os.str());
+        } else { // std::numeric_limits<long>::max() < double_day
+          std::ostringstream os;
+          os << "Time " << double_day << " is too large to be expressed as a long integer";
+          throw std::runtime_error(os.str());
+        }
         return time_type(day, sec - day * SecPerDay());
       }
 
