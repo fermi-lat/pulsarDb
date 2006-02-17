@@ -17,7 +17,6 @@
 
 #include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/PulsarDb.h"
-#include "pulsarDb/TimingModel.h"
 
 #include "st_facilities/Env.h"
 
@@ -232,7 +231,7 @@ namespace pulsarDb {
     return expression.substr(0, expression.size() - 2);
   }
 
-  void PulsarDb::getEph(PulsarEphCont & cont) const {
+  void PulsarDb::getEph(PulsarEphCont & cont, const TimingModel & model) const {
     // Refill this container.
     cont.clear();
 
@@ -268,12 +267,24 @@ namespace pulsarDb {
       TdbTime valid_since = r["VALID_SINCE"].get();
 
       // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
-      // whereas the valid_until argument to DatabaseEph is the absolute cutoff.
+      // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
       TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
 
+      double f0 = r["F0"].get();
+      double f1 = r["F1"].get();
+      double f2 = r["F2"].get();
+
+      // Create temporary copy of this ephemeris with phi0 == 0.
+      FrequencyEph tmp(valid_since, valid_until, epoch, 0., f0, f1, f2);
+
+      // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
+      long double phi0 = - model.calcPulsePhase(tmp, TdbTime(toa));
+
+      // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
+      if (0. > phi0) phi0 += 1.;
+
       // Add the ephemeris to the container.
-      cont.push_back(DatabaseEph(valid_since, valid_until, epoch, TdbTime(toa),
-        r["F0"].get(), r["F1"].get(), r["F2"].get()).clone());
+      cont.push_back(FrequencyEph(valid_since, valid_until, epoch, phi0, f0, f1, f2).clone());
     }
   }
 

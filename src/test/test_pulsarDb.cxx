@@ -497,36 +497,8 @@ void PulsarDbTest::testPulsarEph() {
   PeriodEph p_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.875, 88.8888888888888888888889,
     1.777777777777777777777778, 0.0177777777777777777777778);
 
-  // Create a database ephemeris.
-  TimingModel model;
-  DatabaseEph db_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), GlastTtTime(223.456789),
-    1.125e-2, -2.25e-4, 6.75e-6);
-
-#if 0
-  // Correct phi0 is 1. - (1.125e-2 * 100 - 2.25e-4*10000 / 2. + 6.75e-6 * 1000000 / 6.) = -.125 -> .875
-  if (fabs(db_eph.phi0() / .875 - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for phi0" << std::endl;
-
-  if (fabs(f_eph.f0() / db_eph.f0() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f0" << std::endl;
-
-  if (fabs(f_eph.f1() / db_eph.f1() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f1" << std::endl;
-
-  if (fabs(f_eph.f2() / db_eph.f2() - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph and DatabaseEph give different values for f2" << std::endl;
-
-  // All three should agree completely.
-  const long double nano_sec = 1.e-9;
-  if (Duration(nano_sec, UnitSec) < (f_eph.epoch() - p_eph.epoch()))
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
-#endif
-
   // First, compare frequency & period.
   testEquality("FrequencyEph and PeriodEph", f_eph, p_eph);
-
-  // Compare frequency and database
-  testEquality("FrequencyEph and DatabaseEph", f_eph, db_eph);
 }
 
 void PulsarDbTest::testTimingModel() {
