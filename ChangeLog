@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Fri Feb 17 12:51:30 PST 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx PulsarEph.cxx 
+Log Message:
+Remove DatabaseEph class, which is not truly necessary because FrequencyEph
+can achieve the same thing with minimal tweaking.
+
+    *
+------------------------------------------------------------
+User: peachey  Fri Feb 17 12:51:30 PST 2006
 pulsarDb/pulsarDb
 
 Modified Files:
