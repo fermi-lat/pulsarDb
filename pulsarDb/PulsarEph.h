@@ -14,8 +14,6 @@
 
 namespace pulsarDb {
 
-  class TimingModel;
-
   /** \class PulsarEph
       \brief Class representing a single pulsar ephemeris. Warning: f0, f1, f2 depend on the time system.
       While AbsoluteTime objects are interchangeable, these other values are not!
@@ -51,52 +49,6 @@ namespace pulsarDb {
   };
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
-
-  /** \class DatabaseEph
-      \brief Class representing a single pulsar ephemeris.
-  */
-  class DatabaseEph : public PulsarEph {
-    public:
-      /** \brief Create pulsar ephemeris with the given properties.
-          \param valid_since The start time of the valid interval.
-          \param valid_until The stop time of the valid interval.
-          \param epoch The epoch (time origin).
-          \param toa The pulse arrival time.
-          \param f0 The frequency at the epoch (time origin).
-          \param f1 The first time derivative of the frequency at the epoch (time origin).
-          \param f2 The second time derivative of the frequency at the epoch (time origin).
-      */
-      DatabaseEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until,
-        const AbsoluteTime & epoch, const AbsoluteTime & toa, long double f0, long double f1, long double f2);
-
-      DatabaseEph(const DatabaseEph & eph): PulsarEph(eph), m_toa(eph.m_toa->clone()),
-        m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
-
-      virtual ~DatabaseEph();
-
-      DatabaseEph & operator =(const DatabaseEph & eph) {
-        PulsarEph::operator =(eph);
-        delete m_toa; m_toa = eph.m_toa->clone();
-        m_f0 = eph.m_f0;
-        m_f1 = eph.m_f1;
-        m_f2 = eph.m_f2;
-        return *this;
-      }
-
-      virtual long double phi0() const;
-      virtual long double f0() const { return m_f0; }
-      virtual long double f1() const { return m_f1; }
-      virtual long double f2() const { return m_f2; }
-
-      const AbsoluteTime & toa() const { return *m_toa; }
-      virtual PulsarEph * clone() const { return new DatabaseEph(*this); }
-
-    private:
-      AbsoluteTime * m_toa;
-      long double m_f0;
-      long double m_f1;
-      long double m_f2;
-  };
 
   /** \class FrequencyEph
       \brief Class representing a single pulsar ephemeris.
