@@ -1,5 +1,5 @@
 psrname,        s, a, "ANY", , ,"Pulsar name"
-reftime,        r, a, , , , "Reference time at which to find/compute ephemeris"
+reftime,        r, a, 0., , , "Reference time at which to find/compute ephemeris"
 timeformat,     s, h, GLAST, "MJD|GLAST", , "Time format for spin ephemeris epoch"
 timesys,        s, h, TDB, "TDB|TT", , "Time system for spin ephemeris epoch"
 psrdbfile,      f, h, DEFAULT, , , "Name of input pulsar ephemerides database file"
