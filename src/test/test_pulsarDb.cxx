@@ -696,10 +696,10 @@ void PulsarDbTest::testDuration() {
 
   Duration six_sec(0, 6.);
   if (6.L / 86400.L != six_sec.day())
-    ErrorMsg(method_name) << "After Duration six_sec(6., 0.), six_sec.day() returned " << six_sec.day() <<
+    ErrorMsg(method_name) << "After Duration six_sec(0., 6.), six_sec.day() returned " << six_sec.day() <<
       ", not " << 6.L / 86400.L << " as expected." << std::endl;
   if (6.L != six_sec.sec())
-    ErrorMsg(method_name) << "After Duration six_sec(6., 0.), six_sec.sec() returned " << six_sec.sec() <<
+    ErrorMsg(method_name) << "After Duration six_sec(0., 6.), six_sec.sec() returned " << six_sec.sec() <<
       ", not " << 6.L << " as expected." << std::endl;
 } 
 
