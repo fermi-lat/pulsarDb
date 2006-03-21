@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Mar 21 14:23:33 PST 2006
+pulsarDb/pfiles
+
+Modified Files:
+	gtephcomp.par 
+Log Message:
+Seed reftime with value of 0.
+
+    *
+------------------------------------------------------------
 User: peachey  Tue Mar 21 14:23:16 PST 2006
 pulsarDb/src/test
 
