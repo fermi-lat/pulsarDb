@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Mar 21 14:23:16 PST 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Correct some error messages which suffered from too much cut-and-paste.
+
+    *
+------------------------------------------------------------
 User: peachey  Fri Feb 17 12:51:34 PST 2006
 pulsarDb/src/test
 
