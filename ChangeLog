@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Thu Mar 23 12:10:04 PST 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Correct bug: calcEphemeris method should use supplied "event time" for
+the extrapoloated reference time (epoch) of the returned ephemeris.
+
+    *
+------------------------------------------------------------
+User: peachey  Thu Mar 23 12:10:04 PST 2006
 pulsarDb/pulsarDb
 
 Modified Files:
