@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Mar 23 13:54:47 PST 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+If range of validity is null, report it differently, and other cosmetic stuff.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Mar 23 13:54:05 PST 2006
 pulsarDb/pulsarDb
 
