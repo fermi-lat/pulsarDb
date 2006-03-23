@@ -95,31 +95,45 @@ namespace pulsarDb {
 
     // Load the selected ephemerides.
     computer->load(database);
-    
+
     m_os.out() << prefix << "User supplied time " << *abs_ref_time << std::endl;
 
+    // Cosmetic: suppress info.
+    m_os.info().setPrefix(m_os.out().getPrefix());
+
+    // Set off the optional output.
+    std::string dashes(26, '-');
+    m_os.info(3) << prefix << dashes << std::endl;
+
     // Report the best spin ephemeris.
+    bool found_pulsar_eph = false;
     try {
       const PulsarEph & eph(computer->choosePulsarEph(*abs_ref_time));
-      m_os.out() << prefix << "Spin ephemeris chosen from database was:" << std::endl << eph << std::endl;
-
-      // Report the calculated ephemeris.
-      try {
-        FrequencyEph eph(computer->calcPulsarEph(*abs_ref_time));
-        m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time was:" << std::endl << eph << std::endl;
-      } catch (const std::exception & x) {
-        m_os.out() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
-      }
+      m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl << eph << std::endl;
+      found_pulsar_eph = true;
     } catch (const std::exception & x) {
       m_os.out() << prefix << "No spin ephemeris was found in database." << std::endl;
     }
-    
+
     // Report the best binary ephemeris.
     try {
       const OrbitalEph & eph(computer->chooseOrbitalEph(*abs_ref_time));
-      m_os.out() << prefix << "Orbital ephemeris chosen from database was:" << std::endl << eph << std::endl;
+      m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl << eph << std::endl;
     } catch (const std::exception & x) {
-      m_os.out() << prefix << "No orbital ephemeris was found in database." << std::endl;
+      m_os.info(3) << prefix << "No orbital ephemeris was found in database." << std::endl;
+    }
+
+    // Set off the optional output.
+    m_os.info(3) << prefix << dashes << std::endl;
+
+    // Report the calculated spin ephemeris, provided at least a spin ephemeris was found above.
+    if (found_pulsar_eph) {
+      try {
+        FrequencyEph eph(computer->calcPulsarEph(*abs_ref_time));
+        m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time is:" << std::endl << eph << std::endl;
+      } catch (const std::exception & x) {
+        m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
+      }
     }
   }
 }
