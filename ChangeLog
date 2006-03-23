@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: peachey  Thu Mar 23 13:56:37 PST 2006
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Refine output so that computed spin ephemeris is always reported, but
+spin and orbital ephemerides taken directly from the database are
+only reported when chatter is 3+. Also report computed ephemeris last.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Mar 23 13:54:47 PST 2006
 pulsarDb/src
 
