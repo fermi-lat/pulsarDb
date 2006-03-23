@@ -538,6 +538,12 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
   }
 
+  // correct_epoch == ev_time;
+  // Note: epsilon now is a time difference of 10ns
+  if (fabs((f_eph3.epoch() - ev_time).sec()) > epsilon) {
+    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
+  }
+
   model.cancelPdot(f_eph2, ev_time);
   long double pdot_t = ev_time.elapsed();
   long double correct_t = 323.4567891234567;
