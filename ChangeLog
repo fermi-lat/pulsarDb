@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Thu Mar 23 12:10:04 PST 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	TimingModel.h 
+Log Message:
+Correct bug: calcEphemeris method should use supplied "event time" for
+the extrapoloated reference time (epoch) of the returned ephemeris.
+
+    *
+------------------------------------------------------------
 User: peachey  Tue Mar 21 14:23:33 PST 2006
 pulsarDb/pfiles
 
