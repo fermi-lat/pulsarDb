@@ -14,7 +14,12 @@ namespace pulsarDb {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
     os << std::right;
-    os.prefix().width(14); os << "Valid range = " << "[" << eph.valid_since() << ", " << eph.valid_until() << "]" << std::endl;
+    os.prefix().width(14);
+    // Note: below, break into two consecutive strings so that width applies to first part only.
+    if (eph.valid_since() < eph.valid_until())
+      os << "Validity : " << "in range " << "[" << eph.valid_since() << ", " << eph.valid_until() << ")" << std::endl;
+    else
+      os << "Validity : " << "only at epoch" << std::endl;
     os.prefix().width(14); os << "Epoch = " << eph.epoch() << std::endl;
     os.prefix().width(14); os << "Phi0 = " << eph.phi0() << std::endl;
     os.prefix().width(14); os << "F0 = " << eph.f0() << std::endl;
