@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Mar 23 13:54:05 PST 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	TimingModel.h 
+Log Message:
+When extrapolating ephemeris, use time of extrapolation as valid_since/until.
+
+    *
+------------------------------------------------------------
 User: peachey  Thu Mar 23 12:10:04 PST 2006
 pulsarDb/src/test
 
