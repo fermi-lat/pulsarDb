@@ -2,9 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.17 2006/02/14 18:57:29 peachey Exp $
+$Id: release.notes,v 1.18 2006/02/15 14:20:50 peachey Exp $
 
 \verbatim
+29-mar-2006      v2r1 JP  Cosmetic changes to output, refactoring: removed DatabaseEph class.
+                          Fixed bug in which incorrect epoch, validity times were used in
+                          extrapolated ephemerides.
 15-feb-2006    v2r0p3 JP  Protect against overflow/underflow when converting times in Duration class.
 14-feb-2006    v2r0p2 JP  Issue a warning if no ephemerides are in the written database.
 01-feb-2006    v2r0p1 JP  Throw exception if user tries to use TT time system (temporarily.)
