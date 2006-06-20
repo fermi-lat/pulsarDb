@@ -23,8 +23,6 @@ namespace tip {
 
 namespace pulsarDb {
 
-  class AbsoluteTime;
-
   /** \class PulsarDb
       \brief Abstraction providing access to pulsar ephemerides database.
   */

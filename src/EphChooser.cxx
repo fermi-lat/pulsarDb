@@ -7,12 +7,19 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "pulsarDb/AbsoluteTime.h"
 #include "pulsarDb/EphChooser.h"
+
+#include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/Duration.h"
+#include "timeSystem/ElapsedTime.h"
+#include "timeSystem/IntFracPair.h"
+#include "timeSystem/TimeInterval.h"
+
+using namespace timeSystem;
 
 namespace pulsarDb {
 
-  const PulsarEph & EphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const {
+  const PulsarEph & EphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
     PulsarEphCont::const_iterator candidate = ephemerides.end();
 
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
@@ -25,7 +32,8 @@ namespace pulsarDb {
         // Otherwise, prefer the eph which starts later.
         } else if ((*itor)->valid_since() > (*candidate)->valid_since()) {
           candidate = itor;
-        } else if ((*itor)->valid_since() == (*candidate)->valid_since()) {
+//        } else if ((*itor)->valid_since() == (*candidate)->valid_since()) {
+        } else if ((*itor)->valid_since() >= (*candidate)->valid_since()) {
           // The two start at the same time, so break the tie based on which one is valid longer.
           // Note that in a tie here, the one selected is the one appearing last in the sequence.
           if ((*itor)->valid_until() >= (*candidate)->valid_until())
@@ -44,7 +52,7 @@ namespace pulsarDb {
     return *(*candidate);
   }
 
-  const OrbitalEph & EphChooser::choose(const OrbitalEphCont & ephemerides, const AbsoluteTime & t) const {
+  const OrbitalEph & EphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
     if (ephemerides.empty()) throw std::runtime_error("EphChooser::choose was passed empty container of ephemerides");
     // Start with minimum = maximum value.
     double min_time_diff = std::numeric_limits<double>::max();
@@ -53,7 +61,8 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double time_diff = std::fabs(((*itor)->t0() - t).sec());
+      IntFracPair diff_pair = ((*itor)->t0() - t).computeElapsedTime("TDB").getTime().getValue(Sec);
+      double time_diff = std::fabs(diff_pair.getIntegerPart() + diff_pair.getFractionalPart());
       if (time_diff < min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
@@ -74,7 +83,7 @@ namespace pulsarDb {
     return new EphChooser(*this);
   }
 
-  const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & t) const {
+  const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
     if (ephemerides.empty()) throw std::runtime_error("SloppyEphChooser::choose was passed empty container of ephemerides");
     using std::fabs;
 
@@ -87,10 +96,16 @@ namespace pulsarDb {
 
     PulsarEphCont::const_iterator candidate = ephemerides.begin();
 
-    Duration diff = std::min((t - (*candidate)->valid_since()).op(fabs), (t - (*candidate)->valid_until()).op(fabs));
+    IntFracPair diff_since = (t - (*candidate)->valid_since()).computeElapsedTime("TDB").getTime().getValue(Sec);
+    IntFracPair diff_until = (t - (*candidate)->valid_until()).computeElapsedTime("TDB").getTime().getValue(Sec);
+    double diff = std::min(std::fabs(diff_since.getIntegerPart() + diff_since.getFractionalPart()),
+      std::fabs(diff_until.getIntegerPart() + diff_until.getFractionalPart()));
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      Duration new_diff = std::min((t - (*candidate)->valid_since()).op(fabs), (t - (*candidate)->valid_until()).op(fabs));
+      diff_since = (t - (*candidate)->valid_since()).computeElapsedTime("TDB").getTime().getValue(Sec);
+      diff_until = (t - (*candidate)->valid_until()).computeElapsedTime("TDB").getTime().getValue(Sec);
+      double new_diff = std::min(std::fabs(diff_since.getIntegerPart() + diff_since.getFractionalPart()),
+        std::fabs(diff_until.getIntegerPart() + diff_until.getFractionalPart()));
       if (new_diff < diff) {
         candidate = itor;
         diff = new_diff;
@@ -110,5 +125,4 @@ namespace pulsarDb {
   EphChooser * SloppyEphChooser::clone() const {
     return new SloppyEphChooser(*this);
   }
-
 }

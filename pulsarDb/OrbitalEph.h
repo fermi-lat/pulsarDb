@@ -8,12 +8,12 @@
 
 #include "st_stream/Stream.h"
 
+#include "timeSystem/AbsoluteTime.h"
+
 #include <iostream>
 #include <vector>
 
 namespace pulsarDb {
-
-  class AbsoluteTime;
 
   enum BinaryIndex { PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S, NUMBER_ORBITAL_PAR };
 
@@ -30,23 +30,26 @@ namespace pulsarDb {
       static const long double s_sec_per_microsec;
 
       OrbitalEph(double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot, double om, double om_dot,
-        const AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);
+        const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);
 
       OrbitalEph(double parameters[NUMBER_ORBITAL_PAR]);
 
-      virtual ~OrbitalEph();
+//      virtual ~OrbitalEph();
 
       const double & operator [](size_type index) const { return m_par[index]; }
 
-      virtual const AbsoluteTime & t0() const { return *m_t0; }
+//      virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
+      const timeSystem::AbsoluteTime & t0() const { return m_t0; }
 
-      virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
+//      virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
+      OrbitalEph * clone() const { return new OrbitalEph(*this); }
 
-      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+//      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+      st_stream::OStream & write(st_stream::OStream & os) const;
 
     private:
       std::vector<double> m_par;
-      AbsoluteTime * m_t0;
+      timeSystem::AbsoluteTime m_t0;
   };
 
   typedef std::vector<OrbitalEph *> OrbitalEphCont;

@@ -6,10 +6,13 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TimingModel.h"
+
+#include "timeSystem/AbsoluteTime.h"
+
+using namespace timeSystem;
 
 namespace {
 
@@ -55,9 +58,12 @@ int atKepler(
 
 namespace pulsarDb {
 
-  long double TimingModel::calcOrbitalPhase(const OrbitalEph & eph, const AbsoluteTime & ev_time) const {
+  long double TimingModel::calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
     // compute elapsed time from epoch of periastron in seconds
-    long double delta_second = (ev_time - TdbTime(eph[T0])).sec();
+    AbsoluteTime eph_t0("TDB", Duration(IntFracPair(eph[T0]), Day), Duration(0, 0.));
+    IntFracPair delta_second_pair = (ev_time - eph_t0).computeElapsedTime("TDB").getTime().getValue(Sec);
+    long double delta_second = delta_second_pair.getIntegerPart() + delta_second_pair.getFractionalPart();
+//    long double delta_second = (ev_time - TdbTime(eph[T0])).sec();
 
     // Compute the time difference as a fraction of the period.
     long double delta_period = delta_second / eph[PB];
@@ -72,20 +78,20 @@ namespace pulsarDb {
     return phase;
   }
 
-  void TimingModel::modulateBinary(const OrbitalEph & eph, AbsoluteTime & ev_time) const {
-    ev_time += calcOrbitalDelay(eph, ev_time);
+  void TimingModel::modulateBinary(const OrbitalEph & eph, timeSystem::AbsoluteTime & ev_time) const {
+    ev_time = ev_time + calcOrbitalDelay(eph, ev_time);
   }
 
-  void TimingModel::demodulateBinary(const OrbitalEph & eph, AbsoluteTime & ev_time) const {
+  void TimingModel::demodulateBinary(const OrbitalEph & eph, timeSystem::AbsoluteTime & ev_time) const {
     static const int s_max_iteration = 100;
     const long double epsilon = 10.e-9; // 10 nanoseconds.
 
     // Save target arrival time (ev_time) in orig_time.
     // TODO: Do not use TdbTime explicitly.  Generalize it.
-    TdbTime orig_time(ev_time);
+    AbsoluteTime orig_time = ev_time;
 
     // Initial guess of orbital delay.
-    Duration delay = calcOrbitalDelay(eph, ev_time);
+    ElapsedTime delay = calcOrbitalDelay(eph, ev_time);
 
     // Iterative approximation of demodulated time.
     int ii;
@@ -93,8 +99,9 @@ namespace pulsarDb {
 
       // Compute next candidate of demodulated time by:
       // ev_time = orig_time - delay, i.e.:
-      ev_time = orig_time;
-      ev_time -= delay;
+      ev_time = orig_time - delay;
+//      ev_time = orig_time;
+//      ev_time -= delay;
 
       // Compute orbital delay at ev_time
       delay = calcOrbitalDelay(eph, ev_time);
@@ -102,7 +109,8 @@ namespace pulsarDb {
       // Compare time difference between candidate demodulated time
       // (ev_time) and target arrival time (orig_time) with the
       // estimated orbital delay based on the binary model (delay).
-      if (std::fabs(((orig_time - ev_time) - delay).sec()) < epsilon) break;
+      if ((orig_time - ev_time).computeElapsedTime("TDB").getTime().equivalentTo(delay.getTime(), Duration(0, epsilon))) break;
+//      if (std::fabs(((orig_time - ev_time) - delay).sec()) < epsilon) break;
     }
 
     // Check for non-convergence.
@@ -114,9 +122,12 @@ namespace pulsarDb {
     return new TimingModel(*this);
   }
 
-  Duration TimingModel::calcOrbitalDelay(const OrbitalEph & eph, const AbsoluteTime & ev_time) const {
+  timeSystem::ElapsedTime TimingModel::calcOrbitalDelay(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
     // compute elapsed time from epoch of periastron in seconds
-    long double delta_second = (ev_time - TdbTime(eph[T0])).sec();
+    AbsoluteTime eph_t0("TDB", Duration(IntFracPair(eph[T0]), Day), Duration(0, 0.));
+    IntFracPair delta_second_pair = (ev_time - eph_t0).computeElapsedTime("TDB").getTime().getValue(Sec);
+    long double delta_second = delta_second_pair.getIntegerPart() + delta_second_pair.getFractionalPart();
+//    long double delta_second = (ev_time - TdbTime(eph[T0])).sec();
 
     // calculate mean anomaly
     long double delta_period = delta_second / eph[PB];
@@ -156,7 +167,7 @@ namespace pulsarDb {
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - eph[SHAPIRO_S]*roemer_frac);
 
     // return total delay
-    return Duration(0, roemer + einstein + shapiro);
+    return ElapsedTime("TDB", Duration(0, roemer + einstein + shapiro));
   }
 
 }
