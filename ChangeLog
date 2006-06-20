@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: hirayama  Tue Jun 20 14:49:52 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx EphComputer.cxx EphComputerApp.cxx 
+	OrbitalEph.cxx PulsarDb.cxx TimingModel.cxx 
+Log Message:
+Replace time-handling classes (AbsoluteTime etc.) with the ones in timeSystem package.
+
+    *
+------------------------------------------------------------
+User: hirayama  Tue Jun 20 14:49:52 PDT 2006
 pulsarDb/pulsarDb
 
 Modified Files:
