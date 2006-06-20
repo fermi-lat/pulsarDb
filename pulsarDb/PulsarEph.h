@@ -9,8 +9,9 @@
 #include <iostream>
 #include <vector>
 
-#include "pulsarDb/AbsoluteTime.h"
 #include "st_stream/Stream.h"
+
+#include "timeSystem/AbsoluteTime.h"
 
 namespace pulsarDb {
 
@@ -20,14 +21,14 @@ namespace pulsarDb {
   */
   class PulsarEph {
     public:
-      PulsarEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until, const AbsoluteTime & epoch):
-        m_since(valid_since.clone()), m_until(valid_until.clone()), m_epoch(epoch.clone()) {}
+      PulsarEph(const timeSystem::AbsoluteTime & valid_since, const timeSystem::AbsoluteTime & valid_until,
+        const timeSystem::AbsoluteTime & epoch): m_since(valid_since), m_until(valid_until), m_epoch(epoch) {}
 
-      virtual ~PulsarEph() { delete m_epoch; delete m_until; delete m_since; }
+      virtual ~PulsarEph() {}
 
-      virtual const AbsoluteTime & valid_since() const { return *m_since; }
-      virtual const AbsoluteTime & valid_until() const { return *m_until; }
-      virtual const AbsoluteTime & epoch() const { return *m_epoch; }
+      virtual const timeSystem::AbsoluteTime & valid_since() const { return m_since; }
+      virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
+      virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
       virtual long double phi0() const = 0;
       virtual long double f0() const = 0;
       virtual long double f1() const = 0;
@@ -35,17 +36,10 @@ namespace pulsarDb {
       virtual PulsarEph * clone() const = 0;
 
     protected:
-      AbsoluteTime * m_since;
-      AbsoluteTime * m_until;
-      AbsoluteTime * m_epoch;
-      PulsarEph(const PulsarEph & eph): m_since(eph.m_since->clone()), m_until(eph.m_until->clone()),
-        m_epoch(eph.m_epoch->clone()) {}
-      PulsarEph & operator =(const PulsarEph & eph) {
-        delete m_since; m_since = eph.m_since->clone();
-        delete m_until; m_until = eph.m_until->clone();
-        delete m_epoch; m_epoch = eph.m_epoch->clone();
-        return *this;
-      }
+      timeSystem::AbsoluteTime m_since;
+      timeSystem::AbsoluteTime m_until;
+      timeSystem::AbsoluteTime m_epoch;
+      PulsarEph(const PulsarEph & eph): m_since(eph.m_since), m_until(eph.m_until), m_epoch(eph.m_epoch) {}
   };
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
@@ -61,9 +55,9 @@ namespace pulsarDb {
           \param f1 The first time derivative of the frequency at the epoch (time origin).
           \param f2 The second time derivative of the frequency at the epoch (time origin).
       */
-      FrequencyEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until, const AbsoluteTime & epoch,
-        long double phi0, long double f0, long double f1, long double f2): PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0), m_f0(f0),
-        m_f1(f1), m_f2(f2) {}
+      FrequencyEph(const timeSystem::AbsoluteTime & valid_since, const timeSystem::AbsoluteTime & valid_until,
+        const timeSystem::AbsoluteTime & epoch, long double phi0, long double f0, long double f1, long double f2):
+        PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0), m_f0(f0), m_f1(f1), m_f2(f2) {}
 
       FrequencyEph(const FrequencyEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
 
@@ -93,9 +87,9 @@ namespace pulsarDb {
           \param p1 The first time derivative of the period at the epoch (time origin).
           \param p2 The second time derivative of the period at the epoch (time origin).
       */
-      PeriodEph(const AbsoluteTime & valid_since, const AbsoluteTime & valid_until, const AbsoluteTime & epoch, long double phi0,
-        long double p0, long double p1, long double p2): PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0),
-        m_p0(p0), m_p1(p1), m_p2(p2) {}
+      PeriodEph(const timeSystem::AbsoluteTime & valid_since, const timeSystem::AbsoluteTime & valid_until,
+        const timeSystem::AbsoluteTime & epoch, long double phi0, long double p0, long double p1, long double p2):
+        PulsarEph(valid_since, valid_until, epoch), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       PeriodEph(const PeriodEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_p0(eph.m_p0), m_p1(eph.m_p1), m_p2(eph.m_p2) {}
 

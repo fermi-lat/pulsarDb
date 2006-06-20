@@ -27,32 +27,32 @@ namespace pulsarDb {
     pulsar_db.getEph(m_orbital_eph_cont);
   }
 
-  FrequencyEph EphComputer::calcPulsarEph(const AbsoluteTime & ev_time) const {
+  FrequencyEph EphComputer::calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     return m_model->calcEphemeris(eph, ev_time);
   }
 
-  void EphComputer::cancelPdot(AbsoluteTime & ev_time) const {
+  void EphComputer::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     m_model->cancelPdot(eph, ev_time);
   }
 
-  long double EphComputer::calcPulsePhase(const AbsoluteTime & ev_time) const {
+  long double EphComputer::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     return m_model->calcPulsePhase(eph, ev_time);
   }
 
-  long double EphComputer::calcOrbitalPhase(const AbsoluteTime & ev_time) const {
+  long double EphComputer::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time) const {
     const OrbitalEph & eph(m_chooser->choose(m_orbital_eph_cont, ev_time));
     return m_model->calcOrbitalPhase(eph, ev_time);
   }
 
-  void EphComputer::modulateBinary(AbsoluteTime & emission_time) const {
+  void EphComputer::modulateBinary(timeSystem::AbsoluteTime & emission_time) const {
     const OrbitalEph & eph(m_chooser->choose(m_orbital_eph_cont, emission_time));
     m_model->modulateBinary(eph, emission_time);
   }
 
-  void EphComputer::demodulateBinary(AbsoluteTime & arrival_time) const {
+  void EphComputer::demodulateBinary(timeSystem::AbsoluteTime & arrival_time) const {
     const OrbitalEph & eph(m_chooser->choose(m_orbital_eph_cont, arrival_time));
     m_model->demodulateBinary(eph, arrival_time);
   }
@@ -73,11 +73,11 @@ namespace pulsarDb {
     return m_orbital_eph_cont;
   }
 
-  const PulsarEph & EphComputer::choosePulsarEph(const AbsoluteTime & ev_time) const {
+  const PulsarEph & EphComputer::choosePulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
     return m_chooser->choose(m_pulsar_eph_cont, ev_time);
   }
 
-  const OrbitalEph & EphComputer::chooseOrbitalEph(const AbsoluteTime & ev_time) const {
+  const OrbitalEph & EphComputer::chooseOrbitalEph(const timeSystem::AbsoluteTime & ev_time) const {
     return m_chooser->choose(m_orbital_eph_cont, ev_time);
   }
 

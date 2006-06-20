@@ -15,15 +15,18 @@
 #include <string>
 #include <utility>
 
-#include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/PulsarDb.h"
 
 #include "st_facilities/Env.h"
+
+#include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/IntFracPair.h"
 
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
+using namespace timeSystem;
 using namespace tip;
 
 namespace {
@@ -260,15 +263,25 @@ namespace pulsarDb {
       r[toa_frac_col].get(toa_frac);
 
       // Combine separate parts of epoch and toa to get long double values.
-      TdbTime epoch = (long double)(epoch_int) + epoch_frac;
-      long double toa = (long double)(toa_int) + toa_frac;
+      IntFracPair epoch_pair(epoch_int, epoch_frac);
+      AbsoluteTime epoch("TDB", Duration(epoch_pair, Day), Duration(0, 0.));
+      IntFracPair toa_pair(toa_int, toa_frac);
+      AbsoluteTime toa("TDB", Duration(toa_pair, Day), Duration(0, 0.));
+//      TdbTime epoch = (long double)(epoch_int) + epoch_frac;
+//      long double toa = (long double)(toa_int) + toa_frac;
 
       // TODO confirm that db uses tdb!
-      TdbTime valid_since = r["VALID_SINCE"].get();
+      long valid_since_date = 0;
+      r["VALID_SINCE"].get(valid_since_date);
+      AbsoluteTime valid_since("TDB", Duration(valid_since_date, 0.), Duration(0, 0.));
+//      TdbTime valid_since = r["VALID_SINCE"].get();
 
       // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
       // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
-      TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
+//      TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
+      long valid_until_date = 0;
+      r["VALID_UNTIL"].get(valid_until_date);
+      AbsoluteTime valid_until("TDB", Duration(valid_until_date + 1, 0.), Duration(0, 0.));
 
       double f0 = r["F0"].get();
       double f1 = r["F1"].get();
@@ -278,7 +291,7 @@ namespace pulsarDb {
       FrequencyEph tmp(valid_since, valid_until, epoch, 0., f0, f1, f2);
 
       // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
-      long double phi0 = - model.calcPulsePhase(tmp, TdbTime(toa));
+      long double phi0 = - model.calcPulsePhase(tmp, toa);
 
       // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
       if (0. > phi0) phi0 += 1.;

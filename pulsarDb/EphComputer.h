@@ -9,9 +9,11 @@
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
-namespace pulsarDb {
-
+namespace timeSystem {
   class AbsoluteTime;
+}
+
+namespace pulsarDb {
   class EphChooser;
   class PulsarDb;
   class TimingModel;
@@ -29,17 +31,17 @@ namespace pulsarDb {
 
       void load(const PulsarDb & database);
 
-      FrequencyEph calcPulsarEph(const AbsoluteTime & ev_time) const;
+      FrequencyEph calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
 
-      void cancelPdot(AbsoluteTime & ev_time) const;
+      void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
 
-      long double calcPulsePhase(const AbsoluteTime & ev_time) const;
+      long double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time) const;
 
-      long double calcOrbitalPhase(const AbsoluteTime & ev_time) const;
+      long double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time) const;
 
-      void modulateBinary(AbsoluteTime & emission_time) const;
+      void modulateBinary(timeSystem::AbsoluteTime & emission_time) const;
 
-      void demodulateBinary(AbsoluteTime & arrival_time) const;
+      void demodulateBinary(timeSystem::AbsoluteTime & arrival_time) const;
 
       PulsarEphCont & getPulsarEphCont();
 
@@ -49,9 +51,9 @@ namespace pulsarDb {
 
       const OrbitalEphCont & getOrbitalEphCont() const;
 
-      const PulsarEph & choosePulsarEph(const AbsoluteTime & ev_time) const;
+      const PulsarEph & choosePulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
 
-      const OrbitalEph & chooseOrbitalEph(const AbsoluteTime & ev_time) const;
+      const OrbitalEph & chooseOrbitalEph(const timeSystem::AbsoluteTime & ev_time) const;
 
     private:
       PulsarEphCont m_pulsar_eph_cont;

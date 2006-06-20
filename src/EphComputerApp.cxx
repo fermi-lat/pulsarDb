@@ -3,18 +3,18 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
-#include "pulsarDb/AbsoluteTime.h"
-#include "pulsarDb/CanonicalTime.h"
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/EphComputerApp.h"
-#include "pulsarDb/GlastTime.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/TimingModel.h"
 
 #include "st_app/AppParGroup.h"
 
 #include "st_facilities/Env.h"
+
+#include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/TimeRep.h"
 
 #include <cctype>
 #include <iostream>
@@ -23,6 +23,8 @@
 #include <string>
 
 static const std::string s_cvs_id("$Name:  $");
+
+using namespace timeSystem;
 
 namespace pulsarDb {
 
@@ -56,6 +58,9 @@ namespace pulsarDb {
 
     if (time_format != "GLAST") throw std::runtime_error("Only Glast time supported for now");
 
+//    MetRep time_rep("TDB", 51910, 64.184 / 86400., ref_time);
+    MetRep time_rep("TDB", 51910, 0., ref_time);
+
     // Find the pulsar database.
     std::string psrdb_file = pars["psrdbfile"];
     std::string psrdb_file_uc = psrdb_file;
@@ -69,14 +74,7 @@ namespace pulsarDb {
     // TODO Remove the following line when correct conversion from TT is implemented.
     if (time_sys != "TDB") throw std::runtime_error("Only TDB time system is supported for now");
 
-    std::auto_ptr<AbsoluteTime> abs_ref_time(0);
-    if (time_sys == "TDB") {
-      abs_ref_time.reset(new GlastTdbTime(ref_time));
-    } else if (time_sys == "TT") {
-      abs_ref_time.reset(new GlastTtTime(ref_time));
-    } else {
-      throw std::runtime_error("Only TDB or TT time systems are supported for now");
-    }
+    AbsoluteTime abs_ref_time(time_rep);
 
     std::auto_ptr<EphComputer> computer(0);
     if (strict) {
@@ -96,7 +94,7 @@ namespace pulsarDb {
     // Load the selected ephemerides.
     computer->load(database);
 
-    m_os.out() << prefix << "User supplied time " << *abs_ref_time << std::endl;
+    m_os.out() << prefix << "User supplied time " << time_rep.getString() << std::endl;
 
     // Cosmetic: suppress info.
     m_os.info().setPrefix(m_os.out().getPrefix());
@@ -108,7 +106,7 @@ namespace pulsarDb {
     // Report the best spin ephemeris.
     bool found_pulsar_eph = false;
     try {
-      const PulsarEph & eph(computer->choosePulsarEph(*abs_ref_time));
+      const PulsarEph & eph(computer->choosePulsarEph(abs_ref_time));
       m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl << eph << std::endl;
       found_pulsar_eph = true;
     } catch (const std::exception & x) {
@@ -117,7 +115,7 @@ namespace pulsarDb {
 
     // Report the best binary ephemeris.
     try {
-      const OrbitalEph & eph(computer->chooseOrbitalEph(*abs_ref_time));
+      const OrbitalEph & eph(computer->chooseOrbitalEph(abs_ref_time));
       m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl << eph << std::endl;
     } catch (const std::exception & x) {
       m_os.info(3) << prefix << "No orbital ephemeris was found in database." << std::endl;
@@ -129,7 +127,7 @@ namespace pulsarDb {
     // Report the calculated spin ephemeris, provided at least a spin ephemeris was found above.
     if (found_pulsar_eph) {
       try {
-        FrequencyEph eph(computer->calcPulsarEph(*abs_ref_time));
+        FrequencyEph eph(computer->calcPulsarEph(abs_ref_time));
         m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time is:" << std::endl << eph << std::endl;
       } catch (const std::exception & x) {
         m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
