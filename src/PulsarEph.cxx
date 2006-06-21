@@ -8,7 +8,19 @@
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TimingModel.h"
 
+#include "timeSystem/Duration.h"
+#include "timeSystem/ElapsedTime.h"
+#include "timeSystem/IntFracPair.h"
+#include "timeSystem/TimeInterval.h"
+
+using namespace timeSystem;
+
 namespace pulsarDb {
+
+  double PulsarEph::dt(const AbsoluteTime & at) const {
+    IntFracPair numerator = (at - m_epoch).computeElapsedTime(m_system->getName()).getTime().getValue(Sec);
+    return (numerator.getIntegerPart() + numerator.getFractionalPart()) / m_unit_time;
+  }
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
     std::ios::fmtflags orig_flags = os.flags();
