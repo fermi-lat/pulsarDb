@@ -34,18 +34,15 @@ namespace pulsarDb {
 
       OrbitalEph(double parameters[NUMBER_ORBITAL_PAR]);
 
-//      virtual ~OrbitalEph();
+      virtual ~OrbitalEph();
 
       const double & operator [](size_type index) const { return m_par[index]; }
 
-//      virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
-      const timeSystem::AbsoluteTime & t0() const { return m_t0; }
+      virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
 
-//      virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
-      OrbitalEph * clone() const { return new OrbitalEph(*this); }
+      virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
 
-//      virtual st_stream::OStream & write(st_stream::OStream & os) const;
-      st_stream::OStream & write(st_stream::OStream & os) const;
+      virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     private:
       std::vector<double> m_par;
