@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 21 13:49:08 PDT 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Add TimeSystem and unit time as members of PulsarEph. Use them to compute
+elapsed time since ephemeris epoch in the ephemeris native system, time unit. Remove
+explicit copy constructor for PulsarEph, which is no longer necessary
+with timeSystem::AbsoluteTime.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 21 12:02:07 PDT 2006
 pulsarDb/src
 
