@@ -51,6 +51,8 @@ namespace pulsarDb {
     m_par[SHAPIRO_R] *= s_sec_per_microsec;
   }
 
+  OrbitalEph::~OrbitalEph() {}
+
   st_stream::OStream & OrbitalEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
