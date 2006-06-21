@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Wed Jun 21 12:02:07 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Revive virtual destructor and restore virtual state of methods.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Jun 21 12:02:07 PDT 2006
 pulsarDb/pulsarDb
 
 Modified Files:
