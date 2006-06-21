@@ -437,12 +437,12 @@ void PulsarDbTest::testPulsarEph() {
   AbsoluteTime epoch = glast_tt.getTime();
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph(since, until, epoch, 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph("TDB", since, until, epoch, 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
 //  FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
 
   // Create a period ephemeris.
   // This is a set of values known to be the inverses of the frequency coefficients above.
-  PeriodEph p_eph(since, until, epoch, 0.875, 88.8888888888888888888889,
+  PeriodEph p_eph("TDB", since, until, epoch, 0.875, 88.8888888888888888888889,
     1.777777777777777777777778, 0.0177777777777777777777778);
 
   // First, compare frequency & period.
@@ -463,7 +463,7 @@ void PulsarDbTest::testTimingModel() {
   long double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph(since, until, epoch, 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph("TDB", since, until, epoch, 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
   TimingModel model;
 
@@ -479,7 +479,7 @@ void PulsarDbTest::testTimingModel() {
   // Change ephemeris to produce a noticeable effect.
   glast_tt.setValue(123.4567891234567);
   epoch = glast_tt.getTime();
-  FrequencyEph f_eph2(since, until, epoch, .11, 1.125e-2, -2.25e-4, 13.5e-6);
+  FrequencyEph f_eph2("TDB", since, until, epoch, .11, 1.125e-2, -2.25e-4, 13.5e-6);
 //  FrequencyEph f_eph2(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.4567891234567), .11, 1.125e-2, -2.25e-4, 13.5e-6);
   glast_tt.setValue(223.4567891234567);
   AbsoluteTime ev_time = glast_tt.getTime();
@@ -535,6 +535,13 @@ void PulsarDbTest::testTimingModel() {
   // Result determined independently.
   if (fabs(phase/.099 - 1.) > epsilon)
     ErrorMsg(method_name) << "TimingModel::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
+
+  // Create a frequency ephemeris with unit time 5 s.
+  FrequencyEph f_eph4("TDB", since, until, epoch, 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
+  double delta_t = f_eph4.dt(ev_time);
+  if (fabs(delta_t/20. - 1.) > epsilon)
+    ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+
 }
 
 void PulsarDbTest::testAppend() {
@@ -589,7 +596,7 @@ void PulsarDbTest::testPeriodConverter() {
     AbsoluteTime dummy("TDB", Duration(0, 0.), Duration(0, 0.));
 //    GlastTdbTime dummy(0.);
     std::cout.precision(15);
-    PeriodEph period(dummy, dummy, dummy, 0., p0[ii], p1[ii], p2[ii]);
+    PeriodEph period("TDB", dummy, dummy, dummy, 0., p0[ii], p1[ii], p2[ii]);
     std::cout << period.f0() << " " << period.f1() << " " << period.f2() << " ";
     std::cout << int(epoch[ii] - 1) << " " << 1. - p0[ii] * phi0[ii] / 86400. << " " << epoch[ii] << " 0. ";
     std::cout << int(54100.L) << " " << int(54200.L) << " GLAT F \"JPL DE200\"" << std::endl;
