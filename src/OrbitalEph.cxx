@@ -5,7 +5,9 @@
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/Duration.h"
+#include "timeSystem/ElapsedTime.h"
 #include "timeSystem/IntFracPair.h"
+#include "timeSystem/TimeInterval.h"
 #include "timeSystem/TimeRep.h"
 
 using namespace timeSystem;
@@ -20,15 +22,18 @@ namespace pulsarDb {
   const long double OrbitalEph::s_rad_year_per_deg_sec = OrbitalEph::s_rad_per_deg / OrbitalEph::s_sec_per_year;
   const long double OrbitalEph::s_sec_per_microsec = 1.e-6L;
 
-  OrbitalEph::OrbitalEph(double parameters[NUMBER_ORBITAL_PAR]): m_par(parameters, parameters + NUMBER_ORBITAL_PAR),
-    m_t0("TDB", Duration(IntFracPair(parameters[T0]), Day), Duration(0, 0.)) {
+  OrbitalEph::OrbitalEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR], double unit_time_sec):
+    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(parameters, parameters + NUMBER_ORBITAL_PAR),
+    m_t0(time_system_name, Duration(IntFracPair(parameters[T0]), Day), Duration(0, 0.)), m_unit_time(unit_time_sec) {
     m_par[OM] *= s_rad_per_deg;
     m_par[OMDOT] *= s_rad_year_per_deg_sec;
     m_par[SHAPIRO_R] *= s_sec_per_microsec;
   }
 
-  OrbitalEph::OrbitalEph(double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot, double om, double om_dot,
-    const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s): m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0) {
+  OrbitalEph::OrbitalEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot,
+    double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
+    double shapiro_r, double shapiro_s, double unit_time_sec): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
+    m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0), m_unit_time(unit_time_sec) {
     m_par[PB] = pb;
     m_par[PBDOT] = pb_dot;
     m_par[A1] = a1;
@@ -37,7 +42,7 @@ namespace pulsarDb {
     m_par[ECCDOT] = ecc_dot;
     m_par[OM] = om;
     m_par[OMDOT] = om_dot;
-    MjdRep mjd_rep("TDB", 0, 0.);
+    MjdRep mjd_rep(time_system_name, 0, 0.);
     mjd_rep.setAbsoluteTime(t0);
     IntFracPair time_pair = mjd_rep.getValue();
     m_par[T0] = time_pair.getIntegerPart() + time_pair.getFractionalPart();
@@ -52,6 +57,11 @@ namespace pulsarDb {
   }
 
   OrbitalEph::~OrbitalEph() {}
+
+  double OrbitalEph::dt(const timeSystem::AbsoluteTime & at) const {
+    IntFracPair numerator = (at - m_t0).computeElapsedTime(m_system->getName()).getTime().getValue(Sec);
+    return (numerator.getIntegerPart() + numerator.getFractionalPart()) / m_unit_time;
+  }
 
   st_stream::OStream & OrbitalEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
