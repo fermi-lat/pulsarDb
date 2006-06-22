@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Thu Jun 22 12:17:51 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Add PulsarEph::dt method that takes two arguments, and use it in PulsarEph::dt method that takes one argument.
+
+    *
+------------------------------------------------------------
+User: hirayama  Thu Jun 22 12:17:51 PDT 2006
 pulsarDb/pulsarDb
 
 Modified Files:
