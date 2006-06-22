@@ -33,7 +33,8 @@ namespace pulsarDb {
       virtual const timeSystem::AbsoluteTime & valid_since() const { return m_since; }
       virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
       virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
-      virtual double dt(const timeSystem::AbsoluteTime & at) const;
+      virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
+      virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
       virtual long double phi0() const = 0;
       virtual long double f0() const = 0;
