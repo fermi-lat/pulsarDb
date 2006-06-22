@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Jun 22 12:21:11 PDT 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of OrbitalEph::dt method and PulsarEph::dt method with two arguments.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Jun 22 12:20:16 PDT 2006
 pulsarDb/src
 
