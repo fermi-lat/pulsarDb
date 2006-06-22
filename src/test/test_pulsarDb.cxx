@@ -525,7 +525,7 @@ void PulsarDbTest::testTimingModel() {
 
   MetRep glast_tdb("TDB", 51910, 0., 123.456789);
   AbsoluteTime t0 = glast_tdb.getTime();
-  OrbitalEph o_eph(1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
+  OrbitalEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
 //  OrbitalEph o_eph(1000., .2, 0., 0., 0., 0., 0., 0., GlastTdbTime(123.456789), 0., 0., 0.);
   glast_tdb.setValue(223.456789);
   ev_time = glast_tdb.getTime();
@@ -536,12 +536,24 @@ void PulsarDbTest::testTimingModel() {
   if (fabs(phase/.099 - 1.) > epsilon)
     ErrorMsg(method_name) << "TimingModel::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
-  // Create a frequency ephemeris with unit time 5 s.
+  // Create a frequency ephemeris with unit time 5 s, to test PulsarEph::dt method with one argument.
   FrequencyEph f_eph4("TDB", since, until, epoch, 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
   double delta_t = f_eph4.dt(ev_time);
   if (fabs(delta_t/20. - 1.) > epsilon)
     ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 
+  // Test PulsarEph::dt method with two arguments.
+  glast_tdb.setValue(23.456789);
+  AbsoluteTime time_origin = glast_tdb.getTime();
+  delta_t = f_eph4.dt(ev_time, time_origin);
+  if (fabs(delta_t/40. - 1.) > epsilon)
+    ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+
+  // Create an orbital ephemeris with unit time 5 s, to test OrbitalEph::dt method.
+  OrbitalEph o_eph2("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 5.);
+  delta_t = o_eph2.dt(ev_time);
+  if (fabs(delta_t/20. - 1.) > epsilon)
+    ErrorMsg(method_name) << "OrbitalEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 }
 
 void PulsarDbTest::testAppend() {
@@ -611,7 +623,7 @@ void PulsarDbTest::testOrbitalEph() {
     27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0
   };
 
-  OrbitalEph eph1(binary_par);
+  OrbitalEph eph1("TDB", binary_par);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
   Duration mjd_test_values[][2] = {
