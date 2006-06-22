@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Jun 22 12:20:16 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx PulsarDb.cxx TimingModel.cxx 
+Log Message:
+Revision for introduction of OrbitalEph::dt method, PulsarEph::dt method with two arguments.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Jun 22 12:17:51 PDT 2006
 pulsarDb/src
 
