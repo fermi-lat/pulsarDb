@@ -32,6 +32,7 @@ namespace pulsarDb {
         // Otherwise, prefer the eph which starts later.
         } else if ((*itor)->valid_since() > (*candidate)->valid_since()) {
           candidate = itor;
+// TODO: Re-consider how to implement "==" with new AbsoluteTime, etc.
 //        } else if ((*itor)->valid_since() == (*candidate)->valid_since()) {
         } else if ((*itor)->valid_since() >= (*candidate)->valid_since()) {
           // The two start at the same time, so break the tie based on which one is valid longer.
@@ -101,6 +102,7 @@ namespace pulsarDb {
 //    IntFracPair diff_until = (t - (*candidate)->valid_until()).computeElapsedTime("TDB").getTime().getValue(Sec);
 //    double diff = std::min(std::fabs(diff_since.getIntegerPart() + diff_since.getFractionalPart()),
 //      std::fabs(diff_until.getIntegerPart() + diff_until.getFractionalPart()));
+// TODO: Remove repetetion of the following three lines.
     double diff_since = (*candidate)->dt(t, (*candidate)->valid_since());
     double diff_until = (*candidate)->dt(t, (*candidate)->valid_until());
     double diff = std::min(std::fabs(diff_since), std::fabs(diff_until));

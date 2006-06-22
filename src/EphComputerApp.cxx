@@ -59,6 +59,7 @@ namespace pulsarDb {
     if (time_format != "GLAST") throw std::runtime_error("Only Glast time supported for now");
 
 //    MetRep time_rep("TDB", 51910, 64.184 / 86400., ref_time);
+    // TODO: Read MJDREF keyword value. Try MJDREFI and MJDREFF first.
     MetRep time_rep("TDB", 51910, 0., ref_time);
 
     // Find the pulsar database.
@@ -74,6 +75,8 @@ namespace pulsarDb {
     // TODO Remove the following line when correct conversion from TT is implemented.
     if (time_sys != "TDB") throw std::runtime_error("Only TDB time system is supported for now");
 
+    // TODO: Replace the following with "AbsoluteTime abs_ref_time = time_rep.getTime()."
+    // TODO: Consider removing AbsoluteTime constructor taking one TimeRep object.
     AbsoluteTime abs_ref_time(time_rep);
 
     std::auto_ptr<EphComputer> computer(0);

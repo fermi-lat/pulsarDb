@@ -237,6 +237,7 @@ void PulsarDbTest::testChooser() {
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(54262, 0.);
   ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
+  // TODO: Need exact equality?
   if (!mjd_tdb.getTime().equivalentTo(chosen->epoch(), tolerance))
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
       ", not " << mjd_tdb.getTime() << " as expected." << std::endl;
@@ -250,6 +251,7 @@ void PulsarDbTest::testChooser() {
 //  pick_time.setMjd(Duration(53545, .5 * SecPerDay()));
   chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(53891, 0.);
+  // TODO: Need exact equality?
   if (!mjd_tdb.getTime().equivalentTo(chosen->epoch(), tolerance))
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
       ", not " << mjd_tdb.getTime() << " as expected." << std::endl;
