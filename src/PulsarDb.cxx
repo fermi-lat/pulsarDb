@@ -351,7 +351,7 @@ namespace pulsarDb {
             }
           }
         }
-        cont.push_back(new OrbitalEph(par));
+        cont.push_back(new OrbitalEph("TDB", par));
       }
     }
   }
