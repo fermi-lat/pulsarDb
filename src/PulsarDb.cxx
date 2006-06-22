@@ -263,6 +263,7 @@ namespace pulsarDb {
       r[toa_frac_col].get(toa_frac);
 
       // Combine separate parts of epoch and toa to get long double values.
+      // TODO: Use MjdRep object to create epoch and toa.
       IntFracPair epoch_pair(epoch_int, epoch_frac);
       AbsoluteTime epoch("TDB", Duration(epoch_pair, Day), Duration(0, 0.));
       IntFracPair toa_pair(toa_int, toa_frac);
@@ -273,6 +274,7 @@ namespace pulsarDb {
       // TODO confirm that db uses tdb!
       long valid_since_date = 0;
       r["VALID_SINCE"].get(valid_since_date);
+      // TODO: Use MjdRep object to create valid_since.
       AbsoluteTime valid_since("TDB", Duration(valid_since_date, 0.), Duration(0, 0.));
 //      TdbTime valid_since = r["VALID_SINCE"].get();
 
@@ -281,6 +283,7 @@ namespace pulsarDb {
 //      TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
       long valid_until_date = 0;
       r["VALID_UNTIL"].get(valid_until_date);
+      // TODO: Use MjdRep object to create valid_until.
       AbsoluteTime valid_until("TDB", Duration(valid_until_date + 1, 0.), Duration(0, 0.));
 
       double f0 = r["F0"].get();
@@ -288,6 +291,7 @@ namespace pulsarDb {
       double f2 = r["F2"].get();
 
       // Create temporary copy of this ephemeris with phi0 == 0.
+      // TODO: Consider relocating hard-wired "TDB" string.
       FrequencyEph tmp("TDB", valid_since, valid_until, epoch, 0., f0, f1, f2);
 
       // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.

@@ -42,6 +42,7 @@ namespace pulsarDb {
     m_par[ECCDOT] = ecc_dot;
     m_par[OM] = om;
     m_par[OMDOT] = om_dot;
+    // TODO: Can the following steps to set m_par[T0] be improved?
     MjdRep mjd_rep(time_system_name, 0, 0.);
     mjd_rep.setAbsoluteTime(t0);
     IntFracPair time_pair = mjd_rep.getValue();

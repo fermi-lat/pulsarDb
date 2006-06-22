@@ -56,7 +56,7 @@ namespace pulsarDb {
       virtual long double calcPulsePhase(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
         double dt = eph.dt(ev_time);
         long double dt_squared = dt * dt;
-        double int_part = 0.;
+        long double int_part; // ignored, needed for modf.
         long double phase =
           std::modf(eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared, &int_part);
         if (phase < 0.) ++phase;

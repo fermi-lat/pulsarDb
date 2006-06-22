@@ -73,13 +73,15 @@ namespace pulsarDb {
     long double phase = delta_period * (1. - delta_period * eph[PBDOT] / 2.0);
 
     // Express phase as a value between 0. and 1.
-    long double int_part;
+    long double int_part; // ignored, needed for modf.
     phase = std::modf(phase, &int_part);
     if (phase < 0.) ++phase;
     return phase;
   }
 
   void TimingModel::modulateBinary(const OrbitalEph & eph, timeSystem::AbsoluteTime & ev_time) const {
+    // TODO: Replace the following with "ev_time += calcOrbitalDelay(eph, ev_time);"
+    // TODO: Need to implement AbsoluteTime::operator += method.
     ev_time = ev_time + calcOrbitalDelay(eph, ev_time);
   }
 
@@ -96,6 +98,7 @@ namespace pulsarDb {
     ElapsedTime delay = calcOrbitalDelay(eph, ev_time);
 
     // Iterative approximation of demodulated time.
+    // TODO: Revive the original algorithm of binary demodulation.
     int ii;
     for (ii=0; ii<s_max_iteration; ii++) {
 
