@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Mon Jun 26 12:33:24 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+TimeRep::setAbsoluteTime changed to simply setTime.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Jun 22 15:33:35 PDT 2006
 pulsarDb/src/test
 
