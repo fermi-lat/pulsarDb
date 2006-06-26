@@ -44,7 +44,7 @@ namespace pulsarDb {
     m_par[OMDOT] = om_dot;
     // TODO: Can the following steps to set m_par[T0] be improved?
     MjdRep mjd_rep(time_system_name, 0, 0.);
-    mjd_rep.setAbsoluteTime(t0);
+    mjd_rep.setTime(t0);
     IntFracPair time_pair = mjd_rep.getValue();
     m_par[T0] = time_pair.getIntegerPart() + time_pair.getFractionalPart();
     m_par[GAMMA] = gamma;
