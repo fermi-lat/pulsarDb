@@ -24,23 +24,14 @@ namespace pulsarDb {
 
     PulsarEphCont::const_iterator candidate = ephemerides.begin();
 
-//    IntFracPair diff_since = (t - (*candidate)->valid_since()).computeElapsedTime("TDB").getTime().getValue(Sec);
-//    IntFracPair diff_until = (t - (*candidate)->valid_until()).computeElapsedTime("TDB").getTime().getValue(Sec);
-//    double diff = std::min(std::fabs(diff_since.getIntegerPart() + diff_since.getFractionalPart()),
-//      std::fabs(diff_until.getIntegerPart() + diff_until.getFractionalPart()));
-// TODO: Remove repetetion of the following three lines.
-    double diff_since = (*candidate)->dt(t, (*candidate)->valid_since());
-    double diff_until = (*candidate)->dt(t, (*candidate)->valid_until());
-    double diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
+    // Seed the current difference with a value which will be larger than any other.
+    double diff = std::numeric_limits<double>::max();
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-//      diff_since = (t - (*candidate)->valid_since()).computeElapsedTime("TDB").getTime().getValue(Sec);
-//      diff_until = (t - (*candidate)->valid_until()).computeElapsedTime("TDB").getTime().getValue(Sec);
-//      double new_diff = std::min(std::fabs(diff_since.getIntegerPart() + diff_since.getFractionalPart()),
-//        std::fabs(diff_until.getIntegerPart() + diff_until.getFractionalPart()));
-      diff_since = (*candidate)->dt(t, (*candidate)->valid_since());
-      diff_until = (*candidate)->dt(t, (*candidate)->valid_until());
+      double diff_since = (*candidate)->dt(t, (*candidate)->valid_since());
+      double diff_until = (*candidate)->dt(t, (*candidate)->valid_until());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
+      // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
         candidate = itor;
         diff = new_diff;
@@ -66,8 +57,6 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-//      IntFracPair diff_pair = ((*itor)->t0() - t).computeElapsedTime("TDB").getTime().getValue(Sec);
-//      double time_diff = std::fabs(diff_pair.getIntegerPart() + diff_pair.getFractionalPart());
       double time_diff = std::fabs((*itor)->dt(t));
       if (time_diff <= min_time_diff) {
         candidate = itor;

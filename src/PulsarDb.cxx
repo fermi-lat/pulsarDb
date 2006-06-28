@@ -21,6 +21,7 @@
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/IntFracPair.h"
+#include "timeSystem/TimeRep.h"
 
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
@@ -49,7 +50,7 @@ namespace pulsarDb {
   }
 
   PulsarDb::~PulsarDb() {
-    // TODO: CHANge Tip so it has reverse_iterator, then use it to delete in the correct order.
+    // TODO: Change Tip so it has reverse_iterator, then use it to delete in the correct order.
     for (FileSummary::const_iterator itor = m_summary.begin(); itor != m_summary.end(); ++itor) {
       TableCont::iterator table_itor = m_table.find(itor->getExtId());
       if (m_table.end() != table_itor) delete table_itor->second;
@@ -262,36 +263,27 @@ namespace pulsarDb {
       r[toa_int_col].get(toa_int);
       r[toa_frac_col].get(toa_frac);
 
+      // TODO get time system from db, use that throughout instead of "TDB".
       // Combine separate parts of epoch and toa to get long double values.
-      // TODO: Use MjdRep object to create epoch and toa.
-      IntFracPair epoch_pair(epoch_int, epoch_frac);
-      AbsoluteTime epoch("TDB", Duration(epoch_pair, Day), Duration(0, 0.));
-      IntFracPair toa_pair(toa_int, toa_frac);
-      AbsoluteTime toa("TDB", Duration(toa_pair, Day), Duration(0, 0.));
-//      TdbTime epoch = (long double)(epoch_int) + epoch_frac;
-//      long double toa = (long double)(toa_int) + toa_frac;
+      AbsoluteTime epoch(MjdRep("TDB", epoch_int, epoch_frac));
+      AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
 
-      // TODO confirm that db uses tdb!
       long valid_since_date = 0;
       r["VALID_SINCE"].get(valid_since_date);
-      // TODO: Use MjdRep object to create valid_since.
-      AbsoluteTime valid_since("TDB", Duration(valid_since_date, 0.), Duration(0, 0.));
-//      TdbTime valid_since = r["VALID_SINCE"].get();
+
+      AbsoluteTime valid_since(MjdRep("TDB", valid_since_date, 0.));
 
       // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
       // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
-//      TdbTime valid_until = r["VALID_UNTIL"].get() + 1.L;
       long valid_until_date = 0;
       r["VALID_UNTIL"].get(valid_until_date);
-      // TODO: Use MjdRep object to create valid_until.
-      AbsoluteTime valid_until("TDB", Duration(valid_until_date + 1, 0.), Duration(0, 0.));
+      AbsoluteTime valid_until(MjdRep("TDB", valid_until_date + 1, 0.));
 
       double f0 = r["F0"].get();
       double f1 = r["F1"].get();
       double f2 = r["F2"].get();
 
       // Create temporary copy of this ephemeris with phi0 == 0.
-      // TODO: Consider relocating hard-wired "TDB" string.
       FrequencyEph tmp("TDB", valid_since, valid_until, epoch, 0., f0, f1, f2);
 
       // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.

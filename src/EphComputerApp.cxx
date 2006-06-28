@@ -56,11 +56,14 @@ namespace pulsarDb {
     for (std::string::iterator itor = time_sys.begin(); itor != time_sys.end(); ++itor) *itor = toupper(*itor);
     bool strict = pars["strict"];
 
-    if (time_format != "GLAST") throw std::runtime_error("Only Glast time supported for now");
-
-//    MetRep time_rep("TDB", 51910, 64.184 / 86400., ref_time);
-    // TODO: Read MJDREF keyword value. Try MJDREFI and MJDREFF first.
-    MetRep time_rep("TDB", 51910, 0., ref_time);
+    std::auto_ptr<TimeRep> time_rep(0);
+    if (time_format == "GLAST") {
+      // TODO Change origin to use new definition:
+      // time_rep.reset(new MetRep("TDB", 51910, 64.184 / 86400., ref_time));
+      time_rep.reset(new MetRep("TDB", 51910, 0., ref_time));
+    } else {
+      throw std::runtime_error("Only Glast time supported for now");
+    }
 
     // Find the pulsar database.
     std::string psrdb_file = pars["psrdbfile"];
@@ -75,9 +78,7 @@ namespace pulsarDb {
     // TODO Remove the following line when correct conversion from TT is implemented.
     if (time_sys != "TDB") throw std::runtime_error("Only TDB time system is supported for now");
 
-    // TODO: Replace the following with "AbsoluteTime abs_ref_time = time_rep.getTime()."
-    // TODO: Consider removing AbsoluteTime constructor taking one TimeRep object.
-    AbsoluteTime abs_ref_time(time_rep);
+    AbsoluteTime abs_ref_time(*time_rep);
 
     std::auto_ptr<EphComputer> computer(0);
     if (strict) {
@@ -97,7 +98,7 @@ namespace pulsarDb {
     // Load the selected ephemerides.
     computer->load(database);
 
-    m_os.out() << prefix << "User supplied time " << time_rep.getString() << std::endl;
+    m_os.out() << prefix << "User supplied time " << time_rep->getString() << std::endl;
 
     // Cosmetic: suppress info.
     m_os.info().setPrefix(m_os.out().getPrefix());

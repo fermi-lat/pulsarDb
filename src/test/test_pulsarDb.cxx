@@ -225,7 +225,6 @@ void PulsarDbTest::testChooser() {
 
   MjdRep mjd_tdb("TDB", 54012, .5);
   AbsoluteTime pick_time = mjd_tdb.getTime();
-//  TdbTime pick_time = 54012.5L;
 
   PulsarEphCont eph_cont;
 
@@ -237,32 +236,22 @@ void PulsarDbTest::testChooser() {
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(54262, 0.);
   ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
-  // TODO: Need exact equality?
   if (!mjd_tdb.getTime().equivalentTo(chosen->epoch(), tolerance))
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
       ", not " << mjd_tdb.getTime() << " as expected." << std::endl;
-//  if (TdbTime(54262.L) != chosen->epoch())
-//    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
-//      ", not " << TdbTime(54262.L) << " as expected." << std::endl;
 
   // Test one with tiebreaking.
   mjd_tdb.setValue(53545, .5);
   pick_time = mjd_tdb.getTime();
-//  pick_time.setMjd(Duration(53545, .5 * SecPerDay()));
   chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(53891, 0.);
-  // TODO: Need exact equality?
   if (!mjd_tdb.getTime().equivalentTo(chosen->epoch(), tolerance))
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
       ", not " << mjd_tdb.getTime() << " as expected." << std::endl;
-//  if (TdbTime(53891.) != chosen->epoch())
-//    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
-//      ", not " << TdbTime(53891.L) << " as expected." << std::endl;
 
   // Test one which is too early.
   mjd_tdb.setValue(53544, .5);
   pick_time = mjd_tdb.getTime();
-//  pick_time.setMjd(Duration(53544, .5 * SecPerDay()));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -273,7 +262,6 @@ void PulsarDbTest::testChooser() {
   // Test one which is too late.
   mjd_tdb.setValue(55579, .5);
   pick_time = mjd_tdb.getTime();
-//  pick_time.setMjd(Duration(55579, .5 * SecPerDay()));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -284,7 +272,6 @@ void PulsarDbTest::testChooser() {
   // Try one which is too late, but without being strict about validity.
   mjd_tdb.setValue(55579, .5);
   pick_time = mjd_tdb.getTime();
-//  pick_time.setMjd(Duration(55579, .5 * SecPerDay()));
   try {
     chosen = &(SloppyEphChooser().choose(eph_cont, pick_time));
   } catch (const std::runtime_error &) {
@@ -303,7 +290,6 @@ void PulsarDbTest::testChooser() {
   // Try to choose an ephemeris from the empty set.
   mjd_tdb.setValue(55579, .5);
   pick_time = mjd_tdb.getTime();
-//  pick_time.setMjd(Duration(55579, .5 * SecPerDay()));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
@@ -320,7 +306,6 @@ void PulsarDbTest::testChooser() {
   database2.getEph(orbital_cont);
   mjd_tdb.setValue(52500, 0.);
   pick_time = mjd_tdb.getTime();
-//  pick_time.setMjd(Duration(52500, 0.));
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
     long double expected_mjd = 5.206084100795000e+04;
@@ -466,7 +451,6 @@ void PulsarDbTest::testPulsarEph() {
 
   // Create a frequency ephemeris.
   FrequencyEph f_eph("TDB", since, until, epoch, 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
-//  FrequencyEph f_eph(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.456789), 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
 
   // Create a period ephemeris.
   // This is a set of values known to be the inverses of the frequency coefficients above.
@@ -498,7 +482,6 @@ void PulsarDbTest::testTimingModel() {
   glast_tt.setValue(223.456789);
   AbsoluteTime pick_time = glast_tt.getTime();
   long double phase = model.calcPulsePhase(f_eph, pick_time);
-//  long double phase = model.calcPulsePhase(f_eph, GlastTtTime(223.456789));
 
   // Result determined independently.
   if (fabs(phase/.235 - 1.) > epsilon)
@@ -508,10 +491,8 @@ void PulsarDbTest::testTimingModel() {
   glast_tt.setValue(123.4567891234567);
   epoch = glast_tt.getTime();
   FrequencyEph f_eph2("TDB", since, until, epoch, .11, 1.125e-2, -2.25e-4, 13.5e-6);
-//  FrequencyEph f_eph2(GlastTtTime(0.), GlastTtTime(1.), GlastTtTime(123.4567891234567), .11, 1.125e-2, -2.25e-4, 13.5e-6);
   glast_tt.setValue(223.4567891234567);
   AbsoluteTime ev_time = glast_tt.getTime();
-//  GlastTtTime ev_time = 223.4567891234567;
 
   // Test frequency computation.
   FrequencyEph f_eph3 = model.calcEphemeris(f_eph2, ev_time);
@@ -532,7 +513,6 @@ void PulsarDbTest::testTimingModel() {
 
   // correct_epoch == ev_time;
   // Note: epsilon now is a time difference of 10ns
-//  if (fabs((f_eph3.epoch() - ev_time).sec()) > epsilon) {
   ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
   if (!f_eph3.epoch().equivalentTo(ev_time, tolerance)) {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
@@ -541,7 +521,6 @@ void PulsarDbTest::testTimingModel() {
   model.cancelPdot(f_eph2, ev_time);
   ev_time.getTime(glast_tt);
   long double pdot_t = glast_tt.getValue();
-//  long double pdot_t = ev_time.elapsed();
   long double correct_t = 323.4567891234567;
 
   // For this test, time difference between these two values must be << 1.e-6. (1 microsecond.)
@@ -554,11 +533,9 @@ void PulsarDbTest::testTimingModel() {
   MetRep glast_tdb("TDB", 51910, 0., 123.456789);
   AbsoluteTime t0 = glast_tdb.getTime();
   OrbitalEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
-//  OrbitalEph o_eph(1000., .2, 0., 0., 0., 0., 0., 0., GlastTdbTime(123.456789), 0., 0., 0.);
   glast_tdb.setValue(223.456789);
   ev_time = glast_tdb.getTime();
   phase = model.calcOrbitalPhase(o_eph, ev_time);
-//  phase = model.calcOrbitalPhase(o_eph, GlastTdbTime(223.456789));
 
   // Result determined independently.
   if (fabs(phase/.099 - 1.) > epsilon)
@@ -634,7 +611,6 @@ void PulsarDbTest::testPeriodConverter() {
 
   for (size_t ii = 0; ii < 5; ++ii) {
     AbsoluteTime dummy("TDB", Duration(0, 0.), Duration(0, 0.));
-//    GlastTdbTime dummy(0.);
     std::cout.precision(15);
     PeriodEph period("TDB", dummy, dummy, dummy, 0., p0[ii], p1[ii], p2[ii]);
     std::cout << period.f0() << " " << period.f1() << " " << period.f2() << " ";
@@ -688,28 +664,20 @@ void PulsarDbTest::testOrbitalEph() {
   TimingModel model;
   std::cerr.precision(24);
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
-//    TdbTime tdb_mjd(mjd_test_values[ii][0]);
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0], Duration(0, 0.));
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1], Duration(0, 0.));
     model.modulateBinary(eph1, tdb_mjd);
-//    if (std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][1]).sec()) > delta) {
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-//      ErrorMsg(method_name) << "Difference is " << std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][1]).day()) <<
-//        " days." << std::endl;
       ErrorMsg(method_name) << "Binary modulation of " << mjd_test_values[ii][0] << " was computed to be " << tdb_mjd <<
         ", not " << mjd_test_values[ii][1] << ", as expected." << std::endl;
     }
   }
 
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
-//    TdbTime tdb_mjd(mjd_test_values[ii][1]);
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1], Duration(0, 0.));
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0], Duration(0, 0.));
     model.demodulateBinary(eph1, tdb_mjd);
-//    if (std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][0]).sec()) > delta) {
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-//      ErrorMsg(method_name) << "Difference is " << std::fabs((tdb_mjd.getMjd() - mjd_test_values[ii][0]).day()) <<
-//        " days." << std::endl;
       ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd <<
         ", not " << mjd_test_values[ii][0] << ", as expected." << std::endl;
     }
@@ -735,7 +703,6 @@ void PulsarDbTest::testEphComputer() {
 
   MetRep glast_tdb("TDB", 54101, 0., 100.);
   AbsoluteTime expected_gtdb = glast_tdb.getTime();
-//  GlastTdbTime expected_gtdb(100. - s_mjd_offset * 86400.L);
   double expected_elapsed = glast_tdb.getValue();
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
   model.cancelPdot(eph, expected_gtdb);
@@ -753,9 +720,7 @@ void PulsarDbTest::testEphComputer() {
 
   glast_tdb.setValue(100.);
   AbsoluteTime gtdb = glast_tdb.getTime();
-//  GlastTdbTime gtdb(100. - s_mjd_offset * 86400.L);
   computer.cancelPdot(gtdb);
-//  if (expected_gtdb.elapsed() != gtdb.elapsed())
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
@@ -791,7 +756,6 @@ void PulsarDbTest::testEphComputer() {
   expected_gtdb.getTime(glast_tdb);
   expected_elapsed = glast_tdb.getValue();
   gtdb.getTime(glast_tdb);
-//  if (expected_gtdb.elapsed() != gtdb.elapsed())
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "After EphComputer::modulateBinary, elapsed time was " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
@@ -803,7 +767,6 @@ void PulsarDbTest::testEphComputer() {
   expected_gtdb.getTime(glast_tdb);
   expected_elapsed = glast_tdb.getValue();
   gtdb.getTime(glast_tdb);
-//  if (expected_gtdb.elapsed() != gtdb.elapsed())
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "After EphComputer::demodulateBinary, elapsed time was " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
@@ -834,7 +797,6 @@ void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & e
   const long double nano_sec = 1.e-9;
   ElapsedTime tolerance("TT", Duration(0, nano_sec));
 
-//  if (Duration(0, nano_sec) < (eph1.epoch() - eph2.epoch()))
   if (!eph1.epoch().equivalentTo(eph2.epoch(), tolerance))
     ErrorMsg(method_name) << context << " give different values for epoch" << std::endl;
 
