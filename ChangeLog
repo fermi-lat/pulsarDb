@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 28 13:58:13 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx EphComputerApp.cxx PulsarDb.cxx TimingModel.cxx 
+Log Message:
+Remove completed TODOs and improve small cosmetic details.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 28 12:45:23 PDT 2006
 pulsarDb/src
 
