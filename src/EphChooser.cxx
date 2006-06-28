@@ -41,7 +41,7 @@ namespace pulsarDb {
       diff_since = (*candidate)->dt(t, (*candidate)->valid_since());
       diff_until = (*candidate)->dt(t, (*candidate)->valid_until());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
-      if (new_diff < diff) {
+      if (new_diff <= diff) {
         candidate = itor;
         diff = new_diff;
       }
@@ -69,7 +69,7 @@ namespace pulsarDb {
 //      IntFracPair diff_pair = ((*itor)->t0() - t).computeElapsedTime("TDB").getTime().getValue(Sec);
 //      double time_diff = std::fabs(diff_pair.getIntegerPart() + diff_pair.getFractionalPart());
       double time_diff = std::fabs((*itor)->dt(t));
-      if (time_diff < min_time_diff) {
+      if (time_diff <= min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
       }
