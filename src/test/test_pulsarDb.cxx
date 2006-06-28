@@ -231,7 +231,7 @@ void PulsarDbTest::testChooser() {
 
   database.getEph(eph_cont);
 
-  EphChooser chooser;
+  StrictEphChooser chooser;
 
   // Test one with no tiebreaking needed.
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
@@ -331,6 +331,32 @@ void PulsarDbTest::testChooser() {
   } catch (const std::runtime_error & x) {
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " << x.what() << std::endl;
   }
+
+  // Test tiebreaking with different tolerances.
+  eph_cont.clear();
+  Duration origin(51910, 0.);
+  AbsoluteTime valid_since("TDB", origin, Duration(0, 101.));
+  AbsoluteTime valid_until("TDB", origin, Duration(0, 200.));
+  AbsoluteTime epoch("TDB", origin, Duration(0, 150.));
+  AbsoluteTime t("TDB", origin, Duration(0, 120.));
+  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 0., 1., 0., 0.));
+  valid_since = AbsoluteTime("TDB", origin, Duration(0, 100.));
+  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 0., 2., 0., 0.));
+
+  StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(0, .99)));
+  chosen = &strict_chooser.choose(eph_cont, t);
+  if (1. != chosen->f0())
+    ErrorMsg(method_name) << "for time " << t << " with tolerance .99, chooser chose eph with f0 == " << chosen->f0() <<
+      ", not 1. as expected" << std::endl;
+
+  strict_chooser = StrictEphChooser(ElapsedTime("TDB", Duration(0, 1.01)));
+  chosen = &strict_chooser.choose(eph_cont, t);
+  if (2. != chosen->f0())
+    ErrorMsg(method_name) << "for time " << t << " with tolerance 1.01, chooser chose eph with f0 == " << chosen->f0() <<
+      ", not 2. as expected" << std::endl;
+
+  // Clean up.
+  for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
 }
 
 void PulsarDbTest::testExplicitName() {
@@ -695,7 +721,7 @@ void PulsarDbTest::testEphComputer() {
 
   // Set up pieces needed for computation.
   TimingModel model;
-  EphChooser chooser;
+  StrictEphChooser chooser;
 
   // Get access to database.
   PulsarDb database(m_in_file);

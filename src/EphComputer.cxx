@@ -10,7 +10,7 @@
 
 namespace pulsarDb {
 
-  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_model(new TimingModel), m_chooser(new EphChooser) {
+  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_model(new TimingModel), m_chooser(new StrictEphChooser) {
   }
 
   EphComputer::EphComputer(const TimingModel & model, const EphChooser & chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(),
