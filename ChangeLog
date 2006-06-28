@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 28 12:43:51 PDT 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphChooser.h 
+Log Message:
+Use tolerance to avoid checking equality of floating point values,
+and refactor the logic of the choosers to make them consistent with this.
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Jun 26 12:33:24 PDT 2006
 pulsarDb/src
 
