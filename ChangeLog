@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 28 12:45:23 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx 
+Log Message:
+In findClosest, change tiebreak to use the ephemeris which comes
+last in the container.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 28 12:43:51 PDT 2006
 pulsarDb/src/test
 
