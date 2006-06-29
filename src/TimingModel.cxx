@@ -90,7 +90,6 @@ namespace pulsarDb {
     ElapsedTime delay = calcOrbitalDelay(eph, ev_time);
 
     // Iterative approximation of demodulated time.
-    // TODO: Revive the original algorithm of binary demodulation.
     int ii;
     for (ii=0; ii<s_max_iteration; ii++) {
 
