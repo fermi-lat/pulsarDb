@@ -98,7 +98,7 @@ namespace pulsarDb {
     // Load the selected ephemerides.
     computer->load(database);
 
-    m_os.out() << prefix << "User supplied time " << time_rep->getString() << std::endl;
+    m_os.out() << prefix << "User supplied time " << *time_rep << std::endl;
 
     // Cosmetic: suppress info.
     m_os.info().setPrefix(m_os.out().getPrefix());
