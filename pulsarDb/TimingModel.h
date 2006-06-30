@@ -45,7 +45,7 @@ namespace pulsarDb {
         double dt = eph.dt(ev_time);
         long double dt_squared = dt * dt;
         timeSystem::Duration corrected_dt(0, eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared);
-        ev_time = ev_time + timeSystem::ElapsedTime(eph.getSystem().getName(), corrected_dt);
+        ev_time += timeSystem::ElapsedTime(eph.getSystem().getName(), corrected_dt);
       }
 
       /** \brief Compute the spin phase of the given time. Note: validity of the
