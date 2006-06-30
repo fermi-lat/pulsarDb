@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jun 30 11:42:57 PDT 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	TimingModel.h 
+Log Message:
+Modify TimingModel::cancelPdot method to use AbsoluteTime::operator += method instead of AbsoluteTime::operator +
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Jun 29 12:49:37 PDT 2006
 pulsarDb/src
 
