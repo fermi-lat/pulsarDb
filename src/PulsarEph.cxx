@@ -17,14 +17,9 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-//  double PulsarEph::dt(const AbsoluteTime & at) const {
-//    IntFracPair numerator = (at - m_epoch).computeElapsedTime(m_system->getName()).getTime().getValue(Sec);
-//    return (numerator.getIntegerPart() + numerator.getFractionalPart()) / m_unit_time;
-//  }
-
   double PulsarEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     IntFracPair numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec);
-    return (numerator.getIntegerPart() + numerator.getFractionalPart()) / m_unit_time;
+    return numerator.getDouble() / m_unit_time;
   }
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
