@@ -32,15 +32,15 @@ namespace {
  * solve Kepler equation (KEPLER)  g + e sin E = E
  */
 int atKepler(
-        long double g,        /* input: mean anomaly */
-        long double eccent,        /* input: eccentricity */
-        long double *e)        /* output: eccentric anomaly */
+        double g,        /* input: mean anomaly */
+        double eccent,        /* input: eccentricity */
+        double *e)        /* output: eccentric anomaly */
 {
-    static long double eps = 1e-6;
+    static double eps = 1e-6;
     static int imax = 50;
 
     int i;
-    static long double error, deltae, d__1;
+    static double error, deltae, d__1;
 
     *e = g;
     if (g == 0.) return 0;
@@ -58,18 +58,18 @@ int atKepler(
 
 namespace pulsarDb {
 
-  long double TimingModel::calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
+  double TimingModel::calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
     // compute elapsed time from epoch of periastron in seconds
     double delta_second = eph.dt(ev_time);
 
     // Compute the time difference as a fraction of the period.
-    long double delta_period = delta_second / eph[PB];
+    double delta_period = delta_second / eph[PB];
 
     // Compute the complete phase.
-    long double phase = delta_period * (1. - delta_period * eph[PBDOT] / 2.0);
+    double phase = delta_period * (1. - delta_period * eph[PBDOT] / 2.0);
 
     // Express phase as a value between 0. and 1.
-    long double int_part; // ignored, needed for modf.
+    double int_part; // ignored, needed for modf.
     phase = std::modf(phase, &int_part);
     if (phase < 0.) ++phase;
     return phase;
@@ -119,13 +119,13 @@ namespace pulsarDb {
     double delta_second = eph.dt(ev_time);
 
     // calculate mean anomaly
-    long double delta_period = delta_second / eph[PB];
-    long double mean_anomaly = OrbitalEph::s_two_pi * delta_period
+    double delta_period = delta_second / eph[PB];
+    double mean_anomaly = OrbitalEph::s_two_pi * delta_period
       * (1. - delta_period * eph[PBDOT] / 2.0);
 
     // solve Kepler's equasion
-    long double eccen = eph[ECC] + eph[ECCDOT] * delta_second; // eccentricity
-    long double eccen_anomaly = 0.0; // eccentric anomaly
+    double eccen = eph[ECC] + eph[ECCDOT] * delta_second; // eccentricity
+    double eccen_anomaly = 0.0; // eccentric anomaly
     int status = atKepler(mean_anomaly, eccen, &eccen_anomaly);
 
     // atKepler not converged
@@ -134,25 +134,25 @@ namespace pulsarDb {
     }
 
     // convert eccentric anomaly to true anomaly
-    long double true_anomaly = 2.0 * std::atan(std::sqrt((1.0+eccen)/(1.0-eccen))
+    double true_anomaly = 2.0 * std::atan(std::sqrt((1.0+eccen)/(1.0-eccen))
         * std::tan(eccen_anomaly/2.0));
     true_anomaly += OrbitalEph::s_two_pi * floor((eccen_anomaly - true_anomaly)/ OrbitalEph::s_two_pi);
     while ((true_anomaly - eccen_anomaly) > OrbitalEph::s_one_pi) true_anomaly -= OrbitalEph::s_two_pi;
     while ((eccen_anomaly - true_anomaly) > OrbitalEph::s_one_pi) true_anomaly += OrbitalEph::s_two_pi;
 
     // compute periastron longitude
-    long double omega = eph[OM]
+    double omega = eph[OM]
       + eph[OMDOT] * true_anomaly * eph[PB] / OrbitalEph::s_two_pi;
 
     // compute projected semimajor axis
-    long double semiax = eph[A1] + eph[XDOT] * delta_second;
+    double semiax = eph[A1] + eph[XDOT] * delta_second;
 
     // compute time delays due to orbital motion
-    long double roemer_frac = std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
+    double roemer_frac = std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
       + std::sqrt(1.0 - eccen*eccen) * std::cos(omega) * std::sin(eccen_anomaly);
-    long double roemer = semiax * roemer_frac;
-    long double einstein = eph[GAMMA] * std::sin(eccen_anomaly);
-    long double shapiro = - 2.0 * eph[SHAPIRO_R]
+    double roemer = semiax * roemer_frac;
+    double einstein = eph[GAMMA] * std::sin(eccen_anomaly);
+    double shapiro = - 2.0 * eph[SHAPIRO_R]
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - eph[SHAPIRO_S]*roemer_frac);
 
     // return total delay

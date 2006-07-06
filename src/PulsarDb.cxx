@@ -264,7 +264,7 @@ namespace pulsarDb {
       r[toa_frac_col].get(toa_frac);
 
       // TODO get time system from db, use that throughout instead of "TDB".
-      // Combine separate parts of epoch and toa to get long double values.
+      // Combine separate parts of epoch and toa to get single values.
       AbsoluteTime epoch(MjdRep("TDB", epoch_int, epoch_frac));
       AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
 
@@ -287,7 +287,7 @@ namespace pulsarDb {
       FrequencyEph tmp("TDB", valid_since, valid_until, epoch, 0., f0, f1, f2);
 
       // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
-      long double phi0 = - model.calcPulsePhase(tmp, toa);
+      double phi0 = - model.calcPulsePhase(tmp, toa);
 
       // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
       if (0. > phi0) phi0 += 1.;
