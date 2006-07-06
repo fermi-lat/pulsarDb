@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Thu Jul  6 12:57:27 PDT 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Correct code so that it does not use TimeRep::getTime or setTime, which
+were removed.
+
+    *
+------------------------------------------------------------
+User: peachey  Thu Jul  6 12:57:27 PDT 2006
 pulsarDb/src
 
 Modified Files:
