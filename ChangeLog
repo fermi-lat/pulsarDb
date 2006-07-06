@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Thu Jul  6 12:26:25 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx PulsarEph.cxx 
+Log Message:
+Use getDouble instead of adding by hand the integer and fractional parts.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jun 30 13:36:48 PDT 2006
 pulsarDb/src
 
