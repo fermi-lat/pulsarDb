@@ -14,13 +14,13 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  const long double OrbitalEph::s_one_pi = M_PI;
-  const long double OrbitalEph::s_two_pi = 2.L * OrbitalEph::s_one_pi;
-  const long double OrbitalEph::s_rad_per_deg  = OrbitalEph::s_one_pi / 180.0L;
-  const long double OrbitalEph::s_sec_per_day  = 86400.0L;
-  const long double OrbitalEph::s_sec_per_year = 365.0L * OrbitalEph::s_sec_per_day;
-  const long double OrbitalEph::s_rad_year_per_deg_sec = OrbitalEph::s_rad_per_deg / OrbitalEph::s_sec_per_year;
-  const long double OrbitalEph::s_sec_per_microsec = 1.e-6L;
+  const double OrbitalEph::s_one_pi = M_PI;
+  const double OrbitalEph::s_two_pi = 2. * OrbitalEph::s_one_pi;
+  const double OrbitalEph::s_rad_per_deg  = OrbitalEph::s_one_pi / 180.;
+  const double OrbitalEph::s_sec_per_day  = 86400.;
+  const double OrbitalEph::s_sec_per_year = 365. * OrbitalEph::s_sec_per_day;
+  const double OrbitalEph::s_rad_year_per_deg_sec = OrbitalEph::s_rad_per_deg / OrbitalEph::s_sec_per_year;
+  const double OrbitalEph::s_sec_per_microsec = 1.e-6;
 
   OrbitalEph::OrbitalEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR], double unit_time_sec):
     m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(parameters, parameters + NUMBER_ORBITAL_PAR),

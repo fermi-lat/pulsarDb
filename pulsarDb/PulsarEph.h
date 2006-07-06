@@ -36,10 +36,10 @@ namespace pulsarDb {
       virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
       virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
-      virtual long double phi0() const = 0;
-      virtual long double f0() const = 0;
-      virtual long double f1() const = 0;
-      virtual long double f2() const = 0;
+      virtual double phi0() const = 0;
+      virtual double f0() const = 0;
+      virtual double f1() const = 0;
+      virtual double f2() const = 0;
       virtual PulsarEph * clone() const = 0;
 
     protected:
@@ -64,25 +64,25 @@ namespace pulsarDb {
           \param f2 The second time derivative of the frequency at the epoch (time origin).
       */
       FrequencyEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
-        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, long double phi0,
-        long double f0, long double f1, long double f2, double unit_time_sec = 1.):
+        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double phi0,
+        double f0, double f1, double f2, double unit_time_sec = 1.):
         PulsarEph(time_system_name, valid_since, valid_until, epoch, unit_time_sec), m_phi0(phi0), m_f0(f0), m_f1(f1), m_f2(f2) {}
 
       FrequencyEph(const FrequencyEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
 
       virtual ~FrequencyEph() {}
 
-      virtual long double phi0() const { return m_phi0; }
-      virtual long double f0() const { return m_f0; }
-      virtual long double f1() const { return m_f1; }
-      virtual long double f2() const { return m_f2; }
+      virtual double phi0() const { return m_phi0; }
+      virtual double f0() const { return m_f0; }
+      virtual double f1() const { return m_f1; }
+      virtual double f2() const { return m_f2; }
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
 
     private:
-      long double m_phi0;
-      long double m_f0;
-      long double m_f1;
-      long double m_f2;
+      double m_phi0;
+      double m_f0;
+      double m_f1;
+      double m_f2;
   };
 
   /** \class PeriodEph
@@ -97,25 +97,25 @@ namespace pulsarDb {
           \param p2 The second time derivative of the period at the epoch (time origin).
       */
       PeriodEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
-        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, long double phi0,
-        long double p0, long double p1, long double p2, double unit_time_sec = 1.):
+        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double phi0,
+        double p0, double p1, double p2, double unit_time_sec = 1.):
         PulsarEph(time_system_name, valid_since, valid_until, epoch, unit_time_sec), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       PeriodEph(const PeriodEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_p0(eph.m_p0), m_p1(eph.m_p1), m_p2(eph.m_p2) {}
 
       virtual ~PeriodEph() {}
 
-      virtual long double phi0() const { return m_phi0; }
-      virtual long double f0() const { return 1. / m_p0; }
-      virtual long double f1() const { return - m_p1 / (m_p0 * m_p0); }
-      virtual long double f2() const { long double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
+      virtual double phi0() const { return m_phi0; }
+      virtual double f0() const { return 1. / m_p0; }
+      virtual double f1() const { return - m_p1 / (m_p0 * m_p0); }
+      virtual double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
       virtual PulsarEph * clone() const { return new PeriodEph(*this); }
 
     private:
-      long double m_phi0;
-      long double m_p0;
-      long double m_p1;
-      long double m_p2;
+      double m_phi0;
+      double m_p0;
+      double m_p1;
+      double m_p2;
   };
 
   typedef std::vector<PulsarEph *> PulsarEphCont;

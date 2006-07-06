@@ -37,12 +37,12 @@ namespace pulsarDb {
     m_model->cancelPdot(eph, ev_time);
   }
 
-  long double EphComputer::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time) const {
+  double EphComputer::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     return m_model->calcPulsePhase(eph, ev_time);
   }
 
-  long double EphComputer::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time) const {
+  double EphComputer::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time) const {
     const OrbitalEph & eph(m_chooser->choose(m_orbital_eph_cont, ev_time));
     return m_model->calcOrbitalPhase(eph, ev_time);
   }

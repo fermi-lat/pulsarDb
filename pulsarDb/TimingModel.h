@@ -30,9 +30,9 @@ namespace pulsarDb {
       */
       virtual FrequencyEph calcEphemeris(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
         double dt = eph.dt(ev_time);
-        long double f0 = eph.f0() + eph.f1() * dt + eph.f2()/2.0 * dt * dt;
-        long double f1 = eph.f1() + eph.f2() * dt;
-        long double phi0 = calcPulsePhase(eph, ev_time);
+        double f0 = eph.f0() + eph.f1() * dt + eph.f2()/2.0 * dt * dt;
+        double f1 = eph.f1() + eph.f2() * dt;
+        double phi0 = calcPulsePhase(eph, ev_time);
         return FrequencyEph(eph.getSystem().getName(), ev_time, ev_time, ev_time, phi0, f0, f1, eph.f2());
       }
 
@@ -43,7 +43,7 @@ namespace pulsarDb {
       */
       virtual void cancelPdot(const PulsarEph & eph, timeSystem::AbsoluteTime & ev_time) const {
         double dt = eph.dt(ev_time);
-        long double dt_squared = dt * dt;
+        double dt_squared = dt * dt;
         timeSystem::Duration corrected_dt(0, eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared);
         ev_time += timeSystem::ElapsedTime(eph.getSystem().getName(), corrected_dt);
       }
@@ -53,11 +53,11 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
-      virtual long double calcPulsePhase(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
+      virtual double calcPulsePhase(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
         double dt = eph.dt(ev_time);
-        long double dt_squared = dt * dt;
-        long double int_part; // ignored, needed for modf.
-        long double phase =
+        double dt_squared = dt * dt;
+        double int_part; // ignored, needed for modf.
+        double phase =
           std::modf(eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared, &int_part);
         if (phase < 0.) ++phase;
         return phase;
@@ -67,7 +67,7 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
-      virtual long double calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const;
+      virtual double calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const;
 
       /** \brief
           \param eph The ephemeris.
