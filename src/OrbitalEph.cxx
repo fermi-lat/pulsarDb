@@ -46,7 +46,7 @@ namespace pulsarDb {
     MjdRep mjd_rep(time_system_name, 0, 0.);
     mjd_rep.setTime(t0);
     IntFracPair time_pair = mjd_rep.getValue();
-    m_par[T0] = time_pair.getIntegerPart() + time_pair.getFractionalPart();
+    m_par[T0] = time_pair.getDouble();
     m_par[GAMMA] = gamma;
     m_par[SHAPIRO_R] = shapiro_r;
     m_par[SHAPIRO_S] = shapiro_s;
@@ -61,7 +61,7 @@ namespace pulsarDb {
 
   double OrbitalEph::dt(const timeSystem::AbsoluteTime & at) const {
     IntFracPair numerator = (at - m_t0).computeElapsedTime(m_system->getName()).getTime().getValue(Sec);
-    return (numerator.getIntegerPart() + numerator.getFractionalPart()) / m_unit_time;
+    return numerator.getDouble() / m_unit_time;
   }
 
   st_stream::OStream & OrbitalEph::write(st_stream::OStream & os) const {
