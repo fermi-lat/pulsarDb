@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Jul 12 13:04:59 PDT 2006
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h 
+Log Message:
+Add private copy constructor and assignment op to prevent someone
+from copying an EphComputer object, which is not safe presently.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jul 12 12:16:53 PDT 2006
 pulsarDb/src
 
