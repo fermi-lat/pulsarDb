@@ -22,9 +22,17 @@ namespace pulsarDb {
     delete m_model;
   }
 
-  void EphComputer::load(const PulsarDb & pulsar_db) {
-    pulsar_db.getEph(m_pulsar_eph_cont);
-    pulsar_db.getEph(m_orbital_eph_cont);
+  void EphComputer::load(const PulsarDb & database) {
+    loadPulsarEph(database);
+    loadOrbitalEph(database);
+  }
+
+  void EphComputer::loadPulsarEph(const PulsarDb & database) {
+    database.getEph(m_pulsar_eph_cont);
+  }
+
+  void EphComputer::loadOrbitalEph(const PulsarDb & database) {
+    database.getEph(m_orbital_eph_cont);
   }
 
   FrequencyEph EphComputer::calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const {

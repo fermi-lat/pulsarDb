@@ -740,6 +740,52 @@ void PulsarDbTest::testEphComputer() {
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "After EphComputer::demodulateBinary, elapsed time was " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
+
+  // Test loadPulsarEph.
+  // Get containers of spin and orbital ephemerides.
+  PulsarEphCont & pulsar_eph_ref(computer.getPulsarEphCont());
+  OrbitalEphCont & orbital_eph_ref(computer.getOrbitalEphCont());
+
+  // Clear out the computer.
+  pulsar_eph_ref.clear();
+  orbital_eph_ref.clear();
+
+  if (!pulsar_eph_ref.empty())
+    ErrorMsg(method_name) << "After clearing computer's PulsarEphCont, there were " << pulsar_eph_ref.size() <<
+      " ephemerides, not 0 as expected." << std::endl;
+
+  if (!orbital_eph_ref.empty())
+    ErrorMsg(method_name) << "After clearing computer's OrbitalEphCont, there were " << orbital_eph_ref.size() <<
+      " ephemerides, not 0 as expected." << std::endl;
+
+  // Get access to database.
+  PulsarDb database3(m_in_file);
+
+  // Filter a pulsar known to be present.
+  database3.filterName("PSR J1959+2048");
+
+  // Load just the spin parameters from this database.
+  computer.loadPulsarEph(database3);
+
+  if (7 != pulsar_eph_ref.size())
+    ErrorMsg(method_name) << "After loading spin pulsar ephemerides, there were " << pulsar_eph_ref.size() <<
+      " ephemerides, not 7 as expected." << std::endl;
+
+  if (!orbital_eph_ref.empty())
+    ErrorMsg(method_name) << "After loading spin pulsar ephemerides, there were " << orbital_eph_ref.size() <<
+      " ephemerides, not 0 as expected." << std::endl;
+
+  // Now load just the orbital parameters from this database.
+  computer.loadOrbitalEph(database3);
+
+  if (7 != pulsar_eph_ref.size())
+    ErrorMsg(method_name) << "After loading orbital pulsar ephemerides, there were " << pulsar_eph_ref.size() <<
+      " ephemerides, not 7 as expected." << std::endl;
+
+  if (7 != orbital_eph_ref.size())
+    ErrorMsg(method_name) << "After loading orbital orbital ephemerides, there were " << orbital_eph_ref.size() <<
+      " ephemerides, not 7 as expected." << std::endl;
+
 }
 
 void PulsarDbTest::testEphGetter() {
