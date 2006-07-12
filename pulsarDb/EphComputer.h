@@ -60,6 +60,9 @@ namespace pulsarDb {
       const OrbitalEph & chooseOrbitalEph(const timeSystem::AbsoluteTime & ev_time) const;
 
     private:
+      EphComputer(const EphComputer &);
+      EphComputer & operator =(const EphComputer &);
+
       PulsarEphCont m_pulsar_eph_cont;
       OrbitalEphCont m_orbital_eph_cont;
       TimingModel * m_model;
