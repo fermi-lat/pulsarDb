@@ -31,6 +31,10 @@ namespace pulsarDb {
 
       void load(const PulsarDb & database);
 
+      void loadPulsarEph(const PulsarDb & database);
+
+      void loadOrbitalEph(const PulsarDb & database);
+
       FrequencyEph calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
 
       void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
