@@ -233,7 +233,7 @@ void PulsarDbTest::testChooser() {
 
   // Test one with tiebreaking.
   mjd_tdb.setValue(53545, .5);
-  pick_time.setTime(mjd_tdb);
+  pick_time = mjd_tdb;
   chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(53891, 0.);
   if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->epoch(), tolerance))
@@ -242,7 +242,7 @@ void PulsarDbTest::testChooser() {
 
   // Test one which is too early.
   mjd_tdb.setValue(53544, .5);
-  pick_time.setTime(mjd_tdb);
+  pick_time = mjd_tdb;
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -252,7 +252,7 @@ void PulsarDbTest::testChooser() {
 
   // Test one which is too late.
   mjd_tdb.setValue(55579, .5);
-  pick_time.setTime(mjd_tdb);
+  pick_time = mjd_tdb;
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
@@ -262,7 +262,7 @@ void PulsarDbTest::testChooser() {
 
   // Try one which is too late, but without being strict about validity.
   mjd_tdb.setValue(55579, .5);
-  pick_time.setTime(mjd_tdb);
+  pick_time = mjd_tdb;
   try {
     chosen = &(SloppyEphChooser().choose(eph_cont, pick_time));
   } catch (const std::runtime_error &) {
@@ -280,7 +280,7 @@ void PulsarDbTest::testChooser() {
 
   // Try to choose an ephemeris from the empty set.
   mjd_tdb.setValue(55579, .5);
-  pick_time.setTime(mjd_tdb);
+  pick_time = mjd_tdb;
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
@@ -296,7 +296,7 @@ void PulsarDbTest::testChooser() {
   database2.filterName("PSR J1834-0010");
   database2.getEph(orbital_cont);
   mjd_tdb.setValue(52500, 0.);
-  pick_time.setTime(mjd_tdb);
+  pick_time = mjd_tdb;
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
     double expected_mjd = 5.206084100795000e+04;
@@ -480,7 +480,7 @@ void PulsarDbTest::testTimingModel() {
  
   // Change ephemeris to produce a noticeable effect.
   glast_tt.setValue(123.4567891234567);
-  epoch.setTime(glast_tt);
+  epoch = glast_tt;
   FrequencyEph f_eph2("TDB", since, until, epoch, .11, 1.125e-2, -2.25e-4, 13.5e-6);
   glast_tt.setValue(223.4567891234567);
   AbsoluteTime ev_time(glast_tt);
@@ -510,7 +510,7 @@ void PulsarDbTest::testTimingModel() {
   }
 
   model.cancelPdot(f_eph2, ev_time);
-  ev_time.getTime(glast_tt);
+  glast_tt = ev_time;
   double pdot_t = glast_tt.getValue();
   double correct_t = 323.4567891234567;
 
@@ -525,7 +525,7 @@ void PulsarDbTest::testTimingModel() {
   AbsoluteTime t0(glast_tdb);
   OrbitalEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
   glast_tdb.setValue(223.456789);
-  ev_time.setTime(glast_tdb);
+  ev_time = glast_tdb;
   phase = model.calcOrbitalPhase(o_eph, ev_time);
 
   // Result determined independently.
@@ -723,9 +723,9 @@ void PulsarDbTest::testEphComputer() {
   computer.load(database2);
 
   computer.modulateBinary(gtdb);
-  expected_gtdb.getTime(glast_tdb);
+  glast_tdb = expected_gtdb;
   expected_elapsed = glast_tdb.getValue();
-  gtdb.getTime(glast_tdb);
+  glast_tdb = gtdb;
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "After EphComputer::modulateBinary, elapsed time was " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
@@ -734,9 +734,9 @@ void PulsarDbTest::testEphComputer() {
   model.demodulateBinary(orbital_eph, expected_gtdb);
   
   computer.demodulateBinary(gtdb);
-  expected_gtdb.getTime(glast_tdb);
+  glast_tdb = expected_gtdb;
   expected_elapsed = glast_tdb.getValue();
-  gtdb.getTime(glast_tdb);
+  glast_tdb = gtdb;
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "After EphComputer::demodulateBinary, elapsed time was " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
