@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 21 13:42:17 PDT 2006
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Replace AbsoluteTime::getTime and setTime with TimeRep::operator =(AbsoluteTime).
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul 21 13:42:16 PDT 2006
 pulsarDb/src
 
