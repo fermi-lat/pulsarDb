@@ -33,15 +33,15 @@ namespace pulsarDb {
 
     // Note: below, break into two consecutive strings so that width applies to first part only.
     if (!eph.valid_since().equivalentTo(eph.valid_until(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      eph.valid_since().getTime(mjd_rep);
+      mjd_rep = eph.valid_since();
       os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      eph.valid_until().getTime(mjd_rep);
+      mjd_rep = eph.valid_until();
       os << mjd_rep << ")" << std::endl;
     } else {
-      eph.valid_since().getTime(mjd_rep);
+      mjd_rep = eph.valid_since();
       os << "Validity : " << "only at time " << mjd_rep << std::endl;
     }
-    eph.epoch().getTime(mjd_rep);
+    mjd_rep = eph.epoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
     os.prefix().width(14); os << "Phi0 = " << eph.phi0() << std::endl;
     os.prefix().width(14); os << "F0 = " << eph.f0() << std::endl;
