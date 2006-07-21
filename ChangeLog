@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 21 13:42:16 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx PulsarEph.cxx 
+Log Message:
+Replace AbsoluteTime::getTime and setTime with TimeRep::operator =(AbsoluteTime).
+    *
+------------------------------------------------------------
 User: peachey  Wed Jul 12 13:04:59 PDT 2006
 pulsarDb/pulsarDb
 
