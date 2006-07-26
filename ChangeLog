@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Jul 26 13:27:50 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx 
+Log Message:
+Fix bug in sloppy chooser which was resulting in always choosing the
+last ephemeris for any time.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul 21 13:49:31 PDT 2006
 pulsarDb/data
 
