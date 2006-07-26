@@ -333,6 +333,52 @@ void PulsarDbTest::testChooser() {
 
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
+
+  // Test sloppy chooser around two disjoint ephemerides.
+  eph_cont.clear();
+  epoch = MjdRep("TDB", 51910, 0.);
+  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51910, 0.)), AbsoluteTime(MjdRep("TDB", 51920, 0.)), epoch, 0., 1., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51930, 0.)), AbsoluteTime(MjdRep("TDB", 51940, 0.)), epoch, 0., 2., 0., 0.));
+
+  SloppyEphChooser sloppy_chooser;
+  t = MjdRep("TDB", 51905, 0.);
+  chosen = &sloppy_chooser.choose(eph_cont, t);
+  if (1. != chosen->f0())
+    ErrorMsg(method_name) << "for time before either ephemeris: " << t << ", chooser chose eph with f0 == " << chosen->f0() <<
+      ", not 1. as expected" << std::endl;
+
+  t = MjdRep("TDB", 51915, 0.);
+  chosen = &sloppy_chooser.choose(eph_cont, t);
+  if (1. != chosen->f0())
+    ErrorMsg(method_name) << "for time during first ephemeris: " << t << ", chooser chose eph with f0 == " << chosen->f0() <<
+      ", not 1. as expected" << std::endl;
+
+  t = MjdRep("TDB", 51921, 0.);
+  chosen = &sloppy_chooser.choose(eph_cont, t);
+  if (1. != chosen->f0())
+    ErrorMsg(method_name) << "for time shortly after first ephemeris: " << t << ", chooser chose eph with f0 == " << chosen->f0() <<
+      ", not 1. as expected" << std::endl;
+
+  t = MjdRep("TDB", 51929, 0.);
+  chosen = &sloppy_chooser.choose(eph_cont, t);
+  if (2. != chosen->f0())
+    ErrorMsg(method_name) << "for time shortly before second ephemeris: " << t << ", chooser chose eph with f0 == " <<
+      chosen->f0() << ", not 2. as expected" << std::endl;
+
+  t = MjdRep("TDB", 51935, 0.);
+  chosen = &sloppy_chooser.choose(eph_cont, t);
+  if (2. != chosen->f0())
+    ErrorMsg(method_name) << "for time during second ephemeris: " << t << ", chooser chose eph with f0 == " <<
+      chosen->f0() << ", not 2. as expected" << std::endl;
+
+  t = MjdRep("TDB", 51945, 0.);
+  chosen = &sloppy_chooser.choose(eph_cont, t);
+  if (2. != chosen->f0())
+    ErrorMsg(method_name) << "for time after second ephemeris: " << t << ", chooser chose eph with f0 == " <<
+      chosen->f0() << ", not 2. as expected" << std::endl;
+
+  // Clean up.
+  for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
 }
 
 void PulsarDbTest::testExplicitName() {
