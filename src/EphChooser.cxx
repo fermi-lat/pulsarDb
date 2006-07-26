@@ -28,8 +28,8 @@ namespace pulsarDb {
     double diff = std::numeric_limits<double>::max();
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double diff_since = (*candidate)->dt(t, (*candidate)->valid_since());
-      double diff_until = (*candidate)->dt(t, (*candidate)->valid_until());
+      double diff_since = (*itor)->dt(t, (*itor)->valid_since());
+      double diff_until = (*itor)->dt(t, (*itor)->valid_until());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
       // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
