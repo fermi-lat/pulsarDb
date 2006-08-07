@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Mon Aug  7 12:00:16 PDT 2006
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits 
+	groD4-dc2v4_twice.fits psrdb_all.fits psrdb_append.fits 
+Log Message:
+Regenerated with latest versions of code.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v3, operation: add
 Package: pulsarDb
