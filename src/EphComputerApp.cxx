@@ -14,6 +14,7 @@
 #include "st_facilities/Env.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/GlastMetRep.h"
 #include "timeSystem/TimeRep.h"
 
 #include <cctype>
@@ -58,9 +59,7 @@ namespace pulsarDb {
 
     std::auto_ptr<TimeRep> time_rep(0);
     if (time_format == "GLAST") {
-      // TODO Change origin to use new definition:
-      // time_rep.reset(new MetRep("TDB", 51910, 64.184 / 86400., ref_time));
-      time_rep.reset(new MetRep("TDB", 51910, 0., ref_time));
+      time_rep.reset(new GlastMetRep("TDB", ref_time));
     } else {
       throw std::runtime_error("Only Glast time supported for now");
     }
