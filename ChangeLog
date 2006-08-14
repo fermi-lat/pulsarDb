@@ -1,4 +1,55 @@
 ------------------------------------------------------------
+TAG
+Tag name: v3r1, operation: add
+Package: pulsarDb
+User: peachey  Mon Aug 14 12:00:40 2006
+Files:
+  pulsarDb/ChangeLog  1.253
+  pulsarDb/cmt/requirements  1.5
+  pulsarDb/data/psrdb_spin.txt  1.1
+  pulsarDb/data/groD4-dc2v3.fits  1.1.1.1
+  pulsarDb/data/psrdb_name.txt  1.1
+  pulsarDb/data/psrdb_binary.txt  1.1
+  pulsarDb/data/groD4-dc2v4.fits  1.1
+  pulsarDb/data/psrdb_obs.txt  1.1
+  pulsarDb/data/master_pulsardb.fits  1.2
+  pulsarDb/data/PulsarEph.tpl  1.4
+  pulsarDb/data/outref/chooser_db.fits  1.6
+  pulsarDb/data/outref/psrdb_append.fits  1.4
+  pulsarDb/data/outref/crab_db.fits  1.6
+  pulsarDb/data/outref/psrdb_all.fits  1.4
+  pulsarDb/data/outref/f2not0_db.fits  1.6
+  pulsarDb/data/outref/groD4-dc2v4_twice.fits  1.4
+  pulsarDb/data/outref/crab_twice.fits  1.1
+  pulsarDb/doc/release.notes  1.21
+  pulsarDb/pfiles/gtephcomp.par  1.5
+  pulsarDb/pfiles/gtpulsardb.par  1.5
+  pulsarDb/pulsarDb/PulsarDbApp.h  1.3
+  pulsarDb/pulsarDb/PulsarDb.h  1.13
+  pulsarDb/pulsarDb/TextPulsarDb.h  1.3
+  pulsarDb/pulsarDb/EphComputerApp.h  1.1
+  pulsarDb/pulsarDb/OrbitalEph.h  1.9
+  pulsarDb/pulsarDb/EphChooser.h  1.5
+  pulsarDb/pulsarDb/PulsarEph.h  1.14
+  pulsarDb/pulsarDb/TimingModel.h  1.14
+  pulsarDb/pulsarDb/EphComputer.h  1.9
+  pulsarDb/src/EphComputerApp.cxx  1.10
+  pulsarDb/src/TimingModel.cxx  1.14
+  pulsarDb/src/EphComputer.cxx  1.10
+  pulsarDb/src/OrbitalEph.cxx  1.14
+  pulsarDb/src/PulsarDbApp.cxx  1.6
+  pulsarDb/src/mainpage.h  1.4
+  pulsarDb/src/TextPulsarDb.cxx  1.5
+  pulsarDb/src/.mainpage.h.swp  1.1.1.1
+  pulsarDb/src/PulsarDb.cxx  1.23
+  pulsarDb/src/PulsarEph.cxx  1.17
+  pulsarDb/src/EphChooser.cxx  1.12
+  pulsarDb/src/gtephcomp/gtephcomp.cxx  1.1
+  pulsarDb/src/gtpulsardb/gtpulsardb.cxx  1.1.1.1
+  pulsarDb/src/test/test_pulsarDb.cxx  1.41
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Aug 14 12:00:13 PDT 2006
 pulsarDb/doc
 
