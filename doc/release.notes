@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.19 2006/03/29 19:29:38 peachey Exp $
+$Id: release.notes,v 1.20 2006/07/26 20:37:41 peachey Exp $
 
 \verbatim
+14-aug-2006      v3r1 JP  Use timeSystem::MetRep to read MJDREF from fits header.
 26-jul-2006        v3 JP  Changed to work with timeSystem v1.
 29-mar-2006      v2r1 JP  Cosmetic changes to output, refactoring: removed DatabaseEph class.
                           Fixed bug in which incorrect epoch, validity times were used in
