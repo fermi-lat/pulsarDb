@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Aug 23 13:31:16 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Use time_sys string instead of hard-wired TDB.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Aug 23 12:39:38 PDT 2006
 pulsarDb/src
 
