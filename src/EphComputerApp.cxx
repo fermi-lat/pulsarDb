@@ -61,9 +61,9 @@ namespace pulsarDb {
 
     // Create the correct time representation for this time system and format.
     if (time_format == "GLAST") {
-      time_rep.reset(new GlastMetRep("TDB", 0.));
+      time_rep.reset(new GlastMetRep(time_sys, 0.));
     } else if (time_format == "MJD") {
-      time_rep.reset(new MjdRep("TDB", 0, 0.));
+      time_rep.reset(new MjdRep(time_sys, 0, 0.));
     } else {
       throw std::runtime_error("Time format \"" + time_format + "\" is not supported");
     }
