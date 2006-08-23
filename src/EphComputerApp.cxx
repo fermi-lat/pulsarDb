@@ -50,7 +50,7 @@ namespace pulsarDb {
     pars.Save();
 
     // Get parameters.
-    double ref_time = pars["reftime"];
+    std::string ref_time = pars["reftime"];
     std::string time_format = pars["timeformat"];
     for (std::string::iterator itor = time_format.begin(); itor != time_format.end(); ++itor) *itor = toupper(*itor);
     std::string time_sys = pars["timesys"];
@@ -58,11 +58,18 @@ namespace pulsarDb {
     bool strict = pars["strict"];
 
     std::auto_ptr<TimeRep> time_rep(0);
+
+    // Create the correct time representation for this time system and format.
     if (time_format == "GLAST") {
-      time_rep.reset(new GlastMetRep("TDB", ref_time));
+      time_rep.reset(new GlastMetRep("TDB", 0.));
+    } else if (time_format == "MJD") {
+      time_rep.reset(new MjdRep("TDB", 0, 0.));
     } else {
-      throw std::runtime_error("Only Glast time supported for now");
+      throw std::runtime_error("Time format \"" + time_format + "\" is not supported");
     }
+
+    // Set the time of the representation to be the given reference time.
+    time_rep->assign(ref_time);
 
     // Find the pulsar database.
     std::string psrdb_file = pars["psrdbfile"];
