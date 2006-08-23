@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Aug 23 14:27:41 PDT 2006
+pulsarDb/pfiles
+
+Modified Files:
+	gtephcomp.par 
+Log Message:
+Add support for all time systems, including leapsecfile parameter for UTC.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Aug 23 13:31:16 PDT 2006
 pulsarDb/src
 
