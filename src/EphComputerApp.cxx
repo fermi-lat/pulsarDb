@@ -16,6 +16,7 @@
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/GlastMetRep.h"
 #include "timeSystem/TimeRep.h"
+#include "timeSystem/TimeSystem.h"
 
 #include <cctype>
 #include <iostream>
@@ -52,10 +53,17 @@ namespace pulsarDb {
     // Get parameters.
     std::string ref_time = pars["reftime"];
     std::string time_format = pars["timeformat"];
-    for (std::string::iterator itor = time_format.begin(); itor != time_format.end(); ++itor) *itor = toupper(*itor);
+    for (std::string::iterator itor = time_format.begin(); itor != time_format.end(); ++itor) *itor = std::toupper(*itor);
     std::string time_sys = pars["timesys"];
-    for (std::string::iterator itor = time_sys.begin(); itor != time_sys.end(); ++itor) *itor = toupper(*itor);
+    for (std::string::iterator itor = time_sys.begin(); itor != time_sys.end(); ++itor) *itor = std::toupper(*itor);
     bool strict = pars["strict"];
+
+    // Handle leap seconds.
+    std::string leap_sec_file = pars["leapsecfile"];
+    std::string uc_leap_sec_file = leap_sec_file;
+    for (std::string::iterator itor = uc_leap_sec_file.begin(); itor != uc_leap_sec_file.end(); ++itor) *itor = std::toupper(*itor);
+    if (uc_leap_sec_file == "DEFAULT") leap_sec_file = "";
+    if (time_sys == "UTC") timeSystem::TimeSystem::loadLeapSeconds(leap_sec_file, true);
 
     std::auto_ptr<TimeRep> time_rep(0);
 
@@ -74,15 +82,12 @@ namespace pulsarDb {
     // Find the pulsar database.
     std::string psrdb_file = pars["psrdbfile"];
     std::string psrdb_file_uc = psrdb_file;
-    for (std::string::iterator itor = psrdb_file_uc.begin(); itor != psrdb_file_uc.end(); ++itor) *itor = toupper(*itor);
+    for (std::string::iterator itor = psrdb_file_uc.begin(); itor != psrdb_file_uc.end(); ++itor) *itor = std::toupper(*itor);
     if ("DEFAULT" == psrdb_file_uc) {
       using namespace st_facilities;
       psrdb_file = Env::appendFileName(Env::getDataDir("pulsarDb"), "master_pulsardb.fits");
     }
     std::string psr_name = pars["psrname"];
-
-    // TODO Remove the following line when correct conversion from TT is implemented.
-    if (time_sys != "TDB") throw std::runtime_error("Only TDB time system is supported for now");
 
     AbsoluteTime abs_ref_time(*time_rep);
 
