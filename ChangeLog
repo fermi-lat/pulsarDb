@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Mon Aug 28 13:26:10 PDT 2006
+pulsarDb/pfiles
+
+Modified Files:
+	gtephcomp.par 
+Log Message:
+Change order so that leapsecfile comes immediately after timesys.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Aug 23 14:27:41 PDT 2006
 pulsarDb/src
 
