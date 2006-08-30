@@ -60,10 +60,7 @@ namespace pulsarDb {
 
     // Handle leap seconds.
     std::string leap_sec_file = pars["leapsecfile"];
-    std::string uc_leap_sec_file = leap_sec_file;
-    for (std::string::iterator itor = uc_leap_sec_file.begin(); itor != uc_leap_sec_file.end(); ++itor) *itor = std::toupper(*itor);
-    if (uc_leap_sec_file == "DEFAULT") leap_sec_file = "";
-    if (time_sys == "UTC") timeSystem::TimeSystem::loadLeapSeconds(leap_sec_file, true);
+    timeSystem::TimeSystem::setDefaultLeapSecFileName(leap_sec_file);
 
     std::auto_ptr<TimeRep> time_rep(0);
 
