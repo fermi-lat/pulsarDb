@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Wed Sep 13 13:34:34 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Throw exception if input file is completely empty. Remove some TODOs
+which are TODON'Ts for right now.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Sep 13 13:19:29 PDT 2006
 pulsarDb/src
 
