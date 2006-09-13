@@ -124,6 +124,12 @@ namespace pulsarDb {
   }
 
   void PulsarDb::save(const std::string & out_file, const std::string & tpl_file) const {
+    // Get first extension in input file.
+    FileSummary::const_iterator ext_itor = m_summary.begin();
+
+    // If input file was empty, throw exception.
+    if (m_summary.end() == ext_itor) throw std::runtime_error("Input ephemeris file is empty");
+
     // Get alias to tip's file service, for brevity.
     IFileSvc & file_svc(IFileSvc::instance());
 
@@ -135,19 +141,13 @@ namespace pulsarDb {
       file_svc.createFile(out_file, tpl_file);
     }
 
-    // Loop over all extensions in input file.
-    FileSummary::const_iterator ext_itor = m_summary.begin();
-
-    // TODO: should this be an error?
-    // If input file was empty, just return.
-    if (m_summary.end() == ext_itor) return;
-
     // Update keywords only in primary extension.
     std::auto_ptr<Extension> primary(file_svc.editExtension(out_file, ext_itor->getExtId()));
 
     // Update standard keywords.
     updateKeywords(*primary);
 
+    // Loop over all extensions in input file.
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
     for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
       TableCont::const_iterator table_itor = m_table.find(ext_itor->getExtId());
@@ -246,7 +246,6 @@ namespace pulsarDb {
     cont.reserve(m_spin_par_table->getNumRecords());
 
     // Iterate over current selection.
-// TODO: why doesn't ConstIterator work here???
     for (Table::Iterator itor = m_spin_par_table->begin(); itor != m_spin_par_table->end(); ++itor) {
       // For convenience, get record from iterator.
       Table::ConstRecord & r(*itor);
@@ -263,7 +262,6 @@ namespace pulsarDb {
       r[toa_int_col].get(toa_int);
       r[toa_frac_col].get(toa_frac);
 
-      // TODO get time system from db, use that throughout instead of "TDB".
       // Combine separate parts of epoch and toa to get single values.
       AbsoluteTime epoch(MjdRep("TDB", epoch_int, epoch_frac));
       AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
