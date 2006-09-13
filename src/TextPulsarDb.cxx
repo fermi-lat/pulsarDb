@@ -122,7 +122,6 @@ namespace pulsarDb {
         throw std::runtime_error(os.str());
       }
   
-// TODO: handle conversion errors
       // Populate the row by iterating over output columns.
       for (Row::iterator in_itor = field_name.begin(); in_itor != field_name.end(); ++in_itor) {
         // See if this column was found amongst the input table columns.
@@ -131,7 +130,7 @@ namespace pulsarDb {
           // Found column, so look up the input table column number from the output column number.
           (*out_itor)[*in_itor].set(row[found_itor->second]);
         } else {
-          // TODO: Make this write an INDEF in the field.
+          // TODO: Make this write an INDEF in the field (requires further changes to tip).
           // (*out_itor)[*in_itor].set([found_itor->second]);
         }
       }
