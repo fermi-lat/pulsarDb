@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Sep 13 13:19:29 PDT 2006
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Fix TODO: current code is minimum needed to set T0 in orbital eph.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v3r2, operation: add
 Package: pulsarDb
