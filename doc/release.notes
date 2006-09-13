@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.21 2006/08/14 19:00:13 peachey Exp $
+$Id: release.notes,v 1.22 2006/09/06 19:24:20 peachey Exp $
 
 \verbatim
+13-sep-2006    v3r2p1 JP  Address some minor TODO issues.
 06-sep-2006      v3r2 JP  Add support for common time systems. Supported systems now
                           include TAI, TDB, TT, and UTC.
 14-aug-2006      v3r1 JP  Use timeSystem::MetRep to read MJDREF from fits header.
