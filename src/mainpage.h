@@ -62,7 +62,7 @@ psrname [string]
     valid for a particular pulsar. This only has effect
     when the filter parameter is NAME.
 
-epoch [double]
+reftime [double]
     The time for which an ephemeris will be selected, if any is
     available in the input file. The interpretation of this number
     is determined by the timeformat and timesys parameters.
@@ -73,13 +73,13 @@ timeformat = MJD [string]
 
 timesys = TDB [string]
     String describing the time system used for the epoch.
-    Valid choices are TDB and TT.
+    Valid choices are TAI, TDB, TT and UTC.
 
 (psrdbfile = DEFAULT) [file name]
     Name of pulsar ephemerides database file, in GLAST D4
     FITS format. If psrdbfile is DEFAULT, the canonical pulsar
     database file (master_pulsardb.fits), which is distributed
-    with the pulsar tools, will be used.
+    with the extFiles package, will be used.
 
 (strict = no) [bool]
     If strict is yes, only spin ephemerides whose stated
@@ -88,9 +88,24 @@ timesys = TDB [string]
     will be selected, regardless of its stated range of
     validity.
 
+(leapsecfile = DEFAULT) [file name]
+    The file containing the name of the leap second table, in
+    OGIP-compliant leap second table format. If leapsecfile is
+    the string DEFAULT, the default leapsec file (leapsec.fits),
+    which is distributed with the extFiles package, will be used.
+
 \endverbatim
 
-    \section Known issues
-    Binary demodulation does not work on Windows. Some kind of
-    floating-precision problem prevents convergence.
+    \section known-issues Known Issues
+    None.
+
+    \section resolved-issues Resolved Issues
+\verbatim
+Problem: Binary demodulation does not work on Windows. Some kind of
+floating-precision problem prevents convergence. 
+
+Resolution: Improved the handling of precision time expressions so as
+not to rely on implementation-specific properties of the long double
+type.
+\endverbatim
 */
