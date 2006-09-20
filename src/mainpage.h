@@ -34,17 +34,17 @@ filter = NONE [string]
     tstop will be used to filter the ephemerides based on that
     time range. If filter is NONE, no filtering will be performed.
 
-psrname [string]
+psrname = ANY [string]
     The name of the pulsar, used to select only ephemerides
     valid for a particular pulsar. This only has effect
     when the filter parameter is NAME.
 
-tstart [double]
+tstart = 0. [double]
     Time used for the beginning of the interval used for
     time filtering. This only has effect when the filter
     parameter is TIME.
 
-tstop [double]
+tstop = 1.e5 [double]
     Time used for the end of the interval used for
     time filtering. This only has effect when the filter
     parameter is TIME.
@@ -57,22 +57,22 @@ tstop [double]
     \subsection gtephcomp_parameters gtephcomp Parameters
  
 \verbatim
-psrname [string]
+psrname = ANY [string]
     The name of the pulsar, used to select only ephemerides
     valid for a particular pulsar. This only has effect
     when the filter parameter is NAME.
 
-reftime [double]
+reftime = 0. [string]
     The time for which an ephemeris will be selected, if any is
     available in the input file. The interpretation of this number
     is determined by the timeformat and timesys parameters.
 
 timeformat = MJD [string]
-    String describing the representation used for the epoch.
+    String describing the representation used for the reference time.
     Valid choices are MJD and GLAST (MET).
 
 timesys = TDB [string]
-    String describing the time system used for the epoch.
+    String describing the time system used for the reference time.
     Valid choices are TAI, TDB, TT and UTC.
 
 (psrdbfile = DEFAULT) [file name]
