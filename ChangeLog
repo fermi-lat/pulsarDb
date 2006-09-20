@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Sep 20 12:26:57 PDT 2006
+pulsarDb/pfiles
+
+Modified Files:
+	gtephcomp.par 
+Log Message:
+Change default timeformat to MJD.
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Sep 18 13:22:13 PDT 2006
 pulsarDb/src
 
