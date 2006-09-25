@@ -2,9 +2,11 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.24 2006/09/20 19:31:27 peachey Exp $
+$Id: release.notes,v 1.25 2006/09/20 19:32:57 peachey Exp $
 
 \verbatim
+25-sep-2006    v3r2p3 JP  Bug fix: use isNull method in tip internals to test for NULL values
+                          in columns, and to set these values to 0 when encountered.
 20-sep-2006    v3r2p2 JP  Update mainpage.h, parameter file default values.
 13-sep-2006    v3r2p1 JP  Address some minor TODO issues.
 06-sep-2006      v3r2 JP  Add support for common time systems. Supported systems now
