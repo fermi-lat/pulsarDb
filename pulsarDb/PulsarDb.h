@@ -15,6 +15,7 @@
 #include "pulsarDb/TimingModel.h"
 
 #include "tip/FileSummary.h"
+#include "tip/Table.h"
 
 namespace tip {
   class Extension;
@@ -104,6 +105,20 @@ namespace pulsarDb {
       */
       virtual std::string createFilter(const std::string & field_name, const std::set<std::string> & values) const;
 
+      /** \brief Helper method to get a value from a cell, returning it as a double, and handling the
+          case where the value is null.
+          \param cell The cell whose value to get.
+      */
+      double get(const tip::TableCell & cell) const;
+
+      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
+          case where the value is null.
+          \param cell The cell whose value to get.
+          \param value Variable to store the value.
+      */
+      template <typename T>
+      void get(const tip::TableCell & cell, T & value) const;
+
       std::string m_in_file;
       tip::FileSummary m_summary;
       TableCont m_table;
@@ -112,6 +127,19 @@ namespace pulsarDb {
       tip::Table * m_obs_code_table;
       tip::Table * m_psr_name_table;
   };
+
+  inline double PulsarDb::get(const tip::TableCell & cell) const {
+    double value = 0.;
+    get(cell, value);
+    return value;
+  }
+
+  template <typename T>
+  inline void PulsarDb::get(const tip::TableCell & cell, T & value) const {
+    // WARNING: This will break for a string column.
+    if (cell.isNull()) value = 0;
+    else cell.get(value);
+  }
 
 }
 #endif
