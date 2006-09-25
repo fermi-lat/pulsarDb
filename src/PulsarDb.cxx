@@ -257,29 +257,31 @@ namespace pulsarDb {
       double toa_frac = 0.;
 
       // Read the separate parts from the file.
-      r["EPOCH_INT"].get(epoch_int);
-      r["EPOCH_FRAC"].get(epoch_frac);
-      r[toa_int_col].get(toa_int);
-      r[toa_frac_col].get(toa_frac);
+      get(r["EPOCH_INT"], epoch_int);
+      get(r["EPOCH_FRAC"], epoch_frac);
+      get(r[toa_int_col], toa_int);
+      get(r[toa_frac_col], toa_frac);
 
       // Combine separate parts of epoch and toa to get single values.
       AbsoluteTime epoch(MjdRep("TDB", epoch_int, epoch_frac));
       AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
 
+      // TODO Handle valid since is indef.
       long valid_since_date = 0;
-      r["VALID_SINCE"].get(valid_since_date);
+      get(r["VALID_SINCE"], valid_since_date);
 
       AbsoluteTime valid_since(MjdRep("TDB", valid_since_date, 0.));
 
       // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
       // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
+      // TODO Handle valid_until is indef.
       long valid_until_date = 0;
-      r["VALID_UNTIL"].get(valid_until_date);
+      get(r["VALID_UNTIL"], valid_until_date);
       AbsoluteTime valid_until(MjdRep("TDB", valid_until_date + 1, 0.));
 
-      double f0 = r["F0"].get();
-      double f1 = r["F1"].get();
-      double f2 = r["F2"].get();
+      double f0 = get(r["F0"]);
+      double f1 = get(r["F1"]);
+      double f2 = get(r["F2"]);
 
       // Create temporary copy of this ephemeris with phi0 == 0.
       FrequencyEph tmp("TDB", valid_since, valid_until, epoch, 0., f0, f1, f2);
@@ -307,18 +309,18 @@ namespace pulsarDb {
         Table::ConstRecord & r(*itor);
         
         double par[] = {
-          r["PB"].get(),
-          r["PBDOT"].get(),
-          r["A1"].get(),
-          r["XDOT"].get(),
-          r["ECC"].get(),
-          r["ECCDOT"].get(),
-          r["OM"].get(),
-          r["OMDOT"].get(),
-          r["T0"].get(),
-          r["GAMMA"].get(),
-          r["SHAPIRO_R"].get(),
-          r["SHAPIRO_S"].get()
+          get(r["PB"]),
+          get(r["PBDOT"]),
+          get(r["A1"]),
+          get(r["XDOT"]),
+          get(r["ECC"]),
+          get(r["ECCDOT"]),
+          get(r["OM"]),
+          get(r["OMDOT"]),
+          get(r["T0"]),
+          get(r["GAMMA"]),
+          get(r["SHAPIRO_R"]),
+          get(r["SHAPIRO_S"])
         };
 
         // Handle any INDEFs.
