@@ -122,7 +122,7 @@ namespace pulsarDb {
       m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl << eph << std::endl;
       found_pulsar_eph = true;
     } catch (const std::exception & x) {
-      m_os.out() << prefix << "No spin ephemeris was found in database." << std::endl;
+      m_os.out() << prefix << "No spin ephemeris was found in database:" << std::endl << x.what() << std::endl;
     }
 
     // Report the best binary ephemeris.
@@ -130,7 +130,7 @@ namespace pulsarDb {
       const OrbitalEph & eph(computer->chooseOrbitalEph(abs_ref_time));
       m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl << eph << std::endl;
     } catch (const std::exception & x) {
-      m_os.info(3) << prefix << "No orbital ephemeris was found in database." << std::endl;
+      m_os.info(3) << prefix << "No orbital ephemeris was found in database:" << std::endl << x.what() << std::endl;
     }
 
     // Set off the optional output.
