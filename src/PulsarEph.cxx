@@ -8,7 +8,6 @@
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TimingModel.h"
 
-#include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeInterval.h"
@@ -20,7 +19,7 @@ namespace pulsarDb {
 
   double PulsarEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
-    return numerator / Duration(0, m_unit_time);
+    return numerator / m_unit_time;
   }
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {

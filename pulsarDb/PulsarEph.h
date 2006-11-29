@@ -13,6 +13,7 @@
 #include "st_stream/Stream.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/Duration.h"
 #include "timeSystem/TimeSystem.h"
 
 namespace pulsarDb {
@@ -26,7 +27,7 @@ namespace pulsarDb {
       PulsarEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double unit_time_sec):
         m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
-        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_unit_time(unit_time_sec) {}
+        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_unit_time(0, unit_time_sec) {}
 
       virtual ~PulsarEph() {}
 
@@ -47,7 +48,7 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_since;
       timeSystem::AbsoluteTime m_until;
       timeSystem::AbsoluteTime m_epoch;
-      double m_unit_time;
+      timeSystem::Duration m_unit_time;
   };
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
