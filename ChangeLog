@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Wed Nov 29 13:41:16 PST 2006
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Store m_unit_time member as a Duration for simplicity.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Nov 29 13:41:16 PST 2006
 pulsarDb/pulsarDb
 
 Modified Files:
