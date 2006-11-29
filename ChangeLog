@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Nov 29 13:35:04 PST 2006
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Make error message more specific when ephemeris is not found.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v3r2p3, operation: add
 Package: pulsarDb
