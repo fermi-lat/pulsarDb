@@ -377,6 +377,30 @@ void PulsarDbTest::testChooser() {
     ErrorMsg(method_name) << "for time after second ephemeris: " << t << ", chooser chose eph with f0 == " <<
       chosen->f0() << ", not 2. as expected" << std::endl;
 
+  // Test choice from prehistory, say 100000 years before origin of MJD.
+  t = MjdRep("TDB", -36525000, 0.);
+  try {
+    chosen = &sloppy_chooser.choose(eph_cont, t);
+    if (1. != chosen->f0())
+      ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser chose eph with f0 == " <<
+        chosen->f0() << ", not 1. as expected" << std::endl;
+  } catch (const std::exception & x) {
+    ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser threw exception: " <<
+      std::endl << x.what() << std::endl;
+  }
+
+  // Test choice from far future, say 100000 years after origin of MJD.
+  t = MjdRep("TDB", 36525000, 0.);
+  try {
+    chosen = &sloppy_chooser.choose(eph_cont, t);
+    if (2. != chosen->f0())
+      ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser chose eph with f0 == " <<
+        chosen->f0() << ", not 2. as expected" << std::endl;
+  } catch (const std::exception & x) {
+    ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser threw exception: " <<
+      std::endl << x.what() << std::endl;
+  }
+
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
 }
