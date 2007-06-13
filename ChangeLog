@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Wed Jun 13 13:32:05 PDT 2007
+pulsarDb/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Rename gtephcomp to gtephem.
+
+    *
+------------------------------------------------------------
 User: peachey  Wed Jun 13 13:31:26 PDT 2007
 pulsarDb/src/gtephcomp
 
