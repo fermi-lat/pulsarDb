@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.26 2006/09/25 20:51:17 peachey Exp $
+$Id: release.notes,v 1.27 2007/03/28 20:28:35 peachey Exp $
 
 \verbatim
+13-jun-2007        v4 JP  Rename gtephcomp to gtephem.
 29-mar-2007      v3r3 JP  Use Duration object inside PulsarEph to allow chooser to work
                           over very long periods of time.
 25-sep-2006    v3r2p3 JP  Bug fix: use isNull method in tip internals to test for NULL values
