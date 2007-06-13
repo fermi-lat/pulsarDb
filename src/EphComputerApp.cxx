@@ -31,7 +31,7 @@ using namespace timeSystem;
 namespace pulsarDb {
 
   EphComputerApp::EphComputerApp(): m_os("EphComputerApp", "", 2) {
-    setName("gtephcomp");
+    setName("gtephem");
     setVersion(s_cvs_id);
   }
 

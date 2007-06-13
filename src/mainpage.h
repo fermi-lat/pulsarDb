@@ -6,9 +6,9 @@
 
     \section synopsis Synopsis 
     The purpose of this package is to provide an interface to the standard pulsar ephemeris
-    database. It contains a library and two utilities, gtpulsardb and gtephcomp. The
+    database. It contains a library and two utilities, gtpulsardb and gtephem. The
     gtpulsardb utility is used to create, filter, and/or combine pulsar ephemerides database files.
-    The gtephcomp utility is used to present the user with the best ephemeris available in a pulsar
+    The gtephem utility is used to present the user with the best ephemeris available in a pulsar
     database for a given pulsar and instant of time.
 
     \subsection gtpulsardb_prerequisites gtpulsardb Prerequisites
@@ -51,10 +51,10 @@ tstop = 1.e5 [double]
 
 \endverbatim
 
-    \subsection gtephcomp_prerequisites gtephcomp Prerequisites
+    \subsection gtephem_prerequisites gtephem Prerequisites
     A single pulsar ephemerides database file in GLAST D4 FITS format.
 
-    \subsection gtephcomp_parameters gtephcomp Parameters
+    \subsection gtephem_parameters gtephem Parameters
  
 \verbatim
 psrname = ANY [string]
