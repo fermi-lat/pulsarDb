@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: peachey  Wed Jun 13 13:32:05 PDT 2007
+pulsarDb/src/gtephem
+
+Modified Files:
+	gtephem.cxx 
+Log Message:
+Rename gtephcomp to gtephem.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Jun 13 13:32:05 PDT 2007
 pulsarDb/src
 
 Modified Files:
