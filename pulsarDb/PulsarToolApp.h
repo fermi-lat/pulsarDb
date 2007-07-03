@@ -55,7 +55,7 @@ namespace pulsarDb {
 
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);
 
-      void setFirstEvent(const st_app::AppParGroup & pars);
+      void setFirstEvent();
 
       void setNextEvent();
 
@@ -66,15 +66,17 @@ namespace pulsarDb {
     private:
       table_cont_type m_event_table_cont;
       table_cont_type m_gti_table_cont;
-      const tip::Header * m_reference_header;
+      std::string m_time_field;
+      std::string m_gti_start_field;
+      std::string m_gti_stop_field;
       std::map<const tip::Table *, timeSystem::TimeRep *> m_time_rep_dict;
       std::map<const tip::Table *, bool> m_need_bary_dict;
+      const tip::Header * m_reference_header;
       EphComputer * m_computer;
       bool m_request_bary;
       bool m_demod_bin;
       bool m_cancel_pdot;
       timeSystem::TimeRep * m_target_time_rep;
-      std::string m_time_field;
 
       table_cont_type::iterator m_table_itor;
       tip::Table::ConstIterator m_event_itor;
