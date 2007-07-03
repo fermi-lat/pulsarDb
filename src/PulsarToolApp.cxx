@@ -25,8 +25,8 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  PulsarToolApp::PulsarToolApp(): m_reference_header(0), m_computer(0), m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false),
-    m_target_time_rep(0), m_time_field("") {}
+  PulsarToolApp::PulsarToolApp(): m_time_field(""), m_gti_start_field(""), m_gti_stop_field(""), m_reference_header(0), m_computer(0),
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
     if (m_computer) delete m_computer;
@@ -150,6 +150,11 @@ namespace pulsarDb {
     m_gti_table_cont.push_back(gti_table);
     all_table_cont.push_back(gti_table);
 
+    // Set names of TIME column in EVENTS exetension and START/STOP coulmns in GTI extensions.
+    if (m_time_field.empty()) m_time_field = pars["timefield"].Value();
+    m_gti_start_field = "START";
+    m_gti_stop_field = "STOP";
+
     // Analyze all event tables and GTI tables, and set the results to internal variables.
     for (table_cont_type::const_iterator itor = all_table_cont.begin(); itor != all_table_cont.end(); ++itor) {
       const tip::Table * table = *itor;
@@ -252,10 +257,10 @@ namespace pulsarDb {
       tip::Table::ConstIterator gti_itor = gti_table.begin();
       if (gti_itor != gti_table.end()) {
         // Get start of the first interval and stop of last interval in GTI.
-        AbsoluteTime abs_gti_start = readTimeColumn(gti_table, *gti_itor, "START");
+        AbsoluteTime abs_gti_start = readTimeColumn(gti_table, *gti_itor, m_gti_start_field);
         gti_itor = gti_table.end();
         --gti_itor;
-        AbsoluteTime abs_gti_stop = readTimeColumn(gti_table, *gti_itor, "STOP");
+        AbsoluteTime abs_gti_stop = readTimeColumn(gti_table, *gti_itor, m_gti_stop_field);
 
         if (candidate_found) {
           // See if current interval extends the observation.
@@ -394,15 +399,12 @@ namespace pulsarDb {
     return time_value;
   }
 
-  void PulsarToolApp::setFirstEvent(const st_app::AppParGroup & pars) {
+  void PulsarToolApp::setFirstEvent() {
     // Set event table iterator.
     m_table_itor = m_event_table_cont.begin();
 
     // Setup current event table.
     if (m_table_itor != m_event_table_cont.end()) m_event_itor = (*m_table_itor)->begin();
-
-    // Set name of TIME column to analyze.
-    if (m_time_field.empty()) m_time_field = pars["timefield"].Value();
   }
 
   void PulsarToolApp::setNextEvent() {
