@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jul  3 15:37:40 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Move setting of m_time_field from setFirstEvent method to openEventFile method. Introduce m_gti_start(stop)_field to store column name of GTI START(STOP) column. Rationalize the order of data members in class definition.
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Jul  2 14:08:42 PDT 2007
 pulsarDb/src
 
