@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul  6 15:22:18 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Change the location of default ephemerides database (master_pulsardb.fits) for the pulsar tools to commonly refer for psrdbfile==DEFAULT cases.
+
+    *
+------------------------------------------------------------
 User: hirayama  Tue Jul  3 15:58:11 PDT 2007
 pulsarDb/src
 
