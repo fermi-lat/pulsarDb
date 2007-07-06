@@ -231,8 +231,8 @@ namespace pulsarDb {
       for (std::string::iterator itor = psrdb_file_uc.begin(); itor != psrdb_file_uc.end(); ++itor) *itor = std::toupper(*itor);
       if ("DEFAULT" == psrdb_file_uc) {
         using namespace st_facilities;
-        // TODO: Re-consider a default place (and name) to look for pulsar database.
-        psrdb_file = Env::appendFileName(Env::getDataDir("periodSearch"), "master_pulsardb.fits");
+        // TODO: Change the folowing directory/file names of master pulsar database to the "official" one.
+        psrdb_file = Env::appendFileName(Env::getDataDir("pulsarDb"), "master_pulsardb.fits");
       }
 
       // Open the database.
