@@ -86,6 +86,9 @@ namespace pulsarDb {
 
       timeSystem::AbsoluteTime readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record,
         const std::string & column_name);
+
+      timeSystem::AbsoluteTime computeTargetTime(const tip::Table & table, tip::ConstTableRecord & record,
+        const std::string & column_name);
   };
 
 }

@@ -258,10 +258,10 @@ namespace pulsarDb {
       tip::Table::ConstIterator gti_itor = gti_table.begin();
       if (gti_itor != gti_table.end()) {
         // Get start of the first interval and stop of last interval in GTI.
-        AbsoluteTime abs_gti_start = readTimeColumn(gti_table, *gti_itor, m_gti_start_field);
+        AbsoluteTime abs_gti_start = computeTargetTime(gti_table, *gti_itor, m_gti_start_field);
         gti_itor = gti_table.end();
         --gti_itor;
-        AbsoluteTime abs_gti_stop = readTimeColumn(gti_table, *gti_itor, m_gti_stop_field);
+        AbsoluteTime abs_gti_stop = computeTargetTime(gti_table, *gti_itor, m_gti_stop_field);
 
         if (candidate_found) {
           // See if current interval extends the observation.
@@ -427,7 +427,7 @@ namespace pulsarDb {
   }
 
   AbsoluteTime PulsarToolApp::getEventTime() {
-    return AbsoluteTime(readTimeColumn(**m_table_itor, *m_event_itor, m_time_field));
+    return AbsoluteTime(computeTargetTime(**m_table_itor, *m_event_itor, m_time_field));
   }
 
   AbsoluteTime PulsarToolApp::readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record, const std::string & column_name) {
@@ -440,8 +440,14 @@ namespace pulsarDb {
     // Assign the value to the time representation.
     time_rep->set("TIME", time_value);
 
-    // Convert TimeRep into AbsoluteTime so that computer can perform the necessary corrections.
-    AbsoluteTime abs_time(*time_rep);
+    // Convert TimeRep into AbsoluteTime so that computer can perform the necessary corrections, and return it.
+    return AbsoluteTime(*time_rep);
+  }
+
+  AbsoluteTime PulsarToolApp::computeTargetTime(const tip::Table & table, tip::ConstTableRecord & record,
+    const std::string & column_name) {
+    // Get time column value as AbsoluteTime.
+    AbsoluteTime abs_time = readTimeColumn(table, record, column_name);
 
     // Apply selected corrections.
     bool correct_bary = m_request_bary && m_need_bary_dict[&table];
