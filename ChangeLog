@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 13 14:33:53 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Reorganize computations of start time, stop time, and time origin, in order to fix a bug in gtpsearch performing pdot cancellation before an ephemeris for pdot cancellation is selected (reported as JIRA PILS-37).
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Jul 11 15:07:33 PDT 2007
 pulsarDb/pulsarDb
 
