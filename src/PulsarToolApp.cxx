@@ -247,30 +247,40 @@ namespace pulsarDb {
     }
   }
 
-  void PulsarToolApp::computeTimeBoundary(AbsoluteTime & abs_tstart, AbsoluteTime & abs_tstop) {
+  timeSystem::AbsoluteTime PulsarToolApp::computeTimeBoundary(bool request_start_time, bool request_time_correction) {
     bool candidate_found = false;
+    AbsoluteTime abs_candidate_time("TDB", Duration(0, 0.), Duration(0, 0.));
 
-    // First, look for first and last times in the GTI.
+    // First, look for requested time (start or stop) in the GTI.
     for (table_cont_type::const_iterator itor = m_gti_table_cont.begin(); itor != m_gti_table_cont.end(); ++itor) {
       const tip::Table & gti_table = *(*itor);
 
-      // If possible, get tstart and tstop from first and last interval in GTI extension.
-      tip::Table::ConstIterator gti_itor = gti_table.begin();
-      if (gti_itor != gti_table.end()) {
-        // Get start of the first interval and stop of last interval in GTI.
-        AbsoluteTime abs_gti_start = computeTargetTime(gti_table, *gti_itor, m_gti_start_field);
-        gti_itor = gti_table.end();
-        --gti_itor;
-        AbsoluteTime abs_gti_stop = computeTargetTime(gti_table, *gti_itor, m_gti_stop_field);
+      // If possible, get tstart (or tstop) from first (or last) interval in GTI extension.
+      tip::Table::ConstIterator gti_itor;
+      tip::Table::ConstIterator gti_begin = gti_table.begin();
+      tip::Table::ConstIterator gti_end = gti_table.end();
+      std::string field_name;
+      if (gti_begin != gti_end) {
+        if (request_start_time) {
+          // Get start of the first interval in GTI.
+          gti_itor = gti_begin;
+          field_name = m_gti_start_field;
+        } else {
+          // Get stop of the last interval in GTI.
+          gti_itor = gti_end;
+          --gti_itor;
+          field_name = m_gti_stop_field;
+        }
+
+        // Read GTI START (or STOP) column value as AbsoluteTime.
+        AbsoluteTime abs_gti_time = readTimeColumn(gti_table, *gti_itor, field_name, request_time_correction);
 
         if (candidate_found) {
-          // See if current interval extends the observation.
-          if (abs_gti_start < abs_tstart) abs_tstart = abs_gti_start;
-          if (abs_gti_stop > abs_tstop) abs_tstop = abs_gti_stop;
+          // See if the time is "better" than the current candidate (i.e., earlier for start or later for stop).
+          if (request_start_time == (abs_gti_time < abs_candidate_time)) abs_candidate_time = abs_gti_time;
         } else {
-          // First candidate is the current interval.
-          abs_tstart = abs_gti_start;
-          abs_tstop = abs_gti_stop;
+          // First candidate is the currently picked time.
+          abs_candidate_time = abs_gti_time;
           candidate_found = true;
         }
       }
@@ -279,10 +289,12 @@ namespace pulsarDb {
     // In the unlikely event that there were no GTI files, no intervals in the GTI, and no event files, this is a
     // serious problem.
     if (!candidate_found) throw std::runtime_error("computeTimeBoundary: cannot determine start/stop of the observation interval");
+
+    // Return the candidate.
+    return abs_candidate_time;
   }
 
-  AbsoluteTime PulsarToolApp::initTargetTime(const st_app::AppParGroup & pars, const AbsoluteTime & abs_tstart,
-    const AbsoluteTime & abs_tstop) {
+  void PulsarToolApp::initTargetTime(const st_app::AppParGroup & pars) {
     std::string target_time_sys;
     bool time_system_set = false;
 
@@ -311,44 +323,9 @@ namespace pulsarDb {
     // Check whether time system is successfully set.
     if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
 
-    // Handle styles of origin input.
-    std::string origin_style = pars["timeorigin"];
-    for (std::string::iterator itor = origin_style.begin(); itor != origin_style.end(); ++itor) *itor = std::toupper(*itor);
-    AbsoluteTime abs_origin("TDB", Duration(0, 0.), Duration(0, 0.));
-    if (origin_style == "START") {
-      // Get time of origin and its time system from event file.
-      abs_origin = abs_tstart;
-
-    } else if (origin_style == "STOP") {
-      // Get time of origin and its time system from event file.
-      abs_origin = abs_tstop;
-
-    } else if (origin_style == "MIDDLE") {
-      // Use the center of the observation as the time origin.
-      double tstart = computeElapsedSecond(abs_tstart);
-      double tstop = computeElapsedSecond(abs_tstop);
-      std::auto_ptr<TimeRep> time_rep(createMetRep(target_time_sys, abs_tstart));
-      time_rep->set("TIME", .5 * (tstart + tstop));
-      abs_origin = *time_rep;
-
-    } else if (origin_style == "USER") {
-      // Get time of origin and its format and system from parameters.
-      std::string origin_time = pars["usertime"];
-      std::string origin_time_format = pars["userformat"];
-      std::string origin_time_sys = pars["usersys"].Value();
-
-      // Convert user-specified time into AbsoluteTime.
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format, origin_time_sys, origin_time, *m_reference_header));
-      abs_origin = *time_rep;
-
-    } else {
-      throw std::runtime_error("Unsupported origin style " + origin_style);
-    }
-
     // Set up target time representation, used to compute the time series to analyze.
+    AbsoluteTime abs_origin = getTimeOrigin(pars);
     m_target_time_rep = createMetRep(target_time_sys, abs_origin);
-
-    return abs_origin;
   }
 
   PulsarEph & PulsarToolApp::updateEphComputer(const AbsoluteTime & abs_origin) {
@@ -427,10 +404,69 @@ namespace pulsarDb {
   }
 
   AbsoluteTime PulsarToolApp::getEventTime() {
-    return AbsoluteTime(computeTargetTime(**m_table_itor, *m_event_itor, m_time_field));
+    return readTimeColumn(**m_table_itor, *m_event_itor, m_time_field, true);
   }
 
-  AbsoluteTime PulsarToolApp::readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record, const std::string & column_name) {
+  AbsoluteTime PulsarToolApp::getStartTime() {
+    return computeTimeBoundary(true, true);
+  }
+
+  AbsoluteTime PulsarToolApp::getStopTime() {
+    return computeTimeBoundary(false, true);
+  }
+
+  AbsoluteTime PulsarToolApp::getTimeOrigin(const st_app::AppParGroup & pars) {
+    AbsoluteTime abs_origin("TDB", Duration(0, 0.), Duration(0, 0.));
+
+    // Handle styles of origin input.
+    std::string origin_style = pars["timeorigin"];
+    for (std::string::iterator itor = origin_style.begin(); itor != origin_style.end(); ++itor) *itor = std::toupper(*itor);
+    if (origin_style == "START") {
+      // Get the uncorrected start time of event list.
+      abs_origin = computeTimeBoundary(true, false);
+
+    } else if (origin_style == "STOP") {
+      // Get the uncorrected stop time of event list.
+      abs_origin = computeTimeBoundary(false, false);
+
+    } else if (origin_style == "MIDDLE") {
+      // Use the center of the observation as the time origin.
+      AbsoluteTime abs_tstart = computeTimeBoundary(true, false);
+      AbsoluteTime abs_tstop = computeTimeBoundary(true, false);
+
+      std::string time_sys;
+      (*m_reference_header)["TIMESYS"].get(time_sys);
+      std::auto_ptr<TimeRep> time_rep(createMetRep(time_sys, abs_tstart));
+
+      double tstart = 0.;
+      double tstop = 0.;
+      *time_rep = abs_tstart;
+      time_rep->get("TIME", tstart);
+      *time_rep = abs_tstop;
+      time_rep->get("TIME", tstop);
+      time_rep->set("TIME", .5 * (tstart + tstop));
+
+      abs_origin = *time_rep;
+
+    } else if (origin_style == "USER") {
+      // Get time of origin and its format and system from parameters.
+      std::string origin_time = pars["usertime"];
+      std::string origin_time_format = pars["userformat"];
+      std::string origin_time_sys = pars["usersys"].Value();
+
+      // Convert user-specified time into AbsoluteTime.
+      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format, origin_time_sys, origin_time, *m_reference_header));
+      abs_origin = *time_rep;
+
+    } else {
+      throw std::runtime_error("Unsupported origin style " + origin_style);
+    }
+
+    return abs_origin;
+  }
+
+  AbsoluteTime PulsarToolApp::readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record, const std::string & column_name,
+    bool request_time_correction) {
     // Get time value from given record.
     double time_value = record[column_name].get();
 
@@ -440,21 +476,18 @@ namespace pulsarDb {
     // Assign the value to the time representation.
     time_rep->set("TIME", time_value);
 
-    // Convert TimeRep into AbsoluteTime so that computer can perform the necessary corrections, and return it.
-    return AbsoluteTime(*time_rep);
-  }
+    // Convert TimeRep into AbsoluteTime so that computer can perform the necessary corrections.
+    AbsoluteTime abs_time(*time_rep);
 
-  AbsoluteTime PulsarToolApp::computeTargetTime(const tip::Table & table, tip::ConstTableRecord & record,
-    const std::string & column_name) {
-    // Get time column value as AbsoluteTime.
-    AbsoluteTime abs_time = readTimeColumn(table, record, column_name);
-
-    // Apply selected corrections.
-    bool correct_bary = m_request_bary && m_need_bary_dict[&table];
-    if (correct_bary) throw std::runtime_error("Automatic barycentric correction not implemented.");
-    if (m_demod_bin) m_computer->demodulateBinary(abs_time);
-    if (m_cancel_pdot) m_computer->cancelPdot(abs_time);
+    // Apply selected corrections, if requested.
+    if (request_time_correction) {
+      bool correct_bary = m_request_bary && m_need_bary_dict[&table];
+      if (correct_bary) throw std::runtime_error("Automatic barycentric correction not implemented.");
+      if (m_demod_bin) m_computer->demodulateBinary(abs_time);
+      if (m_cancel_pdot) m_computer->cancelPdot(abs_time);
+    }
 
     return abs_time;
   }
+
 }

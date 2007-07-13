@@ -44,10 +44,7 @@ namespace pulsarDb {
 
       void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser);
 
-      void computeTimeBoundary(timeSystem::AbsoluteTime & abs_tstart, timeSystem::AbsoluteTime & abs_tstop);
-
-      timeSystem::AbsoluteTime initTargetTime(const st_app::AppParGroup & pars,
-        const timeSystem::AbsoluteTime & abs_tstart, const timeSystem::AbsoluteTime & abs_tstop);
+      void initTargetTime(const st_app::AppParGroup & pars);
 
       PulsarEph & updateEphComputer(const timeSystem::AbsoluteTime & abs_time);
 
@@ -62,6 +59,12 @@ namespace pulsarDb {
       bool isEndOfEventList();
 
       timeSystem::AbsoluteTime getEventTime();
+
+      timeSystem::AbsoluteTime getStartTime();
+
+      timeSystem::AbsoluteTime getStopTime();
+
+      timeSystem::AbsoluteTime getTimeOrigin(const st_app::AppParGroup & pars);
 
     private:
       table_cont_type m_event_table_cont;
@@ -85,10 +88,9 @@ namespace pulsarDb {
       timeSystem::TimeRep * createMetRep(const std::string & time_system, const timeSystem::AbsoluteTime & abs_reference);
 
       timeSystem::AbsoluteTime readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record,
-        const std::string & column_name);
+        const std::string & column_name, bool request_time_correction = false);
 
-      timeSystem::AbsoluteTime computeTargetTime(const tip::Table & table, tip::ConstTableRecord & record,
-        const std::string & column_name);
+      timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
   };
 
 }
