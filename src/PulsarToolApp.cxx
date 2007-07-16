@@ -432,7 +432,7 @@ namespace pulsarDb {
     } else if (origin_style == "MIDDLE") {
       // Use the center of the observation as the time origin.
       AbsoluteTime abs_tstart = computeTimeBoundary(true, false);
-      AbsoluteTime abs_tstop = computeTimeBoundary(true, false);
+      AbsoluteTime abs_tstop = computeTimeBoundary(false, false);
 
       std::string time_sys;
       (*m_reference_header)["TIMESYS"].get(time_sys);
