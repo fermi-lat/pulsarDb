@@ -44,8 +44,6 @@ namespace pulsarDb {
 
       void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser);
 
-      void initTargetTime(const st_app::AppParGroup & pars);
-
       void initTimeCorrection(const st_app::AppParGroup & pars);
 
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);

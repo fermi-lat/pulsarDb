@@ -294,40 +294,6 @@ namespace pulsarDb {
     return abs_candidate_time;
   }
 
-  void PulsarToolApp::initTargetTime(const st_app::AppParGroup & pars) {
-    std::string target_time_sys;
-    bool time_system_set = false;
-
-    // TODO: the following if-statement will become 'if (tcorrect == "NONE")' when tcorrect is introduced.
-    if (!m_request_bary && !m_demod_bin && !m_cancel_pdot) {
-      // When NO corrections are requested, the analysis will be performed in the time system written in event files,
-      // requiring all event files have same time system.
-      std::string this_time_system;
-      for (table_cont_type::const_iterator itor = m_event_table_cont.begin(); itor != m_event_table_cont.end(); ++itor) {
-        const tip::Table * event_table = *itor;
-        const tip::Header & header(event_table->getHeader());
-        header["TIMESYS"].get(this_time_system);
-        if (!time_system_set) {
-          target_time_sys = this_time_system;
-          time_system_set = true;
-        } else if (this_time_system != target_time_sys) {
-          throw std::runtime_error("event files with different TIMESYS values cannot be combined");
-        }
-      }
-    } else {
-      // When ANY correction(s) are requested, the analysis will be performed in TDB system.
-      target_time_sys = "TDB";
-      time_system_set = true;
-    }
-
-    // Check whether time system is successfully set.
-    if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
-
-    // Set up target time representation, used to compute the time series to analyze.
-    AbsoluteTime abs_origin = getTimeOrigin(pars);
-    m_target_time_rep = createMetRep(target_time_sys, abs_origin);
-  }
-
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars) {
     // Determine whether to request barycentric correction.
     // TODO: Read tcorrect parameter and set m_request_bary unless tcorrect == NONE.
@@ -361,6 +327,39 @@ namespace pulsarDb {
       ephemerides.clear();
       ephemerides.push_back(eph);
     }
+
+    // Initialize the time series to analyze.
+    std::string target_time_sys;
+    bool time_system_set = false;
+
+    // TODO: the following if-statement will become 'if (tcorrect == "NONE")' when tcorrect is introduced.
+    if (!m_request_bary && !m_demod_bin && !m_cancel_pdot) {
+      // When NO corrections are requested, the analysis will be performed in the time system written in event files,
+      // requiring all event files have same time system.
+      std::string this_time_system;
+      for (table_cont_type::const_iterator itor = m_event_table_cont.begin(); itor != m_event_table_cont.end(); ++itor) {
+        const tip::Table * event_table = *itor;
+        const tip::Header & header(event_table->getHeader());
+        header["TIMESYS"].get(this_time_system);
+        if (!time_system_set) {
+          target_time_sys = this_time_system;
+          time_system_set = true;
+        } else if (this_time_system != target_time_sys) {
+          throw std::runtime_error("event files with different TIMESYS values cannot be combined");
+        }
+      }
+    } else {
+      // When ANY correction(s) are requested, the analysis will be performed in TDB system.
+      target_time_sys = "TDB";
+      time_system_set = true;
+    }
+
+    // Check whether time system is successfully set.
+    if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
+
+    // Set up target time representation, used to compute the time series to analyze.
+    AbsoluteTime abs_origin = getTimeOrigin(pars);
+    m_target_time_rep = createMetRep(target_time_sys, abs_origin);
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
