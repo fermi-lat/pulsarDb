@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Mon Jul 16 15:46:09 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Add getEphComputer method that returns a reference to the internal EphComputer data member. Merge updateEphComputer method to initTimeCorrection method.
+
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jul 16 15:46:09 PDT 2007
 pulsarDb/src
 
 Modified Files:
