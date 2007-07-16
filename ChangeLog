@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Jul 16 16:10:10 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Merge initTargetTime method to initTimeCorrection method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jul 16 15:46:09 PDT 2007
 pulsarDb/pulsarDb
 
