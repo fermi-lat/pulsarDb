@@ -46,8 +46,6 @@ namespace pulsarDb {
 
       void initTargetTime(const st_app::AppParGroup & pars);
 
-      PulsarEph & updateEphComputer(const timeSystem::AbsoluteTime & abs_time);
-
       void initTimeCorrection(const st_app::AppParGroup & pars);
 
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);
@@ -65,6 +63,8 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime getStopTime();
 
       timeSystem::AbsoluteTime getTimeOrigin(const st_app::AppParGroup & pars);
+
+      EphComputer & getEphComputer();
 
     private:
       table_cont_type m_event_table_cont;
