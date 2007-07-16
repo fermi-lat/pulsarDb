@@ -328,19 +328,6 @@ namespace pulsarDb {
     m_target_time_rep = createMetRep(target_time_sys, abs_origin);
   }
 
-  PulsarEph & PulsarToolApp::updateEphComputer(const AbsoluteTime & abs_origin) {
-    // Compute an ephemeris at abs_origin to use for the test.
-    PulsarEph * eph(m_computer->calcPulsarEph(abs_origin).clone());
-
-    // Reset computer to contain only the corrected ephemeris which was just computed.
-    PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-    ephemerides.clear();
-    ephemerides.push_back(eph);
-
-    // Return reference to the computed ephemeris.
-    return *eph;
-  }
-
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars) {
     // Determine whether to request barycentric correction.
     // TODO: Read tcorrect parameter and set m_request_bary unless tcorrect == NONE.
@@ -363,6 +350,17 @@ namespace pulsarDb {
     // Determine whether to cancel pdot.
     m_cancel_pdot = bool(pars["cancelpdot"]);
 
+    // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
+    if (m_cancel_pdot) {
+      // Compute an ephemeris at abs_origin to use for the test.
+      AbsoluteTime abs_origin = getTimeOrigin(pars);
+      PulsarEph * eph(m_computer->calcPulsarEph(abs_origin).clone());
+
+      // Reset computer to contain only the corrected ephemeris which was just computed.
+      PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
+      ephemerides.clear();
+      ephemerides.push_back(eph);
+    }
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
@@ -463,6 +461,10 @@ namespace pulsarDb {
     }
 
     return abs_origin;
+  }
+
+  EphComputer & PulsarToolApp::getEphComputer() {
+    return *m_computer;
   }
 
   AbsoluteTime PulsarToolApp::readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record, const std::string & column_name,
