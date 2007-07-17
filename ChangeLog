@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jul 17 13:52:46 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add EphComputer subclass, EphComputer2, which temporarily overrides cancelPdot method (EphComputer2 should be merged into EphComputer class later). Change some of PulsarToolApp methods to const methods.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jul 16 16:10:10 PDT 2007
 pulsarDb/pulsarDb
 
