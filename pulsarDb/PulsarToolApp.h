@@ -37,9 +37,6 @@ namespace pulsarDb {
 
       void setPdotCancelParameter(const PulsarEph & pdot_pars);
 
-      void setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
-        double f1f0ratio, double f2f0ratio = 0.);
-
       void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
 
     private:
@@ -65,7 +62,7 @@ namespace pulsarDb {
 
       void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser);
 
-      void initTimeCorrection(const st_app::AppParGroup & pars);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot);
 
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);
 
