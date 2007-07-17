@@ -39,15 +39,6 @@ namespace pulsarDb {
     m_pdot_pars = pdot_pars.clone();
   }
 
-  void EphComputer2::setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
-    double f1f0ratio, double f2f0ratio) {
-    double phi0 = 0.;
-    double f0 = 1.;
-    double f1 = f1f0ratio;
-    double f2 = f2f0ratio;
-    m_pdot_pars = new FrequencyEph(time_system_name, time_origin, time_origin, time_origin, phi0, f0, f1, f2);
-  }
-
   void EphComputer2::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
     if (m_pdot_pars) {
       m_model2->cancelPdot(*m_pdot_pars, ev_time);
@@ -325,7 +316,7 @@ namespace pulsarDb {
     return abs_candidate_time;
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars) {
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot) {
     // Determine whether to request barycentric correction.
     // TODO: Read tcorrect parameter and set m_request_bary unless tcorrect == NONE.
     m_request_bary = false;
@@ -346,13 +337,6 @@ namespace pulsarDb {
 
     // Determine whether to cancel pdot.
     m_cancel_pdot = bool(pars["cancelpdot"]);
-
-    // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
-    if (m_cancel_pdot) {
-      // Compute an ephemeris at abs_origin to use for pdot cancellation.
-      AbsoluteTime abs_origin = getTimeOrigin(pars);
-      m_computer->setPdotCancelParameter(m_computer->calcPulsarEph(abs_origin));
-    }
 
     // Initialize the time series to analyze.
     std::string target_time_sys;
@@ -386,6 +370,30 @@ namespace pulsarDb {
     // Set up target time representation, used to compute the time series to analyze.
     AbsoluteTime abs_origin = getTimeOrigin(pars);
     m_target_time_rep = createMetRep(target_time_sys, abs_origin);
+
+    // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
+    if (m_cancel_pdot) {
+      if (guess_pdot) {
+        // Compute an ephemeris at abs_origin to use for pdot cancellation.
+        m_computer->setPdotCancelParameter(m_computer->calcPulsarEph(abs_origin));
+      } else {
+        // Read parameters for pdot cancellation from pfile.
+        std::string eph_style = pars["ephstyle"];
+        double phi0 = 0.;
+        if (eph_style == "FREQ") {
+          double f0 = 1.;
+          double f1 = pars["f1f0ratio"];;
+          double f2 = pars["f2f0ratio"];
+          m_computer->setPdotCancelParameter(FrequencyEph(target_time_sys, abs_origin, abs_origin, abs_origin, phi0, f0, f1, f2));
+        } else if (eph_style == "PER") {
+          double p0 = 1.;
+          double p1 = pars["p1p0ratio"];
+          double p2 = pars["p2p0ratio"];
+          m_computer->setPdotCancelParameter(PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, phi0, p0, p1, p2));
+        }
+      }
+    }
+
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
