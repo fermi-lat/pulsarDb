@@ -26,6 +26,27 @@
 
 namespace pulsarDb {
 
+  // TODO: Merge EphComputer2 into EphComputer once all the pulsar tools use PulsarToolApp.
+  class EphComputer2 : public EphComputer {
+    public:
+      EphComputer2();
+
+      EphComputer2(const TimingModel & model, const EphChooser & chooser);
+
+      ~EphComputer2();
+
+      void setPdotCancelParameter(const PulsarEph & pdot_pars);
+
+      void setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
+        double f1f0ratio, double f2f0ratio = 0.);
+
+      void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
+
+    private:
+      PulsarEph * m_pdot_pars;
+      TimingModel * m_model2; // Not needed when merged to EphComputer.
+  };
+
   class PulsarToolApp : public st_app::StApp {
     public:
       typedef std::vector<const tip::Table *> table_cont_type;
@@ -35,10 +56,10 @@ namespace pulsarDb {
       virtual void run() = 0;
 
       virtual timeSystem::TimeRep * createTimeRep(const std::string & time_format, const std::string & time_system,
-        const std::string & time_value);
+        const std::string & time_value) const;
 
       virtual timeSystem::TimeRep * createTimeRep(const std::string & time_format, const std::string & time_system,
-        const std::string & time_value, const tip::Header & header);
+        const std::string & time_value, const tip::Header & header) const;
 
       void openEventFile(const st_app::AppParGroup & pars);
 
@@ -52,7 +73,7 @@ namespace pulsarDb {
 
       void setNextEvent();
 
-      bool isEndOfEventList();
+      bool isEndOfEventList() const;
 
       timeSystem::AbsoluteTime getEventTime();
 
@@ -62,7 +83,7 @@ namespace pulsarDb {
 
       timeSystem::AbsoluteTime getTimeOrigin(const st_app::AppParGroup & pars);
 
-      EphComputer & getEphComputer();
+      EphComputer2 & getEphComputer() const;
 
     private:
       table_cont_type m_event_table_cont;
@@ -73,7 +94,7 @@ namespace pulsarDb {
       std::map<const tip::Table *, timeSystem::TimeRep *> m_time_rep_dict;
       std::map<const tip::Table *, bool> m_need_bary_dict;
       const tip::Header * m_reference_header;
-      EphComputer * m_computer;
+      EphComputer2 * m_computer;
       bool m_request_bary;
       bool m_demod_bin;
       bool m_cancel_pdot;
@@ -83,7 +104,7 @@ namespace pulsarDb {
       tip::Table::ConstIterator m_event_itor;
 
       // TODO: refactor MetRep to include functionality of this method and remove this method.
-      timeSystem::TimeRep * createMetRep(const std::string & time_system, const timeSystem::AbsoluteTime & abs_reference);
+      timeSystem::TimeRep * createMetRep(const std::string & time_system, const timeSystem::AbsoluteTime & abs_reference) const;
 
       timeSystem::AbsoluteTime readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record,
         const std::string & column_name, bool request_time_correction = false);

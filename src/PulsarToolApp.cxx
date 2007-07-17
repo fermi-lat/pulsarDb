@@ -25,6 +25,37 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
+  EphComputer2::EphComputer2(): EphComputer(), m_pdot_pars(0), m_model2(new TimingModel) {}
+
+  EphComputer2::EphComputer2(const TimingModel & model, const EphChooser & chooser): EphComputer(model, chooser), m_pdot_pars(0),
+    m_model2(model.clone()) {}
+
+  EphComputer2::~EphComputer2() {
+    if (m_pdot_pars) delete m_pdot_pars;
+    delete m_model2;
+  }
+
+  void EphComputer2::setPdotCancelParameter(const PulsarEph & pdot_pars) {
+    m_pdot_pars = pdot_pars.clone();
+  }
+
+  void EphComputer2::setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
+    double f1f0ratio, double f2f0ratio) {
+    double phi0 = 0.;
+    double f0 = 1.;
+    double f1 = f1f0ratio;
+    double f2 = f2f0ratio;
+    m_pdot_pars = new FrequencyEph(time_system_name, time_origin, time_origin, time_origin, phi0, f0, f1, f2);
+  }
+
+  void EphComputer2::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
+    if (m_pdot_pars) {
+      m_model2->cancelPdot(*m_pdot_pars, ev_time);
+    } else {
+      throw std::runtime_error("Parameters for pdot cancellation are not set");
+    }
+  }
+
   PulsarToolApp::PulsarToolApp(): m_time_field(""), m_gti_start_field(""), m_gti_stop_field(""), m_reference_header(0), m_computer(0),
     m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0) {}
 
@@ -37,7 +68,7 @@ namespace pulsarDb {
   }
 
   TimeRep * PulsarToolApp::createTimeRep(const std::string & time_format, const std::string & time_system,
-    const std::string & time_value) {
+    const std::string & time_value) const {
     TimeRep * time_rep(0);
 
     // Make upper case copies of input for case insensitive comparisons.
@@ -63,7 +94,7 @@ namespace pulsarDb {
   }
 
   TimeRep * PulsarToolApp::createTimeRep(const std::string & time_format, const std::string & time_system,
-    const std::string & time_value, const tip::Header & header) {
+    const std::string & time_value, const tip::Header & header) const {
     TimeRep * time_rep(0);
 
     // Make upper case copies of input for case insensitive comparisons.
@@ -102,7 +133,7 @@ namespace pulsarDb {
     return time_rep;
   }
 
-  TimeRep * PulsarToolApp::createMetRep(const std::string & time_system, const AbsoluteTime & abs_reference) {
+  TimeRep * PulsarToolApp::createMetRep(const std::string & time_system, const AbsoluteTime & abs_reference) const {
     // Compute MJD of abs_reference (the origin of the time series to analyze), to be given as MJDREF of MetRep.
     // NOTE: MetRep should take AbsoluteTime for its MJDREF (Need refactor of AbsoluteTime for that).
     // TODO: Once MetRep is refactored, remove this method.
@@ -177,7 +208,7 @@ namespace pulsarDb {
     const EphChooser & chooser) {
 
     // Create ephemeris computer.
-    m_computer = new EphComputer(model, chooser);
+    m_computer = new EphComputer2(model, chooser);
 
     std::string eph_style = pars["ephstyle"];
     for (std::string::iterator itor = eph_style.begin(); itor != eph_style.end(); ++itor) *itor = std::toupper(*itor);
@@ -318,14 +349,9 @@ namespace pulsarDb {
 
     // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
     if (m_cancel_pdot) {
-      // Compute an ephemeris at abs_origin to use for the test.
+      // Compute an ephemeris at abs_origin to use for pdot cancellation.
       AbsoluteTime abs_origin = getTimeOrigin(pars);
-      PulsarEph * eph(m_computer->calcPulsarEph(abs_origin).clone());
-
-      // Reset computer to contain only the corrected ephemeris which was just computed.
-      PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-      ephemerides.clear();
-      ephemerides.push_back(eph);
+      m_computer->setPdotCancelParameter(m_computer->calcPulsarEph(abs_origin));
     }
 
     // Initialize the time series to analyze.
@@ -396,7 +422,7 @@ namespace pulsarDb {
     }
   }
 
-  bool PulsarToolApp::isEndOfEventList() {
+  bool PulsarToolApp::isEndOfEventList() const {
     return (m_table_itor == m_event_table_cont.end());
   }
 
@@ -462,7 +488,7 @@ namespace pulsarDb {
     return abs_origin;
   }
 
-  EphComputer & PulsarToolApp::getEphComputer() {
+  EphComputer2 & PulsarToolApp::getEphComputer() const {
     return *m_computer;
   }
 
