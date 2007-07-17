@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jul 17 14:33:30 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Modify initTimeCorrection method to useSetPdotCancelParameter method for initialization of pdot cancellation. Remove one of the two overloaded methods of setPdotCancelParameter.
+
+    *
+------------------------------------------------------------
 User: hirayama  Tue Jul 17 14:33:29 PDT 2007
 pulsarDb/src
 
