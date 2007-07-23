@@ -2,7 +2,7 @@
     \mainpage pulsarDb package
 
     \author  Masaharu Hirayama hirayama@jca.umbc.edu
-             James Peachey peachey@milkyway.gsfc.nasa.gov
+             James Peachey James.Peachey-1@nasa.gov
 
     \section synopsis Synopsis 
     The purpose of this package is to provide an interface to the standard pulsar ephemeris

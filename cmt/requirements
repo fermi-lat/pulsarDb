@@ -1,6 +1,6 @@
 package pulsarDb
 
-author James Peachey <peachey@milkyway.gsfc.nasa.gov>
+author James Peachey <James.Peachey-1@nasa.gov>
 
 use STpolicy *
 use st_app *
