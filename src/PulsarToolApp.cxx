@@ -198,18 +198,28 @@ namespace pulsarDb {
 
   void PulsarToolApp::defineTimeCorrectionMode(const std::string & mode_name, TimeCorrectionMode_e tcmode_bary,
     TimeCorrectionMode_e tcmode_bin, TimeCorrectionMode_e tcmode_pdot) {
-    m_tcmode_dict_bary[mode_name] = tcmode_bary;
-    m_tcmode_dict_bin[mode_name] = tcmode_bin;
-    m_tcmode_dict_pdot[mode_name] = tcmode_pdot;
+    // Make mode_name argument case-insensitive.
+    std::string mode_name_uc = mode_name;
+    for (std::string::iterator itor = mode_name_uc.begin(); itor != mode_name_uc.end(); ++itor) *itor = std::toupper(*itor);
+
+    // Store given modes to internal variables.
+    m_tcmode_dict_bary[mode_name_uc] = tcmode_bary;
+    m_tcmode_dict_bin[mode_name_uc] = tcmode_bin;
+    m_tcmode_dict_pdot[mode_name_uc] = tcmode_pdot;
   }
 
   void PulsarToolApp::selectTimeCorrectionMode(const std::string & mode_name) {
+    // Make mode_name argument case-insensitive.
+    std::string mode_name_uc = mode_name;
+    for (std::string::iterator itor = mode_name_uc.begin(); itor != mode_name_uc.end(); ++itor) *itor = std::toupper(*itor);
+
+    // Select time correction mode.
     std::map<const std::string, TimeCorrectionMode_e>::iterator itor;
-    itor = m_tcmode_dict_bary.find(mode_name);
+    itor = m_tcmode_dict_bary.find(mode_name_uc);
     if (itor != m_tcmode_dict_bary.end()) {
-      m_tcmode_bary = m_tcmode_dict_bary[mode_name];
-      m_tcmode_bin = m_tcmode_dict_bin[mode_name];
-      m_tcmode_pdot = m_tcmode_dict_pdot[mode_name];
+      m_tcmode_bary = m_tcmode_dict_bary[mode_name_uc];
+      m_tcmode_bin = m_tcmode_dict_bin[mode_name_uc];
+      m_tcmode_pdot = m_tcmode_dict_pdot[mode_name_uc];
     } else {
       throw std::runtime_error("Unknown time correction mode requested.");
     }
@@ -244,15 +254,25 @@ namespace pulsarDb {
 
   void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
     const EphChooser & chooser) {
+    // Read ephstyle parameter.
+    std::string eph_style = pars["ephstyle"];
+
+    // initialize EphComputer with given ephemeris style.
+    initEphComputer(pars, model, chooser, eph_style);
+  }
+
+  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
+    const EphChooser & chooser, const std::string & eph_style) {
     // Create ephemeris computer.
     m_computer = new EphComputer2(model, chooser);
 
-    std::string eph_style = pars["ephstyle"];
-    for (std::string::iterator itor = eph_style.begin(); itor != eph_style.end(); ++itor) *itor = std::toupper(*itor);
+    // Make eph_style argument case-insensitive.
+    std::string eph_style_uc = eph_style;
+    for (std::string::iterator itor = eph_style_uc.begin(); itor != eph_style_uc.end(); ++itor) *itor = std::toupper(*itor);
 
     // Determine the time system used for the ephemeris epoch.
     std::string epoch_time_sys;
-    if (eph_style == "DB") epoch_time_sys = "TDB";
+    if (eph_style_uc == "DB") epoch_time_sys = "TDB";
     else epoch_time_sys = pars["timesys"].Value();
 
     // Ignored but needed for timing model.
@@ -260,14 +280,14 @@ namespace pulsarDb {
 
     std::string psr_name = pars["psrname"];
 
-    if (eph_style != "DB") {
+    if (eph_style_uc != "DB") {
       std::string epoch_time_format = pars["timeformat"];
       std::string epoch = pars["ephepoch"];
       std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, *m_reference_header));
       AbsoluteTime abs_epoch(*time_rep);
 
       // Handle either period or frequency-style input.
-      if (eph_style == "FREQ") {
+      if (eph_style_uc == "FREQ") {
         double f0 = pars["f0"];
         double f1 = pars["f1"];
         double f2 = pars["f2"];
@@ -277,7 +297,7 @@ namespace pulsarDb {
         // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
         PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
         ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, phi0, f0, f1, f2).clone());
-      } else if (eph_style == "PER") {
+      } else if (eph_style_uc == "PER") {
         double p0 = pars["p0"];
         double p1 = pars["p1"];
         double p2 = pars["p2"];
@@ -292,7 +312,7 @@ namespace pulsarDb {
       }
     }
 
-    if (eph_style == "DB" || m_tcmode_bin != SUPPRESSED) {
+    if (eph_style_uc == "DB" || m_tcmode_bin != SUPPRESSED) {
       // Find the pulsar database.
       std::string psrdb_file = pars["psrdbfile"];
       std::string psrdb_file_uc = psrdb_file;
@@ -310,7 +330,7 @@ namespace pulsarDb {
       database.filterName(psr_name);
 
       // Load the selected ephemerides.
-      if (eph_style == "DB") m_computer->loadPulsarEph(database);
+      if (eph_style_uc == "DB") m_computer->loadPulsarEph(database);
       m_computer->loadOrbitalEph(database);
     }
   }
@@ -429,6 +449,7 @@ namespace pulsarDb {
       } else {
         // Read parameters for pdot cancellation from pfile.
         std::string eph_style = pars["ephstyle"];
+        for (std::string::iterator itor = eph_style.begin(); itor != eph_style.end(); ++itor) *itor = std::toupper(*itor);
         double phi0 = 0.;
         if (eph_style == "FREQ") {
           double f0 = 1.;
