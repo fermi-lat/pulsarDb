@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 27 15:37:37 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Suppress pdot cancellation when cancelpdot parameter is missing.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul 27 15:31:23 PDT 2007
 pulsarDb/src
 
