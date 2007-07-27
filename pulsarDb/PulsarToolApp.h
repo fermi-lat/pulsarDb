@@ -64,6 +64,11 @@ namespace pulsarDb {
 
       void openEventFile(const st_app::AppParGroup & pars);
 
+      void defineTimeCorrectionMode(const std::string & mode_name, TimeCorrectionMode_e tcmode_bary, TimeCorrectionMode_e tcmode_bin,
+        TimeCorrectionMode_e tcmode_pdot);
+
+      void selectTimeCorrectionMode(const std::string & mode_name);
+
       void selectTimeCorrectionMode(const st_app::AppParGroup & pars);
 
       void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser);
@@ -98,6 +103,9 @@ namespace pulsarDb {
       std::map<const tip::Table *, bool> m_need_bary_dict;
       const tip::Header * m_reference_header;
       EphComputer2 * m_computer;
+      std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bary;
+      std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bin;
+      std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_pdot;
       TimeCorrectionMode_e m_tcmode_bary;
       TimeCorrectionMode_e m_tcmode_bin;
       TimeCorrectionMode_e m_tcmode_pdot;

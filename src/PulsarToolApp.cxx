@@ -196,6 +196,25 @@ namespace pulsarDb {
     m_reference_header = &(reference_table->getHeader());
   }
 
+  void PulsarToolApp::defineTimeCorrectionMode(const std::string & mode_name, TimeCorrectionMode_e tcmode_bary,
+    TimeCorrectionMode_e tcmode_bin, TimeCorrectionMode_e tcmode_pdot) {
+    m_tcmode_dict_bary[mode_name] = tcmode_bary;
+    m_tcmode_dict_bin[mode_name] = tcmode_bin;
+    m_tcmode_dict_pdot[mode_name] = tcmode_pdot;
+  }
+
+  void PulsarToolApp::selectTimeCorrectionMode(const std::string & mode_name) {
+    std::map<const std::string, TimeCorrectionMode_e>::iterator itor;
+    itor = m_tcmode_dict_bary.find(mode_name);
+    if (itor != m_tcmode_dict_bary.end()) {
+      m_tcmode_bary = m_tcmode_dict_bary[mode_name];
+      m_tcmode_bin = m_tcmode_dict_bin[mode_name];
+      m_tcmode_pdot = m_tcmode_dict_pdot[mode_name];
+    } else {
+      throw std::runtime_error("Unknown time correction mode requested.");
+    }
+  }
+
   void PulsarToolApp::selectTimeCorrectionMode(const st_app::AppParGroup & pars) {
     // TODO: Read tcorrect parameter and set m_tcmode_bary/bin/pdot appropriately.
 
