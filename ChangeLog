@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Jul 27 14:44:17 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Add capability to handle a caller-defined set of time correction modes, by adding defineTimeCorrectionMode and overloading selectTimeCorrection.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jul 27 14:44:17 PDT 2007
 pulsarDb/src
 
 Modified Files:
