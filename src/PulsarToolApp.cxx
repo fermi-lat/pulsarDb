@@ -48,6 +48,7 @@ namespace pulsarDb {
   }
 
   PulsarToolApp::PulsarToolApp(): m_time_field(""), m_gti_start_field(""), m_gti_stop_field(""), m_reference_header(0), m_computer(0),
+    m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
     m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
@@ -195,9 +196,35 @@ namespace pulsarDb {
     m_reference_header = &(reference_table->getHeader());
   }
 
+  void PulsarToolApp::selectTimeCorrectionMode(const st_app::AppParGroup & pars) {
+    // TODO: Read tcorrect parameter and set m_tcmode_bary/bin/pdot appropriately.
+
+    // Determine time correction mode for barycentric correction.
+    // TODO: Change this when barycentering-on-the-fly is implemented.
+    m_tcmode_bary = SUPPRESSED;
+
+    // Determine time correction mode for binary demodulation.
+    std::string demod_bin_string = pars["demodbin"];
+    for (std::string::iterator itor = demod_bin_string.begin(); itor != demod_bin_string.end(); ++itor) *itor = std::toupper(*itor);
+    if (demod_bin_string == "YES") {
+      m_tcmode_bin = REQUIRED;
+    } else if (demod_bin_string == "NO") {
+      m_tcmode_bin = SUPPRESSED;
+    } else if (demod_bin_string == "AUTO") {
+      m_tcmode_bin = ALLOWED;
+    }
+
+    // Determine time correction mode for pdot cancellation.
+    bool cancel_pdot_bool = pars["cancelpdot"];
+    if (cancel_pdot_bool) {
+      m_tcmode_pdot = REQUIRED;
+    } else {
+      m_tcmode_pdot = SUPPRESSED;
+    }
+  }
+
   void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
     const EphChooser & chooser) {
-
     // Create ephemeris computer.
     m_computer = new EphComputer2(model, chooser);
 
@@ -241,12 +268,12 @@ namespace pulsarDb {
         // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
         PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
         ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, phi0, p0, p1, p2).clone());
+      } else {
+        throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
       }
     }
 
-    std::string demod_bin_string = pars["demodbin"];
-    for (std::string::iterator itor = demod_bin_string.begin(); itor != demod_bin_string.end(); ++itor) *itor = std::toupper(*itor);
-    if (eph_style == "DB" || demod_bin_string != "NO") {
+    if (eph_style == "DB" || m_tcmode_bin != SUPPRESSED) {
       // Find the pulsar database.
       std::string psrdb_file = pars["psrdbfile"];
       std::string psrdb_file_uc = psrdb_file;
@@ -318,25 +345,29 @@ namespace pulsarDb {
 
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot) {
     // Determine whether to request barycentric correction.
-    // TODO: Read tcorrect parameter and set m_request_bary unless tcorrect == NONE.
+    // TODO: Change this when barycentering-on-the-fly is implemented.
     m_request_bary = false;
-
-    std::string demod_bin_string = pars["demodbin"];
-    for (std::string::iterator itor = demod_bin_string.begin(); itor != demod_bin_string.end(); ++itor) *itor = std::toupper(*itor);
 
     // Determine whether to perform binary demodulation.
     m_demod_bin = false;
-    if (demod_bin_string != "NO") {
-      // User selected not "no", so attempt to perform demodulation
+    if ((m_tcmode_bin == REQUIRED) || (m_tcmode_bin == ALLOWED)) {
+      // Check whether orbital parameters are available for binary demodulation.
       if (!m_computer->getOrbitalEphCont().empty()) {
         m_demod_bin = true;
-      } else if (demod_bin_string == "YES") {
+      } else if (m_tcmode_bin == REQUIRED) {
         throw std::runtime_error("Binary demodulation was required by user, but no orbital ephemeris was found");
       }
     }
 
     // Determine whether to cancel pdot.
-    m_cancel_pdot = bool(pars["cancelpdot"]);
+    m_cancel_pdot = false;
+    if ((m_tcmode_pdot == REQUIRED) || (m_tcmode_pdot == ALLOWED)) {
+      if (!guess_pdot || !m_computer->getPulsarEphCont().empty()) {
+        m_cancel_pdot = true;
+      } else if (m_tcmode_pdot == REQUIRED) {
+        throw std::runtime_error("Pdot cancellation was required by user, but no spin ephemeris was found");
+      }
+    }
 
     // Initialize the time series to analyze.
     std::string target_time_sys;
@@ -390,6 +421,8 @@ namespace pulsarDb {
           double p1 = pars["p1p0ratio"];
           double p2 = pars["p2p0ratio"];
           m_computer->setPdotCancelParameter(PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, phi0, p0, p1, p2));
+        } else {
+          throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
         }
       }
     }
