@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 27 15:31:23 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Overload initEphComputer for the case where ephemeris style (FREQ, PER, or DB) needs to be specified by caller, not by parameter file. Make names of time correction mode case-insensitive.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul 27 15:29:58 PDT 2007
 pulsarDb/pulsarDb
 
