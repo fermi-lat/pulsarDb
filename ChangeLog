@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 27 15:29:58 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Overload initEphComputer for the case where ephemeris style (FREQ, PER, or DB) needs to be specified by caller, not by parameter file.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul 27 14:44:17 PDT 2007
 pulsarDb/pulsarDb
 
