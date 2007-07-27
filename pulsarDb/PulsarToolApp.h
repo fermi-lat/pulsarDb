@@ -48,6 +48,10 @@ namespace pulsarDb {
     public:
       typedef std::vector<const tip::Table *> table_cont_type;
 
+      enum TimeCorrectionMode_e {
+        REQUIRED, ALLOWED, SUPPRESSED
+      };
+
       PulsarToolApp();
       virtual ~PulsarToolApp() throw();
       virtual void run() = 0;
@@ -59,6 +63,8 @@ namespace pulsarDb {
         const std::string & time_value, const tip::Header & header) const;
 
       void openEventFile(const st_app::AppParGroup & pars);
+
+      void selectTimeCorrectionMode(const st_app::AppParGroup & pars);
 
       void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser);
 
@@ -92,6 +98,9 @@ namespace pulsarDb {
       std::map<const tip::Table *, bool> m_need_bary_dict;
       const tip::Header * m_reference_header;
       EphComputer2 * m_computer;
+      TimeCorrectionMode_e m_tcmode_bary;
+      TimeCorrectionMode_e m_tcmode_bin;
+      TimeCorrectionMode_e m_tcmode_pdot;
       bool m_request_bary;
       bool m_demod_bin;
       bool m_cancel_pdot;
