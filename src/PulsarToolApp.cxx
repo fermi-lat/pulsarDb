@@ -244,10 +244,14 @@ namespace pulsarDb {
     }
 
     // Determine time correction mode for pdot cancellation.
-    bool cancel_pdot_bool = pars["cancelpdot"];
-    if (cancel_pdot_bool) {
-      m_tcmode_pdot = REQUIRED;
-    } else {
+    try {
+      bool cancel_pdot_bool = pars["cancelpdot"];
+      if (cancel_pdot_bool) {
+        m_tcmode_pdot = REQUIRED;
+      } else {
+        m_tcmode_pdot = SUPPRESSED;
+      }
+    } catch (...) {
       m_tcmode_pdot = SUPPRESSED;
     }
   }
