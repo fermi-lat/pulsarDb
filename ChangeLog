@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul 27 14:01:16 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Introduce time correction modes to generalize user's request for various time corrections. Add error message when epystyle is neither FREQ nor PER.
+
+    *
+------------------------------------------------------------
 User: peachey  Mon Jul 23 11:42:53 PDT 2007
 pulsarDb/src
 
