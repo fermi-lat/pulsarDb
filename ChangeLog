@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Jul 30 16:04:12 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add methods to support adding column(s) to the event file(s) and set value(s) to them.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jul 30 12:36:00 PDT 2007
 pulsarDb/src
 
