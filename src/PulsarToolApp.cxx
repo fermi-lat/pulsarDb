@@ -196,6 +196,10 @@ namespace pulsarDb {
     m_reference_header = &(reference_table->getHeader());
   }
 
+  void PulsarToolApp::reserveOutputField(const std::string & field_name, const std::string & field_format) {
+    m_output_field_cont.push_back(std::make_pair(field_name, field_format));
+  }
+
   void PulsarToolApp::defineTimeCorrectionMode(const std::string & mode_name, TimeCorrectionMode_e tcmode_bary,
     TimeCorrectionMode_e tcmode_bin, TimeCorrectionMode_e tcmode_pdot) {
     // Make mode_name argument case-insensitive.
@@ -496,12 +500,30 @@ namespace pulsarDb {
     return time_value;
   }
 
+  void PulsarToolApp::setupEventTable(const tip::Table & table) {
+    m_event_itor = table.begin();
+
+    // Add output field if missing.
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator itor = m_output_field_cont.begin();
+         itor != m_output_field_cont.end(); ++itor) {
+      std::string field_name = itor->first;
+      std::string field_format = itor->second;
+      try {
+        table.getFieldIndex(field_name);
+      } catch (const tip::TipException &) {
+        // TODO: Consider alternative to the "const to non-const" conversion below.
+        tip::Table & table_nc = (tip::Table &)table;
+        table_nc.appendField(field_name, field_format);
+      }
+    }
+  }
+
   void PulsarToolApp::setFirstEvent() {
     // Set event table iterator.
     m_table_itor = m_event_table_cont.begin();
 
     // Setup current event table.
-    if (m_table_itor != m_event_table_cont.end()) m_event_itor = (*m_table_itor)->begin();
+    if (m_table_itor != m_event_table_cont.end()) setupEventTable(**m_table_itor);
   }
 
   void PulsarToolApp::setNextEvent() {
@@ -514,7 +536,7 @@ namespace pulsarDb {
       ++m_table_itor;
 
       // Setup new event table.
-      if (m_table_itor != m_event_table_cont.end()) m_event_itor = (*m_table_itor)->begin();
+      if (m_table_itor != m_event_table_cont.end()) setupEventTable(**m_table_itor);
     }
   }
 
@@ -524,6 +546,12 @@ namespace pulsarDb {
 
   AbsoluteTime PulsarToolApp::getEventTime() {
     return readTimeColumn(**m_table_itor, *m_event_itor, m_time_field, true);
+  }
+
+  void PulsarToolApp::setFieldValue(const std::string & field_name, double field_value) {
+    // TODO: Consider alternative to the "const to non-const" conversion below.
+    tip::TableRecord & record = (tip::TableRecord &)*m_event_itor;
+    record[field_name].set(field_value);
   }
 
   AbsoluteTime PulsarToolApp::getStartTime() {
