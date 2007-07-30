@@ -64,6 +64,8 @@ namespace pulsarDb {
 
       void openEventFile(const st_app::AppParGroup & pars);
 
+      void reserveOutputField(const std::string & field_name, const std::string & field_format);
+
       void defineTimeCorrectionMode(const std::string & mode_name, TimeCorrectionMode_e tcmode_bary, TimeCorrectionMode_e tcmode_bin,
         TimeCorrectionMode_e tcmode_pdot);
 
@@ -88,6 +90,9 @@ namespace pulsarDb {
 
       timeSystem::AbsoluteTime getEventTime();
 
+      // TODO: Accept data types other than double.
+      void setFieldValue(const std::string & field_name, double field_value);
+
       timeSystem::AbsoluteTime getStartTime();
 
       timeSystem::AbsoluteTime getStopTime();
@@ -102,6 +107,7 @@ namespace pulsarDb {
       std::string m_time_field;
       std::string m_gti_start_field;
       std::string m_gti_stop_field;
+      std::vector<std::pair<std::string, std::string> > m_output_field_cont;
       std::map<const tip::Table *, timeSystem::TimeRep *> m_time_rep_dict;
       std::map<const tip::Table *, bool> m_need_bary_dict;
       const tip::Header * m_reference_header;
@@ -127,6 +133,8 @@ namespace pulsarDb {
         const std::string & column_name, bool request_time_correction = false);
 
       timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
+
+      void setupEventTable(const tip::Table & table);
   };
 
 }
