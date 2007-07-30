@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Jul 30 12:36:00 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Prepare for tcorrect parameter, which replaces cancelpdot and demodbin parameters soon.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul 27 15:37:37 PDT 2007
 pulsarDb/src
 
