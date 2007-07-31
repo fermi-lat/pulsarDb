@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: peachey  Tue Jul 31 13:42:15 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add read-only option to openEventFile. When read-only is disabled,
+the event table will be opened with write access. Use const_cast and static_cast
+instead of C cast to make the casts cleaner in places where they are needed.
+
+    *
+------------------------------------------------------------
+User: peachey  Tue Jul 31 13:42:15 PDT 2007
 pulsarDb/pulsarDb
 
 Modified Files:
