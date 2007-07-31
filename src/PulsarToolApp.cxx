@@ -57,6 +57,12 @@ namespace pulsarDb {
     for (std::map<const tip::Table *, TimeRep *>::iterator itor = m_time_rep_dict.begin(); itor != m_time_rep_dict.end(); ++itor) {
       delete itor->second;
     }
+    for (table_cont_type::reverse_iterator itor = m_gti_table_cont.rbegin(); itor != m_gti_table_cont.rend(); ++itor) {
+      delete *itor;
+    }
+    for (table_cont_type::reverse_iterator itor = m_event_table_cont.rbegin(); itor != m_event_table_cont.rend(); ++itor) {
+      delete *itor;
+    }
   }
 
   TimeRep * PulsarToolApp::createTimeRep(const std::string & time_format, const std::string & time_system,
@@ -140,7 +146,7 @@ namespace pulsarDb {
     return new MetRep(time_system, mjd_int, mjd_frac, 0.);
   }
 
-  void PulsarToolApp::openEventFile(const st_app::AppParGroup & pars) {
+  void PulsarToolApp::openEventFile(const st_app::AppParGroup & pars, bool read_only) {
     std::string event_file = pars["evfile"];
     std::string event_extension = pars["evtable"];
 
@@ -159,14 +165,20 @@ namespace pulsarDb {
     // List all event tables and GTI tables.
     table_cont_type all_table_cont;
 
-    // Open the event table.
-    const tip::Table * event_table(tip::IFileSvc::instance().readTable(event_file, event_extension));
+    // Open the event table, either for reading or reading and writing.
+    // Note: for convenience, read-only and read-write tables are stored as const Table pointers
+    // in the container. In the few cases where writing to the tables is necessary, a const_cast will
+    // be necessary.
+    const tip::Table * event_table = 0;
+    if (read_only) event_table = tip::IFileSvc::instance().readTable(event_file, event_extension);
+    else event_table = tip::IFileSvc::instance().editTable(event_file, event_extension);
 
     // Add the table to the container.
     m_event_table_cont.push_back(event_table);
     all_table_cont.push_back(event_table);
 
     // Open the GTI table.
+    // Note: At present, GTI is never modified, so no need to open it read-write.
     const tip::Table * gti_table(tip::IFileSvc::instance().readTable(event_file, "GTI"));
 
     // Add the table to the container.
@@ -511,8 +523,10 @@ namespace pulsarDb {
       try {
         table.getFieldIndex(field_name);
       } catch (const tip::TipException &) {
-        // TODO: Consider alternative to the "const to non-const" conversion below.
-        tip::Table & table_nc = (tip::Table &)table;
+        // Container stores tables as "const Table *" whether the table was really opened read-only or not,
+        // so need to convert back to non-const. Note that if the file actually is opened read-only,
+        // appendField will fail.
+        tip::Table & table_nc = const_cast<tip::Table &>(table);
         table_nc.appendField(field_name, field_format);
       }
     }
@@ -549,8 +563,11 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::setFieldValue(const std::string & field_name, double field_value) {
-    // TODO: Consider alternative to the "const to non-const" conversion below.
-    tip::TableRecord & record = (tip::TableRecord &)*m_event_itor;
+    // Container stores tables as "const Table *" whether the table was really opened read-only or not,
+    // so need to convert back to non-const. Note that if the file actually is opened read-only,
+    // TableRecord::set method will fail.
+    // TODO: Is there some other way to do this? The static_cast gives us the creeps!
+    tip::TableRecord & record = static_cast<tip::TableRecord &>(*m_event_itor);
     record[field_name].set(field_value);
   }
 

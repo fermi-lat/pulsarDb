@@ -62,7 +62,7 @@ namespace pulsarDb {
       virtual timeSystem::TimeRep * createTimeRep(const std::string & time_format, const std::string & time_system,
         const std::string & time_value, const tip::Header & header) const;
 
-      void openEventFile(const st_app::AppParGroup & pars);
+      void openEventFile(const st_app::AppParGroup & pars, bool read_only = true);
 
       void reserveOutputField(const std::string & field_name, const std::string & field_format);
 
