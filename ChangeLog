@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug  1 14:34:32 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Refactor time origin computation by overloading initTimeCorrection method and replacing getTimeOrigin method with more generic, new method computeAbsoluteTime.
+
+    *
+------------------------------------------------------------
 User: peachey  Tue Jul 31 13:42:15 PDT 2007
 pulsarDb/src
 
