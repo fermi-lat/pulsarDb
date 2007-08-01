@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Wed Aug  1 15:17:07 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Change origin_style to str_origin (for cosmetic purpose only).
+
+    *
+------------------------------------------------------------
+User: hirayama  Wed Aug  1 15:17:07 PDT 2007
 pulsarDb/pulsarDb
 
 Modified Files:
