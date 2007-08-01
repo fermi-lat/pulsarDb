@@ -80,7 +80,13 @@ namespace pulsarDb {
 
       void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot);
 
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & origin_style);
+
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const timeSystem::AbsoluteTime & abs_origin);
+
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);
+
+      timeSystem::AbsoluteTime computeAbsoluteTime(double elapsed_time);
 
       void setFirstEvent();
 
@@ -96,8 +102,6 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime getStartTime();
 
       timeSystem::AbsoluteTime getStopTime();
-
-      timeSystem::AbsoluteTime getTimeOrigin(const st_app::AppParGroup & pars);
 
       EphComputer2 & getEphComputer() const;
 
@@ -135,6 +139,7 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
 
       void setupEventTable(const tip::Table & table);
+
   };
 
 }
