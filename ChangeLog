@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug  1 15:17:07 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Change origin_style to str_origin (for cosmetic purpose only).
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug  1 14:34:32 PDT 2007
 pulsarDb/pulsarDb
 
