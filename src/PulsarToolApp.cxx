@@ -414,30 +414,30 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot) {
-    // Read time origin parameter.
-    std::string origin_style = pars["timeorigin"];
+    // Read timeorigin parameter.
+    std::string str_origin = pars["timeorigin"];
 
     // Initialize time correction with the given time origin.
-    initTimeCorrection(pars, guess_pdot, origin_style);
+    initTimeCorrection(pars, guess_pdot, str_origin);
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & origin_style) {
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & str_origin) {
     AbsoluteTime abs_origin("TDB", Duration(0, 0.), Duration(0, 0.));
 
-    // Make origin_style argument case-insensitive.
-    std::string origin_style_uc = origin_style;
-    for (std::string::iterator itor = origin_style_uc.begin(); itor != origin_style_uc.end(); ++itor) *itor = std::toupper(*itor);
+    // Make str_origin argument case-insensitive.
+    std::string str_origin_uc = str_origin;
+    for (std::string::iterator itor = str_origin_uc.begin(); itor != str_origin_uc.end(); ++itor) *itor = std::toupper(*itor);
 
-    // Compute the time origin specified by origin_style argument.
-    if (origin_style_uc == "START") {
+    // Compute the time origin specified by str_origin argument.
+    if (str_origin_uc == "START") {
       // Get the uncorrected start time of event list.
       abs_origin = computeTimeBoundary(true, false);
 
-    } else if (origin_style_uc == "STOP") {
+    } else if (str_origin_uc == "STOP") {
       // Get the uncorrected stop time of event list.
       abs_origin = computeTimeBoundary(false, false);
 
-    } else if (origin_style_uc == "MIDDLE") {
+    } else if (str_origin_uc == "MIDDLE") {
       // Use the center of the observation as the time origin.
       AbsoluteTime abs_tstart = computeTimeBoundary(true, false);
       AbsoluteTime abs_tstop = computeTimeBoundary(false, false);
@@ -456,7 +456,7 @@ namespace pulsarDb {
 
       abs_origin = *time_rep;
 
-    } else if (origin_style_uc == "USER") {
+    } else if (str_origin_uc == "USER") {
       // Get time of origin and its format and system from parameters.
       std::string origin_time = pars["usertime"];
       std::string origin_time_format = pars["userformat"];
@@ -467,7 +467,7 @@ namespace pulsarDb {
       abs_origin = *time_rep;
 
     } else {
-      throw std::runtime_error("Unsupported origin style " + origin_style_uc);
+      throw std::runtime_error("Unsupported time origin " + str_origin_uc);
     }
 
     // Initialize time correction with the time origin just computed.
