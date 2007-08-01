@@ -80,7 +80,7 @@ namespace pulsarDb {
 
       void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot);
 
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & origin_style);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & str_origin);
 
       void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const timeSystem::AbsoluteTime & abs_origin);
 
