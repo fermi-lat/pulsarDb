@@ -414,6 +414,67 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot) {
+    // Read time origin parameter.
+    std::string origin_style = pars["timeorigin"];
+
+    // Initialize time correction with the given time origin.
+    initTimeCorrection(pars, guess_pdot, origin_style);
+  }
+
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & origin_style) {
+    AbsoluteTime abs_origin("TDB", Duration(0, 0.), Duration(0, 0.));
+
+    // Make origin_style argument case-insensitive.
+    std::string origin_style_uc = origin_style;
+    for (std::string::iterator itor = origin_style_uc.begin(); itor != origin_style_uc.end(); ++itor) *itor = std::toupper(*itor);
+
+    // Compute the time origin specified by origin_style argument.
+    if (origin_style_uc == "START") {
+      // Get the uncorrected start time of event list.
+      abs_origin = computeTimeBoundary(true, false);
+
+    } else if (origin_style_uc == "STOP") {
+      // Get the uncorrected stop time of event list.
+      abs_origin = computeTimeBoundary(false, false);
+
+    } else if (origin_style_uc == "MIDDLE") {
+      // Use the center of the observation as the time origin.
+      AbsoluteTime abs_tstart = computeTimeBoundary(true, false);
+      AbsoluteTime abs_tstop = computeTimeBoundary(false, false);
+
+      std::string time_sys;
+      (*m_reference_header)["TIMESYS"].get(time_sys);
+      std::auto_ptr<TimeRep> time_rep(createMetRep(time_sys, abs_tstart));
+
+      double tstart = 0.;
+      double tstop = 0.;
+      *time_rep = abs_tstart;
+      time_rep->get("TIME", tstart);
+      *time_rep = abs_tstop;
+      time_rep->get("TIME", tstop);
+      time_rep->set("TIME", .5 * (tstart + tstop));
+
+      abs_origin = *time_rep;
+
+    } else if (origin_style_uc == "USER") {
+      // Get time of origin and its format and system from parameters.
+      std::string origin_time = pars["usertime"];
+      std::string origin_time_format = pars["userformat"];
+      std::string origin_time_sys = pars["usersys"].Value();
+
+      // Convert user-specified time into AbsoluteTime.
+      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format, origin_time_sys, origin_time, *m_reference_header));
+      abs_origin = *time_rep;
+
+    } else {
+      throw std::runtime_error("Unsupported origin style " + origin_style_uc);
+    }
+
+    // Initialize time correction with the time origin just computed.
+    initTimeCorrection(pars, guess_pdot, abs_origin);
+  }
+
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const AbsoluteTime & abs_origin) {
     // Determine whether to request barycentric correction.
     // TODO: Change this when barycentering-on-the-fly is implemented.
     m_request_bary = false;
@@ -469,7 +530,6 @@ namespace pulsarDb {
     if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
 
     // Set up target time representation, used to compute the time series to analyze.
-    AbsoluteTime abs_origin = getTimeOrigin(pars);
     m_target_time_rep = createMetRep(target_time_sys, abs_origin);
 
     // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
@@ -510,6 +570,14 @@ namespace pulsarDb {
     m_target_time_rep->get("TIME", time_value);
 
     return time_value;
+  }
+
+  timeSystem::AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
+    // Assign the elapsed time to the time representation.
+    m_target_time_rep->set("TIME", elapsed_time);
+
+    // Convert it to AbsoluteTime object and return it.
+    return AbsoluteTime(*m_target_time_rep);
   }
 
   void PulsarToolApp::setupEventTable(const tip::Table & table) {
@@ -577,56 +645,6 @@ namespace pulsarDb {
 
   AbsoluteTime PulsarToolApp::getStopTime() {
     return computeTimeBoundary(false, true);
-  }
-
-  AbsoluteTime PulsarToolApp::getTimeOrigin(const st_app::AppParGroup & pars) {
-    AbsoluteTime abs_origin("TDB", Duration(0, 0.), Duration(0, 0.));
-
-    // Handle styles of origin input.
-    std::string origin_style = pars["timeorigin"];
-    for (std::string::iterator itor = origin_style.begin(); itor != origin_style.end(); ++itor) *itor = std::toupper(*itor);
-    if (origin_style == "START") {
-      // Get the uncorrected start time of event list.
-      abs_origin = computeTimeBoundary(true, false);
-
-    } else if (origin_style == "STOP") {
-      // Get the uncorrected stop time of event list.
-      abs_origin = computeTimeBoundary(false, false);
-
-    } else if (origin_style == "MIDDLE") {
-      // Use the center of the observation as the time origin.
-      AbsoluteTime abs_tstart = computeTimeBoundary(true, false);
-      AbsoluteTime abs_tstop = computeTimeBoundary(false, false);
-
-      std::string time_sys;
-      (*m_reference_header)["TIMESYS"].get(time_sys);
-      std::auto_ptr<TimeRep> time_rep(createMetRep(time_sys, abs_tstart));
-
-      double tstart = 0.;
-      double tstop = 0.;
-      *time_rep = abs_tstart;
-      time_rep->get("TIME", tstart);
-      *time_rep = abs_tstop;
-      time_rep->get("TIME", tstop);
-      time_rep->set("TIME", .5 * (tstart + tstop));
-
-      abs_origin = *time_rep;
-
-    } else if (origin_style == "USER") {
-      // Get time of origin and its format and system from parameters.
-      std::string origin_time = pars["usertime"];
-      std::string origin_time_format = pars["userformat"];
-      std::string origin_time_sys = pars["usersys"].Value();
-
-      // Convert user-specified time into AbsoluteTime.
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format, origin_time_sys, origin_time, *m_reference_header));
-      abs_origin = *time_rep;
-
-    } else {
-      throw std::runtime_error("Unsupported origin style " + origin_style);
-    }
-
-    return abs_origin;
   }
 
   EphComputer2 & PulsarToolApp::getEphComputer() const {
