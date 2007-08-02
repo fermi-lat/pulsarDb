@@ -6,6 +6,8 @@
 #ifndef pulsarDb_EphComputerApp_h
 #define pulsarDb_EphComputerApp_h
 
+#include "pulsarDb/PulsarToolApp.h"
+
 #include "st_app/StApp.h"
 
 #include "st_stream/Stream.h"
@@ -18,7 +20,7 @@ namespace pulsarDb {
   /** \class EphComputerApp
       \brief Main application class for pulsar database access.
   */
-  class EphComputerApp: public st_app::StApp {
+  class EphComputerApp: public pulsarDb::PulsarToolApp {
     public:
       EphComputerApp();
 
