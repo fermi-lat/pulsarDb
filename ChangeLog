@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Aug  2 15:46:56 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputerApp.h 
+Log Message:
+Introduce PulsarToolApp class as the direct base class of EphComputerApp class.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug  1 15:17:07 PDT 2007
 pulsarDb/src
 
