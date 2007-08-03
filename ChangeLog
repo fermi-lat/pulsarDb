@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Aug  3 15:24:13 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Use SloppyEphChooser when ephstyle is not DB. Clean up initEphComputer by moving variable declarations closer to their first use.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Aug  2 15:46:56 PDT 2007
 pulsarDb/src
 
