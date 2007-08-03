@@ -294,28 +294,27 @@ namespace pulsarDb {
 
   void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
     const EphChooser & chooser, const std::string & eph_style) {
-    // Create ephemeris computer.
-    m_computer = new EphComputer2(model, chooser);
-
     // Make eph_style argument case-insensitive.
     std::string eph_style_uc = eph_style;
     for (std::string::iterator itor = eph_style_uc.begin(); itor != eph_style_uc.end(); ++itor) *itor = std::toupper(*itor);
 
-    // Determine the time system used for the ephemeris epoch.
-    std::string epoch_time_sys;
-    if (eph_style_uc == "DB") epoch_time_sys = "TDB";
-    else epoch_time_sys = pars["timesys"].Value();
+    if (eph_style_uc == "DB") {
+      // Create ephemeris computer.
+      m_computer = new EphComputer2(model, chooser);
 
-    // Ignored but needed for timing model.
-    double phi0 = 0.;
-
-    std::string psr_name = pars["psrname"];
-
-    if (eph_style_uc != "DB") {
+    } else {
       std::string epoch_time_format = pars["timeformat"];
+      std::string epoch_time_sys = pars["timesys"];
       std::string epoch = pars["ephepoch"];
       std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, *m_reference_header));
       AbsoluteTime abs_epoch(*time_rep);
+
+      // Set global phase offset, needed for timing model.
+      double phi0 = 0.;
+
+      // Create ephemeris computer with the sloppy chooser, so that the spin ephemeris given by the user will be always chosen.
+      SloppyEphChooser sloppy_chooser;
+      m_computer = new EphComputer2(model, sloppy_chooser);
 
       // Handle either period or frequency-style input.
       if (eph_style_uc == "FREQ") {
@@ -358,6 +357,7 @@ namespace pulsarDb {
       PulsarDb database(psrdb_file);
 
       // Select only ephemerides for this pulsar.
+      std::string psr_name = pars["psrname"];
       database.filterName(psr_name);
 
       // Load the selected ephemerides.
