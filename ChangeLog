@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Aug  3 16:47:53 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add two private methods, rationalizeTimeFormatName and rationalizeTimeSystemName, which checks a file is given for FILE option and returns an appropriate time format/system name. Call the method(s) in initEphComputer and createTimeRep methods.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Aug  3 16:47:53 PDT 2007
 pulsarDb/pulsarDb
 
 Modified Files:
