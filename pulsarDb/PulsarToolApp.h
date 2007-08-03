@@ -140,6 +140,10 @@ namespace pulsarDb {
 
       void setupEventTable(const tip::Table & table);
 
+      std::string rationalizeTimeFormatName(const std::string & time_format, const tip::Header * header) const;
+
+      std::string rationalizeTimeSystemName(const std::string & time_system, const tip::Header * header) const;
+
   };
 
 }

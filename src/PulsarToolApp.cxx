@@ -69,18 +69,15 @@ namespace pulsarDb {
     const std::string & time_value) const {
     TimeRep * time_rep(0);
 
-    // Make upper case copies of input for case insensitive comparisons.
-    std::string time_format_uc(time_format);
-    for (std::string::iterator itor = time_format_uc.begin(); itor != time_format_uc.end(); ++itor) *itor = std::toupper(*itor);
-
-    std::string time_system_uc(time_system);
-    for (std::string::iterator itor = time_system_uc.begin(); itor != time_system_uc.end(); ++itor) *itor = std::toupper(*itor);
+    // Rationalize time format name and time system name.
+    std::string time_format_rat = rationalizeTimeFormatName(time_format, 0);
+    std::string time_system_rat = rationalizeTimeSystemName(time_system, 0);
 
     // Create representation for this time format and time system.
-    if ("GLAST" == time_format_uc) {
-      time_rep = new GlastMetRep(time_system, 0.);
-    } else if ("MJD" == time_format_uc) {
-      time_rep = new MjdRep(time_system, 0, 0.);
+    if ("GLAST" == time_format_rat) {
+      time_rep = new GlastMetRep(time_system_rat, 0.);
+    } else if ("MJD" == time_format_rat) {
+      time_rep = new MjdRep(time_system_rat, 0, 0.);
     } else {
       throw std::runtime_error("Time format \"" + time_format + "\" is not supported for ephemeris time");
     }
@@ -95,21 +92,12 @@ namespace pulsarDb {
     const std::string & time_value, const tip::Header & header) const {
     TimeRep * time_rep(0);
 
-    // Make upper case copies of input for case insensitive comparisons.
-    std::string time_format_uc(time_format);
-    for (std::string::iterator itor = time_format_uc.begin(); itor != time_format_uc.end(); ++itor) *itor = std::toupper(*itor);
-
-    std::string time_system_uc(time_system);
-    for (std::string::iterator itor = time_system_uc.begin(); itor != time_system_uc.end(); ++itor) *itor = std::toupper(*itor);
-
-    // Make a local modifiable copy to hold the rationalized time system.
-    std::string time_system_rat(time_system);
-
-    // First check whether time system should be read from the tip::Header.
-    if ("FILE" == time_system_uc) header["TIMESYS"].get(time_system_rat);
+    // Rationalize time format name and time system name.
+    std::string time_format_rat = rationalizeTimeFormatName(time_format, &header);
+    std::string time_system_rat = rationalizeTimeSystemName(time_system, &header);
 
     // Create representation for this time format and time system.
-    if ("FILE" == time_format_uc) {
+    if ("FILE" == time_format_rat) {
       // Check TELESCOP keyword for supported missions.
       std::string telescope;
       header["TELESCOP"].get(telescope);
@@ -122,7 +110,7 @@ namespace pulsarDb {
       time_rep = new MetRep(time_system_rat, mjd_ref, 0.);
     } else {
       // Delegate to overload that does not use tip.
-      return createTimeRep(time_format, time_system_rat, time_value);
+      return createTimeRep(time_format_rat, time_system_rat, time_value);
     }
 
     // Assign the time supplied by the user to the representation.
@@ -304,9 +292,11 @@ namespace pulsarDb {
 
     } else {
       std::string epoch_time_format = pars["timeformat"];
+      std::string epoch_time_format_rat = rationalizeTimeFormatName(epoch_time_format, m_reference_header);
       std::string epoch_time_sys = pars["timesys"];
+      std::string epoch_time_sys_rat = rationalizeTimeSystemName(epoch_time_sys, m_reference_header);
       std::string epoch = pars["ephepoch"];
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, *m_reference_header));
+      std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format_rat, epoch_time_sys_rat, epoch, *m_reference_header));
       AbsoluteTime abs_epoch(*time_rep);
 
       // Set global phase offset, needed for timing model.
@@ -326,7 +316,7 @@ namespace pulsarDb {
 
         // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
         PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-        ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, phi0, f0, f1, f2).clone());
+        ephemerides.push_back(FrequencyEph(epoch_time_sys_rat, abs_epoch, abs_epoch, abs_epoch, phi0, f0, f1, f2).clone());
       } else if (eph_style_uc == "PER") {
         double p0 = pars["p0"];
         double p1 = pars["p1"];
@@ -336,7 +326,7 @@ namespace pulsarDb {
 
         // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
         PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-        ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, phi0, p0, p1, p2).clone());
+        ephemerides.push_back(PeriodEph(epoch_time_sys_rat, abs_epoch, abs_epoch, abs_epoch, phi0, p0, p1, p2).clone());
       } else {
         throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
       }
@@ -460,10 +450,12 @@ namespace pulsarDb {
       // Get time of origin and its format and system from parameters.
       std::string origin_time = pars["usertime"];
       std::string origin_time_format = pars["userformat"];
+      std::string origin_time_format_rat = rationalizeTimeFormatName(origin_time_format, m_reference_header);
       std::string origin_time_sys = pars["usersys"].Value();
+      std::string origin_time_sys_rat = rationalizeTimeSystemName(origin_time_sys, m_reference_header);
 
       // Convert user-specified time into AbsoluteTime.
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format, origin_time_sys, origin_time, *m_reference_header));
+      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format_rat, origin_time_sys_rat, origin_time, *m_reference_header));
       abs_origin = *time_rep;
 
     } else {
@@ -676,4 +668,37 @@ namespace pulsarDb {
     return abs_time;
   }
 
+  std::string PulsarToolApp::rationalizeTimeFormatName(const std::string & time_format, const tip::Header * header) const {
+    // Make upper case copies of input for case insensitive comparisons.
+    std::string time_format_rat(time_format);
+    for (std::string::iterator itor = time_format_rat.begin(); itor != time_format_rat.end(); ++itor) *itor = std::toupper(*itor);
+
+    // Check whether the header is given or not when time format is specified as FILE.
+    if (("FILE" == time_format_rat) && (0 == header)) {
+      throw std::runtime_error("File was not given when time format is specified as FILE");
+    }
+
+    // Return rationalized time format name.
+    return time_format_rat;
+  }
+
+  std::string PulsarToolApp::rationalizeTimeSystemName(const std::string & time_system, const tip::Header * header) const {
+    // Make upper case copies of input for case insensitive comparisons.
+    std::string time_system_rat(time_system);
+    for (std::string::iterator itor = time_system_rat.begin(); itor != time_system_rat.end(); ++itor) *itor = std::toupper(*itor);
+
+    // First check whether time system should be read from the tip::Header.
+    if ("FILE" == time_system_rat) {
+      // Then check whether the header is given or not.
+      if (header) {
+        (*header)["TIMESYS"].get(time_system_rat);
+        for (std::string::iterator itor = time_system_rat.begin(); itor != time_system_rat.end(); ++itor) *itor = std::toupper(*itor);
+      } else {
+        throw std::runtime_error("File was not given when time system is specified as FILE");
+      }
+    }
+
+    // Return rationalized time system name.
+    return time_system_rat;
+  }
 }
