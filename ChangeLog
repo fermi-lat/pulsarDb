@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Aug  6 13:09:18 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Remove upper-case conversions of time format name and time system name, which are performed in createTimeRep method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Aug  6 13:07:51 PDT 2007
 pulsarDb/pulsarDb
 
