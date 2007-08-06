@@ -53,9 +53,7 @@ namespace pulsarDb {
     // Get parameters.
     std::string ref_time = pars["reftime"];
     std::string time_format = pars["timeformat"];
-    for (std::string::iterator itor = time_format.begin(); itor != time_format.end(); ++itor) *itor = std::toupper(*itor);
     std::string time_sys = pars["timesys"];
-    for (std::string::iterator itor = time_sys.begin(); itor != time_sys.end(); ++itor) *itor = std::toupper(*itor);
     bool strict = pars["strict"];
 
     // Handle leap seconds.
