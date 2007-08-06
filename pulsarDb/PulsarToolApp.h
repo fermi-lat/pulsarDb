@@ -57,10 +57,10 @@ namespace pulsarDb {
       virtual void run() = 0;
 
       virtual timeSystem::TimeRep * createTimeRep(const std::string & time_format, const std::string & time_system,
-        const std::string & time_value) const;
+        const std::string & time_value, const tip::Header * header = 0) const;
 
-      virtual timeSystem::TimeRep * createTimeRep(const std::string & time_format, const std::string & time_system,
-        const std::string & time_value, const tip::Header & header) const;
+      virtual timeSystem::TimeRep * createTimeRep(std::string & time_format, std::string & time_system,
+        const std::string & time_value, const tip::Header * header = 0) const;
 
       void openEventFile(const st_app::AppParGroup & pars, bool read_only = true);
 
@@ -139,10 +139,6 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
 
       void setupEventTable(const tip::Table & table);
-
-      std::string rationalizeTimeFormatName(const std::string & time_format, const tip::Header * header) const;
-
-      std::string rationalizeTimeSystemName(const std::string & time_system, const tip::Header * header) const;
 
   };
 
