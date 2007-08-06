@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Mon Aug  6 13:07:51 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Refactor createTimeRep methods, so that it checks time format and time system for FILE option in one place, modifies names of time format and time system for use by callers, and handles all time formats in one method. Remove rationalizeTimeFormatName and rationalizeTimeSystemName, that are absorbed by createTimeRep method.
+
+    *
+------------------------------------------------------------
+User: hirayama  Mon Aug  6 13:07:51 PDT 2007
 pulsarDb/src
 
 Modified Files:
