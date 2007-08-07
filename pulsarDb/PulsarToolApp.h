@@ -26,24 +26,6 @@
 
 namespace pulsarDb {
 
-  // TODO: Merge EphComputer2 into EphComputer once all the pulsar tools use PulsarToolApp.
-  class EphComputer2 : public EphComputer {
-    public:
-      EphComputer2();
-
-      EphComputer2(const TimingModel & model, const EphChooser & chooser);
-
-      ~EphComputer2();
-
-      void setPdotCancelParameter(const PulsarEph & pdot_pars);
-
-      void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
-
-    private:
-      PulsarEph * m_pdot_pars;
-      TimingModel * m_model2; // Not needed when merged to EphComputer.
-  };
-
   class PulsarToolApp : public st_app::StApp {
     public:
       typedef std::vector<const tip::Table *> table_cont_type;
@@ -103,7 +85,7 @@ namespace pulsarDb {
 
       timeSystem::AbsoluteTime getStopTime();
 
-      EphComputer2 & getEphComputer() const;
+      EphComputer & getEphComputer() const;
 
     private:
       table_cont_type m_event_table_cont;
@@ -115,7 +97,7 @@ namespace pulsarDb {
       std::map<const tip::Table *, timeSystem::TimeRep *> m_time_rep_dict;
       std::map<const tip::Table *, bool> m_need_bary_dict;
       const tip::Header * m_reference_header;
-      EphComputer2 * m_computer;
+      EphComputer * m_computer;
       std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bary;
       std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bin;
       std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_pdot;
