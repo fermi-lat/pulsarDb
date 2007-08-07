@@ -760,6 +760,7 @@ void PulsarDbTest::testEphComputer() {
 
   glast_tdb.setValue(100.);
   AbsoluteTime gtdb(glast_tdb);
+  computer.setPdotCancelParameter(eph);
   computer.cancelPdot(gtdb);
   if (expected_elapsed != glast_tdb.getValue())
     ErrorMsg(method_name) << "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
