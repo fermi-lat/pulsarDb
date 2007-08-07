@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Aug  7 13:31:39 PDT 2007
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Adopt to revision of EphComputer.
+
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug  7 13:31:10 PDT 2007
 pulsarDb/pulsarDb
 
