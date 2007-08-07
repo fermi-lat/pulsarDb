@@ -25,28 +25,6 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  EphComputer2::EphComputer2(): EphComputer(), m_pdot_pars(0), m_model2(new TimingModel) {}
-
-  EphComputer2::EphComputer2(const TimingModel & model, const EphChooser & chooser): EphComputer(model, chooser), m_pdot_pars(0),
-    m_model2(model.clone()) {}
-
-  EphComputer2::~EphComputer2() {
-    if (m_pdot_pars) delete m_pdot_pars;
-    delete m_model2;
-  }
-
-  void EphComputer2::setPdotCancelParameter(const PulsarEph & pdot_pars) {
-    m_pdot_pars = pdot_pars.clone();
-  }
-
-  void EphComputer2::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
-    if (m_pdot_pars) {
-      m_model2->cancelPdot(*m_pdot_pars, ev_time);
-    } else {
-      throw std::runtime_error("Parameters for pdot cancellation are not set");
-    }
-  }
-
   PulsarToolApp::PulsarToolApp(): m_time_field(""), m_gti_start_field(""), m_gti_stop_field(""), m_reference_header(0), m_computer(0),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
     m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0) {}
@@ -307,7 +285,7 @@ namespace pulsarDb {
 
     if (eph_style_uc == "DB") {
       // Create ephemeris computer.
-      m_computer = new EphComputer2(model, chooser);
+      m_computer = new EphComputer(model, chooser);
 
     } else {
       std::string epoch_time_format = pars["timeformat"];
@@ -321,7 +299,7 @@ namespace pulsarDb {
 
       // Create ephemeris computer with the sloppy chooser, so that the spin ephemeris given by the user will be always chosen.
       SloppyEphChooser sloppy_chooser;
-      m_computer = new EphComputer2(model, sloppy_chooser);
+      m_computer = new EphComputer(model, sloppy_chooser);
 
       // Handle either period or frequency-style input.
       if (eph_style_uc == "FREQ") {
@@ -654,7 +632,7 @@ namespace pulsarDb {
     return computeTimeBoundary(false, true);
   }
 
-  EphComputer2 & PulsarToolApp::getEphComputer() const {
+  EphComputer & PulsarToolApp::getEphComputer() const {
     return *m_computer;
   }
 

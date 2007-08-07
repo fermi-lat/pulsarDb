@@ -10,14 +10,16 @@
 
 namespace pulsarDb {
 
-  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_model(new TimingModel), m_chooser(new StrictEphChooser) {
+  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_pdot_pars(0), m_model(new TimingModel),
+    m_chooser(new StrictEphChooser) {
   }
 
   EphComputer::EphComputer(const TimingModel & model, const EphChooser & chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(),
-    m_model(model.clone()), m_chooser(chooser.clone()) {
+    m_pdot_pars(0), m_model(model.clone()), m_chooser(chooser.clone()) {
   }
 
   EphComputer::~EphComputer() {
+    delete m_pdot_pars;
     delete m_chooser;
     delete m_model;
   }
@@ -35,14 +37,21 @@ namespace pulsarDb {
     database.getEph(m_orbital_eph_cont);
   }
 
+  void EphComputer::setPdotCancelParameter(const PulsarEph & pdot_pars) {
+    m_pdot_pars = pdot_pars.clone();
+  }
+
   FrequencyEph EphComputer::calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     return m_model->calcEphemeris(eph, ev_time);
   }
 
   void EphComputer::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
-    const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
-    m_model->cancelPdot(eph, ev_time);
+    if (m_pdot_pars) {
+      m_model->cancelPdot(*m_pdot_pars, ev_time);
+    } else {
+      throw std::runtime_error("Parameters for pdot cancellation are not set");
+    }
   }
 
   double EphComputer::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time) const {
