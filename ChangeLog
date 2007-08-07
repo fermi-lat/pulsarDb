@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Tue Aug  7 13:31:10 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h PulsarToolApp.h 
+Log Message:
+Merge EphComputer2 into EphComputer.
+
+    *
+------------------------------------------------------------
+User: hirayama  Tue Aug  7 13:31:10 PDT 2007
 pulsarDb/src
 
 Modified Files:
