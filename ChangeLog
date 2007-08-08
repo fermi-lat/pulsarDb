@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Wed Aug  8 12:54:46 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Tweak signature of second createTimeRep method to separate cleanly
+the input from output strings.
+
+    *
+------------------------------------------------------------
+User: peachey  Wed Aug  8 12:54:46 PDT 2007
 pulsarDb/pulsarDb
 
 Modified Files:
