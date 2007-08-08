@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.27 2007/03/28 20:28:35 peachey Exp $
+$Id: release.notes,v 1.28 2007/06/13 20:34:11 peachey Exp $
 
 \verbatim
+08-aug-2007      v4r1 JP  Add PulsarToolApp class and use it as base class for gtephem application.
 13-jun-2007        v4 JP  Rename gtephcomp to gtephem.
 29-mar-2007      v3r3 JP  Use Duration object inside PulsarEph to allow chooser to work
                           over very long periods of time.
