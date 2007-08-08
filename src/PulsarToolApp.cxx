@@ -45,20 +45,22 @@ namespace pulsarDb {
 
   TimeRep * PulsarToolApp::createTimeRep(const std::string & time_format, const std::string & time_system,
     const std::string & time_value, const tip::Header * header) const {
-    // Create copies of time format and time system of non-const string type.
-    std::string time_format_nc(time_format);
-    std::string time_system_nc(time_system);
+    // Create dummy outputs of time format and time system.
+    std::string time_format_nc;
+    std::string time_system_nc;
 
     // Call non-const version of createTimeRep method.
-    return createTimeRep(time_format_nc, time_system_nc, time_value, header);
+    return createTimeRep(time_format, time_system, time_value, time_format_nc, time_system_nc, header);
   }
 
-  TimeRep * PulsarToolApp::createTimeRep(std::string & time_format, std::string & time_system,
-    const std::string & time_value, const tip::Header * header) const {
+  TimeRep * PulsarToolApp::createTimeRep(const std::string & input_time_format, const std::string & input_time_system,
+    const std::string & time_value, std::string & output_time_format, std::string & output_time_system,
+    const tip::Header * header) const {
+
     TimeRep * time_rep(0);
 
     // Make upper case copies of input for case insensitive comparisons.
-    std::string time_format_rat(time_format);
+    std::string time_format_rat(input_time_format);
     for (std::string::iterator itor = time_format_rat.begin(); itor != time_format_rat.end(); ++itor) *itor = std::toupper(*itor);
 
     // Check whether the header is given or not when time format is specified as FILE.
@@ -67,7 +69,7 @@ namespace pulsarDb {
     }
 
     // Make upper case copies of input for case insensitive comparisons.
-    std::string time_system_rat(time_system);
+    std::string time_system_rat(input_time_system);
     for (std::string::iterator itor = time_system_rat.begin(); itor != time_system_rat.end(); ++itor) *itor = std::toupper(*itor);
 
     // First check whether time system should be read from the tip::Header.
@@ -82,8 +84,8 @@ namespace pulsarDb {
     }
 
     // Replace arguments for time format and time system with rationalized ones.
-    time_format = time_format_rat;
-    time_system = time_system_rat;
+    output_time_format = time_format_rat;
+    output_time_system = time_system_rat;
 
     // Create representation for this time format and time system.
     if ("FILE" == time_format_rat) {
@@ -105,7 +107,7 @@ namespace pulsarDb {
       } else if ("MJD" == time_format_rat) {
         time_rep = new MjdRep(time_system_rat, 0, 0.);
       } else {
-        throw std::runtime_error("Time format \"" + time_format + "\" is not supported for ephemeris time");
+        throw std::runtime_error("Time format \"" + input_time_format + "\" is not supported for ephemeris time");
       }
 
     }
@@ -291,7 +293,8 @@ namespace pulsarDb {
       std::string epoch_time_format = pars["timeformat"];
       std::string epoch_time_sys = pars["timesys"];
       std::string epoch = pars["ephepoch"];
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, m_reference_header));
+      std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, epoch_time_format,
+        epoch_time_sys, m_reference_header));
       AbsoluteTime abs_epoch(*time_rep);
 
       // Set global phase offset, needed for timing model.
