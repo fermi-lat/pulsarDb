@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Aug 14 12:23:19 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add support for handling multiple files.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v4r1, operation: add
 Package: pulsarDb
