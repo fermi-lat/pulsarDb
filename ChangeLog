@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Tue Aug 14 14:05:09 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Add resetApp method to reset the application between calls to run(). Use
+this in destructor.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v4r2, operation: add
 Package: pulsarDb
