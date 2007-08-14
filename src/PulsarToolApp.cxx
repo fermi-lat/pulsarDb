@@ -12,6 +12,9 @@
 
 #include "st_app/AppParGroup.h"
 
+#include "st_facilities/Env.h"
+#include "st_facilities/FileSys.h"
+
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/GlastMetRep.h"
 #include "timeSystem/TimeRep.h"
@@ -19,8 +22,7 @@
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
-#include "st_facilities/Env.h"
-
+using namespace st_facilities;
 using namespace timeSystem;
 
 namespace pulsarDb {
@@ -152,25 +154,28 @@ namespace pulsarDb {
     // List all event tables and GTI tables.
     table_cont_type all_table_cont;
 
-    // Open the event table, either for reading or reading and writing.
-    // Note: for convenience, read-only and read-write tables are stored as const Table pointers
-    // in the container. In the few cases where writing to the tables is necessary, a const_cast will
-    // be necessary.
-    const tip::Table * event_table = 0;
-    if (read_only) event_table = tip::IFileSvc::instance().readTable(event_file, event_extension);
-    else event_table = tip::IFileSvc::instance().editTable(event_file, event_extension);
+    // Open the event table(s), either for reading or reading and writing.
+    FileSys::FileNameCont file_name_cont = FileSys::expandFileList(event_file);
+    for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
+      // Note: for convenience, read-only and read-write tables are stored as const Table pointers
+      // in the container. In the few cases where writing to the tables is necessary, a const_cast will
+      // be necessary.
+      const tip::Table * event_table = 0;
+      if (read_only) event_table = tip::IFileSvc::instance().readTable(*itor, event_extension);
+      else event_table = tip::IFileSvc::instance().editTable(*itor, event_extension);
 
-    // Add the table to the container.
-    m_event_table_cont.push_back(event_table);
-    all_table_cont.push_back(event_table);
+      // Add the table to the container.
+      m_event_table_cont.push_back(event_table);
+      all_table_cont.push_back(event_table);
 
-    // Open the GTI table.
-    // Note: At present, GTI is never modified, so no need to open it read-write.
-    const tip::Table * gti_table(tip::IFileSvc::instance().readTable(event_file, "GTI"));
+      // Open the GTI table.
+      // Note: At present, GTI is never modified, so no need to open it read-write.
+      const tip::Table * gti_table(tip::IFileSvc::instance().readTable(*itor, "GTI"));
 
-    // Add the table to the container.
-    m_gti_table_cont.push_back(gti_table);
-    all_table_cont.push_back(gti_table);
+      // Add the table to the container.
+      m_gti_table_cont.push_back(gti_table);
+      all_table_cont.push_back(gti_table);
+    }
 
     // Set names of TIME column in EVENTS exetension and START/STOP coulmns in GTI extensions.
     if (m_time_field.empty()) m_time_field = pars["timefield"].Value();
@@ -336,7 +341,6 @@ namespace pulsarDb {
       std::string psrdb_file_uc = psrdb_file;
       for (std::string::iterator itor = psrdb_file_uc.begin(); itor != psrdb_file_uc.end(); ++itor) *itor = std::toupper(*itor);
       if ("DEFAULT" == psrdb_file_uc) {
-        using namespace st_facilities;
         // TODO: Change the folowing directory/file names of master pulsar database to the "official" one.
         psrdb_file = Env::appendFileName(Env::getDataDir("pulsarDb"), "master_pulsardb.fits");
       }
