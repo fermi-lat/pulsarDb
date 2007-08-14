@@ -38,6 +38,9 @@ namespace pulsarDb {
   EphComputerApp::~EphComputerApp() throw() {}
 
   void EphComputerApp::run() {
+    // Clean up from any previous runs.
+    resetApp();
+
     using namespace st_app;
     using namespace st_stream;
 
