@@ -27,22 +27,14 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  PulsarToolApp::PulsarToolApp(): m_time_field(""), m_gti_start_field(""), m_gti_stop_field(""), m_reference_header(0), m_computer(0),
+  PulsarToolApp::PulsarToolApp(): m_event_table_cont(), m_gti_table_cont(), m_time_field(),
+    m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(), m_time_rep_dict(), m_need_bary_dict(),
+    m_reference_header(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
-    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0) {}
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0), m_table_itor(), m_event_itor() {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
-    if (m_computer) delete m_computer;
-    if (m_target_time_rep) delete m_target_time_rep;
-    for (std::map<const tip::Table *, TimeRep *>::iterator itor = m_time_rep_dict.begin(); itor != m_time_rep_dict.end(); ++itor) {
-      delete itor->second;
-    }
-    for (table_cont_type::reverse_iterator itor = m_gti_table_cont.rbegin(); itor != m_gti_table_cont.rend(); ++itor) {
-      delete *itor;
-    }
-    for (table_cont_type::reverse_iterator itor = m_event_table_cont.rbegin(); itor != m_event_table_cont.rend(); ++itor) {
-      delete *itor;
-    }
+    resetApp();
   }
 
   TimeRep * PulsarToolApp::createTimeRep(const std::string & time_format, const std::string & time_system,
@@ -139,18 +131,7 @@ namespace pulsarDb {
     std::string event_file = pars["evfile"];
     std::string event_extension = pars["evtable"];
 
-    // Clear out any gti tables already in gti_table_cont.
-    for (table_cont_type::reverse_iterator itor = m_gti_table_cont.rbegin(); itor != m_gti_table_cont.rend(); ++itor) {
-      delete *itor;
-    }
-    m_gti_table_cont.clear();
-
-    // Clear out any event tables already in event_table_cont.
-    for (table_cont_type::reverse_iterator itor = m_event_table_cont.rbegin(); itor != m_event_table_cont.rend(); ++itor) {
-      delete *itor;
-    }
-    m_event_table_cont.clear();
-
+ 
     // List all event tables and GTI tables.
     table_cont_type all_table_cont;
 
@@ -178,7 +159,7 @@ namespace pulsarDb {
     }
 
     // Set names of TIME column in EVENTS exetension and START/STOP coulmns in GTI extensions.
-    if (m_time_field.empty()) m_time_field = pars["timefield"].Value();
+    m_time_field = pars["timefield"].Value();
     m_gti_start_field = "START";
     m_gti_stop_field = "STOP";
 
@@ -641,6 +622,59 @@ namespace pulsarDb {
 
   EphComputer & PulsarToolApp::getEphComputer() const {
     return *m_computer;
+  }
+
+  void PulsarToolApp::resetApp() {
+    // TODO: How should iterators pointing to nothing be reset?
+    // m_event_itor = 0;
+    // m_table_itor = 0;
+
+    // Destroy target TimeRep object.
+    delete m_target_time_rep; m_target_time_rep = 0;
+
+    // Reset time correction flags.
+    m_cancel_pdot = false;
+    m_demod_bin = false;
+    m_request_bary = false;
+
+    // Reset time correction modes.
+    m_tcmode_pdot = ALLOWED;
+    m_tcmode_bin = ALLOWED;
+    m_tcmode_bary = ALLOWED;
+    m_tcmode_dict_pdot.clear();
+    m_tcmode_dict_bin.clear();
+    m_tcmode_dict_bary.clear();
+
+    // Get rid of current EphComputer.
+    delete m_computer; m_computer = 0;
+
+    // Reset reference header.
+    m_reference_header = 0;
+
+    // Clear out barycentering flags.
+    m_need_bary_dict.clear();
+
+    // Clear out any TimeRep objects.
+    for (std::map<const tip::Table *, TimeRep *>::reverse_iterator itor = m_time_rep_dict.rbegin();
+      itor != m_time_rep_dict.rend(); ++itor) {
+      delete itor->second;
+    }
+    m_time_rep_dict.clear();
+
+    // Reset columns to be modified.
+    m_output_field_cont.clear();
+
+    // Clear out any gti tables.
+    for (table_cont_type::reverse_iterator itor = m_gti_table_cont.rbegin(); itor != m_gti_table_cont.rend(); ++itor) {
+      delete *itor;
+    }
+    m_gti_table_cont.clear();
+
+    // Clear out any event tables.
+    for (table_cont_type::reverse_iterator itor = m_event_table_cont.rbegin(); itor != m_event_table_cont.rend(); ++itor) {
+      delete *itor;
+    }
+    m_event_table_cont.clear();
   }
 
   AbsoluteTime PulsarToolApp::readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record, const std::string & column_name,

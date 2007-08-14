@@ -88,6 +88,13 @@ namespace pulsarDb {
 
       EphComputer & getEphComputer() const;
 
+    protected:
+      /** \brief Reset all members of application. This should be called from the subclass's run() method
+          to allow multiple runs to work without leaking memory or coupling consecutive runs of the tool
+          accidentally.
+      */
+      virtual void resetApp();
+
     private:
       table_cont_type m_event_table_cont;
       table_cont_type m_gti_table_cont;
@@ -122,7 +129,6 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
 
       void setupEventTable(const tip::Table & table);
-
   };
 
 }
