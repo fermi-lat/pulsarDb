@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Tue Aug 14 14:05:09 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add resetApp method to reset the application between calls to run(). Use
+this in destructor.
+
+    *
+------------------------------------------------------------
+User: peachey  Tue Aug 14 14:05:09 PDT 2007
 pulsarDb/pulsarDb
 
 Modified Files:
