@@ -2,9 +2,11 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.29 2007/08/08 20:55:39 peachey Exp $
+$Id: release.notes,v 1.30 2007/08/14 19:24:42 peachey Exp $
 
 \verbatim
+16-aug-2007    v4r2p1 JP  Add PulsarToolApp::resetApp method to clean up between calls to
+                          PulsarToolApp::run().
 14-aug-2007      v4r2 JP  Add support for multiple input event files.
 08-aug-2007      v4r1 JP  Add PulsarToolApp class and use it as base class for gtephem application.
 13-jun-2007        v4 JP  Rename gtephcomp to gtephem.
