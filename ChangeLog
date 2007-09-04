@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: peachey  Tue Sep  4 13:54:30 PDT 2007
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add RA and Dec arguments to FrequencyEph and PeriodEph, for use in
+barycentering on the fly.
+
+    *
+------------------------------------------------------------
+User: peachey  Tue Sep  4 13:54:30 PDT 2007
 pulsarDb/src
 
 Modified Files:
