@@ -290,6 +290,10 @@ namespace pulsarDb {
       SloppyEphChooser sloppy_chooser;
       m_computer = new EphComputer(model, sloppy_chooser);
 
+      // TODO Actually read ra and dec from parameters when they are added.
+      double ra = 0.;
+      double dec = 0.;
+
       // Handle either period or frequency-style input.
       if (eph_style_uc == "FREQ") {
         double f0 = pars["f0"];
@@ -300,7 +304,7 @@ namespace pulsarDb {
 
         // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
         PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-        ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, phi0, f0, f1, f2).clone());
+        ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2).clone());
       } else if (eph_style_uc == "PER") {
         double p0 = pars["p0"];
         double p1 = pars["p1"];
@@ -310,7 +314,7 @@ namespace pulsarDb {
 
         // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
         PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-        ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, phi0, p0, p1, p2).clone());
+        ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2).clone());
       } else {
         throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
       }
@@ -514,17 +518,24 @@ namespace pulsarDb {
         // Read parameters for pdot cancellation from pfile.
         std::string eph_style = pars["ephstyle"];
         for (std::string::iterator itor = eph_style.begin(); itor != eph_style.end(); ++itor) *itor = std::toupper(*itor);
+        double ra = 0.;
+        // TODO Actually read ra and dec from parameters when they are added.
+        double dec = 0.;
         double phi0 = 0.;
         if (eph_style == "FREQ") {
           double f0 = 1.;
           double f1 = pars["f1f0ratio"];;
           double f2 = pars["f2f0ratio"];
-          m_computer->setPdotCancelParameter(FrequencyEph(target_time_sys, abs_origin, abs_origin, abs_origin, phi0, f0, f1, f2));
+          m_computer->setPdotCancelParameter(
+            FrequencyEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, f0, f1, f2)
+          );
         } else if (eph_style == "PER") {
           double p0 = 1.;
           double p1 = pars["p1p0ratio"];
           double p2 = pars["p2p0ratio"];
-          m_computer->setPdotCancelParameter(PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, phi0, p0, p1, p2));
+          m_computer->setPdotCancelParameter(
+            PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, p0, p1, p2)
+          );
         } else {
           throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
         }

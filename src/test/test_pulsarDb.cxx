@@ -315,9 +315,9 @@ void PulsarDbTest::testChooser() {
   AbsoluteTime valid_until("TDB", origin, Duration(0, 200.));
   AbsoluteTime epoch("TDB", origin, Duration(0, 150.));
   AbsoluteTime t("TDB", origin, Duration(0, 120.));
-  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 0., 1., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
   valid_since = AbsoluteTime("TDB", origin, Duration(0, 100.));
-  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 0., 2., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 2., 0., 0.));
 
   StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(0, .99)));
   chosen = &strict_chooser.choose(eph_cont, t);
@@ -337,8 +337,8 @@ void PulsarDbTest::testChooser() {
   // Test sloppy chooser around two disjoint ephemerides.
   eph_cont.clear();
   epoch = MjdRep("TDB", 51910, 0.);
-  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51910, 0.)), AbsoluteTime(MjdRep("TDB", 51920, 0.)), epoch, 0., 1., 0., 0.));
-  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51930, 0.)), AbsoluteTime(MjdRep("TDB", 51940, 0.)), epoch, 0., 2., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51910, 0.)), AbsoluteTime(MjdRep("TDB", 51920, 0.)), epoch, 22., 45., 0., 1., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51930, 0.)), AbsoluteTime(MjdRep("TDB", 51940, 0.)), epoch, 22., 45., 0., 2., 0., 0.));
 
   SloppyEphChooser sloppy_chooser;
   t = MjdRep("TDB", 51905, 0.);
@@ -511,11 +511,11 @@ void PulsarDbTest::testPulsarEph() {
   AbsoluteTime epoch(glast_tt);
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph("TDB", since, until, epoch, 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph("TDB", since, until, epoch, 22., 45., 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
 
   // Create a period ephemeris.
   // This is a set of values known to be the inverses of the frequency coefficients above.
-  PeriodEph p_eph("TDB", since, until, epoch, 0.875, 88.8888888888888888888889,
+  PeriodEph p_eph("TDB", since, until, epoch, 22., 45., 0.875, 88.8888888888888888888889,
     1.777777777777777777777778, 0.0177777777777777777777778);
 
   // First, compare frequency & period.
@@ -536,7 +536,7 @@ void PulsarDbTest::testTimingModel() {
   double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph("TDB", since, until, epoch, 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph f_eph("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
   TimingModel model;
 
@@ -551,12 +551,27 @@ void PulsarDbTest::testTimingModel() {
   // Change ephemeris to produce a noticeable effect.
   glast_tt.setValue(123.4567891234567);
   epoch = glast_tt;
-  FrequencyEph f_eph2("TDB", since, until, epoch, .11, 1.125e-2, -2.25e-4, 13.5e-6);
+  FrequencyEph f_eph2("TDB", since, until, epoch, 22., 45., .11, 1.125e-2, -2.25e-4, 13.5e-6);
   glast_tt.setValue(223.4567891234567);
   AbsoluteTime ev_time(glast_tt);
 
-  // Test frequency computation.
+  // Test coordinates.
   FrequencyEph f_eph3 = model.calcEphemeris(f_eph2, ev_time);
+  double correct_ra = 22.;
+  if (fabs(f_eph3.ra() - correct_ra) > epsilon) {
+    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced ra == " << f_eph3.ra() << " not " << correct_ra << std::endl;
+  }
+  
+  double correct_dec = 45.;
+  if (fabs(f_eph3.dec() - correct_dec) > epsilon) {
+    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced dec == " << f_eph3.dec() << " not " << correct_dec << std::endl;
+  }
+  
+  // Test phase computation.
+  if (fabs(f_eph3.phi0()/.36 - 1.) > epsilon)
+    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced phi0 == " << f_eph3.phi0() << " not .36" << std::endl;
+ 
+  // Test frequency computation.
   double correct_f0 = 5.625e-2;
   if (fabs(f_eph3.f0() - correct_f0) > epsilon) {
     ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f0 == " << f_eph3.f0() << " not " << correct_f0 << std::endl;
@@ -603,7 +618,7 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "TimingModel::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
   // Create a frequency ephemeris with unit time 5 s, to test PulsarEph::dt method with one argument.
-  FrequencyEph f_eph4("TDB", since, until, epoch, 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
+  FrequencyEph f_eph4("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
   double delta_t = f_eph4.dt(ev_time);
   if (fabs(delta_t/20. - 1.) > epsilon)
     ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
@@ -887,9 +902,9 @@ void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & e
   if (!eph1.epoch().equivalentTo(eph2.epoch(), tolerance))
     ErrorMsg(method_name) << context << " give different values for epoch" << std::endl;
 
-  char * field[] = { "phi0", "f0", "f1" , "f2" };
-  double value1[] = { eph1.phi0(), eph1.f0(), eph1.f1(), eph1.f2() };
-  double value2[] = { eph2.phi0(), eph2.f0(), eph2.f1(), eph2.f2() };
+  char * field[] = { "ra", "dec", "phi0", "f0", "f1" , "f2" };
+  double value1[] = { eph1.ra(), eph1.dec(), eph1.phi0(), eph1.f0(), eph1.f1(), eph1.f2() };
+  double value2[] = { eph2.ra(), eph2.dec(), eph2.phi0(), eph2.f0(), eph2.f1(), eph2.f2() };
   for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
     if (0. == value1[ii] || 0. == value2[ii]) {
       if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
