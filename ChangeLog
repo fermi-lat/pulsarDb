@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Tue Sep  4 13:54:30 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h TimingModel.h 
+Log Message:
+Add RA and Dec arguments to FrequencyEph and PeriodEph, for use in
+barycentering on the fly.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v4r2p1, operation: add
 Package: pulsarDb
