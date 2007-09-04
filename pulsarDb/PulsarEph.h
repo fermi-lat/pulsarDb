@@ -25,9 +25,10 @@ namespace pulsarDb {
   class PulsarEph {
     public:
       PulsarEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
-        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double unit_time_sec):
+        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch,
+        double ra, double dec, double unit_time_sec):
         m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
-        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_unit_time(0, unit_time_sec) {}
+        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_unit_time(0, unit_time_sec) {}
 
       virtual ~PulsarEph() {}
 
@@ -37,6 +38,8 @@ namespace pulsarDb {
       virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
       virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
+      virtual double ra() const { return m_ra; }
+      virtual double dec() const { return m_dec; }
       virtual double phi0() const = 0;
       virtual double f0() const = 0;
       virtual double f1() const = 0;
@@ -48,6 +51,8 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_since;
       timeSystem::AbsoluteTime m_until;
       timeSystem::AbsoluteTime m_epoch;
+      double m_ra;
+      double m_dec;
       timeSystem::Duration m_unit_time;
   };
 
@@ -65,9 +70,10 @@ namespace pulsarDb {
           \param f2 The second time derivative of the frequency at the epoch (time origin).
       */
       FrequencyEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
-        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double phi0,
-        double f0, double f1, double f2, double unit_time_sec = 1.):
-        PulsarEph(time_system_name, valid_since, valid_until, epoch, unit_time_sec), m_phi0(phi0), m_f0(f0), m_f1(f1), m_f2(f2) {}
+        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch,
+        double ra, double dec, double phi0, double f0, double f1, double f2, double unit_time_sec = 1.):
+        PulsarEph(time_system_name, valid_since, valid_until, epoch, ra, dec, unit_time_sec), m_phi0(phi0),
+          m_f0(f0), m_f1(f1), m_f2(f2) {}
 
       FrequencyEph(const FrequencyEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
 
@@ -80,6 +86,7 @@ namespace pulsarDb {
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
 
     private:
+      
       double m_phi0;
       double m_f0;
       double m_f1;
@@ -98,9 +105,10 @@ namespace pulsarDb {
           \param p2 The second time derivative of the period at the epoch (time origin).
       */
       PeriodEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
-        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double phi0,
-        double p0, double p1, double p2, double unit_time_sec = 1.):
-        PulsarEph(time_system_name, valid_since, valid_until, epoch, unit_time_sec), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
+        const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
+        double phi0, double p0, double p1, double p2, double unit_time_sec = 1.):
+        PulsarEph(time_system_name, valid_since, valid_until, epoch, ra, dec, unit_time_sec),
+        m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       PeriodEph(const PeriodEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_p0(eph.m_p0), m_p1(eph.m_p1), m_p2(eph.m_p2) {}
 

@@ -33,7 +33,7 @@ namespace pulsarDb {
         double f0 = eph.f0() + eph.f1() * dt + eph.f2()/2.0 * dt * dt;
         double f1 = eph.f1() + eph.f2() * dt;
         double phi0 = calcPulsePhase(eph, ev_time);
-        return FrequencyEph(eph.getSystem().getName(), ev_time, ev_time, ev_time, phi0, f0, f1, eph.f2());
+        return FrequencyEph(eph.getSystem().getName(), ev_time, ev_time, ev_time, eph.ra(), eph.dec(), phi0, f0, f1, eph.f2());
       }
 
       /** \brief Correct event time to account for pdot cancellation. Note: validity of the

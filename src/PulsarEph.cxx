@@ -42,6 +42,8 @@ namespace pulsarDb {
     }
     mjd_rep = eph.epoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
+    os.prefix().width(14); os << "RA = " << eph.ra() << std::endl;
+    os.prefix().width(14); os << "Dec = " << eph.dec() << std::endl;
     os.prefix().width(14); os << "Phi0 = " << eph.phi0() << std::endl;
     os.prefix().width(14); os << "F0 = " << eph.f0() << std::endl;
     os.prefix().width(14); os << "F1 = " << eph.f1() << std::endl;

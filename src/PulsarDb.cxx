@@ -279,12 +279,14 @@ namespace pulsarDb {
       get(r["VALID_UNTIL"], valid_until_date);
       AbsoluteTime valid_until(MjdRep("TDB", valid_until_date + 1, 0.));
 
+      double ra = get(r["RA"]);
+      double dec = get(r["Dec"]);
       double f0 = get(r["F0"]);
       double f1 = get(r["F1"]);
       double f2 = get(r["F2"]);
 
       // Create temporary copy of this ephemeris with phi0 == 0.
-      FrequencyEph tmp("TDB", valid_since, valid_until, epoch, 0., f0, f1, f2);
+      FrequencyEph tmp("TDB", valid_since, valid_until, epoch, ra, dec, 0., f0, f1, f2);
 
       // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
       double phi0 = - model.calcPulsePhase(tmp, toa);
@@ -293,7 +295,7 @@ namespace pulsarDb {
       if (0. > phi0) phi0 += 1.;
 
       // Add the ephemeris to the container.
-      cont.push_back(FrequencyEph("TDB", valid_since, valid_until, epoch, phi0, f0, f1, f2).clone());
+      cont.push_back(FrequencyEph("TDB", valid_since, valid_until, epoch, ra, dec, phi0, f0, f1, f2).clone());
     }
   }
 
