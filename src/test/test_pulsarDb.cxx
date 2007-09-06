@@ -27,12 +27,7 @@
 #include "timeSystem/TimeConstant.h"
 #include "timeSystem/TimeRep.h"
 
-#include "tip/FileSummary.h"
-#include "tip/IFileSvc.h"
-#include "tip/Table.h"
-
 using namespace timeSystem;
-using namespace tip;
 
 /** \class ErrorMsg
     \brief Trivial helper class for formatting output.

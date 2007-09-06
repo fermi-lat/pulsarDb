@@ -6,7 +6,6 @@
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/EphComputerApp.h"
-#include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/TimingModel.h"
 
 #include "st_app/AppParGroup.h"
@@ -14,7 +13,6 @@
 #include "st_facilities/Env.h"
 
 #include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/GlastMetRep.h"
 #include "timeSystem/TimeRep.h"
 #include "timeSystem/TimeSystem.h"
 
