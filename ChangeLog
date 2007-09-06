@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep  6 16:06:39 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Clean up a list of header files to include.
+
+    *
+------------------------------------------------------------
 User: peachey  Tue Sep  4 13:54:58 PDT 2007
 pulsarDb/src
 
