@@ -7,8 +7,12 @@
 #include <memory>
 #include <stdexcept>
 
+#include "pulsarDb/EphChooser.h"
+#include "pulsarDb/EphComputer.h"
 #include "pulsarDb/PulsarDb.h"
+#include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/PulsarToolApp.h"
+#include "pulsarDb/TimingModel.h"
 
 #include "st_app/AppParGroup.h"
 
@@ -19,6 +23,7 @@
 #include "timeSystem/GlastMetRep.h"
 #include "timeSystem/TimeRep.h"
 
+#include "tip/Header.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
 

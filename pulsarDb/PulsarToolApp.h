@@ -10,21 +10,28 @@
 #include <string>
 #include <vector>
 
-#include "pulsarDb/EphChooser.h"
-#include "pulsarDb/EphComputer.h"
-#include "pulsarDb/PulsarEph.h"
-#include "pulsarDb/TimingModel.h"
-
-#include "st_app/AppParGroup.h"
 #include "st_app/StApp.h"
 
-#include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/TimeRep.h"
-
-#include "tip/Header.h"
 #include "tip/Table.h"
 
+namespace st_app {
+  class AppParGroupd;
+}
+
+namespace timeSystem {
+  class AbsoluteTime;
+  class TimeRep;
+}
+
+namespace tip {
+  class Header;
+}
+
 namespace pulsarDb {
+
+  class EphChooser;
+  class EphComputer;
+  class TimingModel;
 
   class PulsarToolApp : public st_app::StApp {
     public:
