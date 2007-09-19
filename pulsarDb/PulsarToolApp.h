@@ -20,6 +20,7 @@ namespace st_app {
 
 namespace timeSystem {
   class AbsoluteTime;
+  class EventTimeHandler;
   class TimeRep;
 }
 
@@ -36,6 +37,7 @@ namespace pulsarDb {
   class PulsarToolApp : public st_app::StApp {
     public:
       typedef std::vector<const tip::Table *> table_cont_type;
+      typedef std::vector<timeSystem::EventTimeHandler *> handler_cont_type;
 
       enum TimeCorrectionMode_e {
         REQUIRED, ALLOWED, SUPPRESSED
@@ -103,14 +105,12 @@ namespace pulsarDb {
       virtual void resetApp();
 
     private:
-      table_cont_type m_event_table_cont;
-      table_cont_type m_gti_table_cont;
+      handler_cont_type m_event_handler_cont;
+      handler_cont_type m_gti_handler_cont;
       std::string m_time_field;
       std::string m_gti_start_field;
       std::string m_gti_stop_field;
       std::vector<std::pair<std::string, std::string> > m_output_field_cont;
-      std::map<const tip::Table *, timeSystem::TimeRep *> m_time_rep_dict;
-      std::map<const tip::Table *, bool> m_need_bary_dict;
       const tip::Header * m_reference_header;
       EphComputer * m_computer;
       std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bary;
@@ -124,18 +124,17 @@ namespace pulsarDb {
       bool m_cancel_pdot;
       timeSystem::TimeRep * m_target_time_rep;
 
-      table_cont_type::iterator m_table_itor;
-      tip::Table::ConstIterator m_event_itor;
+      handler_cont_type::iterator m_event_handler_itor;
 
       // TODO: refactor MetRep to include functionality of this method and remove this method.
       timeSystem::TimeRep * createMetRep(const std::string & time_system, const timeSystem::AbsoluteTime & abs_reference) const;
 
-      timeSystem::AbsoluteTime readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record,
-        const std::string & column_name, bool request_time_correction = false);
+      timeSystem::AbsoluteTime readTimeColumn(timeSystem::EventTimeHandler & handler, const std::string & column_name,
+        bool request_time_correction);
 
       timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
 
-      void setupEventTable(const tip::Table & table);
+      void setupCurrentEventTable();
   };
 
 }

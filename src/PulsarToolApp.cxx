@@ -20,7 +20,10 @@
 #include "st_facilities/FileSys.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/BaryTimeComputer.h"
+#include "timeSystem/EventTimeHandler.h"
 #include "timeSystem/GlastMetRep.h"
+#include "timeSystem/GlastTimeHandler.h"
 #include "timeSystem/TimeRep.h"
 
 #include "tip/Header.h"
@@ -32,11 +35,11 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  PulsarToolApp::PulsarToolApp(): m_event_table_cont(), m_gti_table_cont(), m_time_field(),
-    m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(), m_time_rep_dict(), m_need_bary_dict(),
+  PulsarToolApp::PulsarToolApp(): m_event_handler_cont(), m_gti_handler_cont(), m_time_field(),
+    m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(),
     m_reference_header(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
-    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0), m_table_itor(), m_event_itor() {}
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0), m_event_handler_itor() {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
     resetApp();
@@ -135,32 +138,23 @@ namespace pulsarDb {
   void PulsarToolApp::openEventFile(const st_app::AppParGroup & pars, bool read_only) {
     std::string event_file = pars["evfile"];
     std::string event_extension = pars["evtable"];
+    std::string sc_file = pars["scfile"];
+    std::string sc_extension = pars["sctable"];
 
- 
-    // List all event tables and GTI tables.
-    table_cont_type all_table_cont;
+    // TODO: Read from a parameter file?
+    double ang_tolerance = 1.e-8;
 
     // Open the event table(s), either for reading or reading and writing.
     FileSys::FileNameCont file_name_cont = FileSys::expandFileList(event_file);
     for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
-      // Note: for convenience, read-only and read-write tables are stored as const Table pointers
-      // in the container. In the few cases where writing to the tables is necessary, a const_cast will
-      // be necessary.
-      const tip::Table * event_table = 0;
-      if (read_only) event_table = tip::IFileSvc::instance().readTable(*itor, event_extension);
-      else event_table = tip::IFileSvc::instance().editTable(*itor, event_extension);
+      // TODO: Handle read_only flag appropriately.
+      // Create and store an event time handler for EVENTS extension.
+      EventTimeHandler * event_handler(EventTimeHandler::createHandler(*itor, event_extension, sc_file, sc_extension, ang_tolerance));
+      m_event_handler_cont.push_back(event_handler);
 
-      // Add the table to the container.
-      m_event_table_cont.push_back(event_table);
-      all_table_cont.push_back(event_table);
-
-      // Open the GTI table.
-      // Note: At present, GTI is never modified, so no need to open it read-write.
-      const tip::Table * gti_table(tip::IFileSvc::instance().readTable(*itor, "GTI"));
-
-      // Add the table to the container.
-      m_gti_table_cont.push_back(gti_table);
-      all_table_cont.push_back(gti_table);
+      // Create and store an event time handler for GTI extension.
+      EventTimeHandler * gti_handler(EventTimeHandler::createHandler(*itor, "GTI", sc_file, sc_extension, ang_tolerance));
+      m_gti_handler_cont.push_back(gti_handler);
     }
 
     // Set names of TIME column in EVENTS exetension and START/STOP coulmns in GTI extensions.
@@ -168,22 +162,9 @@ namespace pulsarDb {
     m_gti_start_field = "START";
     m_gti_stop_field = "STOP";
 
-    // Analyze all event tables and GTI tables, and set the results to internal variables.
-    for (table_cont_type::const_iterator itor = all_table_cont.begin(); itor != all_table_cont.end(); ++itor) {
-      const tip::Table * table = *itor;
-      const tip::Header & header(table->getHeader());
-      // Create and store TimeRep for this table.
-      m_time_rep_dict[table] = createTimeRep("FILE", "FILE", "0.", &header);
-
-      // Check whether this table needs barycentering or not, and store it.
-      std::string time_ref;
-      header["TIMEREF"].get(time_ref);
-      m_need_bary_dict[table] = ("SOLARSYSTEM" != time_ref);
-    }
-
     // Select and set reference header.
-    const tip::Table * reference_table = m_event_table_cont.at(0);
-    m_reference_header = &(reference_table->getHeader());
+    EventTimeHandler * reference_handler = m_event_handler_cont.at(0);
+    m_reference_header = &(reference_handler->getHeader());
   }
 
   void PulsarToolApp::reserveOutputField(const std::string & field_name, const std::string & field_format) {
@@ -281,47 +262,49 @@ namespace pulsarDb {
       m_computer = new EphComputer(model, chooser);
 
     } else {
-      std::string epoch_time_format = pars["timeformat"];
-      std::string epoch_time_sys = pars["timesys"];
-      std::string epoch = pars["ephepoch"];
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, epoch_time_format,
-        epoch_time_sys, m_reference_header));
-      AbsoluteTime abs_epoch(*time_rep);
-
-      // Set global phase offset, needed for timing model.
-      double phi0 = 0.;
-
       // Create ephemeris computer with the sloppy chooser, so that the spin ephemeris given by the user will be always chosen.
       SloppyEphChooser sloppy_chooser;
       m_computer = new EphComputer(model, sloppy_chooser);
 
-      // TODO Actually read ra and dec from parameters when they are added.
-      double ra = 0.;
-      double dec = 0.;
+      if (eph_style_uc != "NONE") {
+        std::string epoch_time_format = pars["timeformat"];
+        std::string epoch_time_sys = pars["timesys"];
+        std::string epoch = pars["ephepoch"];
+        std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, epoch_time_format,
+          epoch_time_sys, m_reference_header));
+        AbsoluteTime abs_epoch(*time_rep);
 
-      // Handle either period or frequency-style input.
-      if (eph_style_uc == "FREQ") {
-        double f0 = pars["f0"];
-        double f1 = pars["f1"];
-        double f2 = pars["f2"];
+        // Set global phase offset, needed for timing model.
+        double phi0 = 0.;
 
-        if (0. >= f0) throw std::runtime_error("Frequency must be positive.");
+        // Read RA and Dec from a parameter file.
+        double ra = pars["ra"];
+        double dec = pars["dec"];
 
-        // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
-        PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-        ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2).clone());
-      } else if (eph_style_uc == "PER") {
-        double p0 = pars["p0"];
-        double p1 = pars["p1"];
-        double p2 = pars["p2"];
+        // Handle either period or frequency-style input.
+        if (eph_style_uc == "FREQ") {
+          double f0 = pars["f0"];
+          double f1 = pars["f1"];
+          double f2 = pars["f2"];
 
-        if (0. >= p0) throw std::runtime_error("Period must be positive.");
+          if (0. >= f0) throw std::runtime_error("Frequency must be positive.");
 
-        // Override any ephemerides which may have been found in the database with the ephemeris the user provided.
-        PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-        ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2).clone());
-      } else {
-        throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
+          // Add the ephemeris the user provided.
+          PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
+          ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2).clone());
+        } else if (eph_style_uc == "PER") {
+          double p0 = pars["p0"];
+          double p1 = pars["p1"];
+          double p2 = pars["p2"];
+
+          if (0. >= p0) throw std::runtime_error("Period must be positive.");
+
+          // Add the ephemeris the user provided.
+          PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
+          ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2).clone());
+        } else {
+          throw std::runtime_error("Unknown ephemeris style \"" + eph_style + "\" was specified.");
+        }
       }
     }
 
@@ -344,37 +327,32 @@ namespace pulsarDb {
 
       // Load the selected ephemerides.
       if (eph_style_uc == "DB") m_computer->loadPulsarEph(database);
-      m_computer->loadOrbitalEph(database);
+      if (m_tcmode_bin != SUPPRESSED) m_computer->loadOrbitalEph(database);
     }
   }
 
-  timeSystem::AbsoluteTime PulsarToolApp::computeTimeBoundary(bool request_start_time, bool request_time_correction) {
+  AbsoluteTime PulsarToolApp::computeTimeBoundary(bool request_start_time, bool request_time_correction) {
     bool candidate_found = false;
     AbsoluteTime abs_candidate_time("TDB", Duration(0, 0.), Duration(0, 0.));
 
     // First, look for requested time (start or stop) in the GTI.
-    for (table_cont_type::const_iterator itor = m_gti_table_cont.begin(); itor != m_gti_table_cont.end(); ++itor) {
-      const tip::Table & gti_table = *(*itor);
+    for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
+      EventTimeHandler & gti_handler = *(*itor);
 
       // If possible, get tstart (or tstop) from first (or last) interval in GTI extension.
-      tip::Table::ConstIterator gti_itor;
-      tip::Table::ConstIterator gti_begin = gti_table.begin();
-      tip::Table::ConstIterator gti_end = gti_table.end();
-      std::string field_name;
-      if (gti_begin != gti_end) {
+      gti_handler.setFirstRecord();
+      if (!gti_handler.isEndOfTable()) {
+        // Set field name and move to the last record if necessary.
+        std::string field_name;
         if (request_start_time) {
-          // Get start of the first interval in GTI.
-          gti_itor = gti_begin;
           field_name = m_gti_start_field;
         } else {
-          // Get stop of the last interval in GTI.
-          gti_itor = gti_end;
-          --gti_itor;
+          gti_handler.setLastRecord();
           field_name = m_gti_stop_field;
         }
 
         // Read GTI START (or STOP) column value as AbsoluteTime.
-        AbsoluteTime abs_gti_time = readTimeColumn(gti_table, *gti_itor, field_name, request_time_correction);
+        AbsoluteTime abs_gti_time = readTimeColumn(gti_handler, field_name, request_time_correction);
 
         if (candidate_found) {
           // See if the time is "better" than the current candidate (i.e., earlier for start or later for stop).
@@ -458,8 +436,8 @@ namespace pulsarDb {
 
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const AbsoluteTime & abs_origin) {
     // Determine whether to request barycentric correction.
-    // TODO: Change this when barycentering-on-the-fly is implemented.
-    m_request_bary = false;
+    // TODO: Implement proper determination of m_request_bary.
+    m_request_bary = true;
 
     // Determine whether to perform binary demodulation.
     m_demod_bin = false;
@@ -491,9 +469,9 @@ namespace pulsarDb {
       // When NO corrections are requested, the analysis will be performed in the time system written in event files,
       // requiring all event files have same time system.
       std::string this_time_system;
-      for (table_cont_type::const_iterator itor = m_event_table_cont.begin(); itor != m_event_table_cont.end(); ++itor) {
-        const tip::Table * event_table = *itor;
-        const tip::Header & header(event_table->getHeader());
+      for (handler_cont_type::const_iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
+        const EventTimeHandler & event_handler = *(*itor);
+        const tip::Header & header(event_handler.getHeader());
         header["TIMESYS"].get(this_time_system);
         if (!time_system_set) {
           target_time_sys = this_time_system;
@@ -519,12 +497,14 @@ namespace pulsarDb {
       if (guess_pdot) {
         // Compute an ephemeris at abs_origin to use for pdot cancellation.
         m_computer->setPdotCancelParameter(m_computer->calcPulsarEph(abs_origin));
+
       } else {
         // Read parameters for pdot cancellation from pfile.
         std::string eph_style = pars["ephstyle"];
         for (std::string::iterator itor = eph_style.begin(); itor != eph_style.end(); ++itor) *itor = std::toupper(*itor);
+
+        // Set dummy ra, dec, and phi0 (those are not used in pdot cancellation).
         double ra = 0.;
-        // TODO Actually read ra and dec from parameters when they are added.
         double dec = 0.;
         double phi0 = 0.;
         if (eph_style == "FREQ") {
@@ -547,6 +527,28 @@ namespace pulsarDb {
       }
     }
 
+    // Initialize barycentric corrections.
+    if (m_request_bary) {
+      std::string pl_ephem = "JPL DE405";
+      // TODO: Replace above with below.
+      //std::string pl_ephem = pars["plephem"];
+      BaryTimeComputer::getComputer().initialize(pl_ephem);
+
+      // Load RA and Dec to PulsarEph container for barycentric correction, if none is loaded.
+      PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
+      if (ephemerides.empty()) {
+        double ra = pars["ra"];
+        double dec = pars["dec"];
+        
+        // Set dummy phi0, f0, f1, and f2 (those are not used in barycentric correction.
+        double phi0 = 0.;
+        double f0 = 0.;
+        double f1 = 0.;
+        double f2 = 0.;
+        ephemerides.push_back(FrequencyEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, f0, f1, f2).clone());
+      }
+    }
+
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
@@ -561,7 +563,7 @@ namespace pulsarDb {
     return time_value;
   }
 
-  timeSystem::AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
+  AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
     // Assign the elapsed time to the time representation.
     m_target_time_rep->set("TIME", elapsed_time);
 
@@ -569,62 +571,59 @@ namespace pulsarDb {
     return AbsoluteTime(*m_target_time_rep);
   }
 
-  void PulsarToolApp::setupEventTable(const tip::Table & table) {
-    m_event_itor = table.begin();
+  void PulsarToolApp::setupCurrentEventTable() {
+    if (m_event_handler_itor != m_event_handler_cont.end()) {
+      // Set to the first event in the table.
+      EventTimeHandler & handler = **m_event_handler_itor;
+      handler.setFirstRecord();
 
-    // Add output field if missing.
-    for (std::vector<std::pair<std::string, std::string> >::const_iterator itor = m_output_field_cont.begin();
-         itor != m_output_field_cont.end(); ++itor) {
-      std::string field_name = itor->first;
-      std::string field_format = itor->second;
-      try {
-        table.getFieldIndex(field_name);
-      } catch (const tip::TipException &) {
-        // Container stores tables as "const Table *" whether the table was really opened read-only or not,
-        // so need to convert back to non-const. Note that if the file actually is opened read-only,
-        // appendField will fail.
-        tip::Table & table_nc = const_cast<tip::Table &>(table);
-        table_nc.appendField(field_name, field_format);
+      // Append requested output field(s), if missing.
+      tip::Table & table = handler.getTable();
+      for (std::vector<std::pair<std::string, std::string> >::const_iterator itor = m_output_field_cont.begin();
+           itor != m_output_field_cont.end(); ++itor) {
+        std::string field_name = itor->first;
+        std::string field_format = itor->second;
+        try {
+          table.getFieldIndex(field_name);
+        } catch (const tip::TipException &) {
+          table.appendField(field_name, field_format);
+        }
       }
     }
   }
 
   void PulsarToolApp::setFirstEvent() {
     // Set event table iterator.
-    m_table_itor = m_event_table_cont.begin();
+    m_event_handler_itor = m_event_handler_cont.begin();
 
     // Setup current event table.
-    if (m_table_itor != m_event_table_cont.end()) setupEventTable(**m_table_itor);
+    setupCurrentEventTable();
   }
 
   void PulsarToolApp::setNextEvent() {
     // Increment event record iterator.
-    ++m_event_itor;
+    (*m_event_handler_itor)->setNextRecord();
 
     // Check whether it reaches to the end of table.
-    if (m_event_itor == (*m_table_itor)->end()) {
+    if ((*m_event_handler_itor)->isEndOfTable()) {
       // Increment event table iterator.
-      ++m_table_itor;
+      ++m_event_handler_itor;
 
       // Setup new event table.
-      if (m_table_itor != m_event_table_cont.end()) setupEventTable(**m_table_itor);
+      setupCurrentEventTable();
     }
   }
 
   bool PulsarToolApp::isEndOfEventList() const {
-    return (m_table_itor == m_event_table_cont.end());
+    return (m_event_handler_itor == m_event_handler_cont.end());
   }
 
   AbsoluteTime PulsarToolApp::getEventTime() {
-    return readTimeColumn(**m_table_itor, *m_event_itor, m_time_field, true);
+    return readTimeColumn(**m_event_handler_itor, m_time_field, true);
   }
 
   void PulsarToolApp::setFieldValue(const std::string & field_name, double field_value) {
-    // Container stores tables as "const Table *" whether the table was really opened read-only or not,
-    // so need to convert back to non-const. Note that if the file actually is opened read-only,
-    // TableRecord::set method will fail.
-    // TODO: Is there some other way to do this? The static_cast gives us the creeps!
-    tip::TableRecord & record = static_cast<tip::TableRecord &>(*m_event_itor);
+    tip::TableRecord & record = (*m_event_handler_itor)->getCurrentRecord();
     record[field_name].set(field_value);
   }
 
@@ -642,8 +641,7 @@ namespace pulsarDb {
 
   void PulsarToolApp::resetApp() {
     // TODO: How should iterators pointing to nothing be reset?
-    // m_event_itor = 0;
-    // m_table_itor = 0;
+    // m_event_handler_itor = 0;
 
     // Destroy target TimeRep object.
     delete m_target_time_rep; m_target_time_rep = 0;
@@ -667,54 +665,47 @@ namespace pulsarDb {
     // Reset reference header.
     m_reference_header = 0;
 
-    // Clear out barycentering flags.
-    m_need_bary_dict.clear();
-
-    // Clear out any TimeRep objects.
-    for (std::map<const tip::Table *, TimeRep *>::reverse_iterator itor = m_time_rep_dict.rbegin();
-      itor != m_time_rep_dict.rend(); ++itor) {
-      delete itor->second;
-    }
-    m_time_rep_dict.clear();
-
     // Reset columns to be modified.
     m_output_field_cont.clear();
 
-    // Clear out any gti tables.
-    for (table_cont_type::reverse_iterator itor = m_gti_table_cont.rbegin(); itor != m_gti_table_cont.rend(); ++itor) {
+    // Clear out any gti handlers.
+    for (handler_cont_type::reverse_iterator itor = m_gti_handler_cont.rbegin(); itor != m_gti_handler_cont.rend(); ++itor) {
       delete *itor;
     }
-    m_gti_table_cont.clear();
+    m_gti_handler_cont.clear();
 
-    // Clear out any event tables.
-    for (table_cont_type::reverse_iterator itor = m_event_table_cont.rbegin(); itor != m_event_table_cont.rend(); ++itor) {
+    // Clear out any event handlers.
+    for (handler_cont_type::reverse_iterator itor = m_event_handler_cont.rbegin(); itor != m_event_handler_cont.rend(); ++itor) {
       delete *itor;
     }
-    m_event_table_cont.clear();
+    m_event_handler_cont.clear();
   }
 
-  AbsoluteTime PulsarToolApp::readTimeColumn(const tip::Table & table, tip::ConstTableRecord & record, const std::string & column_name,
+  AbsoluteTime PulsarToolApp::readTimeColumn(EventTimeHandler & handler, const std::string & column_name,
     bool request_time_correction) {
-    // Get time value from given record.
-    double time_value = record[column_name].get();
 
-    // Get TimeRep for this table.
-    TimeRep * time_rep(m_time_rep_dict[&table]);
-
-    // Assign the value to the time representation.
-    time_rep->set("TIME", time_value);
-
-    // Convert TimeRep into AbsoluteTime so that computer can perform the necessary corrections.
-    AbsoluteTime abs_time(*time_rep);
+    // Read the original photon arrival time.
+    AbsoluteTime abs_time = handler.readColumn(column_name);
 
     // Apply selected corrections, if requested.
     if (request_time_correction) {
-      bool correct_bary = m_request_bary && m_need_bary_dict[&table];
-      if (correct_bary) throw std::runtime_error("Automatic barycentric correction not implemented.");
+      // Apply barycentric correction, if requested.
+      if (m_request_bary) {
+        // Get RA and Dec for the given arrival time.
+        std::auto_ptr<PulsarEph> eph(m_computer->calcPulsarEph(abs_time).clone());
+
+        // Try barycentric correction with the RA and Dec.
+        abs_time = handler.readColumn(column_name, eph->ra(), eph->dec());
+      }
+
+      // Apply binary demodulation, if requested.
       if (m_demod_bin) m_computer->demodulateBinary(abs_time);
+
+      // Apply pdot cancellation corrections, if requested.
       if (m_cancel_pdot) m_computer->cancelPdot(abs_time);
     }
 
+    // Return the requested time.
     return abs_time;
   }
 }
