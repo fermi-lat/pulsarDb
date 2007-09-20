@@ -150,11 +150,12 @@ namespace pulsarDb {
       // TODO: Handle read_only flag appropriately.
       // Create and store an event time handler for EVENTS extension.
       EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(*itor, event_extension, sc_file, sc_extension,
-        ang_tolerance));
+        ang_tolerance, read_only));
       m_event_handler_cont.push_back(event_handler);
 
       // Create and store an event time handler for GTI extension.
-      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(*itor, "GTI", sc_file, sc_extension, ang_tolerance));
+      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(*itor, "GTI", sc_file, sc_extension, ang_tolerance,
+        read_only));
       m_gti_handler_cont.push_back(gti_handler);
     }
 
