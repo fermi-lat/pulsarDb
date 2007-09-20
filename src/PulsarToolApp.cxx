@@ -149,11 +149,12 @@ namespace pulsarDb {
     for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
       // TODO: Handle read_only flag appropriately.
       // Create and store an event time handler for EVENTS extension.
-      EventTimeHandler * event_handler(EventTimeHandler::createHandler(*itor, event_extension, sc_file, sc_extension, ang_tolerance));
+      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(*itor, event_extension, sc_file, sc_extension,
+        ang_tolerance));
       m_event_handler_cont.push_back(event_handler);
 
       // Create and store an event time handler for GTI extension.
-      EventTimeHandler * gti_handler(EventTimeHandler::createHandler(*itor, "GTI", sc_file, sc_extension, ang_tolerance));
+      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(*itor, "GTI", sc_file, sc_extension, ang_tolerance));
       m_gti_handler_cont.push_back(gti_handler);
     }
 
