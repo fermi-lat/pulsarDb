@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Sep 21 15:03:58 PDT 2007
+pulsarDb/pfiles
+
+Modified Files:
+	gtephem.par 
+Log Message:
+Change psrdbfile parameter from hidden to automatic.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Sep 21 15:03:28 PDT 2007
 pulsarDb/src
 
