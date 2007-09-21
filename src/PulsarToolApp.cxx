@@ -202,9 +202,6 @@ namespace pulsarDb {
     }
   }
 
-// TODO: Uncomment the line below when tcorrect parameter replaces cancelpdot and demodbin parameters.
-//#define tcorrect_parameter_supported
-#ifdef tcorrect_parameter_supported
   void PulsarToolApp::selectTimeCorrectionMode(const st_app::AppParGroup & pars) {
     // Read tcorrect parameter.
     std::string t_correct = pars["tcorrect"];
@@ -212,37 +209,6 @@ namespace pulsarDb {
     // Determine time correction mode.
     selectTimeCorrectionMode(t_correct);
   }
-#else
-  void PulsarToolApp::selectTimeCorrectionMode(const st_app::AppParGroup & pars) {
-    // Determine time correction mode for barycentric correction.
-    // TODO: Change this when barycentering-on-the-fly is implemented.
-    // NOTE: Barycentering-on-the-fly is NOT implemented.
-    m_tcmode_bary = SUPPRESSED;
-
-    // Determine time correction mode for binary demodulation.
-    std::string demod_bin_string = pars["demodbin"];
-    for (std::string::iterator itor = demod_bin_string.begin(); itor != demod_bin_string.end(); ++itor) *itor = std::toupper(*itor);
-    if (demod_bin_string == "YES") {
-      m_tcmode_bin = REQUIRED;
-    } else if (demod_bin_string == "NO") {
-      m_tcmode_bin = SUPPRESSED;
-    } else if (demod_bin_string == "AUTO") {
-      m_tcmode_bin = ALLOWED;
-    }
-
-    // Determine time correction mode for pdot cancellation.
-    try {
-      bool cancel_pdot_bool = pars["cancelpdot"];
-      if (cancel_pdot_bool) {
-        m_tcmode_pdot = REQUIRED;
-      } else {
-        m_tcmode_pdot = SUPPRESSED;
-      }
-    } catch (...) {
-      m_tcmode_pdot = SUPPRESSED;
-    }
-  }
-#endif
 
   void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
     const EphChooser & chooser) {
@@ -437,10 +403,6 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const AbsoluteTime & abs_origin) {
-    // Determine whether to request barycentric correction.
-    // TODO: Implement proper determination of m_request_bary.
-    m_request_bary = true;
-
     // Determine whether to perform binary demodulation.
     m_demod_bin = false;
     if ((m_tcmode_bin == REQUIRED) || (m_tcmode_bin == ALLOWED)) {
@@ -462,11 +424,16 @@ namespace pulsarDb {
       }
     }
 
+    // Determine whether to request barycentric correction.
+    if (m_tcmode_bary == SUPPRESSED && (m_demod_bin || m_cancel_pdot)) {
+      throw std::runtime_error("Barycentric correction is suppressed when binary demodulation or pdot cancellation is requested.");
+    }
+    m_request_bary = (m_tcmode_bary == REQUIRED || m_tcmode_bary == ALLOWED);
+
     // Initialize the time series to analyze.
     std::string target_time_sys;
     bool time_system_set = false;
 
-    // TODO: the following if-statement will become 'if (tcorrect == "NONE")' when tcorrect is introduced.
     if (!m_request_bary && !m_demod_bin && !m_cancel_pdot) {
       // When NO corrections are requested, the analysis will be performed in the time system written in event files,
       // requiring all event files have same time system.
