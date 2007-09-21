@@ -50,6 +50,11 @@ namespace pulsarDb {
       pars.Prompt("tstart");
       pars.Prompt("tstop");
     }
+    pars.Prompt("chatter");
+    pars.Prompt("clobber");
+    pars.Prompt("debug");
+    pars.Prompt("gui");
+    pars.Prompt("mode");
     pars.Save();
 
     // Interpret pars.
