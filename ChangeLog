@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Sep 21 15:01:57 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Add prompting of hidden parameters.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Sep 20 14:59:03 PDT 2007
 pulsarDb/src
 
