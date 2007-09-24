@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Sep 24 12:51:39 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Remove DEFAULT option for psrdbfile parameter.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Sep 21 15:03:58 PDT 2007
 pulsarDb/pfiles
 
