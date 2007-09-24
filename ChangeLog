@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Sep 24 13:19:03 PDT 2007
+pulsarDb/data
+
+Removed Files:
+	master_pulsardb.fits 
+Log Message:
+Remove data/master_pulsardb.fits.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Sep 24 12:51:40 PDT 2007
 pulsarDb/pfiles
 
