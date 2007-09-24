@@ -1,4 +1,4 @@
-psrdbfile,      f, a, DEFAULT, , , "Pulsar ephemerides database file name (DEFAULT - use standard eph db)"
+psrdbfile,      f, a, , , , "Pulsar ephemerides database file name"
 psrname,        s, a, "ANY", , , "Pulsar name"
 reftime,        s, a, "0.", , , "Reference time at which to find/compute ephemeris"
 timeformat,     s, a, MJD, "MJD|GLAST", , "Time format for spin ephemeris epoch"

@@ -277,16 +277,8 @@ namespace pulsarDb {
     }
 
     if (eph_style_uc == "DB" || m_tcmode_bin != SUPPRESSED) {
-      // Find the pulsar database.
-      std::string psrdb_file = pars["psrdbfile"];
-      std::string psrdb_file_uc = psrdb_file;
-      for (std::string::iterator itor = psrdb_file_uc.begin(); itor != psrdb_file_uc.end(); ++itor) *itor = std::toupper(*itor);
-      if ("DEFAULT" == psrdb_file_uc) {
-        // TODO: Change the folowing directory/file names of master pulsar database to the "official" one.
-        psrdb_file = Env::appendFileName(Env::getDataDir("pulsarDb"), "master_pulsardb.fits");
-      }
-
       // Open the database.
+      std::string psrdb_file = pars["psrdbfile"];
       PulsarDb database(psrdb_file);
 
       // Select only ephemerides for this pulsar.
