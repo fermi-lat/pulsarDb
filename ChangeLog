@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Sep 24 12:51:40 PDT 2007
+pulsarDb/pfiles
+
+Modified Files:
+	gtephem.par 
+Log Message:
+Remove DEFAULT option for psrdbfile parameter.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Sep 24 12:51:39 PDT 2007
 pulsarDb/src
 
