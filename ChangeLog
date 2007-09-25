@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Sep 25 13:34:06 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add comment about angular tolerance and update TODO markers.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Sep 24 13:19:03 PDT 2007
 pulsarDb/data
 
