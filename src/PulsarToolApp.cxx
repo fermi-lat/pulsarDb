@@ -141,13 +141,12 @@ namespace pulsarDb {
     std::string sc_file = pars["scfile"];
     std::string sc_extension = pars["sctable"];
 
-    // TODO: Read from a parameter file?
-    double ang_tolerance = 1.e-8;
+    // Note: A difference of 1.e-8 degree produces approx. 90 ns difference in barycentric times at maximum.
+    double ang_tolerance = 1.e-8; // In degrees.
 
     // Open the event table(s), either for reading or reading and writing.
     FileSys::FileNameCont file_name_cont = FileSys::expandFileList(event_file);
     for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
-      // TODO: Handle read_only flag appropriately.
       // Create and store an event time handler for EVENTS extension.
       EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(*itor, event_extension, sc_file, sc_extension,
         ang_tolerance, read_only));
