@@ -12,6 +12,8 @@
 
 #include "st_facilities/Env.h"
 
+#include "facilitiles/commonUtilities.h"
+
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
@@ -21,7 +23,7 @@ namespace pulsarDb {
 
   TextPulsarDb::TextPulsarDb(const std::string & in_file, const std::string & tpl_file): PulsarDb() {
     // Find data directory for this app.
-    std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
+    std::string data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
     // Alias for file service singleton.
     IFileSvc & file_svc(IFileSvc::instance());
