@@ -22,6 +22,8 @@
 #include "st_app/StAppFactory.h"
 #include "st_facilities/Env.h"
 
+#include "facilities/commonUtilities.h"
+
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/TimeConstant.h"
@@ -116,16 +118,16 @@ using namespace pulsarDb;
 void PulsarDbTest::run() {
 
   // Find data directory for this app.
-  m_data_dir = st_facilities::Env::getDataDir("pulsarDb");
+  m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
   // Find test file.
-  m_in_file = st_facilities::Env::appendFileName(m_data_dir, "groD4-dc2v4.fits");
+  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits");
 
   // Output file.
   m_out_file = "spud.fits";
 
   // Find template file.
-  m_tpl_file = st_facilities::Env::appendFileName(m_data_dir, "PulsarEph.tpl");
+  m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarEph.tpl");
 
   // Successful tests.
   testNoOp();
@@ -635,7 +637,7 @@ void PulsarDbTest::testTimingModel() {
 void PulsarDbTest::testAppend() {
   std::string method_name = "testAppend";
 
-  PulsarDb database(st_facilities::Env::appendFileName(m_data_dir, "groD4-dc2v4.fits"));
+  PulsarDb database(facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits"));
   remove("groD4-dc2v4_twice.fits");
   database.save("groD4-dc2v4_twice.fits", m_tpl_file);
   database.save("groD4-dc2v4_twice.fits", m_tpl_file);
@@ -645,10 +647,10 @@ void PulsarDbTest::testTextPulsarDb() {
   std::string method_name = "testTextPulsarDb";
 
   // Ingest one of each type of table.
-  TextPulsarDb text_psrdb_spin(st_facilities::Env::appendFileName(m_data_dir, "psrdb_spin.txt"), m_tpl_file);
-  TextPulsarDb text_psrdb_binary(st_facilities::Env::appendFileName(m_data_dir, "psrdb_binary.txt"), m_tpl_file);
-  TextPulsarDb text_psrdb_obs(st_facilities::Env::appendFileName(m_data_dir, "psrdb_obs.txt"), m_tpl_file);
-  TextPulsarDb text_psrdb_name(st_facilities::Env::appendFileName(m_data_dir, "psrdb_name.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_spin(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_spin.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_binary(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_binary.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_obs(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_obs.txt"), m_tpl_file);
+  TextPulsarDb text_psrdb_name(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_name.txt"), m_tpl_file);
 
   // Save all tables into one FITS file.
   std::string filename("psrdb_all.fits");

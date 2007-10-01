@@ -19,6 +19,8 @@
 
 #include "st_facilities/Env.h"
 
+#include "facilities/commonUtilities.h"
+
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeRep.h"
@@ -134,7 +136,7 @@ namespace pulsarDb {
     IFileSvc & file_svc(IFileSvc::instance());
 
     // Find data directory for this app.
-    std::string data_dir = st_facilities::Env::getDataDir("pulsarDb");
+    std::string data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
     if (!file_svc.fileExists(out_file)) {
       // Create output file.

@@ -17,6 +17,8 @@
 #include "st_facilities/Env.h"
 #include "st_facilities/FileSys.h"
 
+#include "facilities/commonUtilities.h"
+
 #include "tip/IFileSvc.h"
 #include "tip/TipException.h"
 
@@ -62,7 +64,7 @@ namespace pulsarDb {
     std::string out_file = pars["outfile"];
 
     // Find template file.
-    m_tpl_file = st_facilities::Env::appendFileName(st_facilities::Env::getDataDir("pulsarDb"), "PulsarEph.tpl");
+    m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilitiles::getDataPath("pulsarDb"), "PulsarEph.tpl");
 
     // Create output file, respecting clobber.
     tip::IFileSvc::instance().createFile(out_file, m_tpl_file, pars["clobber"]);
