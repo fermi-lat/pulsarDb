@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "facilities/commonUtilities.h"
+
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/OrbitalEph.h"
@@ -20,9 +22,6 @@
 
 #include "st_app/StApp.h"
 #include "st_app/StAppFactory.h"
-#include "st_facilities/Env.h"
-
-#include "facilities/commonUtilities.h"
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"

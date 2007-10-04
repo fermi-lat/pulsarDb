@@ -9,15 +9,15 @@
 #include <stdexcept>
 #include <string>
 
+#include "facilities/commonUtilities.h"
+
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarDbApp.h"
 #include "pulsarDb/TextPulsarDb.h"
 
 #include "st_app/AppParGroup.h"
-#include "st_facilities/Env.h"
-#include "st_facilities/FileSys.h"
 
-#include "facilities/commonUtilities.h"
+#include "st_facilities/FileSys.h"
 
 #include "tip/IFileSvc.h"
 #include "tip/TipException.h"
