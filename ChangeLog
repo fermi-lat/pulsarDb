@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Oct  4 13:43:17 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx TextPulsarDb.cxx 
+Log Message:
+Correct typos to make the code compilable.
+
+    *
+------------------------------------------------------------
 User: golpa  Mon Oct  1 10:15:08 PDT 2007
 pulsarDb/src/test
 
