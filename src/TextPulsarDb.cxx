@@ -12,7 +12,7 @@
 
 #include "st_facilities/Env.h"
 
-#include "facilitiles/commonUtilities.h"
+#include "facilities/commonUtilities.h"
 
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
