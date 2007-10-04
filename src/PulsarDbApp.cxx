@@ -64,7 +64,7 @@ namespace pulsarDb {
     std::string out_file = pars["outfile"];
 
     // Find template file.
-    m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilitiles::getDataPath("pulsarDb"), "PulsarEph.tpl");
+    m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarEph.tpl");
 
     // Create output file, respecting clobber.
     tip::IFileSvc::instance().createFile(out_file, m_tpl_file, pars["clobber"]);
