@@ -10,8 +10,6 @@
 
 #include "st_app/AppParGroup.h"
 
-#include "st_facilities/Env.h"
-
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/TimeRep.h"
 #include "timeSystem/TimeSystem.h"

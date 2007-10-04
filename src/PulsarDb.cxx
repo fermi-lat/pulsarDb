@@ -15,11 +15,9 @@
 #include <string>
 #include <utility>
 
-#include "pulsarDb/PulsarDb.h"
-
-#include "st_facilities/Env.h"
-
 #include "facilities/commonUtilities.h"
+
+#include "pulsarDb/PulsarDb.h"
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/IntFracPair.h"

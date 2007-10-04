@@ -16,7 +16,6 @@
 
 #include "st_app/AppParGroup.h"
 
-#include "st_facilities/Env.h"
 #include "st_facilities/FileSys.h"
 
 #include "timeSystem/AbsoluteTime.h"

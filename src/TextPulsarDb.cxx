@@ -8,11 +8,9 @@
 #include <fstream>
 #include <stdexcept>
 
-#include "pulsarDb/TextPulsarDb.h"
-
-#include "st_facilities/Env.h"
-
 #include "facilities/commonUtilities.h"
+
+#include "pulsarDb/TextPulsarDb.h"
 
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
