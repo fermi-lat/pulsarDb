@@ -139,9 +139,7 @@ namespace pulsarDb {
     std::string event_extension = pars["evtable"];
     std::string sc_file = pars["scfile"];
     std::string sc_extension = pars["sctable"];
-
-    // Note: A difference of 1.e-8 degree produces approx. 90 ns difference in barycentric times at maximum.
-    double ang_tolerance = 1.e-8; // In degrees.
+    double ang_tolerance = pars["angtol"];
 
     // Open the event table(s), either for reading or reading and writing.
     FileSys::FileNameCont file_name_cont = FileSys::expandFileList(event_file);
@@ -488,10 +486,8 @@ namespace pulsarDb {
 
     // Initialize barycentric corrections.
     if (m_request_bary) {
-      std::string pl_ephem = "JPL DE405";
-      // TODO: Replace above with below.
-      //std::string pl_ephem = pars["plephem"];
-      BaryTimeComputer::getComputer().initialize(pl_ephem);
+      std::string solar_eph = pars["solareph"];
+      BaryTimeComputer::getComputer().initialize(solar_eph);
 
       // Load RA and Dec to PulsarEph container for barycentric correction, if none is loaded.
       PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
