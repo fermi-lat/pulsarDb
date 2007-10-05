@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct  5 15:51:27 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Add new method filterSolarEph. Add a boolean parameter to getNumEph method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct  5 13:47:23 PDT 2007
 pulsarDb/src
 
