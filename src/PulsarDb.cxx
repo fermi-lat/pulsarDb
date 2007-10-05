@@ -123,6 +123,31 @@ namespace pulsarDb {
     clean();
   }
 
+  void PulsarDb::filterSolarEph(const std::string & solar_eph) {
+    // Convert to uppercase.
+    std::string solar_eph_uc(solar_eph);
+    for (std::string::iterator itor = solar_eph_uc.begin(); itor != solar_eph_uc.end(); ++itor) *itor = toupper(*itor);
+
+    // Create a list of solar ephemeris names to match.
+    std::set<std::string> name_matches;
+    name_matches.insert(solar_eph_uc);
+
+    // If the all-upper case name is different from the original name, add it.
+    if (solar_eph_uc != solar_eph) {
+      name_matches.insert(solar_eph_uc);
+    }
+
+    // Finally (just to be sure) add the original name given.
+    name_matches.insert(solar_eph);
+
+    std::string expression = createFilter("SOLAR_SYSTEM_EPHEMERIS", name_matches);
+
+    // OK, do the filter for real on the spin parameters and orbital parameters tables.
+    m_spin_par_table->filterRows(expression);
+    m_orbital_par_table->filterRows(expression);
+    clean();
+  }
+
   void PulsarDb::save(const std::string & out_file, const std::string & tpl_file) const {
     // Get first extension in input file.
     FileSummary::const_iterator ext_itor = m_summary.begin();
@@ -354,8 +379,18 @@ namespace pulsarDb {
     }
   }
 
-  int PulsarDb::getNumEph() const {
-    return m_spin_par_table->getNumRecords();
+  int PulsarDb::getNumEph(bool spin_table) const {
+    int num_eph = 0;
+
+    // Get the number of entry in the requested table.
+    if (spin_table) {
+      num_eph = m_spin_par_table->getNumRecords();
+    } else {
+      num_eph = m_orbital_par_table->getNumRecords();
+    }
+
+    // Return the number of entry in the requested table.
+    return num_eph;
   }
 
   PulsarDb::PulsarDb(): m_in_file(), m_summary(), m_table(), m_spin_par_table(0), m_orbital_par_table(0), m_obs_code_table(0),

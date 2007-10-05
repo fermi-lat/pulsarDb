@@ -62,6 +62,11 @@ namespace pulsarDb {
       */
       virtual void filterName(const std::string & name);
 
+      /** \brief Select ephemerides whose SOLAR_SYSTEM_EPHEMERIS value matches the input solar_eph. Matching is case insensitive.
+          \param solar_eph The name of the solar system ephemeris. Examples: JPL DE405, JPL DE200
+      */
+      virtual void filterSolarEph(const std::string & solar_eph);
+
       /** \brief Save the currently selected ephemerides into an output file.
 
                  All tables from the input file will be copied to the output file, but in each table, records which
@@ -83,7 +88,7 @@ namespace pulsarDb {
       virtual void getEph(OrbitalEphCont & cont) const;
 
       /// \brief Get the number of currently selected ephemerides.
-      virtual int getNumEph() const;
+      virtual int getNumEph(bool spin_table = true) const;
 
     protected:
       PulsarDb();
