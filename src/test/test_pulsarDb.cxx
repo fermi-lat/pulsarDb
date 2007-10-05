@@ -81,6 +81,9 @@ class PulsarDbTest : public st_app::StApp {
     /// Test filtering based on a time range (finding ephemerides which overlaps the range.)
     virtual void testTime();
 
+    /// Test filtering based on a solar system ephemeris name.
+    virtual void testSolarEph();
+
     /// Test PulsarEph classes.
     virtual void testPulsarEph();
 
@@ -120,7 +123,7 @@ void PulsarDbTest::run() {
   m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
   // Find test file.
-  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits");
+  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4r1.fits");
 
   // Output file.
   m_out_file = "spud.fits";
@@ -133,6 +136,7 @@ void PulsarDbTest::run() {
   testExplicitName();
   testAlternateName();
   testTime();
+  testSolarEph();
   testPulsarEph();
   testTimingModel();
   testAppend();
@@ -493,6 +497,26 @@ void PulsarDbTest::testTime() {
   if (406 != num_eph)
     ErrorMsg(method_name) << "after filterInterval(53400., 53800.) there are " << num_eph << " ephemerides, not 406" << std::endl;
 
+}
+
+void PulsarDbTest::testSolarEph() {
+  std::string method_name = "testSolarEph";
+
+  // Create pulsar database object.
+  PulsarDb database(m_in_file);
+
+  // Give a time filter.
+  database.filterSolarEph("JPL DE405");
+
+  // Make sure the test data has expected size (SPIN_PARAMETERS extension).
+  int num_eph = database.getNumEph();
+  if (5 != num_eph)
+    ErrorMsg(method_name) << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " spin ephemerides, not 5" << std::endl;
+
+  // Make sure the test data has expected size (ORBITAL_PARAMETERS extension).
+  num_eph = database.getNumEph(false);
+  if (4 != num_eph)
+    ErrorMsg(method_name) << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " orbital ephemerides, not 4" << std::endl;
 }
 
 void PulsarDbTest::testPulsarEph() {
