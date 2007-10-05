@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Oct  5 15:53:53 PDT 2007
+pulsarDb/data
+
+Added Files:
+	groD4-dc2v4r1.fits 
+Log Message:
+Add test of PulsarDb::filterSolarEph method. Replace test data groD4-dc2v4.fits with groD4-dc2v4r1.fits for the test.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Oct  5 15:53:53 PDT 2007
 pulsarDb/src/test
 
 Modified Files:
