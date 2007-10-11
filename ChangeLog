@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Oct 11 15:05:36 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add handling of matchsolareph (new parameter) in initEphComputer method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct  5 15:53:53 PDT 2007
 pulsarDb/data
 
