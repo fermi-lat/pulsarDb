@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Oct 11 15:06:03 PDT 2007
+pulsarDb/pfiles
+
+Modified Files:
+	gtephem.par 
+Log Message:
+Add solareph and matchsolareph parameters.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Oct 11 15:05:36 PDT 2007
 pulsarDb/src
 
