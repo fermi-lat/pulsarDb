@@ -281,6 +281,14 @@ namespace pulsarDb {
       std::string psr_name = pars["psrname"];
       database.filterName(psr_name);
 
+      // Select only ephemerides with the solar system ephemeris used for barycentering.
+      std::string match_solar_eph = pars["matchsolareph"];
+      for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
+      if (match_solar_eph == "PSRDB" || match_solar_eph == "ALL") {
+        std::string solar_eph = pars["solareph"];
+        database.filterSolarEph(solar_eph);
+      }
+
       // Load the selected ephemerides.
       if (eph_style_uc == "DB") m_computer->loadPulsarEph(database);
       if (m_tcmode_bin != SUPPRESSED) m_computer->loadOrbitalEph(database);
