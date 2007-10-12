@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 12 15:56:45 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add checking of solar system ephemeris in event files.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Oct 11 15:06:03 PDT 2007
 pulsarDb/pfiles
 
