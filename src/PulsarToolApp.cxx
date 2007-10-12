@@ -135,24 +135,39 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::openEventFile(const st_app::AppParGroup & pars, bool read_only) {
+    // Read parameters from the parameter file.
     std::string event_file = pars["evfile"];
     std::string event_extension = pars["evtable"];
     std::string sc_file = pars["scfile"];
     std::string sc_extension = pars["sctable"];
+    std::string solar_eph = pars["solareph"];
     double ang_tolerance = pars["angtol"];
+
+    // Determine whether to check solar system ephemeris used for barycentered event files.
+    std::string match_solar_eph = pars["matchsolareph"];
+    for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
+    bool check_solar_eph = (match_solar_eph == "EVENT" || match_solar_eph == "ALL");
 
     // Open the event table(s), either for reading or reading and writing.
     FileSys::FileNameCont file_name_cont = FileSys::expandFileList(event_file);
     for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
+      std::string file_name = *itor;
+
       // Create and store an event time handler for EVENTS extension.
-      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(*itor, event_extension, sc_file, sc_extension,
+      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(file_name, event_extension, sc_file, sc_extension,
         ang_tolerance, read_only));
       m_event_handler_cont.push_back(event_handler);
 
+      // Check solar system ephemeris for EVENTS extension.
+      if (check_solar_eph) event_handler->checkSolarEph(solar_eph);
+
       // Create and store an event time handler for GTI extension.
-      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(*itor, "GTI", sc_file, sc_extension, ang_tolerance,
-        read_only));
+      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(file_name, "GTI", sc_file, sc_extension,
+        ang_tolerance, read_only));
       m_gti_handler_cont.push_back(gti_handler);
+
+      // Check solar system ephemeris for GTI extension.
+      if (check_solar_eph) gti_handler->checkSolarEph(solar_eph);
     }
 
     // Set names of TIME column in EVENTS exetension and START/STOP coulmns in GTI extensions.
