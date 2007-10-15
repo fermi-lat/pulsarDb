@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Oct 15 14:30:21 PDT 2007
+pulsarDb/pfiles
+
+Modified Files:
+	gtpulsardb.par 
+Log Message:
+Add filtering on solar system ephemeris. Add solareph parameter.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct 12 15:56:45 PDT 2007
 pulsarDb/src
 
