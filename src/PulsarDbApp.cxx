@@ -51,6 +51,8 @@ namespace pulsarDb {
     } else if (filter == "time") {
       pars.Prompt("tstart");
       pars.Prompt("tstop");
+    } else if (filter == "solareph") {
+      pars.Prompt("solareph");
     }
     pars.Prompt("chatter");
     pars.Prompt("clobber");
@@ -95,6 +97,11 @@ namespace pulsarDb {
       double t_start = pars["tstart"];
       double t_stop = pars["tstop"];
       data_base->filterInterval(t_start, t_stop);
+
+    } else if (filter == "solareph") {
+      // Filter on solar system ephemeris.
+      std::string solar_eph = pars["solareph"];
+      data_base->filterSolarEph(solar_eph);
     }
 
     if (0 >= data_base->getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
