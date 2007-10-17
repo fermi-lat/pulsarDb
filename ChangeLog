@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 17 15:21:16 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+Add new parameters and refine descriptions. Minor clean-ups for consistency with the other pulsar tools packages.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Oct 15 14:30:21 PDT 2007
 pulsarDb/src
 
