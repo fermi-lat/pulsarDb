@@ -26,18 +26,18 @@ psrdbfile [file name]
 outfile [file name]
     Name of output file, which will be in GLAST D4 FITS format.
 
-filter = NONE [string]
-    Type of filtering to be performed. Valid choices are
-    NAME, TIME, or NONE. If filter is NAME, the pulsar name
+filter = NONE [enumerated string (NAME|TIME|SOLAREPH|NONE)]
+    Type of filtering to be performed. If filter is NAME, the pulsar name
     (see psrname parameter) will be used to select only ephemerides
     for the named pulsar. If filter is TIME, the parameters tstart and
     tstop will be used to filter the ephemerides based on that
-    time range. If filter is NONE, no filtering will be performed.
+    time range. If filter is SOLAREPH, only ephemerides that match the solareph
+    parameter will be selected. If filter is NONE, no filtering will be performed.
 
 psrname = ANY [string]
-    The name of the pulsar, used to select only ephemerides
-    valid for a particular pulsar. This only has effect
-    when the filter parameter is NAME.
+    Name of the pulsar, used to select only ephemerides valid for a
+    particular pulsar. This only has effect when the filter parameter
+    is NAME.
 
 tstart = 0. [double]
     Time used for the beginning of the interval used for
@@ -49,6 +49,10 @@ tstop = 1.e5 [double]
     time filtering. This only has effect when the filter
     parameter is TIME.
 
+solareph = JPL DE405 [enumerated string (JPL DE200|JPL DE405)]
+    Solar system ephemeris used to filter the ephemerides.
+    This only has effect when the filter parameter is SOLAREPH.
+
 \endverbatim
 
     \subsection gtephem_prerequisites gtephem Prerequisites
@@ -57,15 +61,18 @@ tstop = 1.e5 [double]
     \subsection gtephem_parameters gtephem Parameters
  
 \verbatim
+psrdbfile [file name]
+    Name of pulsar ephemerides database file, in GLAST D4
+    FITS format.
+
 psrname = ANY [string]
-    The name of the pulsar, used to select only ephemerides
-    valid for a particular pulsar. This only has effect
-    when the filter parameter is NAME.
+    Name of the pulsar, used to select only ephemerides valid for a
+    particular pulsar.
 
 reftime = 0. [string]
-    The time for which an ephemeris will be selected, if any is
-    available in the input file. The interpretation of this number
-    is determined by the timeformat and timesys parameters.
+    Reference time for which an ephemeris will be selected, if any is
+    available in the input file. The interpretation of this number is
+    determined by the timeformat and timesys parameters.
 
 timeformat = MJD [string]
     String describing the representation used for the reference time.
@@ -75,12 +82,6 @@ timesys = TDB [string]
     String describing the time system used for the reference time.
     Valid choices are TAI, TDB, TT and UTC.
 
-(psrdbfile = DEFAULT) [file name]
-    Name of pulsar ephemerides database file, in GLAST D4
-    FITS format. If psrdbfile is DEFAULT, the canonical pulsar
-    database file (master_pulsardb.fits), which is distributed
-    with the extFiles package, will be used.
-
 (strict = no) [bool]
     If strict is yes, only spin ephemerides whose stated
     range of validity contains the epoch will be selected.
@@ -88,11 +89,23 @@ timesys = TDB [string]
     will be selected, regardless of its stated range of
     validity.
 
+(solareph = JPL DE405) [enumerated string (JPL DE200|JPL DE405)]
+    Solar system ephemeris used to select the ephemerides. This
+    only has effect when the matchsolareph parameter is either
+    ALL or PSRDB.
+
+(matchsolareph = ALL) [enumerated string (NONE|PSRDB|ALL)]
+    String that controls whether to use the name of the solar system
+    ephemeris given by the solareph parameter to select ephemerides
+    in the pulsar database. If matchsolareph is ALL or PSRDB, the string
+    given by the solareph parameter is used to select the ephemerides.
+    If matchsolareph is NONE, no selection will be performed.
+
 (leapsecfile = DEFAULT) [file name]
-    The file containing the name of the leap second table, in
-    OGIP-compliant leap second table format. If leapsecfile is
-    the string DEFAULT, the default leapsec file (leapsec.fits),
-    which is distributed with the extFiles package, will be used.
+    Name of the file containing the name of the leap second table, in
+    OGIP-compliant leap second table format. If leapsecfile is the
+    string DEFAULT, the default leap-second file (leapsec.fits), which
+    is distributed with the extFiles package, will be used.
 
 \endverbatim
 
