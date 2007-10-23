@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: peachey  Tue Oct 23 13:25:52 PDT 2007
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits 
+	groD4-dc2v4_twice.fits psrdb_all.fits psrdb_append.fits 
+Log Message:
+Regenerated reference output to match current input file, which uses
+JPL DE405 instead of JPL DE200.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 17 15:21:16 PDT 2007
 pulsarDb/src
 
