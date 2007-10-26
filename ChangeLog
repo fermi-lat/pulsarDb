@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 26 13:37:57 PDT 2007
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests for pulse/orbital phase computations with a global phase offset.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct 26 13:37:23 PDT 2007
 pulsarDb/src
 
