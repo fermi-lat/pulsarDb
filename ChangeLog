@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 26 13:37:23 PDT 2007
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h TimingModel.h 
+Log Message:
+Add a global phase offset for calcPulsePhase and calcOrbitalPhase methods.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5, operation: add
 Package: pulsarDb
