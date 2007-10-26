@@ -53,12 +53,14 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
-      virtual double calcPulsePhase(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
+      virtual double calcPulsePhase(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const {
         double dt = eph.dt(ev_time);
         double dt_squared = dt * dt;
+        double phase = eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared;
+
+        // Express phase as a value between 0. and 1., after adding a global phase offset.
         double int_part; // ignored, needed for modf.
-        double phase =
-          std::modf(eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared, &int_part);
+        phase = std::modf(phase_offset + phase, &int_part);
         if (phase < 0.) ++phase;
         return phase;
       }
@@ -67,7 +69,7 @@ namespace pulsarDb {
           \param eph The ephemeris.
           \param ev_time Time of the event.
       */
-      virtual double calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const;
+      virtual double calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
       /** \brief
           \param eph The ephemeris.
