@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Oct 26 13:37:23 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx TimingModel.cxx 
+Log Message:
+Add a global phase offset for calcPulsePhase and calcOrbitalPhase methods.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Oct 26 13:37:23 PDT 2007
 pulsarDb/pulsarDb
 
 Modified Files:
