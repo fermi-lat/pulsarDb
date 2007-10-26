@@ -7,6 +7,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include "hoops/hoops_exception.h"
+
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/PulsarDb.h"
@@ -253,8 +255,15 @@ namespace pulsarDb {
           epoch_time_sys, m_reference_header));
         AbsoluteTime abs_epoch(*time_rep);
 
-        // Set global phase offset, needed for timing model.
+        // Read phi0 parameter.  If it doesn't exist in the parameter file, let phi0 = 0.
         double phi0 = 0.;
+        try {
+          // Try to read phi0 parameter from the parameter file.
+          phi0 = pars["phi0"];
+        } catch (const hoops::Hexception & x) {
+          // Do nothing (i.e., leave phi0=0.) if phi0 is not found, otherwise re-throw the exception.
+          if (hoops::PAR_NOT_FOUND != x.Code()) throw;
+        }
 
         // Read RA and Dec from a parameter file.
         double ra = pars["ra"];
