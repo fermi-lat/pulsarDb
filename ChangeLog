@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Oct 30 14:36:00 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+Minor corrections for enumerated strings.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r0p1, operation: add
 Package: pulsarDb
