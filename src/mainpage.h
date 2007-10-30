@@ -74,13 +74,11 @@ reftime = 0. [string]
     available in the input file. The interpretation of this number is
     determined by the timeformat and timesys parameters.
 
-timeformat = MJD [string]
+timeformat = MJD [enumerated string (MJD|GLAST)]
     String describing the representation used for the reference time.
-    Valid choices are MJD and GLAST (MET).
 
-timesys = TDB [string]
+timesys = TDB [enumerated string (TAI|TDB|TT|UTC)]
     String describing the time system used for the reference time.
-    Valid choices are TAI, TDB, TT and UTC.
 
 (strict = no) [bool]
     If strict is yes, only spin ephemerides whose stated
