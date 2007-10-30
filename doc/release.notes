@@ -2,9 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.31 2007/08/16 15:53:31 peachey Exp $
+$Id: release.notes,v 1.32 2007/10/23 20:29:45 peachey Exp $
 
 \verbatim
+30-oct-2007    v5r0p1 JP  Address JIRA issues PULS 41 and PULS 42. Use phi0 parameter
+                          as base value of phase. Allow addition of global offset to
+                          calcPulsePhase and calcOrbitalPhase methods.
 23-oct-2007        v5 JP  Support barycentering on the fly, including new parameters
                           solareph and matchsolareph for controlling which solar system
                           ephemeris is used.
