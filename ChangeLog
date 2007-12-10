@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: golpa  Mon Dec 10 13:34:18 PST 2007
+pulsarDb
+
+Added Files:
+	SConscript pulsarDbLib.py 
+Log Message:
+Initial import of SCons files
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r0p2, operation: add
 Package: pulsarDb
