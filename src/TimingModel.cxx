@@ -14,6 +14,7 @@
 
 using namespace timeSystem;
 
+#if 0
 namespace {
 
 //======================================================================
@@ -55,10 +56,13 @@ int atKepler(
 }
 
 }
+#endif
 
 namespace pulsarDb {
 
   double TimingModel::calcOrbitalPhase(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
+    return eph.calcOrbitalPhase(ev_time, phase_offset);
+#if 0
     // compute elapsed time from epoch of periastron in seconds
     double delta_second = eph.dt(ev_time);
 
@@ -73,13 +77,19 @@ namespace pulsarDb {
     phase = std::modf(phase_offset + phase, &int_part);
     if (phase < 0.) ++phase;
     return phase;
+#endif
   }
 
   void TimingModel::modulateBinary(const OrbitalEph & eph, timeSystem::AbsoluteTime & ev_time) const {
+    eph.modulateBinary(ev_time);
+#if 0
     ev_time += calcOrbitalDelay(eph, ev_time);
+#endif
   }
 
   void TimingModel::demodulateBinary(const OrbitalEph & eph, timeSystem::AbsoluteTime & ev_time) const {
+    eph.demodulateBinary(ev_time);
+#if 0
     static const int s_max_iteration = 100;
     const ElapsedTime epsilon(eph.getSystem().getName(), Duration(0, 10.e-9)); // 10 nanoseconds.
 
@@ -107,7 +117,7 @@ namespace pulsarDb {
 
     // Check for non-convergence.
     if (ii == s_max_iteration) throw std::runtime_error("Binary demodulation did not converge.");
-
+#endif
   }
 
   TimingModel * TimingModel::clone() const {
@@ -115,6 +125,8 @@ namespace pulsarDb {
   }
 
   timeSystem::ElapsedTime TimingModel::calcOrbitalDelay(const OrbitalEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
+    return eph.calcOrbitalDelay(ev_time);
+#if 0
     // compute elapsed time from epoch of periastron in seconds
     double delta_second = eph.dt(ev_time);
 
@@ -157,6 +169,6 @@ namespace pulsarDb {
 
     // return total delay
     return ElapsedTime(eph.getSystem().getName(), Duration(0, roemer + einstein + shapiro));
+#endif
   }
-
 }
