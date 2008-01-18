@@ -18,7 +18,6 @@
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TextPulsarDb.h"
-#include "pulsarDb/TimingModel.h"
 
 #include "st_app/StApp.h"
 #include "st_app/StAppFactory.h"
@@ -87,7 +86,7 @@ class PulsarDbTest : public st_app::StApp {
     /// Test PulsarEph classes.
     virtual void testPulsarEph();
 
-    /// Test TimingModel class.
+    /// Test methods of PulsarEph and OrbitalEph classes that were originally a part of TimingModel class.
     virtual void testTimingModel();
 
     /// Test appending ephemerides to an existing file.
@@ -558,20 +557,18 @@ void PulsarDbTest::testTimingModel() {
   // Create a frequency ephemeris.
   FrequencyEph f_eph("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
-  TimingModel model;
-
   glast_tt.setValue(223.456789);
   AbsoluteTime pick_time(glast_tt);
 
   // Test pulse phase computations.
-  double phase = model.calcPulsePhase(f_eph, pick_time);
+  double phase = f_eph.calcPulsePhase(pick_time);
   if (fabs(phase/.235 - 1.) > epsilon)
-    ErrorMsg(method_name) << "TimingModel::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
  
   // Test pulse phase computations, with a non-zero global phase offset.
-  phase = model.calcPulsePhase(f_eph, pick_time, 0.1234);
+  phase = f_eph.calcPulsePhase(pick_time, 0.1234);
   if (fabs(phase/.3584 - 1.) > epsilon)
-    ErrorMsg(method_name) << "TimingModel::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
  
   // Change ephemeris to produce a noticeable effect.
   glast_tt.setValue(123.4567891234567);
@@ -581,45 +578,45 @@ void PulsarDbTest::testTimingModel() {
   AbsoluteTime ev_time(glast_tt);
 
   // Test coordinates.
-  FrequencyEph f_eph3 = model.calcEphemeris(f_eph2, ev_time);
+  FrequencyEph f_eph3 = f_eph2.calcEphemeris(ev_time);
   double correct_ra = 22.;
   if (fabs(f_eph3.ra() - correct_ra) > epsilon) {
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced ra == " << f_eph3.ra() << " not " << correct_ra << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced ra == " << f_eph3.ra() << " not " << correct_ra << std::endl;
   }
   
   double correct_dec = 45.;
   if (fabs(f_eph3.dec() - correct_dec) > epsilon) {
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced dec == " << f_eph3.dec() << " not " << correct_dec << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced dec == " << f_eph3.dec() << " not " << correct_dec << std::endl;
   }
   
   // Test phase computation.
   if (fabs(f_eph3.phi0()/.36 - 1.) > epsilon)
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced phi0 == " << f_eph3.phi0() << " not .36" << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced phi0 == " << f_eph3.phi0() << " not .36" << std::endl;
  
   // Test frequency computation.
   double correct_f0 = 5.625e-2;
   if (fabs(f_eph3.f0() - correct_f0) > epsilon) {
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f0 == " << f_eph3.f0() << " not " << correct_f0 << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced f0 == " << f_eph3.f0() << " not " << correct_f0 << std::endl;
   }
   
   double correct_f1 = 11.25e-4;
   if (fabs(f_eph3.f1() - correct_f1) > epsilon) {
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f1 == " << f_eph3.f1() << " not " << correct_f1 << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced f1 == " << f_eph3.f1() << " not " << correct_f1 << std::endl;
   }
   
   double correct_f2 = 13.5e-6;
   if (fabs(f_eph3.f2() - correct_f2) > epsilon) {
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
   }
 
   // correct_epoch == ev_time;
   // Note: epsilon now is a time difference of 10ns
   ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
   if (!f_eph3.epoch().equivalentTo(ev_time, tolerance)) {
-    ErrorMsg(method_name) << "TimingModel::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
+    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
   }
 
-  model.cancelPdot(f_eph2, ev_time);
+  f_eph2.cancelPdot(ev_time);
   glast_tt = ev_time;
   double pdot_t = glast_tt.getValue();
   double correct_t = 323.4567891234567;
@@ -627,7 +624,7 @@ void PulsarDbTest::testTimingModel() {
   // For this test, time difference between these two values must be << 1.e-6. (1 microsecond.)
   epsilon = 1.e-6;
   if (fabs(pdot_t - correct_t) > epsilon) {
-    ErrorMsg(method_name) << "TimingModel::calcPdotCorr produced pdot-corrected time == " << pdot_t << " not " <<
+    ErrorMsg(method_name) << "FrequencyEph::calcPdotCorr produced pdot-corrected time == " << pdot_t << " not " <<
       correct_t << std::endl;
   }
 
@@ -638,14 +635,14 @@ void PulsarDbTest::testTimingModel() {
   ev_time = glast_tdb;
 
   // Test orbital phase computations.
-  phase = model.calcOrbitalPhase(o_eph, ev_time);
+  phase = o_eph.calcOrbitalPhase(ev_time);
   if (fabs(phase/.099 - 1.) > epsilon)
-    ErrorMsg(method_name) << "TimingModel::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
+    ErrorMsg(method_name) << "OrbitalEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
-  phase = model.calcOrbitalPhase(o_eph, ev_time, 0.1234);
+  phase = o_eph.calcOrbitalPhase(ev_time, 0.1234);
   if (fabs(phase/.2224 - 1.) > epsilon)
-    ErrorMsg(method_name) << "TimingModel::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
+    ErrorMsg(method_name) << "OrbitalEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
 
   // Create a frequency ephemeris with unit time 5 s, to test PulsarEph::dt method with one argument.
   FrequencyEph f_eph4("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
@@ -746,12 +743,11 @@ void PulsarDbTest::testOrbitalEph() {
   double delta = 100. * 1.e-9;
   ElapsedTime tolerance("TDB", Duration(0, delta));
 
-  TimingModel model;
   std::cerr.precision(24);
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0], Duration(0, 0.));
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1], Duration(0, 0.));
-    model.modulateBinary(eph1, tdb_mjd);
+    eph1.modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
       ErrorMsg(method_name) << "Binary modulation of " << mjd_test_values[ii][0] << " was computed to be " << tdb_mjd <<
         ", not " << mjd_test_values[ii][1] << ", as expected." << std::endl;
@@ -761,7 +757,7 @@ void PulsarDbTest::testOrbitalEph() {
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1], Duration(0, 0.));
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0], Duration(0, 0.));
-    model.demodulateBinary(eph1, tdb_mjd);
+    eph1.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
       ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd <<
         ", not " << mjd_test_values[ii][0] << ", as expected." << std::endl;
@@ -773,7 +769,6 @@ void PulsarDbTest::testEphComputer() {
   std::string method_name = "testEphComputer";
 
   // Set up pieces needed for computation.
-  TimingModel model;
   StrictEphChooser chooser;
 
   // Get access to database.
@@ -790,8 +785,8 @@ void PulsarDbTest::testEphComputer() {
   AbsoluteTime expected_gtdb(glast_tdb);
   double expected_elapsed = glast_tdb.getValue();
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
-  model.cancelPdot(eph, expected_gtdb);
-  FrequencyEph expected_eph(model.calcEphemeris(eph, expected_gtdb));
+  eph.cancelPdot(expected_gtdb);
+  FrequencyEph expected_eph(eph.calcEphemeris(expected_gtdb));
 
   // Repeat computations using the EphComputer class, and compare results.
   // Create the computer.
@@ -810,15 +805,15 @@ void PulsarDbTest::testEphComputer() {
     ErrorMsg(method_name) << "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
 
-  // Test calcPulsePhase, by comparing it with TimingModel::calcPulsePhase.
-  double expected_pulse_phase = model.calcPulsePhase(eph, expected_gtdb);
+  // Test calcPulsePhase, by comparing it with PulsarEph::calcPulsePhase.
+  double expected_pulse_phase = eph.calcPulsePhase(expected_gtdb);
   double pulse_phase = computer.calcPulsePhase(expected_gtdb);
   if (expected_pulse_phase != pulse_phase)
     ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
 
-  // Test calcPulsePhase, by comparing it with TimingModel::calcPulsePhase, with a non-zero global phase offset.
-  expected_pulse_phase = model.calcPulsePhase(eph, expected_gtdb, 0.1234);
+  // Test calcPulsePhase, by comparing it with PulsarEph::calcPulsePhase, with a non-zero global phase offset.
+  expected_pulse_phase = eph.calcPulsePhase(expected_gtdb, 0.1234);
   pulse_phase = computer.calcPulsePhase(expected_gtdb, 0.1234);
   if (expected_pulse_phase != pulse_phase)
     ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
@@ -826,7 +821,7 @@ void PulsarDbTest::testEphComputer() {
 
   // Test calcPulsarEph, and compare result to previous result.
   FrequencyEph freq_eph = computer.calcPulsarEph(expected_gtdb);
-  testEquality("EphComputer::calcPulsarEph and TimingModel::calcEphemeris", freq_eph, expected_eph);
+  testEquality("EphComputer::calcPulsarEph and PulsarEph::calcEphemeris", freq_eph, expected_eph);
 
   // Test binary modulation/demodulation.
   // Get new independent access to database, to keep independent from the tests above.
@@ -840,15 +835,15 @@ void PulsarDbTest::testEphComputer() {
   expected_gtdb = gtdb;
   computer.load(database2);
 
-  // Test calcOrbitalPhase, by comparing it with TimingModel::calcOrbitalPhase.
-  double expected_orbital_phase = model.calcOrbitalPhase(orbital_eph, expected_gtdb);
+  // Test calcOrbitalPhase, by comparing it with OrbitalEph::calcOrbitalPhase.
+  double expected_orbital_phase = orbital_eph.calcOrbitalPhase(expected_gtdb);
   double orbital_phase = computer.calcOrbitalPhase(expected_gtdb);
   if (expected_orbital_phase != orbital_phase)
     ErrorMsg(method_name) << "EphComputer::calcOrbitalPhase returned phase " << orbital_phase << ", not " <<
       expected_orbital_phase << ", as expected." << std::endl;
 
-  // Test calcOrbitalPhase, by comparing it with TimingModel::calcOrbitalPhase, with a non-zero global phase offset.
-  expected_orbital_phase = model.calcOrbitalPhase(orbital_eph, expected_gtdb, 0.1234);
+  // Test calcOrbitalPhase, by comparing it with OrbitalEph::calcOrbitalPhase, with a non-zero global phase offset.
+  expected_orbital_phase = orbital_eph.calcOrbitalPhase(expected_gtdb, 0.1234);
   orbital_phase = computer.calcOrbitalPhase(expected_gtdb, 0.1234);
   if (expected_orbital_phase != orbital_phase)
     ErrorMsg(method_name) << "EphComputer::calcOrbitalPhase returned phase " << orbital_phase << ", not " <<
@@ -856,7 +851,7 @@ void PulsarDbTest::testEphComputer() {
 
   // Test binary modulation/demodulation.
   // First perform computations without the computer.
-  model.modulateBinary(orbital_eph, expected_gtdb);
+  orbital_eph.modulateBinary(expected_gtdb);
 
   computer.modulateBinary(gtdb);
   glast_tdb = expected_gtdb;
@@ -867,7 +862,7 @@ void PulsarDbTest::testEphComputer() {
       expected_elapsed << ", as expected." << std::endl;
 
   expected_gtdb = gtdb;
-  model.demodulateBinary(orbital_eph, expected_gtdb);
+  orbital_eph.demodulateBinary(expected_gtdb);
   
   computer.demodulateBinary(gtdb);
   glast_tdb = expected_gtdb;
