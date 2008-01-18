@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Jan 18 13:42:25 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Move three methods from TimingModel to PulsarEph.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:42:25 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
