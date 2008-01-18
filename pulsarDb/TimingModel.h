@@ -29,11 +29,14 @@ namespace pulsarDb {
           \param ev_time Time of the event.
       */
       virtual FrequencyEph calcEphemeris(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time) const {
+        return eph.calcEphemeris(ev_time);
+#if 0
         double dt = eph.dt(ev_time);
         double f0 = eph.f0() + eph.f1() * dt + eph.f2()/2.0 * dt * dt;
         double f1 = eph.f1() + eph.f2() * dt;
         double phi0 = calcPulsePhase(eph, ev_time);
         return FrequencyEph(eph.getSystem().getName(), ev_time, ev_time, ev_time, eph.ra(), eph.dec(), phi0, f0, f1, eph.f2());
+#endif
       }
 
       /** \brief Correct event time to account for pdot cancellation. Note: validity of the
@@ -42,10 +45,13 @@ namespace pulsarDb {
           \param ev_time Time of the event.
       */
       virtual void cancelPdot(const PulsarEph & eph, timeSystem::AbsoluteTime & ev_time) const {
+        eph.cancelPdot(ev_time);
+#if 0
         double dt = eph.dt(ev_time);
         double dt_squared = dt * dt;
         timeSystem::Duration corrected_dt(0, eph.f1()/eph.f0()/2.0 * dt_squared + eph.f2()/eph.f0()/6.0 * dt * dt_squared);
         ev_time += timeSystem::ElapsedTime(eph.getSystem().getName(), corrected_dt);
+#endif
       }
 
       /** \brief Compute the spin phase of the given time. Note: validity of the
@@ -54,6 +60,8 @@ namespace pulsarDb {
           \param ev_time Time of the event.
       */
       virtual double calcPulsePhase(const PulsarEph & eph, const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const {
+        return eph.calcPulsePhase(ev_time, phase_offset);
+#if 0
         double dt = eph.dt(ev_time);
         double dt_squared = dt * dt;
         double phase = eph.phi0() + eph.f0() * dt + eph.f1()/2.0 * dt_squared + eph.f2()/6.0 * dt * dt_squared;
@@ -63,6 +71,7 @@ namespace pulsarDb {
         phase = std::modf(phase_offset + phase, &int_part);
         if (phase < 0.) ++phase;
         return phase;
+#endif
       }
 
       /** \brief Compute the orbital phase of the given time.
