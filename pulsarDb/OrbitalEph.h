@@ -45,13 +45,13 @@ namespace pulsarDb {
 
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
 
-      virtual double OrbitalEph::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const;
+      virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const;
 
-      virtual void OrbitalEph::modulateBinary(timeSystem::AbsoluteTime & ev_time) const;
+      virtual void modulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
-      virtual void OrbitalEph::demodulateBinary(timeSystem::AbsoluteTime & ev_time) const;
+      virtual void demodulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
-      virtual timeSystem::ElapsedTime OrbitalEph::calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const;
+      virtual timeSystem::ElapsedTime calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const;
 
       virtual OrbitalEph * clone() const { return new OrbitalEph(*this); }
 
