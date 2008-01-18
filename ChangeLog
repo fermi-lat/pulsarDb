@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:35:32 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove use of TimingModel class objects.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 18 15:34:56 PST 2008
 pulsarDb/pulsarDb
 
