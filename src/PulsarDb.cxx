@@ -260,7 +260,7 @@ namespace pulsarDb {
     return expression.substr(0, expression.size() - 2);
   }
 
-  void PulsarDb::getEph(PulsarEphCont & cont, const TimingModel & model) const {
+  void PulsarDb::getEph(PulsarEphCont & cont) const {
     // Refill this container.
     cont.clear();
 
@@ -314,7 +314,7 @@ namespace pulsarDb {
       FrequencyEph tmp("TDB", valid_since, valid_until, epoch, ra, dec, 0., f0, f1, f2);
 
       // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
-      double phi0 = - model.calcPulsePhase(tmp, toa);
+      double phi0 = - tmp.calcPulsePhase(toa);
 
       // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
       if (0. > phi0) phi0 += 1.;

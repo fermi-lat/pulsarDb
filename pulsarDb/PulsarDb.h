@@ -12,7 +12,6 @@
 
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
-#include "pulsarDb/TimingModel.h"
 
 #include "tip/FileSummary.h"
 #include "tip/Table.h"
@@ -82,7 +81,7 @@ namespace pulsarDb {
       void updateKeywords(tip::Extension & ext) const;
 
       /// \brief Get the currently selected container of spin (pulsar) ephemerides.
-      virtual void getEph(PulsarEphCont & cont, const TimingModel & model = TimingModel()) const;
+      virtual void getEph(PulsarEphCont & cont) const;
 
       /// \brief Get the currently selected container of orbital ephemerides.
       virtual void getEph(OrbitalEphCont & cont) const;

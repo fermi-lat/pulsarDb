@@ -6,7 +6,6 @@
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/EphComputerApp.h"
-#include "pulsarDb/TimingModel.h"
 
 #include "st_app/AppParGroup.h"
 
@@ -65,14 +64,13 @@ namespace pulsarDb {
     AbsoluteTime abs_ref_time(*time_rep);
 
     // Set up EphComputer for ephemeris computations.
-    TimingModel model;
     std::auto_ptr<EphChooser> chooser(0);
     if (strict) {
       chooser.reset(new StrictEphChooser);
     } else {
       chooser.reset(new SloppyEphChooser);
     }
-    initEphComputer(pars, model, *chooser, "DB");
+    initEphComputer(pars, *chooser, "DB");
     EphComputer & computer(getEphComputer());
 
     m_os.out() << prefix << "User supplied time " << *time_rep << std::endl;
