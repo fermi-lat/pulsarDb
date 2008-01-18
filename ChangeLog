@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:34:56 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Add default value to phase_offset argument.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 18 14:43:31 PST 2008
 pulsarDb/src
 
