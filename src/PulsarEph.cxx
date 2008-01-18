@@ -6,7 +6,6 @@
 #include <iomanip>
 
 #include "pulsarDb/PulsarEph.h"
-#include "pulsarDb/TimingModel.h"
 
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/IntFracPair.h"
@@ -37,7 +36,7 @@ namespace pulsarDb {
     ev_time += timeSystem::ElapsedTime(this->getSystem().getName(), corrected_dt);
   }
 
-  double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const {
+  double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
     double dt = this->dt(ev_time);
     double dt_squared = dt * dt;
     double phase = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
