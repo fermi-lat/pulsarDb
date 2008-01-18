@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 18 14:41:56 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Remove unnecesary qualifier.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 18 13:50:39 PST 2008
 pulsarDb/src
 
