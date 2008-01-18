@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 18 14:43:31 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx EphComputerApp.cxx PulsarDb.cxx 
+	PulsarToolApp.cxx 
+Log Message:
+Remove use of TimingModel class object.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 18 14:43:30 PST 2008
 pulsarDb/pulsarDb
 
