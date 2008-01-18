@@ -45,7 +45,7 @@ namespace pulsarDb {
 
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
 
-      virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const;
+      virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
       virtual void modulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
