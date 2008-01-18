@@ -32,7 +32,6 @@ namespace pulsarDb {
 
   class EphChooser;
   class EphComputer;
-  class TimingModel;
 
   class PulsarToolApp : public st_app::StApp {
     public:
@@ -65,10 +64,9 @@ namespace pulsarDb {
 
       void selectTimeCorrectionMode(const st_app::AppParGroup & pars);
 
-      void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser,
-        const std::string & eph_style);
+      void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, const std::string & eph_style);
 
-      void initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model, const EphChooser & chooser);
+      void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser);
 
       void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot);
 

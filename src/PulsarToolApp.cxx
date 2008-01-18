@@ -14,7 +14,6 @@
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/PulsarToolApp.h"
-#include "pulsarDb/TimingModel.h"
 
 #include "st_app/AppParGroup.h"
 
@@ -223,29 +222,27 @@ namespace pulsarDb {
     selectTimeCorrectionMode(t_correct);
   }
 
-  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
-    const EphChooser & chooser) {
+  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser) {
     // Read ephstyle parameter.
     std::string eph_style = pars["ephstyle"];
 
     // Initialize EphComputer with given ephemeris style.
-    initEphComputer(pars, model, chooser, eph_style);
+    initEphComputer(pars, chooser, eph_style);
   }
 
-  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const TimingModel & model,
-    const EphChooser & chooser, const std::string & eph_style) {
+  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, const std::string & eph_style) {
     // Make eph_style argument case-insensitive.
     std::string eph_style_uc = eph_style;
     for (std::string::iterator itor = eph_style_uc.begin(); itor != eph_style_uc.end(); ++itor) *itor = std::toupper(*itor);
 
     if (eph_style_uc == "DB") {
       // Create ephemeris computer.
-      m_computer = new EphComputer(model, chooser);
+      m_computer = new EphComputer(chooser);
 
     } else {
       // Create ephemeris computer with the sloppy chooser, so that the spin ephemeris given by the user will be always chosen.
       SloppyEphChooser sloppy_chooser;
-      m_computer = new EphComputer(model, sloppy_chooser);
+      m_computer = new EphComputer(sloppy_chooser);
 
       if (eph_style_uc != "NONE") {
         std::string epoch_time_format = pars["timeformat"];

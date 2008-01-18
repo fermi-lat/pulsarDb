@@ -16,7 +16,6 @@ namespace timeSystem {
 namespace pulsarDb {
   class EphChooser;
   class PulsarDb;
-  class TimingModel;
 
   /** \class EphComputer
       \brief Abstraction providing high-level access to all main functions of pulsarDb package.
@@ -25,7 +24,7 @@ namespace pulsarDb {
     public:
       EphComputer();
 
-      EphComputer(const TimingModel & model, const EphChooser & chooser);
+      EphComputer(const EphChooser & chooser);
 
       ~EphComputer();
 
@@ -68,7 +67,6 @@ namespace pulsarDb {
       PulsarEphCont m_pulsar_eph_cont;
       OrbitalEphCont m_orbital_eph_cont;
       PulsarEph * m_pdot_pars;
-      TimingModel * m_model;
       EphChooser * m_chooser;
   };
 
