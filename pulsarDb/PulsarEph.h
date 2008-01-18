@@ -18,6 +18,8 @@
 
 namespace pulsarDb {
 
+  class FrequencyEph;
+
   /** \class PulsarEph
       \brief Class representing a single pulsar ephemeris. Warning: f0, f1, f2 depend on the time system.
       While AbsoluteTime objects are interchangeable, these other values are not!
@@ -45,6 +47,24 @@ namespace pulsarDb {
       virtual double f1() const = 0;
       virtual double f2() const = 0;
       virtual PulsarEph * clone() const = 0;
+
+      /** \brief Compute frequency and its derivatives at a given time. Note: validity of the
+                 ephemeris (valid since and valid until) are not checked.
+          \param ev_time Time of the event.
+      */
+      virtual FrequencyEph calcEphemeris(const timeSystem::AbsoluteTime & ev_time) const;
+
+      /** \brief Correct event time to account for pdot cancellation. Note: validity of the
+                 ephemeris (valid since and valid until) are not checked.
+          \param ev_time Time of the event.
+      */
+      virtual void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
+
+      /** \brief Compute the spin phase of the given time. Note: validity of the
+                 ephemeris (valid since and valid until) are not checked.
+          \param ev_time Time of the event.
+      */
+      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
     protected:
       const timeSystem::TimeSystem * m_system;

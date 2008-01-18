@@ -22,6 +22,33 @@ namespace pulsarDb {
     return numerator / m_unit_time;
   }
 
+  FrequencyEph PulsarEph::calcEphemeris(const timeSystem::AbsoluteTime & ev_time) const {
+    double dt = this->dt(ev_time);
+    double f0 = this->f0() + this->f1() * dt + this->f2()/2.0 * dt * dt;
+    double f1 = this->f1() + this->f2() * dt;
+    double phi0 = calcPulsePhase(ev_time);
+    return FrequencyEph(this->getSystem().getName(), ev_time, ev_time, ev_time, this->ra(), this->dec(), phi0, f0, f1, this->f2());
+  }
+
+  void PulsarEph::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
+    double dt = this->dt(ev_time);
+    double dt_squared = dt * dt;
+    timeSystem::Duration corrected_dt(0, this->f1()/this->f0()/2.0 * dt_squared + this->f2()/this->f0()/6.0 * dt * dt_squared);
+    ev_time += timeSystem::ElapsedTime(this->getSystem().getName(), corrected_dt);
+  }
+
+  double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const {
+    double dt = this->dt(ev_time);
+    double dt_squared = dt * dt;
+    double phase = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
+
+    // Express phase as a value between 0. and 1., after adding a global phase offset.
+    double int_part; // ignored, needed for modf.
+    phase = std::modf(phase_offset + phase, &int_part);
+    if (phase < 0.) ++phase;
+    return phase;
+  }
+
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
