@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Jan 18 13:19:07 PST 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx TimingModel.cxx 
+Log Message:
+Move four methods from TimingModel to OrbitalEph: calcOrbitalPhase, calcOrbitalDelay, modulateBinary, demodulateBinary.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:19:07 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
