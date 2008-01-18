@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:36:06 PST 2008
+pulsarDb/pulsarDb
+
+Removed Files:
+	TimingModel.h 
+Log Message:
+Remove TimingModel class.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 18 15:35:32 PST 2008
 pulsarDb/src/test
 
