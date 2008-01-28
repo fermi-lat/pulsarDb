@@ -374,7 +374,8 @@ namespace pulsarDb {
             }
           }
         }
-        cont.push_back(new OrbitalEph("TDB", par));
+        // TODO: Accept other models.
+        cont.push_back(new SimpleDdEph("TDB", par));
       }
     }
   }
