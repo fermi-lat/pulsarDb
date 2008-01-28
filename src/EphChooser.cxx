@@ -28,6 +28,7 @@ namespace pulsarDb {
     double diff = std::numeric_limits<double>::max();
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
+      // TODO: Use AbsoluteTime arithmatics instead of PulsarEph::dt method, which is model-dependent and unit-dependent.
       double diff_since = (*itor)->dt(t, (*itor)->valid_since());
       double diff_until = (*itor)->dt(t, (*itor)->valid_until());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
@@ -57,6 +58,7 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
+      // TODO: Use AbsoluteTime arithmatics instead of OrbitalEph::dt method, which is model-dependent and unit-dependent.
       double time_diff = std::fabs((*itor)->dt(t));
       if (time_diff <= min_time_diff) {
         candidate = itor;
