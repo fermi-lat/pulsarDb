@@ -298,10 +298,12 @@ void PulsarDbTest::testChooser() {
   pick_time = mjd_tdb;
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
-    double expected_mjd = 5.206084100795000e+04;
-    if (orbital_eph[T0] != expected_mjd) {
+    mjd_tdb.setValue(52060, .84100795);
+    AbsoluteTime expected_t0(mjd_tdb);
+    ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
+    if (!orbital_eph.t0().equivalentTo(expected_t0, tolerance)) {
       ErrorMsg(method_name) << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
-        expected_mjd << std::endl;
+        expected_t0 << std::endl;
     }
   } catch (const std::runtime_error & x) {
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " << x.what() << std::endl;
@@ -630,19 +632,19 @@ void PulsarDbTest::testTimingModel() {
 
   MetRep glast_tdb("TDB", 51910, 0., 123.456789);
   AbsoluteTime t0(glast_tdb);
-  OrbitalEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
+  SimpleDdEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
   glast_tdb.setValue(223.456789);
   ev_time = glast_tdb;
 
   // Test orbital phase computations.
   phase = o_eph.calcOrbitalPhase(ev_time);
   if (fabs(phase/.099 - 1.) > epsilon)
-    ErrorMsg(method_name) << "OrbitalEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
+    ErrorMsg(method_name) << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = o_eph.calcOrbitalPhase(ev_time, 0.1234);
   if (fabs(phase/.2224 - 1.) > epsilon)
-    ErrorMsg(method_name) << "OrbitalEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
+    ErrorMsg(method_name) << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
 
   // Create a frequency ephemeris with unit time 5 s, to test PulsarEph::dt method with one argument.
   FrequencyEph f_eph4("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
@@ -657,11 +659,11 @@ void PulsarDbTest::testTimingModel() {
   if (fabs(delta_t/40. - 1.) > epsilon)
     ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 
-  // Create an orbital ephemeris with unit time 5 s, to test OrbitalEph::dt method.
-  OrbitalEph o_eph2("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 5.);
+  // Create an orbital ephemeris with unit time 5 s, to test SimpleDdEph::dt method.
+  SimpleDdEph o_eph2("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 5.);
   delta_t = o_eph2.dt(ev_time);
   if (fabs(delta_t/20. - 1.) > epsilon)
-    ErrorMsg(method_name) << "OrbitalEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+    ErrorMsg(method_name) << "SimpleDdEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 }
 
 void PulsarDbTest::testAppend() {
@@ -711,7 +713,7 @@ void PulsarDbTest::testOrbitalEph() {
     27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0
   };
 
-  OrbitalEph eph1("TDB", binary_par);
+  SimpleDdEph eph1("TDB", binary_par);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
   Duration mjd_test_values[][2] = {
