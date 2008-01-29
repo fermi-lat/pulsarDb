@@ -28,9 +28,8 @@ namespace pulsarDb {
     double diff = std::numeric_limits<double>::max();
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      // TODO: Use AbsoluteTime arithmatics instead of PulsarEph::dt method, which is model-dependent and unit-dependent.
-      double diff_since = (*itor)->dt(t, (*itor)->valid_since());
-      double diff_until = (*itor)->dt(t, (*itor)->valid_until());
+      double diff_since = deltaTime(t, (*itor)->valid_since());
+      double diff_until = deltaTime(t, (*itor)->valid_until());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
       // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
@@ -58,8 +57,7 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      // TODO: Use AbsoluteTime arithmatics instead of OrbitalEph::dt method, which is model-dependent and unit-dependent.
-      double time_diff = std::fabs((*itor)->dt(t));
+      double time_diff = std::fabs(deltaTime(t, (*itor)->t0()));
       if (time_diff <= min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
@@ -74,6 +72,11 @@ namespace pulsarDb {
     }
 
     return *(*candidate);
+  }
+
+  double EphChooser::deltaTime(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
+    // Use TDB because: 1) we must choose *some* system, and 2) TDB is "steadier" than TT, TAI or UTC.
+    return (at1 - at2).computeElapsedTime("TDB").getTime() / Duration(1, 0.);
   }
 
   StrictEphChooser::StrictEphChooser(const timeSystem::ElapsedTime & tolerance): m_tolerance(tolerance) {}

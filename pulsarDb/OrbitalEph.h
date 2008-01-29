@@ -26,9 +26,6 @@ namespace pulsarDb {
 
       virtual const timeSystem::AbsoluteTime & t0() const = 0;
 
-      // TODO: Remove OrbitalEph::dt method.
-      virtual double dt(const timeSystem::AbsoluteTime & at) const = 0;
-
       virtual const timeSystem::TimeSystem & getSystem() const = 0;
 
       virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
@@ -66,9 +63,6 @@ namespace pulsarDb {
 
       virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
 
-      // TODO: Make OrbitalEph::dt method private.
-      virtual double dt(const timeSystem::AbsoluteTime & at) const;
-
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
 
       virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
@@ -80,6 +74,8 @@ namespace pulsarDb {
       virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     private:
+      virtual double dt(const timeSystem::AbsoluteTime & at) const;
+
       const timeSystem::TimeSystem * m_system;
       std::vector<double> m_par;
       timeSystem::AbsoluteTime m_t0;

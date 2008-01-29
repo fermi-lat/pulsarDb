@@ -37,8 +37,6 @@ namespace pulsarDb {
       virtual const timeSystem::AbsoluteTime & valid_since() const { return m_since; }
       virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
       virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
-      virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
-      virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
       virtual double ra() const { return m_ra; }
       virtual double dec() const { return m_dec; }
@@ -67,6 +65,9 @@ namespace pulsarDb {
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
     protected:
+      virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
+      virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
+
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;
       timeSystem::AbsoluteTime m_until;
