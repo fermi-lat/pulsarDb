@@ -646,6 +646,10 @@ void PulsarDbTest::testTimingModel() {
   if (fabs(phase/.2224 - 1.) > epsilon)
     ErrorMsg(method_name) << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
 
+
+  // The following test is no longer needed or possible because dt is private. It is implicitly
+  // tested in phase (and other) calculations.
+#if 0
   // Create a frequency ephemeris with unit time 5 s, to test PulsarEph::dt method with one argument.
   FrequencyEph f_eph4("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
   double delta_t = f_eph4.dt(ev_time);
@@ -664,6 +668,7 @@ void PulsarDbTest::testTimingModel() {
   delta_t = o_eph2.dt(ev_time);
   if (fabs(delta_t/20. - 1.) > epsilon)
     ErrorMsg(method_name) << "SimpleDdEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+#endif
 }
 
 void PulsarDbTest::testAppend() {
