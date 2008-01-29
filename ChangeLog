@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Tue Jan 29 13:58:13 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphChooser.h OrbitalEph.h PulsarEph.h 
+Log Message:
+Add EphChooser::deltaTime method, which computes time
+differences in the TDB system. Make OrbitalEph::dt and PulsarEph::dt protected,
+since they are no longer used outside of their respective classes.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-05-00-03, operation: add
 Package: pulsarDb
