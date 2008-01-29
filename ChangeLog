@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: peachey  Tue Jan 29 12:51:30 PST 2008
+pulsarDb
+
+Modified Files:
+	SConscript 
+Log Message:
+Used new name gtephem, added unit test code.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jan 28 14:03:24 PST 2008
 pulsarDb/src
 
