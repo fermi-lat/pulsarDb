@@ -9,24 +9,22 @@
 #include "st_stream/Stream.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/ElapsedTime.h"
 
 #include <iostream>
 #include <vector>
 
 namespace pulsarDb {
 
-  // TODO: Hide this in SimpleDdEph class.
-  enum BinaryIndex { PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S, NUMBER_ORBITAL_PAR };
-
   class OrbitalEph {
     public:
+      OrbitalEph(const timeSystem::ElapsedTime & tolerance, int max_iteration);
+
       void modulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
       void demodulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
       virtual const timeSystem::AbsoluteTime & t0() const = 0;
-
-      virtual const timeSystem::TimeSystem & getSystem() const = 0;
 
       virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
 
@@ -35,11 +33,18 @@ namespace pulsarDb {
       virtual OrbitalEph * clone() const = 0;
 
       virtual st_stream::OStream & write(st_stream::OStream & os) const = 0;
+
+    private:
+      timeSystem::ElapsedTime m_tolerance;
+      int m_max_iteration;
   };
 
   typedef std::vector<OrbitalEph *> OrbitalEphCont;
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const OrbitalEph & eph) { return eph.write(os); }
+
+  // TODO: Hide this in SimpleDdEph class.
+  enum BinaryIndex { PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S, NUMBER_ORBITAL_PAR };
 
   class SimpleDdEph : public OrbitalEph {
     public:
@@ -62,8 +67,6 @@ namespace pulsarDb {
       virtual ~SimpleDdEph();
 
       virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
-
-      virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
 
       virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 

@@ -56,14 +56,14 @@ int atKepler(
 
 namespace pulsarDb {
 
+  OrbitalEph::OrbitalEph(const timeSystem::ElapsedTime & tolerance, int max_iteration): m_tolerance(tolerance),
+    m_max_iteration(max_iteration) {}
+
   void OrbitalEph::modulateBinary(timeSystem::AbsoluteTime & ev_time) const {
     ev_time += calcOrbitalDelay(ev_time);
   }
 
   void OrbitalEph::demodulateBinary(timeSystem::AbsoluteTime & ev_time) const {
-    static const int s_max_iteration = 100;
-    const ElapsedTime epsilon(getSystem().getName(), Duration(0, 10.e-9)); // 10 nanoseconds.
-
     // Save target arrival time (ev_time) in orig_time.
     AbsoluteTime orig_time = ev_time;
 
@@ -72,7 +72,7 @@ namespace pulsarDb {
 
     // Iterative approximation of demodulated time.
     int ii;
-    for (ii=0; ii<s_max_iteration; ii++) {
+    for (ii=0; ii<m_max_iteration; ii++) {
 
       // Compute next candidate of demodulated time.
       ev_time = orig_time - delay;
@@ -83,11 +83,11 @@ namespace pulsarDb {
       // Compare time difference between candidate demodulated time
       // (ev_time) and target arrival time (orig_time) with the
       // estimated orbital delay based on the binary model (delay).
-      if (orig_time.equivalentTo(ev_time + delay, epsilon)) break;
+      if (orig_time.equivalentTo(ev_time + delay, m_tolerance)) break;
     }
 
     // Check for non-convergence.
-    if (ii == s_max_iteration) throw std::runtime_error("Binary demodulation did not converge.");
+    if (ii == m_max_iteration) throw std::runtime_error("Binary demodulation did not converge.");
 
   }
 
@@ -100,6 +100,7 @@ namespace pulsarDb {
   const double SimpleDdEph::s_sec_per_microsec = 1.e-6;
 
   SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR], double unit_time_sec):
+    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
     m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(parameters, parameters + NUMBER_ORBITAL_PAR),
     m_t0(time_system_name, Duration(IntFracPair(parameters[T0]), Day), Duration(0, 0.)), m_unit_time(unit_time_sec) {
     m_par[OM] *= s_rad_per_deg;
@@ -109,8 +110,10 @@ namespace pulsarDb {
 
   SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot,
     double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
-    double shapiro_r, double shapiro_s, double unit_time_sec): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
-    m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0), m_unit_time(unit_time_sec) {
+    double shapiro_r, double shapiro_s, double unit_time_sec):
+    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
+    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0),
+    m_unit_time(unit_time_sec) {
     m_par[PB] = pb;
     m_par[PBDOT] = pb_dot;
     m_par[A1] = a1;
@@ -221,7 +224,7 @@ namespace pulsarDb {
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - m_par[SHAPIRO_S]*roemer_frac);
 
     // return total delay
-    return ElapsedTime(getSystem().getName(), Duration(0, roemer + einstein + shapiro));
+    return ElapsedTime(m_system->getName(), Duration(0, roemer + einstein + shapiro));
   }
 
 }
