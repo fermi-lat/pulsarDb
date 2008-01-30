@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Wed Jan 30 13:14:37 PST 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Remove getSystem method. Add a constructor to OrbitalEph which takes convergence criteria for binary demodulation.
+
+    *
+------------------------------------------------------------
+User: hirayama  Wed Jan 30 13:14:37 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
