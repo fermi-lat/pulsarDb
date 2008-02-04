@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb  4 14:38:39 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h 
+Log Message:
+Add calcFrequency method. Add TODO markers.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb  4 14:38:00 PST 2008
 pulsarDb/src
 
