@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb  4 14:38:00 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Add calcFrequency method. Make PulsarEph::calcPulsePhase method pure virtual. Add TODO markers.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Jan 30 13:14:37 PST 2008
 pulsarDb/src
 
