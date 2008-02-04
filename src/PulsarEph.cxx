@@ -36,18 +36,6 @@ namespace pulsarDb {
     ev_time += timeSystem::ElapsedTime(this->getSystem().getName(), corrected_dt);
   }
 
-  double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
-    double dt = this->dt(ev_time);
-    double dt_squared = dt * dt;
-    double phase = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
-
-    // Express phase as a value between 0. and 1., after adding a global phase offset.
-    double int_part; // ignored, needed for modf.
-    phase = std::modf(phase_offset + phase, &int_part);
-    if (phase < 0.) ++phase;
-    return phase;
-  }
-
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
@@ -79,4 +67,65 @@ namespace pulsarDb {
     return os;
   }
 
+  double FrequencyEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
+    double dt = this->dt(ev_time);
+    double dt_squared = dt * dt;
+    double phase = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
+    // TODO: Replace above with below.
+    //double phase = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
+
+    // TODO: Remove repetetion of below (duplicated in PeriodEph::calcPulsePhase method).
+    // Express phase as a value between 0. and 1., after adding a global phase offset.
+    double int_part; // ignored, needed for modf.
+    phase = std::modf(phase_offset + phase, &int_part);
+    if (phase < 0.) ++phase;
+    return phase;
+  }
+
+  double PeriodEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
+    double dt = this->dt(ev_time);
+    double dt_squared = dt * dt;
+    double phase = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
+
+    // TODO: Remove repetetion of below (duplicated in FrequencyEph::calcPulsePhase method).
+    // Express phase as a value between 0. and 1., after adding a global phase offset.
+    double int_part; // ignored, needed for modf.
+    phase = std::modf(phase_offset + phase, &int_part);
+    if (phase < 0.) ++phase;
+    return phase;
+  }
+
+  double FrequencyEph::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
+    double return_value = 0.;
+    if (0 == derivative_order) {
+      double dt = this->dt(ev_time);
+      return_value = m_f0 + m_f1 * dt + 0.5 * m_f2 * dt * dt;
+    } else if (1 == derivative_order) {
+      double dt = this->dt(ev_time);
+      return_value = m_f1 + m_f2 * dt;
+    } else if (2 == derivative_order) {
+      return_value = m_f2;
+    } else {
+      return_value = 0.;
+    }
+    return return_value;
+  }
+
+  double PeriodEph::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
+    double return_value = 0.;
+
+    // TODO: Use actual form of frequency derivatives expressed with p0, p1, and p2.
+    if (0 == derivative_order) {
+      double dt = this->dt(ev_time);
+      return_value = f0() + f1() * dt + 0.5 * f2() * dt * dt;
+    } else if (1 == derivative_order) {
+      double dt = this->dt(ev_time);
+      return_value = f1() + f2() * dt;
+    } else if (2 == derivative_order) {
+      return_value = f2();
+    } else {
+      return_value = 0.;
+    }
+    return return_value;
+  }
 }

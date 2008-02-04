@@ -50,19 +50,28 @@ namespace pulsarDb {
                  ephemeris (valid since and valid until) are not checked.
           \param ev_time Time of the event.
       */
+      // TODO: Replace calcEphemeris with calcFrequency.
       virtual FrequencyEph calcEphemeris(const timeSystem::AbsoluteTime & ev_time) const;
 
       /** \brief Correct event time to account for pdot cancellation. Note: validity of the
                  ephemeris (valid since and valid until) are not checked.
           \param ev_time Time of the event.
       */
+      // TODO: Remove cancelPdot from this class.
       virtual void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
 
       /** \brief Compute the spin phase of the given time. Note: validity of the
                  ephemeris (valid since and valid until) are not checked.
           \param ev_time Time of the event.
+          \param phase_offset Phase value to be added to the computed pulse phase.
       */
-      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
+      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
+
+      /** \brief Compute the pulse frequency at a given time. Note: validity of the
+                 ephemeris (valid since and valid until) are not checked.
+          \param ev_time Time of the event.
+      */
+      virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const = 0;
 
     protected:
       virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
@@ -106,6 +115,11 @@ namespace pulsarDb {
       virtual double f2() const { return m_f2; }
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
 
+      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
+
+      // TODO: Write a test code for calcFrequency method.
+      virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
+
     private:
       
       double m_phi0;
@@ -140,6 +154,11 @@ namespace pulsarDb {
       virtual double f1() const { return - m_p1 / (m_p0 * m_p0); }
       virtual double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
       virtual PulsarEph * clone() const { return new PeriodEph(*this); }
+
+      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
+
+      // TODO: Write a test code for calcFrequency method.
+      virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
     private:
       double m_phi0;
