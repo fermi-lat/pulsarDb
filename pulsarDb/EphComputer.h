@@ -34,13 +34,18 @@ namespace pulsarDb {
 
       void loadOrbitalEph(const PulsarDb & database);
 
+      // TODO: Remove setPdotCancelParameter method after moving to PulsarToolApp class.
       void setPdotCancelParameter(const PulsarEph & pdot_pars);
 
       FrequencyEph calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
 
+      // TODO: Remove cancelPdot method after moving to PulsarToolApp class.
       void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
 
       double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
+
+      // TODO: Write a test code for calcFrequency method.
+      double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
       double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
