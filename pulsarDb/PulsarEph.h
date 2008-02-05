@@ -28,9 +28,9 @@ namespace pulsarDb {
     public:
       PulsarEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch,
-        double ra, double dec, double unit_time_sec):
+        double ra, double dec):
         m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
-        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_unit_time(0, unit_time_sec) {}
+        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_unit_time(0, 1.) {}
 
       virtual ~PulsarEph() {}
 
@@ -83,6 +83,8 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_epoch;
       double m_ra;
       double m_dec;
+      // TODO: Remove the unit time, or else move it into subclasses, depending on how the design shakes out.
+      // For now it is harmless but unneccessary.
       timeSystem::Duration m_unit_time;
   };
 
@@ -101,8 +103,8 @@ namespace pulsarDb {
       */
       FrequencyEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch,
-        double ra, double dec, double phi0, double f0, double f1, double f2, double unit_time_sec = 1.):
-        PulsarEph(time_system_name, valid_since, valid_until, epoch, ra, dec, unit_time_sec), m_phi0(phi0),
+        double ra, double dec, double phi0, double f0, double f1, double f2):
+        PulsarEph(time_system_name, valid_since, valid_until, epoch, ra, dec), m_phi0(phi0),
           m_f0(f0), m_f1(f1), m_f2(f2) {}
 
       FrequencyEph(const FrequencyEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_f0(eph.m_f0), m_f1(eph.m_f1), m_f2(eph.m_f2) {}
@@ -141,8 +143,8 @@ namespace pulsarDb {
       */
       PeriodEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
-        double phi0, double p0, double p1, double p2, double unit_time_sec = 1.):
-        PulsarEph(time_system_name, valid_since, valid_until, epoch, ra, dec, unit_time_sec),
+        double phi0, double p0, double p1, double p2):
+        PulsarEph(time_system_name, valid_since, valid_until, epoch, ra, dec),
         m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       PeriodEph(const PeriodEph & eph): PulsarEph(eph), m_phi0(eph.m_phi0), m_p0(eph.m_p0), m_p1(eph.m_p1), m_p2(eph.m_p2) {}
