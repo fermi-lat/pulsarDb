@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Wed Feb  6 14:57:05 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx 
+Log Message:
+Modify setPdotCancelParameter and cancelPdot method to use PdotCanceler for pdot cancellation instead of PulsarEph. Change m_pdot_pars (data member; pointer to a PulsarEph object) to m_pdot_canceler (pointer to a PdotCanceler object).
+
+    *
+------------------------------------------------------------
+User: hirayama  Wed Feb  6 14:57:05 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
