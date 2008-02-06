@@ -623,21 +623,6 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
   }
 
-// TODO: Remove this block after replacing PulsarEph::cancelPdot with PdotCanceler::cancelPdot.
-#if 0
-  f_eph2.cancelPdot(ev_time);
-  glast_tt = ev_time;
-  double pdot_t = glast_tt.getValue();
-  double correct_t = 323.4567891234567;
-
-  // For this test, time difference between these two values must be << 1.e-6. (1 microsecond.)
-  epsilon = 1.e-6;
-  if (fabs(pdot_t - correct_t) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcPdotCorr produced pdot-corrected time == " << pdot_t << " not " <<
-      correct_t << std::endl;
-  }
-#endif
-
   MetRep glast_tdb("TDB", 51910, 0., 123.456789);
   AbsoluteTime t0(glast_tdb);
   SimpleDdEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
@@ -798,9 +783,11 @@ void PulsarDbTest::testEphComputer() {
 
   MetRep glast_tdb("TDB", 54101, 0., 100.);
   AbsoluteTime expected_gtdb(glast_tdb);
-  double expected_elapsed = glast_tdb.getValue();
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
-  eph.cancelPdot(expected_gtdb);
+  PdotCanceler canceler(eph.epoch(), eph, 2);
+  canceler.cancelPdot(expected_gtdb);
+  glast_tdb = expected_gtdb;
+  double expected_elapsed = glast_tdb.getValue();
   FrequencyEph expected_eph(eph.calcEphemeris(expected_gtdb));
 
   // Repeat computations using the EphComputer class, and compare results.
@@ -811,13 +798,40 @@ void PulsarDbTest::testEphComputer() {
   computer.load(database);
 
   // Test cancelPdot, and compare result to previous result.
-
   glast_tdb.setValue(100.);
   AbsoluteTime gtdb(glast_tdb);
-  computer.setPdotCancelParameter(eph);
+  std::vector<double> fdot_ratio(2, 0.);
+  double f0 = eph.calcFrequency(eph.epoch(), 0);
+  fdot_ratio[0] = eph.calcFrequency(eph.epoch(), 1) / f0;
+  fdot_ratio[1] = eph.calcFrequency(eph.epoch(), 2) / f0;
+  computer.setPdotCancelParameter(eph.getSystem().getName(), eph.epoch(), fdot_ratio);
   computer.cancelPdot(gtdb);
+  glast_tdb = gtdb;
   if (expected_elapsed != glast_tdb.getValue())
-    ErrorMsg(method_name) << "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
+    ErrorMsg(method_name) << "Given time system name, time origin, and fdot ratios, " <<
+      "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
+      expected_elapsed << ", as expected." << std::endl;
+
+  // Test cancelPdot after setting pdot parameters in a different way, and compare result to previous result.
+  glast_tdb.setValue(100.);
+  gtdb = glast_tdb;
+  computer.setPdotCancelParameter(eph.epoch(), eph, 2);
+  computer.cancelPdot(gtdb);
+  glast_tdb = gtdb;
+  if (expected_elapsed != glast_tdb.getValue())
+    ErrorMsg(method_name) << "Given time origin, pulsar ephemeris, and maximum derivative order, " <<
+      "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
+      expected_elapsed << ", as expected." << std::endl;
+
+  // Test cancelPdot after setting pdot parameters in yet another way, and compare result to previous result.
+  glast_tdb.setValue(100.);
+  gtdb = glast_tdb;
+  computer.setPdotCancelParameter(eph.epoch(), 2);
+  computer.cancelPdot(gtdb);
+  glast_tdb = gtdb;
+  if (expected_elapsed != glast_tdb.getValue())
+    ErrorMsg(method_name) << "Given time origin and maximum derivative order, "
+      "EphComputer::cancelPdot returned elapsed time " << glast_tdb.getValue() << ", not " <<
       expected_elapsed << ", as expected." << std::endl;
 
   // Test calcPulsePhase, by comparing it with PulsarEph::calcPulsePhase.
