@@ -15,6 +15,7 @@
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/OrbitalEph.h"
+#include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/TextPulsarDb.h"
@@ -104,6 +105,9 @@ class PulsarDbTest : public st_app::StApp {
     /// Test Eph getter in pulsarDb class.
     virtual void testEphGetter();
 
+    /// Test PdotCanceler class.
+    virtual void testPdotCanceler();
+
   protected:
     void testEquality(const std::string & context, const pulsarDb::PulsarEph & eph1, const pulsarDb::PulsarEph & eph2) const;
 
@@ -145,6 +149,7 @@ void PulsarDbTest::run() {
   testOrbitalEph();
   testEphComputer();
   testEphGetter();
+  testPdotCanceler();
 
   // Failures.
   testBadInterval();
@@ -618,6 +623,8 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
   }
 
+// TODO: Remove this block after replacing PulsarEph::cancelPdot with PdotCanceler::cancelPdot.
+#if 0
   f_eph2.cancelPdot(ev_time);
   glast_tt = ev_time;
   double pdot_t = glast_tt.getValue();
@@ -629,6 +636,7 @@ void PulsarDbTest::testTimingModel() {
     ErrorMsg(method_name) << "FrequencyEph::calcPdotCorr produced pdot-corrected time == " << pdot_t << " not " <<
       correct_t << std::endl;
   }
+#endif
 
   MetRep glast_tdb("TDB", 51910, 0., 123.456789);
   AbsoluteTime t0(glast_tdb);
@@ -942,6 +950,53 @@ void PulsarDbTest::testEphGetter() {
   if (orbital_eph_cont.size() != expected_orbital) 
     ErrorMsg(method_name) << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
       expected_orbital << ", as expected." << std::endl;
+}
+
+void PulsarDbTest::testPdotCanceler() {
+  std::string method_name = "testPdotCanceler";
+
+  // Set test parameters.
+  MetRep glast_tt("TT", 51910, 0., 0.);
+  glast_tt.setValue(123.4567891234567);
+  AbsoluteTime origin(glast_tt);
+  glast_tt.setValue(223.4567891234567);
+  AbsoluteTime ev_time1(glast_tt);
+  AbsoluteTime ev_time2(glast_tt);
+  double f0 = 1.125e-2;
+  double f1 = -2.25e-4;
+  double f2 = 13.5e-6;
+  double correct_t = 323.4567891234567;
+  double epsilon = 1.e-6; // 1 micro-second.
+
+  // Test PdotCanceler created from literal numbers.
+  std::vector<double> fdot_ratio(2);
+  fdot_ratio[0] = f1 / f0;
+  fdot_ratio[1] = f2 / f0;
+  PdotCanceler canceler1("TDB", origin, fdot_ratio);
+
+  canceler1.cancelPdot(ev_time1);
+  glast_tt = ev_time1;
+  double pdot_t = glast_tt.getValue();
+  if (fabs(pdot_t - correct_t) > epsilon) {
+    ErrorMsg(method_name) << "After constructed from literal numbers, PdotCanceler::cancelPdot produced pdot-corrected time == "
+      << pdot_t << " not " << correct_t << std::endl;
+  }
+
+  // Test PdotCanceler created from a PulsarEph object.
+  glast_tt.setValue(0.);
+  AbsoluteTime since(glast_tt);
+  glast_tt.setValue(1.);
+  AbsoluteTime until(glast_tt);
+  FrequencyEph f_eph("TDB", since, until, origin, 22., 45., .11, f0, f1, f2);
+  PdotCanceler canceler2(origin, f_eph, 2);
+
+  canceler2.cancelPdot(ev_time2);
+  glast_tt = ev_time2;
+  pdot_t = glast_tt.getValue();
+  if (fabs(pdot_t - correct_t) > epsilon) {
+    ErrorMsg(method_name) << "After constructed from PulsarEph, PdotCanceler::cancelPdot produced pdot-corrected time == "
+      << pdot_t << " not " << correct_t << std::endl;
+  }
 }
 
 void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & eph1, const PulsarEph & eph2) const {
