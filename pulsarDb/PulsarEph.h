@@ -53,13 +53,6 @@ namespace pulsarDb {
       // TODO: Replace calcEphemeris with calcFrequency.
       virtual FrequencyEph calcEphemeris(const timeSystem::AbsoluteTime & ev_time) const;
 
-      /** \brief Correct event time to account for pdot cancellation. Note: validity of the
-                 ephemeris (valid since and valid until) are not checked.
-          \param ev_time Time of the event.
-      */
-      // TODO: Remove cancelPdot from this class.
-      virtual void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
-
       /** \brief Compute the spin phase of the given time. Note: validity of the
                  ephemeris (valid since and valid until) are not checked.
           \param ev_time Time of the event.

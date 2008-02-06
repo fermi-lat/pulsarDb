@@ -29,13 +29,6 @@ namespace pulsarDb {
     return FrequencyEph(this->getSystem().getName(), ev_time, ev_time, ev_time, this->ra(), this->dec(), phi0, f0, f1, this->f2());
   }
 
-  void PulsarEph::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
-    double dt = this->dt(ev_time);
-    double dt_squared = dt * dt;
-    timeSystem::Duration corrected_dt(0, this->f1()/this->f0()/2.0 * dt_squared + this->f2()/this->f0()/6.0 * dt * dt_squared);
-    ev_time += timeSystem::ElapsedTime(this->getSystem().getName(), corrected_dt);
-  }
-
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
