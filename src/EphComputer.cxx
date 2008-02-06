@@ -5,18 +5,19 @@
 */
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
+#include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PulsarDb.h"
 
 namespace pulsarDb {
 
-  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_pdot_pars(0), m_chooser(new StrictEphChooser) {}
+  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_pdot_canceler(0), m_chooser(new StrictEphChooser) {}
 
   EphComputer::EphComputer(const EphChooser & chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(),
-    m_pdot_pars(0), m_chooser(chooser.clone()) {
+    m_pdot_canceler(0), m_chooser(chooser.clone()) {
   }
 
   EphComputer::~EphComputer() {
-    delete m_pdot_pars;
+    delete m_pdot_canceler;
     delete m_chooser;
   }
 
@@ -33,8 +34,22 @@ namespace pulsarDb {
     database.getEph(m_orbital_eph_cont);
   }
 
-  void EphComputer::setPdotCancelParameter(const PulsarEph & pdot_pars) {
-    m_pdot_pars = pdot_pars.clone();
+  void EphComputer::setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
+    const std::vector<double> & fdot_ratio) {
+    delete m_pdot_canceler;
+    m_pdot_canceler = new PdotCanceler(time_system_name, time_origin, fdot_ratio);
+  }
+
+  void EphComputer::setPdotCancelParameter(const timeSystem::AbsoluteTime & time_origin, const PulsarEph & pulsar_eph,
+    int max_derivative) {
+    delete m_pdot_canceler;
+    m_pdot_canceler = new PdotCanceler(time_origin, pulsar_eph, max_derivative);
+  }
+
+  void EphComputer::setPdotCancelParameter(const timeSystem::AbsoluteTime & time_origin, int max_derivative) {
+    const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, time_origin));
+    delete m_pdot_canceler;
+    m_pdot_canceler = new PdotCanceler(time_origin, eph, max_derivative);
   }
 
   FrequencyEph EphComputer::calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
@@ -43,8 +58,8 @@ namespace pulsarDb {
   }
 
   void EphComputer::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
-    if (m_pdot_pars) {
-      m_pdot_pars->cancelPdot(ev_time);
+    if (m_pdot_canceler) {
+      m_pdot_canceler->cancelPdot(ev_time);
     } else {
       throw std::runtime_error("Parameters for pdot cancellation are not set");
     }

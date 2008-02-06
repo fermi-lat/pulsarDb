@@ -15,6 +15,7 @@ namespace timeSystem {
 
 namespace pulsarDb {
   class EphChooser;
+  class PdotCanceler;
   class PulsarDb;
 
   /** \class EphComputer
@@ -34,12 +35,16 @@ namespace pulsarDb {
 
       void loadOrbitalEph(const PulsarDb & database);
 
-      // TODO: Remove setPdotCancelParameter method after moving to PulsarToolApp class.
-      void setPdotCancelParameter(const PulsarEph & pdot_pars);
+      void setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
+        const std::vector<double> & fdot_ratio);
 
+      void setPdotCancelParameter(const timeSystem::AbsoluteTime & time_origin, const PulsarEph & pulsar_eph, int max_derivative);
+
+      void setPdotCancelParameter(const timeSystem::AbsoluteTime & time_origin, int max_derivative);
+
+      // TODO: Remove this method.
       FrequencyEph calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
 
-      // TODO: Remove cancelPdot method after moving to PulsarToolApp class.
       void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
 
       double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
@@ -71,7 +76,7 @@ namespace pulsarDb {
 
       PulsarEphCont m_pulsar_eph_cont;
       OrbitalEphCont m_orbital_eph_cont;
-      PulsarEph * m_pdot_pars;
+      PdotCanceler * m_pdot_canceler;
       EphChooser * m_chooser;
   };
 
