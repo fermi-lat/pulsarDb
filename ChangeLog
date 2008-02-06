@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Wed Feb  6 13:12:32 PST 2008
+pulsarDb/src
+
+Added Files:
+	PdotCanceler.cxx 
+Log Message:
+Add PdotCanceler class and the test code for it.
+
+    *
+------------------------------------------------------------
+User: hirayama  Wed Feb  6 13:12:32 PST 2008
 pulsarDb/pulsarDb
 
 Added Files:
