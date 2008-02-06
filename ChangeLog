@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Wed Feb  6 14:59:55 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Remove cancelPdot method.
+
+    *
+------------------------------------------------------------
+User: hirayama  Wed Feb  6 14:59:55 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
