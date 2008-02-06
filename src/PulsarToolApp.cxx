@@ -480,9 +480,10 @@ namespace pulsarDb {
 
     // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
     if (m_cancel_pdot) {
+      const int max_derivative = 2;
       if (guess_pdot) {
-        // Compute an ephemeris at abs_origin to use for pdot cancellation.
-        m_computer->setPdotCancelParameter(m_computer->calcPulsarEph(abs_origin));
+        // Compute an ephemeris at abs_origin to use for pdot cancellation, up to the second time derivative.
+        m_computer->setPdotCancelParameter(abs_origin, max_derivative);
 
       } else {
         // Read parameters for pdot cancellation from pfile.
@@ -494,19 +495,16 @@ namespace pulsarDb {
         double dec = 0.;
         double phi0 = 0.;
         if (eph_style == "FREQ") {
-          double f0 = 1.;
-          double f1 = pars["f1f0ratio"];;
-          double f2 = pars["f2f0ratio"];
-          m_computer->setPdotCancelParameter(
-            FrequencyEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, f0, f1, f2)
-          );
+          std::vector<double> fdot_ratio(max_derivative, 0.);
+          if (max_derivative > 0) fdot_ratio[0] = pars["f1f0ratio"];
+          if (max_derivative > 1) fdot_ratio[1] = pars["f2f0ratio"];
+          m_computer->setPdotCancelParameter(target_time_sys, abs_origin, fdot_ratio);
         } else if (eph_style == "PER") {
           double p0 = 1.;
           double p1 = pars["p1p0ratio"];
           double p2 = pars["p2p0ratio"];
-          m_computer->setPdotCancelParameter(
-            PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, p0, p1, p2)
-          );
+          m_computer->setPdotCancelParameter(abs_origin,
+            PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, p0, p1, p2), max_derivative);
         } else {
           throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
         }
