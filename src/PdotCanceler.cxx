@@ -18,7 +18,7 @@ namespace pulsarDb {
     const std::vector<double> & fdot_ratio): m_system_name(time_system_name), m_time_origin(time_origin), m_fdot_ratio(fdot_ratio) {}
 
   PdotCanceler::PdotCanceler(const timeSystem::AbsoluteTime & time_origin, const PulsarEph & pulsar_eph, int max_derivative):
-    m_system_name(pulsar_eph.getSystem().getName()), m_time_origin(time_origin), m_fdot_ratio(max_derivative) {
+    m_system_name(pulsar_eph.getSystem().getName()), m_time_origin(time_origin), m_fdot_ratio(max_derivative, 0.) {
     // Compute frequency derivatives.
     double f0 = pulsar_eph.calcFrequency(m_time_origin, 0);
     for (std::vector<double>::size_type ii = 0; ii < m_fdot_ratio.size(); ++ii) {
