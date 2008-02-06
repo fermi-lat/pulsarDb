@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Feb  6 14:59:21 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add test code for pdot cancellation by EphComputer. Remove tests for PulsarEph::cancelPdot.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Feb  6 14:58:39 PST 2008
 pulsarDb/src
 
