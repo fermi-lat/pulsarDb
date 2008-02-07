@@ -109,9 +109,6 @@ class PulsarDbTest : public st_app::StApp {
     /// Test PdotCanceler class.
     virtual void testPdotCanceler();
 
-  protected:
-    void testEquality(const std::string & context, const pulsarDb::PulsarEph & eph1, const pulsarDb::PulsarEph & eph2) const;
-
   private:
     std::string m_data_dir;
     std::string m_in_file;
@@ -322,21 +319,21 @@ void PulsarDbTest::testChooser() {
   AbsoluteTime valid_until("TDB", origin, Duration(0, 200.));
   AbsoluteTime epoch("TDB", origin, Duration(0, 150.));
   AbsoluteTime t("TDB", origin, Duration(0, 120.));
-  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TT", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
   valid_since = AbsoluteTime("TDB", origin, Duration(0, 100.));
-  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 2., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
 
   StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(0, .99)));
   chosen = &strict_chooser.choose(eph_cont, t);
-  if (1. != chosen->f0())
-    ErrorMsg(method_name) << "for time " << t << " with tolerance .99, chooser chose eph with f0 == " << chosen->f0() <<
-      ", not 1. as expected" << std::endl;
+  if ("TT" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time " << t << " with tolerance .99, chooser chose eph with " << chosen->getSystem().getName() <<
+      ", not TT as expected" << std::endl;
 
   strict_chooser = StrictEphChooser(ElapsedTime("TDB", Duration(0, 1.01)));
   chosen = &strict_chooser.choose(eph_cont, t);
-  if (2. != chosen->f0())
-    ErrorMsg(method_name) << "for time " << t << " with tolerance 1.01, chooser chose eph with f0 == " << chosen->f0() <<
-      ", not 2. as expected" << std::endl;
+  if ("TDB" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time " << t << " with tolerance 1.01, chooser chose eph with " << chosen->getSystem().getName() <<
+      ", not TDB as expected" << std::endl;
 
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
@@ -344,53 +341,53 @@ void PulsarDbTest::testChooser() {
   // Test sloppy chooser around two disjoint ephemerides.
   eph_cont.clear();
   epoch = MjdRep("TDB", 51910, 0.);
-  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51910, 0.)), AbsoluteTime(MjdRep("TDB", 51920, 0.)), epoch, 22., 45., 0., 1., 0., 0.));
-  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51930, 0.)), AbsoluteTime(MjdRep("TDB", 51940, 0.)), epoch, 22., 45., 0., 2., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TT", AbsoluteTime(MjdRep("TDB", 51910, 0.)), AbsoluteTime(MjdRep("TDB", 51920, 0.)), epoch, 22., 45., 0., 1., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51930, 0.)), AbsoluteTime(MjdRep("TDB", 51940, 0.)), epoch, 22., 45., 0., 1., 0., 0.));
 
   SloppyEphChooser sloppy_chooser;
   t = MjdRep("TDB", 51905, 0.);
   chosen = &sloppy_chooser.choose(eph_cont, t);
-  if (1. != chosen->f0())
-    ErrorMsg(method_name) << "for time before either ephemeris: " << t << ", chooser chose eph with f0 == " << chosen->f0() <<
-      ", not 1. as expected" << std::endl;
+  if ("TT" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time before either ephemeris: " << t << ", chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   t = MjdRep("TDB", 51915, 0.);
   chosen = &sloppy_chooser.choose(eph_cont, t);
-  if (1. != chosen->f0())
-    ErrorMsg(method_name) << "for time during first ephemeris: " << t << ", chooser chose eph with f0 == " << chosen->f0() <<
-      ", not 1. as expected" << std::endl;
+  if ("TT" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time during first ephemeris: " << t << ", chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   t = MjdRep("TDB", 51921, 0.);
   chosen = &sloppy_chooser.choose(eph_cont, t);
-  if (1. != chosen->f0())
-    ErrorMsg(method_name) << "for time shortly after first ephemeris: " << t << ", chooser chose eph with f0 == " << chosen->f0() <<
-      ", not 1. as expected" << std::endl;
+  if ("TT" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time shortly after first ephemeris: " << t << ", chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   t = MjdRep("TDB", 51929, 0.);
   chosen = &sloppy_chooser.choose(eph_cont, t);
-  if (2. != chosen->f0())
-    ErrorMsg(method_name) << "for time shortly before second ephemeris: " << t << ", chooser chose eph with f0 == " <<
-      chosen->f0() << ", not 2. as expected" << std::endl;
+  if ("TDB" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time shortly before second ephemeris: " << t << ", chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   t = MjdRep("TDB", 51935, 0.);
   chosen = &sloppy_chooser.choose(eph_cont, t);
-  if (2. != chosen->f0())
-    ErrorMsg(method_name) << "for time during second ephemeris: " << t << ", chooser chose eph with f0 == " <<
-      chosen->f0() << ", not 2. as expected" << std::endl;
+  if ("TDB" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time during second ephemeris: " << t << ", chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   t = MjdRep("TDB", 51945, 0.);
   chosen = &sloppy_chooser.choose(eph_cont, t);
-  if (2. != chosen->f0())
-    ErrorMsg(method_name) << "for time after second ephemeris: " << t << ", chooser chose eph with f0 == " <<
-      chosen->f0() << ", not 2. as expected" << std::endl;
+  if ("TDB" != chosen->getSystem().getName())
+    ErrorMsg(method_name) << "for time after second ephemeris: " << t << ", chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   // Test choice from prehistory, say 100000 years before origin of MJD.
   t = MjdRep("TDB", -36525000, 0.);
   try {
     chosen = &sloppy_chooser.choose(eph_cont, t);
-    if (1. != chosen->f0())
-      ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser chose eph with f0 == " <<
-        chosen->f0() << ", not 1. as expected" << std::endl;
+    if ("TT" != chosen->getSystem().getName())
+      ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser chose eph with " <<
+        chosen->getSystem().getName() << ", not TT as expected" << std::endl;
   } catch (const std::exception & x) {
     ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser threw exception: " <<
       std::endl << x.what() << std::endl;
@@ -400,9 +397,9 @@ void PulsarDbTest::testChooser() {
   t = MjdRep("TDB", 36525000, 0.);
   try {
     chosen = &sloppy_chooser.choose(eph_cont, t);
-    if (2. != chosen->f0())
-      ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser chose eph with f0 == " <<
-        chosen->f0() << ", not 2. as expected" << std::endl;
+    if ("TDB" != chosen->getSystem().getName())
+      ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser chose eph with " <<
+        chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
   } catch (const std::exception & x) {
     ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser threw exception: " <<
       std::endl << x.what() << std::endl;
@@ -545,8 +542,29 @@ void PulsarDbTest::testPulsarEph() {
   PeriodEph p_eph("TDB", since, until, epoch, 22., 45., 0.875, 88.8888888888888888888889,
     1.777777777777777777777778, 0.0177777777777777777777778);
 
-  // First, compare frequency & period.
-  testEquality("FrequencyEph and PeriodEph", f_eph, p_eph);
+  // Compare frequency & period.
+  double epsilon = 1.e-8;
+  const double nano_sec = 1.e-9;
+  ElapsedTime tolerance("TT", Duration(0, nano_sec));
+
+  if (!f_eph.epoch().equivalentTo(p_eph.epoch(), tolerance))
+    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
+
+  char * field[] = { "ra", "dec", "phi0", "f0", "f1" , "f2" };
+  std::pair<double, double> f_ra_dec = f_eph.calcSkyPosition(epoch);
+  double value1[] = { f_ra_dec.first, f_ra_dec.second, f_eph.calcPulsePhase(epoch), f_eph.calcFrequency(epoch, 0),
+                      f_eph.calcFrequency(epoch, 1), f_eph.calcFrequency(epoch, 2) };
+  std::pair<double, double> p_ra_dec = f_eph.calcSkyPosition(epoch);
+  double value2[] = { p_ra_dec.first, p_ra_dec.second, p_eph.calcPulsePhase(epoch), p_eph.calcFrequency(epoch, 0),
+                      p_eph.calcFrequency(epoch, 1), p_eph.calcFrequency(epoch, 2) };
+  for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
+    if (0. == value1[ii] || 0. == value2[ii]) {
+      if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
+        ErrorMsg(method_name) << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] << std::endl;
+    } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
+      ErrorMsg(method_name) << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] << std::endl;
+    }
+  }
 }
 
 void PulsarDbTest::testTimingModel() {
@@ -1008,27 +1026,4 @@ void PulsarDbTest::testPdotCanceler() {
   }
 }
 
-void PulsarDbTest::testEquality(const std::string & context, const PulsarEph & eph1, const PulsarEph & eph2) const {
-  std::string method_name = "testEquality";
-
-  double epsilon = 1.e-8;
-  const double nano_sec = 1.e-9;
-  ElapsedTime tolerance("TT", Duration(0, nano_sec));
-
-  if (!eph1.epoch().equivalentTo(eph2.epoch(), tolerance))
-    ErrorMsg(method_name) << context << " give different values for epoch" << std::endl;
-
-  char * field[] = { "ra", "dec", "phi0", "f0", "f1" , "f2" };
-  double value1[] = { eph1.ra(), eph1.dec(), eph1.phi0(), eph1.f0(), eph1.f1(), eph1.f2() };
-  double value2[] = { eph2.ra(), eph2.dec(), eph2.phi0(), eph2.f0(), eph2.f1(), eph2.f2() };
-  for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
-    if (0. == value1[ii] || 0. == value2[ii]) {
-      if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
-        ErrorMsg(method_name) << context << " give absolutely different values for " << field[ii] << std::endl;
-    } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
-      ErrorMsg(method_name) << context << " give fractionally different values for " << field[ii] << std::endl;
-    }
-  }
-}
-
-st_app::StAppFactory<PulsarDbTest> g_factory("gtpulsardb");
+st_app::StAppFactory<PulsarDbTest> g_factory("test_pulsarDb");
