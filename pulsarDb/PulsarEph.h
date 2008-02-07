@@ -36,12 +36,6 @@ namespace pulsarDb {
       virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
       virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
-      virtual double ra() const = 0;
-      virtual double dec() const = 0;
-      virtual double phi0() const = 0;
-      virtual double f0() const = 0;
-      virtual double f1() const = 0;
-      virtual double f2() const = 0;
       virtual PulsarEph * clone() const = 0;
 
       /** \brief Compute the spin phase of the given time. Note: validity of the
@@ -65,9 +59,17 @@ namespace pulsarDb {
       */
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
+      void write(st_stream::OStream & os) const;
+
     protected:
       virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
       virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
+      virtual double ra() const = 0;
+      virtual double dec() const = 0;
+      virtual double phi0() const = 0;
+      virtual double f0() const = 0;
+      virtual double f1() const = 0;
+      virtual double f2() const = 0;
 
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;
@@ -78,6 +80,7 @@ namespace pulsarDb {
       timeSystem::Duration m_unit_time;
   };
 
+  // TODO: Remove this method.
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
 
   /** \class FrequencyEph
@@ -101,12 +104,6 @@ namespace pulsarDb {
 
       virtual ~FrequencyEph() {}
 
-      virtual double ra() const { return m_ra; }
-      virtual double dec() const { return m_dec; }
-      virtual double phi0() const { return m_phi0; }
-      virtual double f0() const { return m_f0; }
-      virtual double f1() const { return m_f1; }
-      virtual double f2() const { return m_f2; }
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
 
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
@@ -116,6 +113,14 @@ namespace pulsarDb {
 
       // TODO: Write a test code for this method.
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
+
+    protected:
+      virtual double ra() const { return m_ra; }
+      virtual double dec() const { return m_dec; }
+      virtual double phi0() const { return m_phi0; }
+      virtual double f0() const { return m_f0; }
+      virtual double f1() const { return m_f1; }
+      virtual double f2() const { return m_f2; }
 
     private:
       double m_ra;
@@ -147,12 +152,6 @@ namespace pulsarDb {
 
       virtual ~PeriodEph() {}
 
-      virtual double ra() const { return m_ra; }
-      virtual double dec() const { return m_dec; }
-      virtual double phi0() const { return m_phi0; }
-      virtual double f0() const { return 1. / m_p0; }
-      virtual double f1() const { return - m_p1 / (m_p0 * m_p0); }
-      virtual double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
       virtual PulsarEph * clone() const { return new PeriodEph(*this); }
 
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
@@ -162,6 +161,14 @@ namespace pulsarDb {
 
       // TODO: Write a test code for this method.
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
+
+    protected:
+      virtual double ra() const { return m_ra; }
+      virtual double dec() const { return m_dec; }
+      virtual double phi0() const { return m_phi0; }
+      virtual double f0() const { return 1. / m_p0; }
+      virtual double f1() const { return - m_p1 / (m_p0 * m_p0); }
+      virtual double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
 
     private:
       double m_ra;
