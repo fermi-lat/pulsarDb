@@ -18,6 +18,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 static const std::string s_cvs_id("$Name:  $");
 
@@ -106,7 +107,16 @@ namespace pulsarDb {
     // Report the calculated spin ephemeris, provided at least a spin ephemeris was found above.
     if (found_pulsar_eph) {
       try {
-        FrequencyEph eph(computer.calcPulsarEph(abs_ref_time));
+        // TODO: Is this "try" close too long?
+        const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
+        std::string system_name = chosen_eph.getSystem().getName();
+        std::pair<double, double> ra_dec = chosen_eph.calcSkyPosition(abs_ref_time);
+        double phi0 = chosen_eph.calcPulsePhase(abs_ref_time);
+        double f0 = chosen_eph.calcFrequency(abs_ref_time, 0);
+        double f1 = chosen_eph.calcFrequency(abs_ref_time, 1);
+        double f2 = chosen_eph.calcFrequency(abs_ref_time, 2);
+        FrequencyEph eph(system_name, abs_ref_time, abs_ref_time, abs_ref_time, ra_dec.first, ra_dec.second, phi0, f0, f1, f2);
+        // TODO: Write text output without using FrequencyEph's shift operator.
         m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time is:" << std::endl << eph << std::endl;
       } catch (const std::exception & x) {
         m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
