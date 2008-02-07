@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 14:10:38 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Replace tests of PulsarEph::calcEphemeris with those of PulsarEph::calcSkyPosition/calcPulsePhase/calcFrequency.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 14:09:12 PST 2008
 pulsarDb/src
 
