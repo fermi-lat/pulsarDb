@@ -52,11 +52,6 @@ namespace pulsarDb {
     m_pdot_canceler = new PdotCanceler(time_origin, eph, max_derivative);
   }
 
-  FrequencyEph EphComputer::calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
-    const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
-    return eph.calcEphemeris(ev_time);
-  }
-
   void EphComputer::cancelPdot(timeSystem::AbsoluteTime & ev_time) const {
     if (m_pdot_canceler) {
       m_pdot_canceler->cancelPdot(ev_time);
@@ -73,6 +68,11 @@ namespace pulsarDb {
   double EphComputer::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     return eph.calcFrequency(ev_time, derivative_order);
+  }
+
+  std::pair<double, double> EphComputer::calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const {
+    const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
+    return eph.calcSkyPosition(ev_time);
   }
 
   double EphComputer::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
