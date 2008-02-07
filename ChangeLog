@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 14:05:55 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Move ra and dec (methods and data members) from the base class to the derived. Add calcSkyPosition method. Remove calcEphemeris method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 14:03:08 PST 2008
 pulsarDb/src
 
