@@ -6,6 +6,7 @@
 #include <cctype>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 #include "hoops/hoops_exception.h"
 
@@ -674,10 +675,10 @@ namespace pulsarDb {
       // Apply barycentric correction, if requested.
       if (m_request_bary) {
         // Get RA and Dec for the given arrival time.
-        std::auto_ptr<PulsarEph> eph(m_computer->calcPulsarEph(abs_time).clone());
+        std::pair<double, double> ra_dec = m_computer->calcSkyPosition(abs_time);
 
         // Try barycentric correction with the RA and Dec.
-        abs_time = handler.readColumn(column_name, eph->ra(), eph->dec());
+        abs_time = handler.readColumn(column_name, ra_dec.first, ra_dec.second);
       }
 
       // Apply binary demodulation, if requested.
