@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Thu Feb  7 14:03:08 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx 
+Log Message:
+Add calcSkyPosition method. Remove calcPulsarEph method.
+
+    *
+------------------------------------------------------------
+User: hirayama  Thu Feb  7 14:03:08 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
