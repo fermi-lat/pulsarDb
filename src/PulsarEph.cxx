@@ -21,14 +21,6 @@ namespace pulsarDb {
     return numerator / m_unit_time;
   }
 
-  FrequencyEph PulsarEph::calcEphemeris(const timeSystem::AbsoluteTime & ev_time) const {
-    double dt = this->dt(ev_time);
-    double f0 = this->f0() + this->f1() * dt + this->f2()/2.0 * dt * dt;
-    double f1 = this->f1() + this->f2() * dt;
-    double phi0 = calcPulsePhase(ev_time);
-    return FrequencyEph(this->getSystem().getName(), ev_time, ev_time, ev_time, this->ra(), this->dec(), phi0, f0, f1, this->f2());
-  }
-
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
@@ -120,5 +112,13 @@ namespace pulsarDb {
       return_value = 0.;
     }
     return return_value;
+  }
+
+  std::pair<double, double> FrequencyEph::calcSkyPosition(const timeSystem::AbsoluteTime & /* ev_time */) const {
+    return std::make_pair(m_ra, m_dec);
+  }
+
+  std::pair<double, double> PeriodEph::calcSkyPosition(const timeSystem::AbsoluteTime & /* ev_time */) const {
+    return std::make_pair(m_ra, m_dec);
   }
 }
