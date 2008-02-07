@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 15:28:42 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Modify tests to remove use of PulsarEph::f0, f1, etc. Correct application name.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 15:27:11 PST 2008
 pulsarDb/src
 
