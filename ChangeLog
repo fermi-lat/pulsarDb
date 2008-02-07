@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 14:09:12 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Use EphComputer::calcSkyPosition instead of EphComputer::calcPulsarEph to obtain RA and Dec.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 14:08:16 PST 2008
 pulsarDb/src
 
