@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 14:08:16 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Use EphComputer::choosePulsarEph instead of EphComputer::calcPulsarEph for text output.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 14:06:18 PST 2008
 pulsarDb/src
 
