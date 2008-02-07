@@ -22,34 +22,38 @@ namespace pulsarDb {
   }
 
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
+    eph.write(os);
+    return os;
+  }
+
+  void PulsarEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
     os << std::right;
     os.prefix().width(14);
-    std::string time_system_name = eph.getSystem().getName();
+    std::string time_system_name = getSystem().getName();
     MjdRep mjd_rep(time_system_name, 0, 0.);
 
     // Note: below, break into two consecutive strings so that width applies to first part only.
-    if (!eph.valid_since().equivalentTo(eph.valid_until(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = eph.valid_since();
+    if (!valid_since().equivalentTo(valid_until(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
+      mjd_rep = valid_since();
       os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = eph.valid_until();
+      mjd_rep = valid_until();
       os << mjd_rep << ")" << std::endl;
     } else {
-      mjd_rep = eph.valid_since();
+      mjd_rep = valid_since();
       os << "Validity : " << "only at time " << mjd_rep << std::endl;
     }
-    mjd_rep = eph.epoch();
+    mjd_rep = epoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
-    os.prefix().width(14); os << "RA = " << eph.ra() << std::endl;
-    os.prefix().width(14); os << "Dec = " << eph.dec() << std::endl;
-    os.prefix().width(14); os << "Phi0 = " << eph.phi0() << std::endl;
-    os.prefix().width(14); os << "F0 = " << eph.f0() << std::endl;
-    os.prefix().width(14); os << "F1 = " << eph.f1() << std::endl;
-    os.prefix().width(14); os << "F2 = " << eph.f2();
+    os.prefix().width(14); os << "RA = " << ra() << std::endl;
+    os.prefix().width(14); os << "Dec = " << dec() << std::endl;
+    os.prefix().width(14); os << "Phi0 = " << phi0() << std::endl;
+    os.prefix().width(14); os << "F0 = " << f0() << std::endl;
+    os.prefix().width(14); os << "F1 = " << f1() << std::endl;
+    os.prefix().width(14); os << "F2 = " << f2();
     os.flags(orig_flags);
     os.precision(orig_prec);
-    return os;
   }
 
   double FrequencyEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
