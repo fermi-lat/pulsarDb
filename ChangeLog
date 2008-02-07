@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 14:06:18 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Add calcSkyPosition method. Remove calcEphemeris method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 14:05:55 PST 2008
 pulsarDb/pulsarDb
 
