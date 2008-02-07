@@ -6,6 +6,8 @@
 #ifndef pulsarDb_EphComputer_h
 #define pulsarDb_EphComputer_h
 
+#include <utility>
+
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
@@ -42,15 +44,16 @@ namespace pulsarDb {
 
       void setPdotCancelParameter(const timeSystem::AbsoluteTime & time_origin, int max_derivative);
 
-      // TODO: Remove this method.
-      FrequencyEph calcPulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
-
       void cancelPdot(timeSystem::AbsoluteTime & ev_time) const;
 
       double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
-      // TODO: Write a test code for calcFrequency method.
+      // TODO: Write a test code for this method.
+      // TODO: Return a pointer to a TimeSystem object, as well as frequency.
       double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
+
+      // TODO: Write a test code for this method.
+      std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
