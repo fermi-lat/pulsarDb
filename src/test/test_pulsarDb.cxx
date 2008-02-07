@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "facilities/commonUtilities.h"
 
@@ -585,42 +586,41 @@ void PulsarDbTest::testTimingModel() {
   AbsoluteTime ev_time(glast_tt);
 
   // Test coordinates.
-  FrequencyEph f_eph3 = f_eph2.calcEphemeris(ev_time);
+  std::pair<double, double> computed_ra_dec = f_eph2.calcSkyPosition(ev_time);
+  double computed_ra = computed_ra_dec.first;
   double correct_ra = 22.;
-  if (fabs(f_eph3.ra() - correct_ra) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced ra == " << f_eph3.ra() << " not " << correct_ra << std::endl;
+  if (fabs(computed_ra - correct_ra) > epsilon) {
+    ErrorMsg(method_name) << "FrequencyEph::calcSkyPosition produced ra == " << computed_ra << " not " << correct_ra << std::endl;
   }
   
+  double computed_dec = computed_ra_dec.second;
   double correct_dec = 45.;
-  if (fabs(f_eph3.dec() - correct_dec) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced dec == " << f_eph3.dec() << " not " << correct_dec << std::endl;
+  if (fabs(computed_dec - correct_dec) > epsilon) {
+    ErrorMsg(method_name) << "FrequencyEph::calcSkyPosition produced dec == " << computed_dec << " not " << correct_dec << std::endl;
   }
   
   // Test phase computation.
-  if (fabs(f_eph3.phi0()/.36 - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced phi0 == " << f_eph3.phi0() << " not .36" << std::endl;
+  double computed_phi0 = f_eph2.calcPulsePhase(ev_time);
+  if (fabs(computed_phi0/.36 - 1.) > epsilon)
+    ErrorMsg(method_name) << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << " not .36" << std::endl;
  
   // Test frequency computation.
+  double computed_f0 = f_eph2.calcFrequency(ev_time, 0);
   double correct_f0 = 5.625e-2;
-  if (fabs(f_eph3.f0() - correct_f0) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced f0 == " << f_eph3.f0() << " not " << correct_f0 << std::endl;
+  if (fabs(computed_f0 - correct_f0) > epsilon) {
+    ErrorMsg(method_name) << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << " not " << correct_f0 << std::endl;
   }
   
+  double computed_f1 = f_eph2.calcFrequency(ev_time, 1);
   double correct_f1 = 11.25e-4;
-  if (fabs(f_eph3.f1() - correct_f1) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced f1 == " << f_eph3.f1() << " not " << correct_f1 << std::endl;
+  if (fabs(computed_f1 - correct_f1) > epsilon) {
+    ErrorMsg(method_name) << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << " not " << correct_f1 << std::endl;
   }
   
+  double computed_f2 = f_eph2.calcFrequency(ev_time, 2);
   double correct_f2 = 13.5e-6;
-  if (fabs(f_eph3.f2() - correct_f2) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced f2 == " << f_eph3.f2() << " not " << correct_f2 << std::endl;
-  }
-
-  // correct_epoch == ev_time;
-  // Note: epsilon now is a time difference of 10ns
-  ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
-  if (!f_eph3.epoch().equivalentTo(ev_time, tolerance)) {
-    ErrorMsg(method_name) << "FrequencyEph::calcEphemeris produced epoch == " << f_eph3.epoch() << " not " << ev_time << std::endl;
+  if (fabs(computed_f2 - correct_f2) > epsilon) {
+    ErrorMsg(method_name) << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << " not " << correct_f2 << std::endl;
   }
 
   MetRep glast_tdb("TDB", 51910, 0., 123.456789);
@@ -788,7 +788,6 @@ void PulsarDbTest::testEphComputer() {
   canceler.cancelPdot(expected_gtdb);
   glast_tdb = expected_gtdb;
   double expected_elapsed = glast_tdb.getValue();
-  FrequencyEph expected_eph(eph.calcEphemeris(expected_gtdb));
 
   // Repeat computations using the EphComputer class, and compare results.
   // Create the computer.
@@ -847,10 +846,6 @@ void PulsarDbTest::testEphComputer() {
   if (expected_pulse_phase != pulse_phase)
     ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
-
-  // Test calcPulsarEph, and compare result to previous result.
-  FrequencyEph freq_eph = computer.calcPulsarEph(expected_gtdb);
-  testEquality("EphComputer::calcPulsarEph and PulsarEph::calcEphemeris", freq_eph, expected_eph);
 
   // Test binary modulation/demodulation.
   // Get new independent access to database, to keep independent from the tests above.
