@@ -865,6 +865,13 @@ void PulsarDbTest::testEphComputer() {
     ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
 
+  // Test calcSkyPosition, by comparing it with FrequencyEph::calcSkyPosition.
+  std::pair<double, double> expected_ra_dec = eph.calcSkyPosition(expected_gtdb);
+  std::pair<double, double> ra_dec = computer.calcSkyPosition(expected_gtdb);
+  if (expected_ra_dec != ra_dec)
+    ErrorMsg(method_name) << "EphComputer::calcSkyPosition returned (RA, Dec) = (" << ra_dec.first << ", " << ra_dec.second <<
+      "), not (" << expected_ra_dec.first << ", " << expected_ra_dec.second << "), as expected." << std::endl;
+
   // Test binary modulation/demodulation.
   // Get new independent access to database, to keep independent from the tests above.
   PulsarDb database2(m_in_file);
