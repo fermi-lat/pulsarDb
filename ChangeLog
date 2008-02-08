@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Feb  8 13:20:18 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h 
+Log Message:
+Remove calcFrequency method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 16:23:37 PST 2008
 pulsarDb/src
 
