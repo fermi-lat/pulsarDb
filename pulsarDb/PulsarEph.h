@@ -109,10 +109,8 @@ namespace pulsarDb {
 
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
-      // TODO: Write a test code for this method.
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
-      // TODO: Write a test code for this method.
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       virtual void write(st_stream::OStream & os) const;
@@ -161,10 +159,8 @@ namespace pulsarDb {
 
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
-      // TODO: Write a test code for this method.
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
-      // TODO: Write a test code for this method.
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       virtual void write(st_stream::OStream & os) const;
