@@ -229,8 +229,8 @@ void PulsarDbTest::testChooser() {
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(54262, 0.);
   ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
-  if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->epoch(), tolerance))
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
+  if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->getEpoch(), tolerance))
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
       ", not " << AbsoluteTime(mjd_tdb) << " as expected." << std::endl;
 
   // Test one with tiebreaking.
@@ -238,8 +238,8 @@ void PulsarDbTest::testChooser() {
   pick_time = mjd_tdb;
   chosen = &chooser.choose(eph_cont, pick_time);
   mjd_tdb.setValue(53891, 0.);
-  if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->epoch(), tolerance))
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() <<
+  if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->getEpoch(), tolerance))
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
       ", not " << AbsoluteTime(mjd_tdb) << " as expected." << std::endl;
 
   // Test one which is too early.
@@ -247,7 +247,7 @@ void PulsarDbTest::testChooser() {
   pick_time = mjd_tdb;
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
@@ -257,7 +257,7 @@ void PulsarDbTest::testChooser() {
   pick_time = mjd_tdb;
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->epoch() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
@@ -547,7 +547,7 @@ void PulsarDbTest::testPulsarEph() {
   const double nano_sec = 1.e-9;
   ElapsedTime tolerance("TT", Duration(0, nano_sec));
 
-  if (!f_eph.epoch().equivalentTo(p_eph.epoch(), tolerance))
+  if (!f_eph.getEpoch().equivalentTo(p_eph.getEpoch(), tolerance))
     ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
 
   char * field[] = { "ra", "dec", "phi0", "f0", "f1" , "f2" };
@@ -802,7 +802,7 @@ void PulsarDbTest::testEphComputer() {
   MetRep glast_tdb("TDB", 54101, 0., 100.);
   AbsoluteTime expected_gtdb(glast_tdb);
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
-  PdotCanceler canceler(eph.epoch(), eph, 2);
+  PdotCanceler canceler(eph.getEpoch(), eph, 2);
   canceler.cancelPdot(expected_gtdb);
   glast_tdb = expected_gtdb;
   double expected_elapsed = glast_tdb.getValue();
@@ -818,10 +818,10 @@ void PulsarDbTest::testEphComputer() {
   glast_tdb.setValue(100.);
   AbsoluteTime gtdb(glast_tdb);
   std::vector<double> fdot_ratio(2, 0.);
-  double f0 = eph.calcFrequency(eph.epoch(), 0);
-  fdot_ratio[0] = eph.calcFrequency(eph.epoch(), 1) / f0;
-  fdot_ratio[1] = eph.calcFrequency(eph.epoch(), 2) / f0;
-  computer.setPdotCancelParameter(eph.getSystem().getName(), eph.epoch(), fdot_ratio);
+  double f0 = eph.calcFrequency(eph.getEpoch(), 0);
+  fdot_ratio[0] = eph.calcFrequency(eph.getEpoch(), 1) / f0;
+  fdot_ratio[1] = eph.calcFrequency(eph.getEpoch(), 2) / f0;
+  computer.setPdotCancelParameter(eph.getSystem().getName(), eph.getEpoch(), fdot_ratio);
   computer.cancelPdot(gtdb);
   glast_tdb = gtdb;
   if (expected_elapsed != glast_tdb.getValue())
@@ -832,7 +832,7 @@ void PulsarDbTest::testEphComputer() {
   // Test cancelPdot after setting pdot parameters in a different way, and compare result to previous result.
   glast_tdb.setValue(100.);
   gtdb = glast_tdb;
-  computer.setPdotCancelParameter(eph.epoch(), eph, 2);
+  computer.setPdotCancelParameter(eph.getEpoch(), eph, 2);
   computer.cancelPdot(gtdb);
   glast_tdb = gtdb;
   if (expected_elapsed != glast_tdb.getValue())
@@ -843,7 +843,7 @@ void PulsarDbTest::testEphComputer() {
   // Test cancelPdot after setting pdot parameters in yet another way, and compare result to previous result.
   glast_tdb.setValue(100.);
   gtdb = glast_tdb;
-  computer.setPdotCancelParameter(eph.epoch(), 2);
+  computer.setPdotCancelParameter(eph.getEpoch(), 2);
   computer.cancelPdot(gtdb);
   glast_tdb = gtdb;
   if (expected_elapsed != glast_tdb.getValue())

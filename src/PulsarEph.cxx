@@ -35,16 +35,16 @@ namespace pulsarDb {
     MjdRep mjd_rep(time_system_name, 0, 0.);
 
     // Note: below, break into two consecutive strings so that width applies to first part only.
-    if (!valid_since().equivalentTo(valid_until(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = valid_since();
+    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
+      mjd_rep = getValidSince();
       os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = valid_until();
+      mjd_rep = getValidUntil();
       os << mjd_rep << ")" << std::endl;
     } else {
-      mjd_rep = valid_since();
+      mjd_rep = getValidSince();
       os << "Validity : " << "only at time " << mjd_rep << std::endl;
     }
-    mjd_rep = epoch();
+    mjd_rep = getEpoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
     os.prefix().width(14); os << "RA = " << ra() << std::endl;
     os.prefix().width(14); os << "Dec = " << dec() << std::endl;
@@ -66,16 +66,16 @@ namespace pulsarDb {
     MjdRep mjd_rep(time_system_name, 0, 0.);
 
     // Note: below, break into two consecutive strings so that width applies to first part only.
-    if (!valid_since().equivalentTo(valid_until(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = valid_since();
+    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
+      mjd_rep = getValidSince();
       os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = valid_until();
+      mjd_rep = getValidUntil();
       os << mjd_rep << ")" << std::endl;
     } else {
-      mjd_rep = valid_since();
+      mjd_rep = getValidSince();
       os << "Validity : " << "only at time " << mjd_rep << std::endl;
     }
-    mjd_rep = epoch();
+    mjd_rep = getEpoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
     os.prefix().width(14); os << "RA = " << ra() << std::endl;
     os.prefix().width(14); os << "Dec = " << dec() << std::endl;
