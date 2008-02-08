@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Feb  8 14:17:28 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Rename valid_since, valid_until, and epoch methods to getValidSince, getValidUntil, and getEpoch for consistency in naming.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Feb  8 14:17:28 PST 2008
 pulsarDb/src
 
 Modified Files:
