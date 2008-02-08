@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Feb  8 14:17:28 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Rename valid_since, valid_until, and epoch methods to getValidSince, getValidUntil, and getEpoch for consistency in naming.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Feb  8 13:51:07 PST 2008
 pulsarDb/pulsarDb
 
