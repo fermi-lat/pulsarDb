@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Feb  8 15:51:40 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Split calcPulsePhase method into two methods: calcPulsePhase and calcCycleCount.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Feb  8 15:51:40 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
