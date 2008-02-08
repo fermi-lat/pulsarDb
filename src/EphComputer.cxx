@@ -65,11 +65,6 @@ namespace pulsarDb {
     return eph.calcPulsePhase(ev_time, phase_offset);
   }
 
-  double EphComputer::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
-    const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
-    return eph.calcFrequency(ev_time, derivative_order);
-  }
-
   std::pair<double, double> EphComputer::calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
     return eph.calcSkyPosition(ev_time);
