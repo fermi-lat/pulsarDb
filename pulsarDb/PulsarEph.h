@@ -32,10 +32,9 @@ namespace pulsarDb {
       virtual ~PulsarEph() {}
 
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
-      // TODO: Rename to getValidSinde, getValidUntil, getEpoch for consistency in naming.
-      virtual const timeSystem::AbsoluteTime & valid_since() const { return m_since; }
-      virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
-      virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
+      virtual const timeSystem::AbsoluteTime & getValidSince() const { return m_since; }
+      virtual const timeSystem::AbsoluteTime & getValidUntil() const { return m_until; }
+      virtual const timeSystem::AbsoluteTime & getEpoch() const { return m_epoch; }
 
       /** \brief Compute the spin phase of the given time.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.

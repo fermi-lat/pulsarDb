@@ -28,8 +28,8 @@ namespace pulsarDb {
     double diff = std::numeric_limits<double>::max();
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double diff_since = deltaTime(t, (*itor)->valid_since());
-      double diff_until = deltaTime(t, (*itor)->valid_until());
+      double diff_since = deltaTime(t, (*itor)->getValidSince());
+      double diff_until = deltaTime(t, (*itor)->getValidUntil());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
       // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
@@ -86,19 +86,19 @@ namespace pulsarDb {
 
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
       // See if this ephemeris contains the time.
-      if ((*itor)->valid_since() <= t && t < (*itor)->valid_until()) {
+      if ((*itor)->getValidSince() <= t && t < (*itor)->getValidUntil()) {
 
         // See if this is the first candidate, which is automatically accepted.
         if (ephemerides.end() == candidate) {
           candidate = itor;
-        } else if ((*itor)->valid_since().equivalentTo((*candidate)->valid_since(), m_tolerance)) {
+        } else if ((*itor)->getValidSince().equivalentTo((*candidate)->getValidSince(), m_tolerance)) {
           // The two start at the same time, so break the tie based on which one is valid longer.
           // Note that in a tie here, the one selected is the one appearing last in the sequence.
-          if ((*itor)->valid_until() > (*candidate)->valid_until() ||
-            (*itor)->valid_until().equivalentTo((*candidate)->valid_until(), m_tolerance))
+          if ((*itor)->getValidUntil() > (*candidate)->getValidUntil() ||
+            (*itor)->getValidUntil().equivalentTo((*candidate)->getValidUntil(), m_tolerance))
             candidate = itor;
         // Otherwise, prefer the eph which starts later.
-        } else if ((*itor)->valid_since() > (*candidate)->valid_since()) {
+        } else if ((*itor)->getValidSince() > (*candidate)->getValidSince()) {
           candidate = itor;
         }
       }
