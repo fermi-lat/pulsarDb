@@ -20,8 +20,7 @@
 namespace pulsarDb {
 
   /** \class PulsarEph
-      \brief Class representing a single pulsar ephemeris. Warning: f0, f1, f2 depend on the time system.
-      While AbsoluteTime objects are interchangeable, these other values are not!
+      \brief Base class representing a single pulsar ephemeris.
   */
   class PulsarEph {
     public:
@@ -32,11 +31,11 @@ namespace pulsarDb {
 
       virtual ~PulsarEph() {}
 
+      virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
+      // TODO: Rename to getValidSinde, getValidUntil, getEpoch for consistency in naming.
       virtual const timeSystem::AbsoluteTime & valid_since() const { return m_since; }
       virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
       virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
-      virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
-      virtual PulsarEph * clone() const = 0;
 
       /** \brief Compute the spin phase of the given time. Note: validity of the
                  ephemeris (valid since and valid until) are not checked.
@@ -59,17 +58,17 @@ namespace pulsarDb {
       */
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
-      void write(st_stream::OStream & os) const;
+      /** \brief Create a copy of this object.
+      */
+      virtual PulsarEph * clone() const = 0;
+
+      /** \brief Output text expression of this PulsarEph to a given output stream.
+      */
+      virtual void write(st_stream::OStream & os) const = 0;
 
     protected:
       virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
       virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
-      virtual double ra() const = 0;
-      virtual double dec() const = 0;
-      virtual double phi0() const = 0;
-      virtual double f0() const = 0;
-      virtual double f1() const = 0;
-      virtual double f2() const = 0;
 
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;
@@ -84,7 +83,8 @@ namespace pulsarDb {
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
 
   /** \class FrequencyEph
-      \brief Class representing a single pulsar ephemeris.
+      \brief Class representing a single pulsar ephemeris expressed with three frequency coefficients.
+             Note: f0, f1, f2 depend on the time system, while AbsoluteTime objects don't.
   */
   class FrequencyEph : public PulsarEph {
     public:
@@ -114,13 +114,16 @@ namespace pulsarDb {
       // TODO: Write a test code for this method.
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
-    protected:
-      virtual double ra() const { return m_ra; }
-      virtual double dec() const { return m_dec; }
-      virtual double phi0() const { return m_phi0; }
-      virtual double f0() const { return m_f0; }
-      virtual double f1() const { return m_f1; }
-      virtual double f2() const { return m_f2; }
+      virtual void write(st_stream::OStream & os) const;
+
+    private:
+      // TODO: Remove these methods.
+      double ra() const { return m_ra; }
+      double dec() const { return m_dec; }
+      double phi0() const { return m_phi0; }
+      double f0() const { return m_f0; }
+      double f1() const { return m_f1; }
+      double f2() const { return m_f2; }
 
     private:
       double m_ra;
@@ -132,7 +135,8 @@ namespace pulsarDb {
   };
 
   /** \class PeriodEph
-      \brief Class representing a single pulsar ephemeris.
+      \brief Class representing a single pulsar ephemeris expressed with three period coefficients.
+             Note: p0, p1, p2 depend on the time system, while AbsoluteTime objects don't.
   */
   class PeriodEph : public PulsarEph {
     public:
@@ -162,13 +166,16 @@ namespace pulsarDb {
       // TODO: Write a test code for this method.
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
-    protected:
-      virtual double ra() const { return m_ra; }
-      virtual double dec() const { return m_dec; }
-      virtual double phi0() const { return m_phi0; }
-      virtual double f0() const { return 1. / m_p0; }
-      virtual double f1() const { return - m_p1 / (m_p0 * m_p0); }
-      virtual double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
+      virtual void write(st_stream::OStream & os) const;
+
+    private:
+      // TODO: Remove these methods?
+      double ra() const { return m_ra; }
+      double dec() const { return m_dec; }
+      double phi0() const { return m_phi0; }
+      double f0() const { return 1. / m_p0; }
+      double f1() const { return - m_p1 / (m_p0 * m_p0); }
+      double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
 
     private:
       double m_ra;
