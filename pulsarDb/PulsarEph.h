@@ -41,11 +41,12 @@ namespace pulsarDb {
           \param ev_time Time of the event.
           \param phase_offset Phase value to be added to the computed pulse phase.
       */
-      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
+      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
       /** \brief Compute the pulse frequency at a given time in the time system given to this object
                  upon its construction. Call getSytem method to obtain the time system to interpret
-                 the return value of this method.
+                 the return value of this method. The unit of frequency and its derivatives must be
+                 based on seconds, i.e., Hz (sE-1), Hz/s (sE-2), and so on.
                  Note: validity of the ephemeris (valid since and valid until) are not checked. 
           \param ev_time Time of the event.
           \param derivative_order Order of time derivative of frequency to compute. Set 0 (zero) to obtain
@@ -68,8 +69,16 @@ namespace pulsarDb {
       virtual void write(st_stream::OStream & os) const = 0;
 
     protected:
+      // TODO: Rename dt method to calcElapsedSecond? Or computeElapsedSecond like in PulsarToolApp?
       virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
       virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
+
+      /** \brief Compute the number of revolutions that the pulsar will make between the ephemeris epoch and the given time,
+                 including a fractional part of it.
+                 Note: The fractional part of this will be used as a pulse phase computed by calcPulsePhase method.
+          \param ev_time Time of the event.
+      */
+      virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;
@@ -106,13 +115,14 @@ namespace pulsarDb {
 
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
 
-      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
-
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       virtual void write(st_stream::OStream & os) const;
+
+    protected:
+      virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
 
     private:
       // TODO: Remove these methods.
@@ -156,13 +166,14 @@ namespace pulsarDb {
 
       virtual PulsarEph * clone() const { return new PeriodEph(*this); }
 
-      virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
-
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       virtual void write(st_stream::OStream & os) const;
+
+    protected:
+      virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
 
     private:
       // TODO: Remove these methods?
