@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Feb  8 13:20:49 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Enrich comments for Doxygen.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Feb  8 13:20:18 PST 2008
 pulsarDb/src
 
