@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Feb  7 16:23:37 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Remove the following methods from the base class (PulsarEph): ra, dec, phi0, f0, f1, f2. Make the methods non-virtual in the derived classes. Move write method from the base class to the derived.
+
+    *
+------------------------------------------------------------
 User: hirayama  Thu Feb  7 15:28:42 PST 2008
 pulsarDb/src/test
 
