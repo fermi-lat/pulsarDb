@@ -37,23 +37,25 @@ namespace pulsarDb {
       virtual const timeSystem::AbsoluteTime & valid_until() const { return m_until; }
       virtual const timeSystem::AbsoluteTime & epoch() const { return m_epoch; }
 
-      /** \brief Compute the spin phase of the given time. Note: validity of the
-                 ephemeris (valid since and valid until) are not checked.
+      /** \brief Compute the spin phase of the given time.
+                 Note: validity of the ephemeris (valid since and valid until) are not checked.
           \param ev_time Time of the event.
           \param phase_offset Phase value to be added to the computed pulse phase.
       */
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
 
-      /** \brief Compute the pulse frequency at a given time. Note: validity of the
-                 ephemeris (valid since and valid until) are not checked.
+      /** \brief Compute the pulse frequency at a given time in the time system given to this object
+                 upon its construction. Call getSytem method to obtain the time system to interpret
+                 the return value of this method.
+                 Note: validity of the ephemeris (valid since and valid until) are not checked. 
           \param ev_time Time of the event.
           \param derivative_order Order of time derivative of frequency to compute. Set 0 (zero) to obtain
                  frequency, 1 (one) the first time derivative of frequency, and so on.
       */
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const = 0;
 
-      /** \brief Compute the Right Ascension and Declination at a given time. Note: validity of the
-                 ephemeris (valid since and valid until) are not checked.
+      /** \brief Compute the Right Ascension and Declination at a given time.
+                 Note: validity of the ephemeris (valid since and valid until) are not checked.
           \param ev_time Time of the event.
       */
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const = 0;
@@ -79,7 +81,6 @@ namespace pulsarDb {
       timeSystem::Duration m_unit_time;
   };
 
-  // TODO: Remove this method.
   st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
 
   /** \class FrequencyEph
