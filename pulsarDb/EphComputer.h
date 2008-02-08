@@ -48,7 +48,6 @@ namespace pulsarDb {
 
       double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
-      // TODO: Write a test code for this method.
       std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
