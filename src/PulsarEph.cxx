@@ -32,43 +32,39 @@ namespace pulsarDb {
     return phase;
   }
 
-  st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) {
-    eph.write(os);
+  st_stream::OStream & FrequencyEph::write(st_stream::OStream & os) const {
+    std::ios::fmtflags orig_flags = os.flags();
+    int orig_prec = os.precision(15);
+    os << std::right;
+    os.prefix().width(14);
+    std::string time_system_name = getSystem().getName();
+    MjdRep mjd_rep(time_system_name, 0, 0.);
+
+    // Note: below, break into two consecutive strings so that width applies to first part only.
+    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
+      mjd_rep = getValidSince();
+      os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
+      mjd_rep = getValidUntil();
+      os << mjd_rep << ")" << std::endl;
+    } else {
+      mjd_rep = getValidSince();
+      os << "Validity : " << "only at time " << mjd_rep << std::endl;
+    }
+    mjd_rep = getEpoch();
+    os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
+    os.prefix().width(14); os << "RA = " << ra() << std::endl;
+    os.prefix().width(14); os << "Dec = " << dec() << std::endl;
+    os.prefix().width(14); os << "Phi0 = " << phi0() << std::endl;
+    os.prefix().width(14); os << "F0 = " << f0() << std::endl;
+    os.prefix().width(14); os << "F1 = " << f1() << std::endl;
+    os.prefix().width(14); os << "F2 = " << f2();
+    os.flags(orig_flags);
+    os.precision(orig_prec);
     return os;
   }
 
-  void FrequencyEph::write(st_stream::OStream & os) const {
-    std::ios::fmtflags orig_flags = os.flags();
-    int orig_prec = os.precision(15);
-    os << std::right;
-    os.prefix().width(14);
-    std::string time_system_name = getSystem().getName();
-    MjdRep mjd_rep(time_system_name, 0, 0.);
-
-    // Note: below, break into two consecutive strings so that width applies to first part only.
-    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = getValidUntil();
-      os << mjd_rep << ")" << std::endl;
-    } else {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "only at time " << mjd_rep << std::endl;
-    }
-    mjd_rep = getEpoch();
-    os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
-    os.prefix().width(14); os << "RA = " << ra() << std::endl;
-    os.prefix().width(14); os << "Dec = " << dec() << std::endl;
-    os.prefix().width(14); os << "Phi0 = " << phi0() << std::endl;
-    os.prefix().width(14); os << "F0 = " << f0() << std::endl;
-    os.prefix().width(14); os << "F1 = " << f1() << std::endl;
-    os.prefix().width(14); os << "F2 = " << f2();
-    os.flags(orig_flags);
-    os.precision(orig_prec);
-  }
-
   // TODO: Make this method PeriodEph-specific, e.g., printing p0 instead of f0.
-  void PeriodEph::write(st_stream::OStream & os) const {
+  st_stream::OStream & PeriodEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
     os << std::right;
@@ -96,6 +92,7 @@ namespace pulsarDb {
     os.prefix().width(14); os << "F2 = " << f2();
     os.flags(orig_flags);
     os.precision(orig_prec);
+    return os;
   }
 
   double FrequencyEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
