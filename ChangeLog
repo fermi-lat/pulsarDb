@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 15:39:06 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx 
+Log Message:
+Include std::fabs in measureTimeSeparation method.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 15:38:34 PST 2008
 pulsarDb/pulsarDb
 
