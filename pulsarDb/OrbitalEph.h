@@ -58,12 +58,10 @@ namespace pulsarDb {
       static const double s_rad_year_per_deg_sec;
       static const double s_sec_per_microsec;
 
-      // TODO: Remove unit_time_sec?
       SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot,
-        double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s,
-        double unit_time_sec = 1.);
+        double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);
 
-      SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR], double unit_time_sec = 1.);
+      SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR]);
 
       virtual ~SimpleDdEph();
 
@@ -78,16 +76,11 @@ namespace pulsarDb {
       virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     private:
-      // TODO: Move dt method to the base class.
-      // TODO: Rename dt method to calcElapsedSecond? Or computeElapsedSecond like in PulsarToolApp?
-      virtual double dt(const timeSystem::AbsoluteTime & at) const;
+      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const;
 
-      // TODO: Move time system to the base class.
       const timeSystem::TimeSystem * m_system;
       std::vector<double> m_par;
       timeSystem::AbsoluteTime m_t0;
-      // TODO: Move m_unit_time to the base class.
-      double m_unit_time;
   };
 }
 
