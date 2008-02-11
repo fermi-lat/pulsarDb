@@ -55,12 +55,12 @@ namespace pulsarDb {
     }
     mjd_rep = getEpoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
-    os.prefix().width(14); os << "RA = " << ra() << std::endl;
-    os.prefix().width(14); os << "Dec = " << dec() << std::endl;
-    os.prefix().width(14); os << "Phi0 = " << phi0() << std::endl;
-    os.prefix().width(14); os << "F0 = " << f0() << std::endl;
-    os.prefix().width(14); os << "F1 = " << f1() << std::endl;
-    os.prefix().width(14); os << "F2 = " << f2();
+    os.prefix().width(14); os << "RA = " << m_ra << std::endl;
+    os.prefix().width(14); os << "Dec = " << m_dec << std::endl;
+    os.prefix().width(14); os << "Phi0 = " << m_phi0 << std::endl;
+    os.prefix().width(14); os << "F0 = " << m_f0 << std::endl;
+    os.prefix().width(14); os << "F1 = " << m_f1 << std::endl;
+    os.prefix().width(14); os << "F2 = " << m_f2;
     os.flags(orig_flags);
     os.precision(orig_prec);
     return os;
@@ -101,9 +101,7 @@ namespace pulsarDb {
   double FrequencyEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
     double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
-    double cycle_count = phi0() + f0() * dt + f1()/2.0 * dt_squared + f2()/6.0 * dt * dt_squared;
-    // TODO: Replace above with below.
-    //double cycle_count = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
+    double cycle_count = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
     return cycle_count;
   }
 
