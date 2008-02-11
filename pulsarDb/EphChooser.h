@@ -54,6 +54,11 @@ namespace pulsarDb {
       const OrbitalEph & findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
 
     protected:
+      /** \brief Compute a time separation between two absolute times, to be used to compare more than one ephemerides
+                 to find a best candidate. Return value of this method is non-negative.
+          \param at1 One absolute time.
+          \param at2 The other absolute time.
+      */
       double measureTimeSeparation(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
   };
 
