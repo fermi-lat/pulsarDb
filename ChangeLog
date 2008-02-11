@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 13:25:25 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Change the signature of write method to match OrbitalEph.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Feb  8 15:51:40 PST 2008
 pulsarDb/src
 
