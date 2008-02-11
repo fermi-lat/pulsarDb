@@ -54,7 +54,7 @@ namespace pulsarDb {
       const OrbitalEph & findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
 
     protected:
-      double deltaTime(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
+      double measureTimeSeparation(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
   };
 
   /** \class StrictEphChooser

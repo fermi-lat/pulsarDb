@@ -28,8 +28,8 @@ namespace pulsarDb {
     double diff = std::numeric_limits<double>::max();
     
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double diff_since = deltaTime(t, (*itor)->getValidSince());
-      double diff_until = deltaTime(t, (*itor)->getValidUntil());
+      double diff_since = measureTimeSeparation(t, (*itor)->getValidSince());
+      double diff_until = measureTimeSeparation(t, (*itor)->getValidUntil());
       double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
       // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
@@ -57,7 +57,7 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double time_diff = std::fabs(deltaTime(t, (*itor)->t0()));
+      double time_diff = std::fabs(measureTimeSeparation(t, (*itor)->t0()));
       if (time_diff <= min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
@@ -74,7 +74,7 @@ namespace pulsarDb {
     return *(*candidate);
   }
 
-  double EphChooser::deltaTime(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
+  double EphChooser::measureTimeSeparation(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     // Use TDB because: 1) we must choose *some* system, and 2) TDB is "steadier" than TT, TAI or UTC.
     return (at1 - at2).computeElapsedTime("TDB").getTime() / Duration(1, 0.);
   }
