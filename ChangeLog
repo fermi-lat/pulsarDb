@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 13:46:10 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Move all data members of PulsarEph class to derived classes. Remove unnecessary copy constructors of derived classes.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 13:25:25 PST 2008
 pulsarDb/src
 
