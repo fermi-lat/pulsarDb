@@ -28,13 +28,11 @@ namespace pulsarDb {
   }
 
   double FrequencyEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
-    Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
-    return numerator / m_unit_time;
+    return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
   double PeriodEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
-    Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
-    return numerator / m_unit_time;
+    return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
   st_stream::OStream & FrequencyEph::write(st_stream::OStream & os) const {

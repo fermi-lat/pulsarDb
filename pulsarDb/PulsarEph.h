@@ -91,8 +91,7 @@ namespace pulsarDb {
       FrequencyEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
         double phi0, double f0, double f1, double f2): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
-        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_unit_time(0, 1.), m_ra(ra), m_dec(dec), m_phi0(phi0),
-        m_f0(f0), m_f1(f1), m_f2(f2) {}
+        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_phi0(phi0), m_f0(f0), m_f1(f1), m_f2(f2) {}
 
       virtual ~FrequencyEph() {}
 
@@ -132,9 +131,6 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_since;
       timeSystem::AbsoluteTime m_until;
       timeSystem::AbsoluteTime m_epoch;
-      // TODO: Remove the unit time, or else move it into subclasses, depending on how the design shakes out.
-      // For now it is harmless but unneccessary.
-      timeSystem::Duration m_unit_time;
       double m_ra;
       double m_dec;
       double m_phi0;
@@ -158,8 +154,7 @@ namespace pulsarDb {
       PeriodEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
         double phi0, double p0, double p1, double p2): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
-        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_unit_time(0, 1.), m_ra(ra), m_dec(dec), m_phi0(phi0),
-        m_p0(p0), m_p1(p1), m_p2(p2) {}
+        m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       virtual ~PeriodEph() {}
 
@@ -199,9 +194,6 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_since;
       timeSystem::AbsoluteTime m_until;
       timeSystem::AbsoluteTime m_epoch;
-      // TODO: Remove the unit time, or else move it into subclasses, depending on how the design shakes out.
-      // For now it is harmless but unneccessary.
-      timeSystem::Duration m_unit_time;
       double m_ra;
       double m_dec;
       double m_phi0;
