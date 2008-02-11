@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 14:14:09 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Rename SimpleDd::dt method to calcElapsedSecond. Remove unit_time_sec argument from the constructors of SimpleDd class. Remove m_unit_time from SimpleDd class.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 13:54:21 PST 2008
 pulsarDb/src
 
