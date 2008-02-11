@@ -99,10 +99,10 @@ namespace pulsarDb {
   const double SimpleDdEph::s_rad_year_per_deg_sec = SimpleDdEph::s_rad_per_deg / SimpleDdEph::s_sec_per_year;
   const double SimpleDdEph::s_sec_per_microsec = 1.e-6;
 
-  SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR], double unit_time_sec):
+  SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR]):
     OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
     m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(parameters, parameters + NUMBER_ORBITAL_PAR),
-    m_t0(time_system_name, Duration(IntFracPair(parameters[T0]), Day), Duration(0, 0.)), m_unit_time(unit_time_sec) {
+    m_t0(time_system_name, Duration(IntFracPair(parameters[T0]), Day), Duration(0, 0.)) {
     m_par[OM] *= s_rad_per_deg;
     m_par[OMDOT] *= s_rad_year_per_deg_sec;
     m_par[SHAPIRO_R] *= s_sec_per_microsec;
@@ -110,10 +110,9 @@ namespace pulsarDb {
 
   SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot,
     double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
-    double shapiro_r, double shapiro_s, double unit_time_sec):
+    double shapiro_r, double shapiro_s):
     OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
-    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0),
-    m_unit_time(unit_time_sec) {
+    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0) {
     m_par[PB] = pb;
     m_par[PBDOT] = pb_dot;
     m_par[A1] = a1;
@@ -137,9 +136,8 @@ namespace pulsarDb {
 
   SimpleDdEph::~SimpleDdEph() {}
 
-  double SimpleDdEph::dt(const timeSystem::AbsoluteTime & at) const {
-    IntFracPair numerator = (at - m_t0).computeElapsedTime(m_system->getName()).getTime().getValue(Sec);
-    return numerator.getDouble() / m_unit_time;
+  double SimpleDdEph::calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
+    return (at - m_t0).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
   st_stream::OStream & SimpleDdEph::write(st_stream::OStream & os) const {
@@ -167,7 +165,7 @@ namespace pulsarDb {
 
   double SimpleDdEph::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
     // compute elapsed time from epoch of periastron in seconds
-    double delta_second = dt(ev_time);
+    double delta_second = calcElapsedSecond(ev_time);
 
     // Compute the time difference as a fraction of the period.
     double delta_period = delta_second / m_par[PB];
@@ -184,7 +182,7 @@ namespace pulsarDb {
 
   timeSystem::ElapsedTime SimpleDdEph::calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const {
     // compute elapsed time from epoch of periastron in seconds
-    double delta_second = dt(ev_time);
+    double delta_second = calcElapsedSecond(ev_time);
 
     // calculate mean anomaly
     double delta_period = delta_second / m_par[PB];
