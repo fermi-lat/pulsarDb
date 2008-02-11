@@ -16,11 +16,6 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  double PulsarEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
-    Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
-    return numerator / m_unit_time;
-  }
-
   double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
     // Compute the cycle count (which includes the iteger part of pulse phase).
     double cycle_count = calcCycleCount(ev_time);
@@ -30,6 +25,16 @@ namespace pulsarDb {
     double phase = std::modf(phase_offset + cycle_count, &int_part);
     if (phase < 0.) ++phase;
     return phase;
+  }
+
+  double FrequencyEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
+    Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
+    return numerator / m_unit_time;
+  }
+
+  double PeriodEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
+    Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
+    return numerator / m_unit_time;
   }
 
   st_stream::OStream & FrequencyEph::write(st_stream::OStream & os) const {
