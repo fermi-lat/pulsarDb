@@ -27,12 +27,12 @@ namespace pulsarDb {
     return phase;
   }
 
-  double FrequencyEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
+  double FrequencyEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
     return numerator / m_unit_time;
   }
 
-  double PeriodEph::dt(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
+  double PeriodEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     Duration numerator = (at1 - at2).computeElapsedTime(m_system->getName()).getTime();
     return numerator / m_unit_time;
   }
@@ -101,28 +101,28 @@ namespace pulsarDb {
   }
 
   double FrequencyEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
-    double dt = this->dt(ev_time);
+    double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
-    double cycle_count = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
+    double cycle_count = phi0() + f0() * dt + f1()/2.0 * dt_squared + f2()/6.0 * dt * dt_squared;
     // TODO: Replace above with below.
     //double cycle_count = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
     return cycle_count;
   }
 
   double PeriodEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
-    double dt = this->dt(ev_time);
+    double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
-    double cycle_count = this->phi0() + this->f0() * dt + this->f1()/2.0 * dt_squared + this->f2()/6.0 * dt * dt_squared;
+    double cycle_count = phi0() + f0() * dt + f1()/2.0 * dt_squared + f2()/6.0 * dt * dt_squared;
     return cycle_count;
   }
 
   double FrequencyEph::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
     double return_value = 0.;
     if (0 == derivative_order) {
-      double dt = this->dt(ev_time);
+      double dt = calcElapsedSecond(ev_time);
       return_value = m_f0 + m_f1 * dt + 0.5 * m_f2 * dt * dt;
     } else if (1 == derivative_order) {
-      double dt = this->dt(ev_time);
+      double dt = calcElapsedSecond(ev_time);
       return_value = m_f1 + m_f2 * dt;
     } else if (2 == derivative_order) {
       return_value = m_f2;
@@ -137,10 +137,10 @@ namespace pulsarDb {
 
     // TODO: Use actual form of frequency derivatives expressed with p0, p1, and p2.
     if (0 == derivative_order) {
-      double dt = this->dt(ev_time);
+      double dt = calcElapsedSecond(ev_time);
       return_value = f0() + f1() * dt + 0.5 * f2() * dt * dt;
     } else if (1 == derivative_order) {
-      double dt = this->dt(ev_time);
+      double dt = calcElapsedSecond(ev_time);
       return_value = f1() + f2() * dt;
     } else if (2 == derivative_order) {
       return_value = f2();

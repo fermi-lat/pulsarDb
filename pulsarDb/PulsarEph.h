@@ -125,9 +125,8 @@ namespace pulsarDb {
       double f2() const { return m_f2; }
 
     private:
-      // TODO: Rename dt method to calcElapsedSecond? Or computeElapsedSecond like in PulsarToolApp?
-      virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
-      virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
+      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
+      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const { return calcElapsedSecond(at, m_epoch); }
 
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;
@@ -193,9 +192,8 @@ namespace pulsarDb {
       double f2() const { double p0sq = m_p0 * m_p0; return 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq; }
 
     private:
-      // TODO: Rename dt method to calcElapsedSecond? Or computeElapsedSecond like in PulsarToolApp?
-      virtual double dt(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
-      virtual double dt(const timeSystem::AbsoluteTime & at) const { return dt(at, m_epoch); }
+      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
+      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const { return calcElapsedSecond(at, m_epoch); }
 
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;
