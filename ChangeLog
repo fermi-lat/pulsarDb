@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 13:54:21 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Rename dt method to calcElapsedSecond. Remove unnecessary 'this->' in the code.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 13:53:08 PST 2008
 pulsarDb/src
 
