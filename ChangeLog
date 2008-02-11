@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 14:35:25 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Remove m_unit_time from FrequencyEph and PeriodEph classes.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 14:14:21 PST 2008
 pulsarDb/src
 
