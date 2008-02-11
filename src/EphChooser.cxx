@@ -20,8 +20,6 @@ namespace pulsarDb {
 
   const PulsarEph & EphChooser::findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
     if (ephemerides.empty()) throw std::runtime_error("EphChooser::findClosest was passed empty container of ephemerides");
-    using std::fabs;
-
     PulsarEphCont::const_iterator candidate = ephemerides.begin();
 
     // Seed the current difference with a value which will be larger than any other.
@@ -30,7 +28,7 @@ namespace pulsarDb {
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
       double diff_since = measureTimeSeparation(t, (*itor)->getValidSince());
       double diff_until = measureTimeSeparation(t, (*itor)->getValidUntil());
-      double new_diff = std::min(std::fabs(diff_since), std::fabs(diff_until));
+      double new_diff = std::min(diff_since, diff_until);
       // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
         candidate = itor;
@@ -57,7 +55,7 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double time_diff = std::fabs(measureTimeSeparation(t, (*itor)->t0()));
+      double time_diff = measureTimeSeparation(t, (*itor)->t0());
       if (time_diff <= min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
@@ -76,7 +74,7 @@ namespace pulsarDb {
 
   double EphChooser::measureTimeSeparation(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     // Use TDB because: 1) we must choose *some* system, and 2) TDB is "steadier" than TT, TAI or UTC.
-    return (at1 - at2).computeElapsedTime("TDB").getTime() / Duration(1, 0.);
+    return std::fabs((at1 - at2).computeElapsedTime("TDB").getTime().getValue(Day).getDouble());
   }
 
   StrictEphChooser::StrictEphChooser(const timeSystem::ElapsedTime & tolerance): m_tolerance(tolerance) {}
@@ -128,8 +126,6 @@ namespace pulsarDb {
 
   const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
     if (ephemerides.empty()) throw std::runtime_error("SloppyEphChooser::choose was passed empty container of ephemerides");
-    using std::fabs;
-
     // First try to get a strictly correct choice.
     try {
       return m_strict_chooser.choose(ephemerides, t);
