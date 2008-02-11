@@ -66,7 +66,7 @@ namespace pulsarDb {
 
       /** \brief Output text expression of this PulsarEph to a given output stream.
       */
-      virtual void write(st_stream::OStream & os) const = 0;
+      virtual st_stream::OStream & write(st_stream::OStream & os) const = 0;
 
     protected:
       // TODO: Rename dt method to calcElapsedSecond? Or computeElapsedSecond like in PulsarToolApp?
@@ -89,7 +89,7 @@ namespace pulsarDb {
       timeSystem::Duration m_unit_time;
   };
 
-  st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph);
+  inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) { return eph.write(os); }
 
   /** \class FrequencyEph
       \brief Class representing a single pulsar ephemeris expressed with three frequency coefficients.
@@ -119,7 +119,7 @@ namespace pulsarDb {
 
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
-      virtual void write(st_stream::OStream & os) const;
+      virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     protected:
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
@@ -170,7 +170,7 @@ namespace pulsarDb {
 
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
-      virtual void write(st_stream::OStream & os) const;
+      virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     protected:
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
