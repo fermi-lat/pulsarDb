@@ -115,15 +115,6 @@ namespace pulsarDb {
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
 
     private:
-      // TODO: Remove these methods.
-      double ra() const { return m_ra; }
-      double dec() const { return m_dec; }
-      double phi0() const { return m_phi0; }
-      double f0() const { return m_f0; }
-      double f1() const { return m_f1; }
-      double f2() const { return m_f2; }
-
-    private:
       virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
       virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const { return calcElapsedSecond(at, m_epoch); }
 
