@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 13:53:08 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphChooser.h 
+Log Message:
+Rename deltaTime method to measureTimeSeparation.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 13:46:10 PST 2008
 pulsarDb/src
 
