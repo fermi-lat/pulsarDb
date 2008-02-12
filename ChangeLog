@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Feb 11 16:17:02 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Remove ra, dec, phi0, f0, f1, and f2 methods from PeriodEph. Change PeriodEph::write method to output p0, p1, and p2 instead of f0, f1, and f2.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 15:39:06 PST 2008
 pulsarDb/src
 
