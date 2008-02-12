@@ -35,6 +35,7 @@ namespace pulsarDb {
     return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
+  // TODO: Unify/generalize this method with PeriodEph::write method.
   st_stream::OStream & FrequencyEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
@@ -66,7 +67,7 @@ namespace pulsarDb {
     return os;
   }
 
-  // TODO: Make this method PeriodEph-specific, e.g., printing p0 instead of f0.
+  // TODO: Unify/generalize this method with FrequencyEph::write method.
   st_stream::OStream & PeriodEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
@@ -87,12 +88,12 @@ namespace pulsarDb {
     }
     mjd_rep = getEpoch();
     os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
-    os.prefix().width(14); os << "RA = " << ra() << std::endl;
-    os.prefix().width(14); os << "Dec = " << dec() << std::endl;
-    os.prefix().width(14); os << "Phi0 = " << phi0() << std::endl;
-    os.prefix().width(14); os << "F0 = " << f0() << std::endl;
-    os.prefix().width(14); os << "F1 = " << f1() << std::endl;
-    os.prefix().width(14); os << "F2 = " << f2();
+    os.prefix().width(14); os << "RA = " << m_ra << std::endl;
+    os.prefix().width(14); os << "Dec = " << m_dec << std::endl;
+    os.prefix().width(14); os << "Phi0 = " << m_phi0 << std::endl;
+    os.prefix().width(14); os << "P0 = " << m_p0 << std::endl;
+    os.prefix().width(14); os << "P1 = " << m_p1 << std::endl;
+    os.prefix().width(14); os << "P2 = " << m_p2;
     os.flags(orig_flags);
     os.precision(orig_prec);
     return os;
@@ -106,9 +107,15 @@ namespace pulsarDb {
   }
 
   double PeriodEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
+    // TODO: Compute pulse phase directly from p0, p1, and p2, using indefinite integral of ax^2+bx+c.
+    double f0 = 1. / m_p0;
+    double f1 = - m_p1 / (m_p0 * m_p0);
+    double p0sq = m_p0 * m_p0;
+    double f2 = 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq;
+
     double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
-    double cycle_count = phi0() + f0() * dt + f1()/2.0 * dt_squared + f2()/6.0 * dt * dt_squared;
+    double cycle_count = m_phi0 + f0 * dt + f1/2.0 * dt_squared + f2/6.0 * dt * dt_squared;
     return cycle_count;
   }
 
@@ -131,15 +138,19 @@ namespace pulsarDb {
   double PeriodEph::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
     double return_value = 0.;
 
-    // TODO: Use actual form of frequency derivatives expressed with p0, p1, and p2.
+    // TODO: Compute frequency (or its derivative) directly from p0, p1, and p2, using generic formula (Bell's polynomial?).
+    double f0 = 1. / m_p0;
+    double f1 = - m_p1 / (m_p0 * m_p0);
+    double p0sq = m_p0 * m_p0;
+    double f2 = 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq;
     if (0 == derivative_order) {
       double dt = calcElapsedSecond(ev_time);
-      return_value = f0() + f1() * dt + 0.5 * f2() * dt * dt;
+      return_value = f0 + f1 * dt + 0.5 * f2 * dt * dt;
     } else if (1 == derivative_order) {
       double dt = calcElapsedSecond(ev_time);
-      return_value = f1() + f2() * dt;
+      return_value = f1 + f2 * dt;
     } else if (2 == derivative_order) {
-      return_value = f2();
+      return_value = f2;
     } else {
       return_value = 0.;
     }
