@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Feb 13 14:42:44 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Use new constructor of OrbitalEph that takes tip::ConstRecord to create a SimpleDd object. Move IsNotANumber function to OrbitalEph.h.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Feb 13 14:41:33 PST 2008
 pulsarDb/src
 
