@@ -52,6 +52,15 @@ int atKepler(
     return NOT_CONVERGED;
 }
 
+  // TODO: Need this?
+  inline bool IsNotANumber(double x) {
+#ifdef WIN32
+    return 0 != _isnan(x);
+#else
+    return 0 != std::isnan(x);
+#endif
+  }
+
 }
 
 namespace pulsarDb {
@@ -91,6 +100,9 @@ namespace pulsarDb {
 
   }
 
+  // TODO: Hide this in SimpleDdEph class.
+  enum BinaryIndex { PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S, NUMBER_ORBITAL_PAR };
+
   const double SimpleDdEph::s_one_pi = M_PI;
   const double SimpleDdEph::s_two_pi = 2. * SimpleDdEph::s_one_pi;
   const double SimpleDdEph::s_rad_per_deg  = SimpleDdEph::s_one_pi / 180.;
@@ -98,15 +110,6 @@ namespace pulsarDb {
   const double SimpleDdEph::s_sec_per_year = 365. * SimpleDdEph::s_sec_per_day;
   const double SimpleDdEph::s_rad_year_per_deg_sec = SimpleDdEph::s_rad_per_deg / SimpleDdEph::s_sec_per_year;
   const double SimpleDdEph::s_sec_per_microsec = 1.e-6;
-
-  SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR]):
-    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
-    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(parameters, parameters + NUMBER_ORBITAL_PAR),
-    m_t0(time_system_name, Duration(IntFracPair(parameters[T0]), Day), Duration(0, 0.)) {
-    m_par[OM] *= s_rad_per_deg;
-    m_par[OMDOT] *= s_rad_year_per_deg_sec;
-    m_par[SHAPIRO_R] *= s_sec_per_microsec;
-  }
 
   SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot,
     double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
@@ -134,12 +137,61 @@ namespace pulsarDb {
     m_par[SHAPIRO_R] *= s_sec_per_microsec;
   }
 
+  SimpleDdEph::SimpleDdEph(const std::string & time_system_name, const tip::Table::ConstRecord & record):
+    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
+    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(NUMBER_ORBITAL_PAR, 0.),
+    m_t0(time_system_name, Duration(0, 0.), Duration(0, 0.)) {
+    m_par[PB] = get(record["PB"]);
+    m_par[PBDOT] = get(record["PBDOT"]);
+    m_par[A1] = get(record["A1"]);
+    m_par[XDOT] = get(record["XDOT"]);
+    m_par[ECC] = get(record["ECC"]);
+    m_par[ECCDOT] = get(record["ECCDOT"]);
+    m_par[OM] = get(record["OM"]);
+    m_par[OMDOT] = get(record["OMDOT"]);
+    m_par[T0] = get(record["T0"]);
+    m_par[GAMMA] = get(record["GAMMA"]);
+    m_par[SHAPIRO_R] = get(record["SHAPIRO_R"]);
+    m_par[SHAPIRO_S] = get(record["SHAPIRO_S"]);
+
+    // Handle any INDEFs.
+    for (size_t index = 0; index != sizeof(m_par) / sizeof(double); ++index) {
+      if (0 != IsNotANumber(m_par[index])) {
+        switch (index) {
+        case PB:
+        case A1:
+        case ECC:
+        case OM:
+        case T0:
+          throw std::runtime_error("PulsarDb::getEph(): invalid orbital ephemeris");
+          break;
+        case PBDOT:
+        case XDOT:
+        case ECCDOT:
+        case OMDOT:
+        case GAMMA:
+        case SHAPIRO_R:
+        case SHAPIRO_S:
+        default:
+          m_par[index] = 0.;
+          break;
+        }
+      }
+    }
+
+    m_t0 = timeSystem::AbsoluteTime(time_system_name, Duration(IntFracPair(m_par[T0]), Day), Duration(0, 0.));
+    m_par[OM] *= s_rad_per_deg;
+    m_par[OMDOT] *= s_rad_year_per_deg_sec;
+    m_par[SHAPIRO_R] *= s_sec_per_microsec;
+  }
+
   SimpleDdEph::~SimpleDdEph() {}
 
   double SimpleDdEph::calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
     return (at - m_t0).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
+  // TODO: Can this part be unified to PulsarEph::write?
   st_stream::OStream & SimpleDdEph::write(st_stream::OStream & os) const {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
