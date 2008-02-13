@@ -27,6 +27,37 @@ namespace pulsarDb {
     return phase;
   }
 
+  st_stream::OStream & PulsarEph::write(st_stream::OStream & os) const {
+    std::ios::fmtflags orig_flags = os.flags();
+    int orig_prec = os.precision(15);
+    os << std::right;
+    os.prefix().width(14);
+    std::string time_system_name = getSystem().getName();
+    MjdRep mjd_rep(time_system_name, 0, 0.);
+
+    // Note: below, break into two consecutive strings so that width applies to first part only.
+    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
+      mjd_rep = getValidSince();
+      os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
+      mjd_rep = getValidUntil();
+      os << mjd_rep << ")" << std::endl;
+    } else {
+      mjd_rep = getValidSince();
+      os << "Validity : " << "only at time " << mjd_rep << std::endl;
+    }
+    mjd_rep = getEpoch();
+    writeOneParameter(os, "Epoch", mjd_rep);
+    os << std::endl;
+
+    // Write subclass-specific parameters (delegated to subclass).
+    writeModelParameter(os);
+
+    // Restore the saved settings.
+    os.flags(orig_flags);
+    os.precision(orig_prec);
+    return os;
+  }
+
   double FrequencyEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
@@ -35,68 +66,22 @@ namespace pulsarDb {
     return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
-  // TODO: Unify/generalize this method with PeriodEph::write method.
-  st_stream::OStream & FrequencyEph::write(st_stream::OStream & os) const {
-    std::ios::fmtflags orig_flags = os.flags();
-    int orig_prec = os.precision(15);
-    os << std::right;
-    os.prefix().width(14);
-    std::string time_system_name = getSystem().getName();
-    MjdRep mjd_rep(time_system_name, 0, 0.);
-
-    // Note: below, break into two consecutive strings so that width applies to first part only.
-    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = getValidUntil();
-      os << mjd_rep << ")" << std::endl;
-    } else {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "only at time " << mjd_rep << std::endl;
-    }
-    mjd_rep = getEpoch();
-    os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
-    os.prefix().width(14); os << "RA = " << m_ra << std::endl;
-    os.prefix().width(14); os << "Dec = " << m_dec << std::endl;
-    os.prefix().width(14); os << "Phi0 = " << m_phi0 << std::endl;
-    os.prefix().width(14); os << "F0 = " << m_f0 << std::endl;
-    os.prefix().width(14); os << "F1 = " << m_f1 << std::endl;
-    os.prefix().width(14); os << "F2 = " << m_f2;
-    os.flags(orig_flags);
-    os.precision(orig_prec);
-    return os;
+  void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {
+    writeOneParameter(os, "RA",   m_ra);   os << std::endl;
+    writeOneParameter(os, "Dec",  m_dec);  os << std::endl;
+    writeOneParameter(os, "Phi0", m_phi0); os << std::endl;
+    writeOneParameter(os, "F0",   m_f0);   os << std::endl;
+    writeOneParameter(os, "F1",   m_f1);   os << std::endl;
+    writeOneParameter(os, "F2",   m_f2);
   }
 
-  // TODO: Unify/generalize this method with FrequencyEph::write method.
-  st_stream::OStream & PeriodEph::write(st_stream::OStream & os) const {
-    std::ios::fmtflags orig_flags = os.flags();
-    int orig_prec = os.precision(15);
-    os << std::right;
-    os.prefix().width(14);
-    std::string time_system_name = getSystem().getName();
-    MjdRep mjd_rep(time_system_name, 0, 0.);
-
-    // Note: below, break into two consecutive strings so that width applies to first part only.
-    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = getValidUntil();
-      os << mjd_rep << ")" << std::endl;
-    } else {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "only at time " << mjd_rep << std::endl;
-    }
-    mjd_rep = getEpoch();
-    os.prefix().width(14); os << "Epoch = " << mjd_rep << std::endl;
-    os.prefix().width(14); os << "RA = " << m_ra << std::endl;
-    os.prefix().width(14); os << "Dec = " << m_dec << std::endl;
-    os.prefix().width(14); os << "Phi0 = " << m_phi0 << std::endl;
-    os.prefix().width(14); os << "P0 = " << m_p0 << std::endl;
-    os.prefix().width(14); os << "P1 = " << m_p1 << std::endl;
-    os.prefix().width(14); os << "P2 = " << m_p2;
-    os.flags(orig_flags);
-    os.precision(orig_prec);
-    return os;
+  void PeriodEph::writeModelParameter(st_stream::OStream & os) const {
+    writeOneParameter(os, "RA",   m_ra);   os << std::endl;
+    writeOneParameter(os, "Dec",  m_dec);  os << std::endl;
+    writeOneParameter(os, "Phi0", m_phi0); os << std::endl;
+    writeOneParameter(os, "P0",   m_p0);   os << std::endl;
+    writeOneParameter(os, "P1",   m_p1);   os << std::endl;
+    writeOneParameter(os, "P2",   m_p2);
   }
 
   double FrequencyEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {

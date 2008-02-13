@@ -61,7 +61,7 @@ namespace pulsarDb {
 
       /** \brief Output text expression of this PulsarEph to a given output stream.
       */
-      virtual st_stream::OStream & write(st_stream::OStream & os) const = 0;
+      virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     protected:
       PulsarEph() {};
@@ -72,6 +72,19 @@ namespace pulsarDb {
           \param ev_time Time of the event.
       */
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const = 0;
+
+      /** \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
+      */
+      virtual void writeModelParameter(st_stream::OStream & os) const = 0;
+
+      /** \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
+          \param param_name Name of parameter to appear on the text output.
+          \param param_obj Parameter to output. The object must support a shift operator (<<) for st_stream::OStream.
+      */
+      template <typename ParameterType>
+      inline void writeOneParameter(st_stream::OStream & os, const std::string & param_name, const ParameterType & param_obj) const {
+        os.prefix().width(14); os << param_name + " = " << param_obj;
+      }
   };
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) { return eph.write(os); }
@@ -109,7 +122,7 @@ namespace pulsarDb {
 
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
-      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+      virtual void writeModelParameter(st_stream::OStream & os) const;
 
     protected:
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
@@ -163,7 +176,7 @@ namespace pulsarDb {
 
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
-      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+      virtual void writeModelParameter(st_stream::OStream & os) const;
 
     protected:
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const;
