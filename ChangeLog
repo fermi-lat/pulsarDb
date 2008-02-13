@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Feb 13 14:41:33 PST 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Add new constructor that takes tip::ConstRecord. Remove the constructor that takes a vector of double. Move BinaryIndex from OrbitalEph.cxx. Move IsNotANumber function from PulsarDb.h.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Feb 13 14:40:27 PST 2008
 pulsarDb/pulsarDb
 
