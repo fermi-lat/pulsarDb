@@ -30,18 +30,6 @@
 using namespace timeSystem;
 using namespace tip;
 
-namespace {
-
-  inline bool IsNotANumber(double x) {
-#ifdef WIN32
-    return 0 != _isnan(x);
-#else
-    return 0 != std::isnan(x);
-#endif
-  }
-
-}
-
 namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & in_file, bool edit_in_place): m_in_file(in_file), m_summary(), m_table(),
@@ -333,49 +321,10 @@ namespace pulsarDb {
 
       for (Table::Iterator itor = m_orbital_par_table->begin(); itor != m_orbital_par_table->end(); ++itor) {
         // For convenience, get record from iterator.
-        Table::ConstRecord & r(*itor);
-        
-        double par[] = {
-          get(r["PB"]),
-          get(r["PBDOT"]),
-          get(r["A1"]),
-          get(r["XDOT"]),
-          get(r["ECC"]),
-          get(r["ECCDOT"]),
-          get(r["OM"]),
-          get(r["OMDOT"]),
-          get(r["T0"]),
-          get(r["GAMMA"]),
-          get(r["SHAPIRO_R"]),
-          get(r["SHAPIRO_S"])
-        };
+        Table::ConstRecord & record(*itor);
 
-        // Handle any INDEFs.
-        for (size_t index = 0; index != sizeof(par) / sizeof(double); ++index) {
-          if (0 != IsNotANumber(par[index])) {
-            switch (index) {
-              case PB:
-              case A1:
-              case ECC:
-              case OM:
-              case T0:
-                throw std::runtime_error("PulsarDb::getEph(): invalid orbital ephemeris");
-                break;
-              case PBDOT:
-              case XDOT:
-              case ECCDOT:
-              case OMDOT:
-              case GAMMA:
-              case SHAPIRO_R:
-              case SHAPIRO_S:
-              default:
-                par[index] = 0.;
-                break;
-            }
-          }
-        }
         // TODO: Accept other models.
-        cont.push_back(new SimpleDdEph("TDB", par));
+        cont.push_back(new SimpleDdEph("TDB", record));
       }
     }
   }
