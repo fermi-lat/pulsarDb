@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Feb 12 16:08:56 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Split write method into two parts: model-dependent and independent.
+
+    *
+------------------------------------------------------------
 User: hirayama  Mon Feb 11 16:17:02 PST 2008
 pulsarDb/src
 
