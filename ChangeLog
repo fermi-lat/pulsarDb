@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Feb 13 14:43:23 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use new constructor of OrbitalEph that takes tip::ConstRecord to create a SimpleDd object.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Feb 13 14:42:44 PST 2008
 pulsarDb/src
 
