@@ -7,6 +7,7 @@
 #define pulsarDb_OrbitalEph_h
 
 #include "st_stream/Stream.h"
+#include "tip/Table.h"
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"
@@ -43,9 +44,6 @@ namespace pulsarDb {
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const OrbitalEph & eph) { return eph.write(os); }
 
-  // TODO: Hide this in SimpleDdEph class.
-  enum BinaryIndex { PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S, NUMBER_ORBITAL_PAR };
-
   class SimpleDdEph : public OrbitalEph {
     public:
       typedef std::vector<double>::size_type size_type;
@@ -61,7 +59,7 @@ namespace pulsarDb {
       SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot,
         double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);
 
-      SimpleDdEph(const std::string & time_system_name, double parameters[NUMBER_ORBITAL_PAR]);
+      SimpleDdEph(const std::string & time_system_name, const tip::Table::ConstRecord & record);
 
       virtual ~SimpleDdEph();
 
@@ -77,6 +75,20 @@ namespace pulsarDb {
 
     private:
       virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const;
+
+      // TODO: Avoid duplication of these get methods (another copy is in PulsarDb.h).
+      inline double get(const tip::TableCell & cell) const {
+        double value = 0.;
+        get(cell, value);
+        return value;
+      }
+
+      template <typename T>
+      inline void get(const tip::TableCell & cell, T & value) const {
+        // WARNING: This will break for a string column.
+        if (cell.isNull()) value = 0;
+        else cell.get(value);
+      }
 
       const timeSystem::TimeSystem * m_system;
       std::vector<double> m_par;
