@@ -725,11 +725,10 @@ void PulsarDbTest::testOrbitalEph() {
   std::string method_name = "testOrbitalEph";
 
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
-  double binary_par[] = {
-    27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0
-  };
-
-  SimpleDdEph eph1("TDB", binary_par);
+  // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0)
+  AbsoluteTime abs_t0("TDB", Duration(45888, SecPerDay() * .1172487), Duration(0, 0.));
+  SimpleDdEph eph1("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662,
+                   abs_t0, 0.004295, 0.0, 0.0);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
   Duration mjd_test_values[][2] = {
