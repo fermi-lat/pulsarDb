@@ -52,7 +52,7 @@ int atKepler(
     return NOT_CONVERGED;
 }
 
-  // TODO: Need this?
+  // TODO: Avoid duplication of these get methods (another copy is in PulsarEph.h).
   inline bool IsNotANumber(double x) {
 #ifdef WIN32
     return 0 != _isnan(x);
