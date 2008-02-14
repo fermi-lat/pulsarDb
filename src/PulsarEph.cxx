@@ -14,6 +14,20 @@
 
 using namespace timeSystem;
 
+namespace {
+
+  // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
+  // TODO: Consider use of IsNotANumber in PulsarEph creation, in order to handle INDEF's properly.
+  inline bool IsNotANumber(double x) {
+#ifdef WIN32
+    return 0 != _isnan(x);
+#else
+    return 0 != std::isnan(x);
+#endif
+  }
+
+}
+
 namespace pulsarDb {
 
   double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
@@ -56,6 +70,55 @@ namespace pulsarDb {
     os.flags(orig_flags);
     os.precision(orig_prec);
     return os;
+  }
+
+  FrequencyEph::FrequencyEph(const std::string & time_system_name, const tip::Table::ConstRecord & record):
+    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_since("TDB", Duration(0, 0.), Duration(0, 0.)),
+    m_until("TDB", Duration(0, 0.), Duration(0, 0.)), m_epoch("TDB", Duration(0, 0.), Duration(0, 0.)), m_ra(0.), m_dec(0.),
+    m_phi0(0.), m_f0(0.), m_f1(0.), m_f2(0.) {
+    // Epoch and toa are split into int and frac parts.
+    long epoch_int = 0;
+    double epoch_frac = 0.;
+    long toa_int = 0;
+    double toa_frac = 0.;
+
+    // Read the separate parts from the file.
+    get(record["EPOCH_INT"], epoch_int);
+    get(record["EPOCH_FRAC"], epoch_frac);
+    get(record["TOABARY_INT"], toa_int);
+    get(record["TOABARY_FRAC"], toa_frac);
+
+    // Combine separate parts of epoch and toa to get single values.
+    m_epoch = AbsoluteTime(MjdRep("TDB", epoch_int, epoch_frac));
+    AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
+
+    // TODO Handle valid since is indef.
+    long valid_since_date = 0;
+    get(record["VALID_SINCE"], valid_since_date);
+
+    m_since = AbsoluteTime(MjdRep("TDB", valid_since_date, 0.));
+
+    // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
+    // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
+    // TODO Handle valid_until is indef.
+    long valid_until_date = 0;
+    get(record["VALID_UNTIL"], valid_until_date);
+    m_until = AbsoluteTime(MjdRep("TDB", valid_until_date + 1, 0.));
+
+    m_ra = get(record["RA"]);
+    m_dec = get(record["Dec"]);
+    m_f0 = get(record["F0"]);
+    m_f1 = get(record["F1"]);
+    m_f2 = get(record["F2"]);
+
+    // Create temporary copy of this ephemeris with phi0 == 0.
+    FrequencyEph tmp("TDB", m_since, m_until, m_epoch, m_ra, m_dec, 0., m_f0, m_f1, m_f2);
+
+    // Use the temporary ephemeris to compute the phase from the negative of the toa field.
+    m_phi0 = - tmp.calcPulsePhase(toa);
+
+    // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
+    if (0. > m_phi0) m_phi0 += 1.;
   }
 
   double FrequencyEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
