@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Feb 13 16:05:40 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Add new constructor of FrequencyEph that takes tip::ConstRecord. Revise Doxygen comments. Add get methods.
+
+    *
+------------------------------------------------------------
 User: hirayama  Wed Feb 13 16:05:00 PST 2008
 pulsarDb/src
 
