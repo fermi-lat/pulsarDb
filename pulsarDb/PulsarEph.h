@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "st_stream/Stream.h"
+#include "tip/Table.h"
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/Duration.h"
@@ -85,6 +86,30 @@ namespace pulsarDb {
       inline void writeOneParameter(st_stream::OStream & os, const std::string & param_name, const ParameterType & param_obj) const {
         os.prefix().width(14); os << param_name + " = " << param_obj;
       }
+
+      // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
+      /** \brief Helper method to get a value from a cell, returning it as a double, and handling the
+          case where the value is null.
+          \param cell The cell whose value to get.
+      */
+      inline double get(const tip::TableCell & cell) const {
+        double value = 0.;
+        get(cell, value);
+        return value;
+      }
+
+      // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
+      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
+          case where the value is null.
+          \param cell The cell whose value to get.
+          \param value Variable to store the value.
+      */
+      template <typename T>
+      inline void get(const tip::TableCell & cell, T & value) const {
+        // WARNING: This will break for a string column.
+        if (cell.isNull()) value = 0;
+        else cell.get(value);
+      }
   };
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) { return eph.write(os); }
@@ -95,16 +120,27 @@ namespace pulsarDb {
   */
   class FrequencyEph : public PulsarEph {
     public:
-      /** \brief Create pulsar ephemeris with the given properties.
-          \param epoch The epoch (time origin).
-          \param f0 The frequency at the epoch (time origin).
-          \param f1 The first time derivative of the frequency at the epoch (time origin).
-          \param f2 The second time derivative of the frequency at the epoch (time origin).
+      /** \brief Create a pulsar ephemeris object with the given parameters.
+          \param valid_since Beginning of time period during which this ephemeris is considered valid.
+          \param valid_until End of time period during which this ephemeris is considered valid.
+          \param epoch Reference epoch of frequency parameters (f0, f1, and f2).
+          \param ra Right Ascension of the pulsar.
+          \param dec Declination of the pulsar.
+          \param phi0 Pulse phase at the given epoch.
+          \param f0 Pulse frequency at the given epoch.
+          \param f1 First time derivative of pulse frequency at the given epoch.
+          \param f2 Second time derivative of pulse frequency at the given epoch.
       */
       FrequencyEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
         double phi0, double f0, double f1, double f2): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
         m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_phi0(phi0), m_f0(f0), m_f1(f1), m_f2(f2) {}
+
+      /** \brief Create a pulsar ephemeris object with the parameters stored in tip record.
+          \param time_system_name Name of time system to interpret frequency parameters, such as "TDB" or "UTC".
+          \param record Record that stores all parameters for an ephemeris being created.
+      */
+      FrequencyEph(const std::string & time_system_name, const tip::Table::ConstRecord & record);
 
       virtual ~FrequencyEph() {}
 
@@ -149,16 +185,28 @@ namespace pulsarDb {
   */
   class PeriodEph : public PulsarEph {
     public:
-      /** \brief Create pulsar ephemeris with the given properties.
-          \param epoch The epoch (time origin).
-          \param p0 The period at the epoch (time origin).
-          \param p1 The first time derivative of the period at the epoch (time origin).
-          \param p2 The second time derivative of the period at the epoch (time origin).
+      /** \brief Create a pulsar ephemeris object with the given parameters.
+          \param valid_since Beginning of time period during which this ephemeris is considered valid.
+          \param valid_until End of time period during which this ephemeris is considered valid.
+          \param epoch Reference epoch of frequency parameters (f0, f1, and f2).
+          \param ra Right Ascension of the pulsar.
+          \param dec Declination of the pulsar.
+          \param phi0 Pulse phase at the given epoch.
+          \param f0 Pulse period at the given epoch.
+          \param f1 First time derivative of pulse period at the given epoch.
+          \param f2 Second time derivative of pulse period at the given epoch.
       */
       PeriodEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
         double phi0, double p0, double p1, double p2): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
         m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
+
+      /** \brief Create a pulsar ephemeris object with the parameters stored in tip record.
+          \param time_system_name Name of time system to interpret frequency parameters, such as "TDB" or "UTC".
+          \param record Record that stores all parameters for an ephemeris being created.
+      */
+      // TODO: Implement new constructor of PeriodEph with this signature.
+      //PeriodEph(const std::string & time_system_name, const tip::Table::ConstRecord & record);
 
       virtual ~PeriodEph() {}
 
