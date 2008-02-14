@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Wed Feb 13 16:03:34 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Revise getEph method to use new constructor of PulsarEph that takes tip::ConstRecord. Remove get methods.
+
+    *
+------------------------------------------------------------
+User: hirayama  Wed Feb 13 16:03:34 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
