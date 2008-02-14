@@ -76,13 +76,23 @@ namespace pulsarDb {
     private:
       virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const;
 
-      // TODO: Avoid duplication of these get methods (another copy is in PulsarDb.h).
+      // TODO: Avoid duplication of these get methods (another copy is in PulsarEph.h).
+      /** \brief Helper method to get a value from a cell, returning it as a double, and handling the
+          case where the value is null.
+          \param cell The cell whose value to get.
+      */
       inline double get(const tip::TableCell & cell) const {
         double value = 0.;
         get(cell, value);
         return value;
       }
 
+      // TODO: Avoid duplication of these get methods (another copy is in PulsarEph.h).
+      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
+          case where the value is null.
+          \param cell The cell whose value to get.
+          \param value Variable to store the value.
+      */
       template <typename T>
       inline void get(const tip::TableCell & cell, T & value) const {
         // WARNING: This will break for a string column.
