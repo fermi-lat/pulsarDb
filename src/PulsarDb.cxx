@@ -252,63 +252,16 @@ namespace pulsarDb {
     // Refill this container.
     cont.clear();
 
-    // Determine which columns hold toa info.
-    std::string toa_int_col = "TOABARY_INT";
-    std::string toa_frac_col = "TOABARY_FRAC";
-
     cont.reserve(m_spin_par_table->getNumRecords());
 
     // Iterate over current selection.
     for (Table::Iterator itor = m_spin_par_table->begin(); itor != m_spin_par_table->end(); ++itor) {
       // For convenience, get record from iterator.
-      Table::ConstRecord & r(*itor);
+      Table::ConstRecord & record(*itor);
 
-      // Epoch and toa are split into int and frac parts.
-      long epoch_int = 0;
-      double epoch_frac = 0.;
-      long toa_int = 0;
-      double toa_frac = 0.;
-
-      // Read the separate parts from the file.
-      get(r["EPOCH_INT"], epoch_int);
-      get(r["EPOCH_FRAC"], epoch_frac);
-      get(r[toa_int_col], toa_int);
-      get(r[toa_frac_col], toa_frac);
-
-      // Combine separate parts of epoch and toa to get single values.
-      AbsoluteTime epoch(MjdRep("TDB", epoch_int, epoch_frac));
-      AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
-
-      // TODO Handle valid since is indef.
-      long valid_since_date = 0;
-      get(r["VALID_SINCE"], valid_since_date);
-
-      AbsoluteTime valid_since(MjdRep("TDB", valid_since_date, 0.));
-
-      // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
-      // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
-      // TODO Handle valid_until is indef.
-      long valid_until_date = 0;
-      get(r["VALID_UNTIL"], valid_until_date);
-      AbsoluteTime valid_until(MjdRep("TDB", valid_until_date + 1, 0.));
-
-      double ra = get(r["RA"]);
-      double dec = get(r["Dec"]);
-      double f0 = get(r["F0"]);
-      double f1 = get(r["F1"]);
-      double f2 = get(r["F2"]);
-
-      // Create temporary copy of this ephemeris with phi0 == 0.
-      FrequencyEph tmp("TDB", valid_since, valid_until, epoch, ra, dec, 0., f0, f1, f2);
-
-      // Use the timing model and temporary ephemeris to compute the phase from the negative of the toa field.
-      double phi0 = - tmp.calcPulsePhase(toa);
-
-      // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
-      if (0. > phi0) phi0 += 1.;
-
+      // TODO: Accept other models.
       // Add the ephemeris to the container.
-      cont.push_back(FrequencyEph("TDB", valid_since, valid_until, epoch, ra, dec, phi0, f0, f1, f2).clone());
+      cont.push_back(new FrequencyEph("TDB", record));
     }
   }
 
@@ -324,6 +277,7 @@ namespace pulsarDb {
         Table::ConstRecord & record(*itor);
 
         // TODO: Accept other models.
+        // Add the ephemeris to the container.
         cont.push_back(new SimpleDdEph("TDB", record));
       }
     }
