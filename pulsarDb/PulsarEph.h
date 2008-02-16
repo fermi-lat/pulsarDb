@@ -18,6 +18,10 @@
 #include "timeSystem/Duration.h"
 #include "timeSystem/TimeSystem.h"
 
+namespace tip {
+  class Header;
+}
+
 namespace pulsarDb {
 
   /** \class PulsarEph
@@ -140,7 +144,7 @@ namespace pulsarDb {
           \param time_system_name Name of time system to interpret frequency parameters, such as "TDB" or "UTC".
           \param record Record that stores all parameters for an ephemeris being created.
       */
-      FrequencyEph(const std::string & time_system_name, const tip::Table::ConstRecord & record);
+      FrequencyEph(const tip::Table::ConstRecord & record, const tip::Header & header);
 
       virtual ~FrequencyEph() {}
 

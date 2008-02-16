@@ -15,6 +15,10 @@
 #include <iostream>
 #include <vector>
 
+namespace tip {
+  class Header;
+}
+
 namespace pulsarDb {
 
   class OrbitalEph {
@@ -59,7 +63,7 @@ namespace pulsarDb {
       SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot,
         double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);
 
-      SimpleDdEph(const std::string & time_system_name, const tip::Table::ConstRecord & record);
+      SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & header);
 
       virtual ~SimpleDdEph();
 

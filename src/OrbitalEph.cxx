@@ -10,6 +10,8 @@
 #include "timeSystem/TimeInterval.h"
 #include "timeSystem/TimeRep.h"
 
+#include "tip/Header.h"
+
 using namespace timeSystem;
 
 namespace {
@@ -137,10 +139,10 @@ namespace pulsarDb {
     m_par[SHAPIRO_R] *= s_sec_per_microsec;
   }
 
-  SimpleDdEph::SimpleDdEph(const std::string & time_system_name, const tip::Table::ConstRecord & record):
-    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
-    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(NUMBER_ORBITAL_PAR, 0.),
-    m_t0(time_system_name, Duration(0, 0.), Duration(0, 0.)) {
+  SimpleDdEph::SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
+    OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(0, 10.e-9)), 100),
+    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_par(NUMBER_ORBITAL_PAR, 0.),
+    m_t0("TDB", Duration(0, 0.), Duration(0, 0.)) {
     m_par[PB] = get(record["PB"]);
     m_par[PBDOT] = get(record["PBDOT"]);
     m_par[A1] = get(record["A1"]);
@@ -179,7 +181,7 @@ namespace pulsarDb {
       }
     }
 
-    m_t0 = timeSystem::AbsoluteTime(time_system_name, Duration(IntFracPair(m_par[T0]), Day), Duration(0, 0.));
+    m_t0 = timeSystem::AbsoluteTime("TDB", Duration(IntFracPair(m_par[T0]), Day), Duration(0, 0.));
     m_par[OM] *= s_rad_per_deg;
     m_par[OMDOT] *= s_rad_year_per_deg_sec;
     m_par[SHAPIRO_R] *= s_sec_per_microsec;
