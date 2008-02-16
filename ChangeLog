@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Feb 15 17:23:14 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx OrbitalEph.cxx 
+Log Message:
+Remove time system name from the argument of constructor that takes tip::Table::ConstRecord, and assume it is TDB (which is the original definition of pulsar ephemerides database). Add tip::Header to the argument for potential future use.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Feb 15 17:23:14 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
