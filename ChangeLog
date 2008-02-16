@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Feb 15 17:26:56 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Remove unnecessary comments.
+
+    *
+------------------------------------------------------------
 User: hirayama  Fri Feb 15 17:24:29 PST 2008
 pulsarDb/src
 
