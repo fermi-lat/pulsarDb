@@ -296,9 +296,7 @@ namespace pulsarDb {
       // For convenience, get record from iterator.
       Table::ConstRecord & record(*itor);
 
-      // TODO: Accept other models.
       // Add the ephemeris to the container.
-      //cont.push_back(new FrequencyEph("TDB", record));
       cont.push_back(factory->create(record, header));
     }
   }
