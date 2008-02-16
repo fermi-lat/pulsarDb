@@ -33,11 +33,26 @@ using namespace tip;
 namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & in_file, bool edit_in_place): m_in_file(in_file), m_summary(), m_table(),
-    m_spin_par_table(0), m_orbital_par_table(0), m_obs_code_table(0), m_psr_name_table(0) {
+    m_spin_par_table(0), m_orbital_par_table(0), m_obs_code_table(0), m_psr_name_table(0), m_spin_factory_cont(),
+    m_orbital_factory_cont() {
     loadTables(edit_in_place);
   }
 
   PulsarDb::~PulsarDb() {
+    // Clear out orbital ephemeris factories.
+    for (orbital_factory_cont_type::reverse_iterator itor = m_orbital_factory_cont.rbegin();
+      itor != m_orbital_factory_cont.rend(); ++itor) {
+      delete itor->second;
+    }
+    m_orbital_factory_cont.clear();
+
+    // Clear out pulsar ephemeris factories.
+    for (spin_factory_cont_type::reverse_iterator itor = m_spin_factory_cont.rbegin();
+      itor != m_spin_factory_cont.rend(); ++itor) {
+      delete itor->second;
+    }
+    m_spin_factory_cont.clear();
+
     // TODO: Change Tip so it has reverse_iterator, then use it to delete in the correct order.
     for (FileSummary::const_iterator itor = m_summary.begin(); itor != m_summary.end(); ++itor) {
       TableCont::iterator table_itor = m_table.find(itor->getExtId());
@@ -253,6 +268,28 @@ namespace pulsarDb {
     cont.clear();
 
     cont.reserve(m_spin_par_table->getNumRecords());
+    const tip::Header & header(m_spin_par_table->getHeader());
+
+    // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
+    const IEphFactory<PulsarEph> * factory(0);
+    std::string eph_style;
+    try {
+      header["EPHSTYLE"].get(eph_style);
+    } catch (const tip::TipException &) {
+      // Use FrequencyEph if EPHSTYLE keyword is missing.
+      static const EphFactory<PulsarEph, FrequencyEph> s_default_spin_factory;
+      factory = &s_default_spin_factory;
+    }
+
+    // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
+    if (0 == factory) {
+      spin_factory_cont_type::const_iterator itor = m_spin_factory_cont.find(eph_style);
+      if (itor != m_spin_factory_cont.end()) {
+        factory = itor->second;
+      } else {
+        throw std::runtime_error("Unknown pulsar ephemeris style: EPHSTYLE = " + eph_style);
+      }
+    }
 
     // Iterate over current selection.
     for (Table::Iterator itor = m_spin_par_table->begin(); itor != m_spin_par_table->end(); ++itor) {
@@ -261,7 +298,8 @@ namespace pulsarDb {
 
       // TODO: Accept other models.
       // Add the ephemeris to the container.
-      cont.push_back(new FrequencyEph("TDB", record));
+      //cont.push_back(new FrequencyEph("TDB", record));
+      cont.push_back(factory->create(record, header));
     }
   }
 
@@ -271,14 +309,35 @@ namespace pulsarDb {
 
     if (0 != m_orbital_par_table) {
       cont.reserve(m_orbital_par_table->getNumRecords());
+      const tip::Header & header(m_orbital_par_table->getHeader());
+
+      // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
+      const IEphFactory<OrbitalEph> * factory(0);
+      std::string eph_style;
+      try {
+        header["EPHSTYLE"].get(eph_style);
+      } catch (const tip::TipException &) {
+        // Use SimpleDdEph if EPHSTYLE keyword is missing.
+        static const EphFactory<OrbitalEph, SimpleDdEph> s_default_orbital_factory;
+        factory = &s_default_orbital_factory;
+      }
+
+      // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
+      if (0 == factory) {
+        orbital_factory_cont_type::const_iterator itor = m_orbital_factory_cont.find(eph_style);
+        if (itor != m_orbital_factory_cont.end()) {
+          factory = itor->second;
+        } else {
+          throw std::runtime_error("Unknown orbital ephemeris style: EPHSTYLE = " + eph_style);
+        }
+      }
 
       for (Table::Iterator itor = m_orbital_par_table->begin(); itor != m_orbital_par_table->end(); ++itor) {
         // For convenience, get record from iterator.
         Table::ConstRecord & record(*itor);
 
-        // TODO: Accept other models.
         // Add the ephemeris to the container.
-        cont.push_back(new SimpleDdEph("TDB", record));
+        cont.push_back(factory->create(record, header));
       }
     }
   }
