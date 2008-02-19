@@ -31,9 +31,20 @@ namespace pulsarDb {
     public:
       virtual ~PulsarEph() {}
 
+      /// \brief Return a time system to be used to interpret return values of calcFrequency method.
       virtual const timeSystem::TimeSystem & getSystem() const = 0;
+
+      /** \brief Return a start time of a time interval, during which this ephemeris is considered valid.
+                 Note: The ephemeris is also considered valid on the start time itself.
+      */
       virtual const timeSystem::AbsoluteTime & getValidSince() const = 0;
+
+      /** \brief Return an end time of a time interval, during which this ephemeris is considered valid.
+                 Note: The ephemeris is also considered valid on the end time itself.
+      */
       virtual const timeSystem::AbsoluteTime & getValidUntil() const = 0;
+
+      /// \brief Return a reference epoch of this ephemeris.
       virtual const timeSystem::AbsoluteTime & getEpoch() const = 0;
 
       /** \brief Compute the spin phase of the given time.
@@ -60,12 +71,10 @@ namespace pulsarDb {
       */
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
-      /** \brief Create a copy of this object.
-      */
+      /// \brief Create a copy of this object.
       virtual PulsarEph * clone() const = 0;
 
-      /** \brief Output text expression of this PulsarEph to a given output stream.
-      */
+      /// \brief Output text expression of this PulsarEph to a given output stream.
       virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     protected:
@@ -78,17 +87,36 @@ namespace pulsarDb {
       */
       virtual double calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
-      /** \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
-      */
+      /// \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
       virtual void writeModelParameter(st_stream::OStream & os) const = 0;
 
-      /** \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
-          \param param_name Name of parameter to appear on the text output.
-          \param param_obj Parameter to output. The object must support a shift operator (<<) for st_stream::OStream.
+      /** \class ParameterFormatter
+          \brief Class that formats parameter value listing in a text output. This class is desgined to be used for the shift
+                 operator (<<) for PulsarEph class. All subclasses of PulsarEph should use this in their writeModelParameter
+                 method for unified appearance of their parameter lists.
       */
       template <typename ParameterType>
-      inline void writeOneParameter(st_stream::OStream & os, const std::string & param_name, const ParameterType & param_obj) const {
-        os.prefix().width(14); os << param_name + " = " << param_obj;
+      struct ParameterFormatter {
+        ParameterFormatter(const std::string & param_name, const ParameterType & param_obj): m_name(param_name),
+          m_obj(&param_obj) {}
+
+        inline st_stream::OStream & write(st_stream::OStream & os) const {
+          os.prefix().width(14); os << m_name + " = " << *m_obj;
+          return os;
+        }
+
+        std::string m_name;
+        const ParameterType * m_obj;
+      };
+
+      /** \brief Return a ParameterFormatter object to be used to format a text output of a given parameter.
+          \param param_name Name of parameter to appear in a formatted text output.
+          \param param_obj Object that holds the parameter value to output. The object must support a shift operator (<<)
+                 for st_stream::OStream.
+      */
+      template <typename ParameterType>
+      ParameterFormatter<ParameterType> format(const std::string & param_name, const ParameterType & param_obj) const {
+        return ParameterFormatter<ParameterType>(param_name, param_obj);
       }
 
       // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
@@ -117,6 +145,11 @@ namespace pulsarDb {
   };
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) { return eph.write(os); }
+
+  template <typename ParameterType>
+  inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph::ParameterFormatter<ParameterType> & fmt) {
+    return fmt.write(os);
+  }
 
   /** \class FrequencyEph
       \brief Class representing a single pulsar ephemeris expressed with three frequency coefficients.
