@@ -62,8 +62,7 @@ namespace pulsarDb {
       os << "Validity : " << "only at time " << mjd_rep << std::endl;
     }
     mjd_rep = getEpoch();
-    writeOneParameter(os, "Epoch", mjd_rep);
-    os << std::endl;
+    os << format("Epoch", mjd_rep) << std::endl;
 
     // Write subclass-specific parameters (delegated to subclass).
     writeModelParameter(os);
@@ -132,21 +131,21 @@ namespace pulsarDb {
   }
 
   void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {
-    writeOneParameter(os, "RA",   m_ra);   os << std::endl;
-    writeOneParameter(os, "Dec",  m_dec);  os << std::endl;
-    writeOneParameter(os, "Phi0", m_phi0); os << std::endl;
-    writeOneParameter(os, "F0",   m_f0);   os << std::endl;
-    writeOneParameter(os, "F1",   m_f1);   os << std::endl;
-    writeOneParameter(os, "F2",   m_f2);
+    os << format("RA",   m_ra)   << std::endl;
+    os << format("Dec",  m_dec)  << std::endl;
+    os << format("Phi0", m_phi0) << std::endl;
+    os << format("F0",   m_f0)   << std::endl;
+    os << format("F1",   m_f1)   << std::endl;
+    os << format("F2",   m_f2);
   }
 
   void PeriodEph::writeModelParameter(st_stream::OStream & os) const {
-    writeOneParameter(os, "RA",   m_ra);   os << std::endl;
-    writeOneParameter(os, "Dec",  m_dec);  os << std::endl;
-    writeOneParameter(os, "Phi0", m_phi0); os << std::endl;
-    writeOneParameter(os, "P0",   m_p0);   os << std::endl;
-    writeOneParameter(os, "P1",   m_p1);   os << std::endl;
-    writeOneParameter(os, "P2",   m_p2);
+    os << format("RA",   m_ra)   << std::endl;
+    os << format("Dec",  m_dec)  << std::endl;
+    os << format("Phi0", m_phi0) << std::endl;
+    os << format("P0",   m_p0)   << std::endl;
+    os << format("P1",   m_p1)   << std::endl;
+    os << format("P2",   m_p2);
   }
 
   double FrequencyEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
