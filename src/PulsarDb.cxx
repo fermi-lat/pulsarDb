@@ -277,8 +277,7 @@ namespace pulsarDb {
       header["EPHSTYLE"].get(eph_style);
     } catch (const tip::TipException &) {
       // Use FrequencyEph if EPHSTYLE keyword is missing.
-      static const EphFactory<PulsarEph, FrequencyEph> s_default_spin_factory;
-      factory = &s_default_spin_factory;
+      factory = &EphFactory<PulsarEph, FrequencyEph>::getFactory();
     }
 
     // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
@@ -316,8 +315,7 @@ namespace pulsarDb {
         header["EPHSTYLE"].get(eph_style);
       } catch (const tip::TipException &) {
         // Use SimpleDdEph if EPHSTYLE keyword is missing.
-        static const EphFactory<OrbitalEph, SimpleDdEph> s_default_orbital_factory;
-        factory = &s_default_orbital_factory;
+        factory = &EphFactory<OrbitalEph, SimpleDdEph>::getFactory();
       }
 
       // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
