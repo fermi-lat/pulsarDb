@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Fri Feb 22 15:45:07 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Support multiple extensions for each kind.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Feb 22 15:45:07 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
