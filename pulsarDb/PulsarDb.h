@@ -57,7 +57,7 @@ namespace pulsarDb {
   */
   class PulsarDb {
     public:
-      typedef std::map<std::string, tip::Table *> TableCont;
+      typedef std::vector<tip::Table *> TableCont;
 
       /** \brief Create a data base access object for the given ephermerides db file.
                  This opens a copy of the file in memory. The version on disk will be
@@ -161,11 +161,11 @@ namespace pulsarDb {
 
       std::string m_in_file;
       tip::FileSummary m_summary;
-      TableCont m_table;
-      tip::Table * m_spin_par_table;
-      tip::Table * m_orbital_par_table;
-      tip::Table * m_obs_code_table;
-      tip::Table * m_psr_name_table;
+      TableCont m_all_table;
+      TableCont m_spin_par_table;
+      TableCont m_orbital_par_table;
+      TableCont m_obs_code_table;
+      TableCont m_psr_name_table;
 
     private:
       typedef std::map<std::string, IEphFactory<PulsarEph> *> spin_factory_cont_type;
