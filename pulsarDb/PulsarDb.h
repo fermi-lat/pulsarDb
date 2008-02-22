@@ -23,6 +23,35 @@ namespace tip {
 
 namespace pulsarDb {
 
+  /** \brief Base class to define the interface of ephemeris factory classes.
+             Note: Template parameter, EPHTYPE, must be either PulsarEph or OrbitalEph.
+  */
+  template <typename EPHTYPE>
+  class IEphFactory {
+    public:
+      virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const = 0;
+  };
+
+  /** \brief Concrete class to create a PulsarEph object or an OrbitalEph object.
+             Note: The first emplate parameter, EPHTYPE, must be either PulsarEph or OrbitalEph.
+                   The second template parameter, EPHSTYLE, must be one of their subclasses.
+  */
+  template <typename EPHTYPE, typename EPHSTYLE>
+  class EphFactory: public IEphFactory<EPHTYPE> {
+    public:
+      virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const {
+        return new EPHSTYLE(record, header);
+      }
+
+      static EphFactory & getFactory() {
+        static EphFactory s_factory;
+        return s_factory;
+      }
+
+    private:
+      EphFactory() {};
+  };
+
   /** \class PulsarDb
       \brief Abstraction providing access to pulsar ephemerides database.
   */
@@ -96,7 +125,7 @@ namespace pulsarDb {
       // TODO: Write a test code for this method.
       template <typename EPHSTYLE>
       void registerPulsarEph(const std::string & eph_style) {
-        m_spin_factory_cont[eph_style] = new EphFactory<PulsarEph, EPHSTYLE>();
+        m_spin_factory_cont[eph_style] = &EphFactory<PulsarEph, EPHSTYLE>::getFactory();
       }
 
       /** \brief Associate a keyword with a OrbitalEph class as a handler of a FITS extension.
@@ -106,7 +135,7 @@ namespace pulsarDb {
       // TODO: Write a test code for this method.
       template <typename EPHSTYLE>
       void registerOrbitalEph(const std::string & eph_style) {
-        m_orbital_factory_cont[eph_style] = new EphFactory<OrbitalEph, EPHSTYLE>();
+        m_orbital_factory_cont[eph_style] = &EphFactory<OrbitalEph, EPHSTYLE>::getFactory();
       }
 
     protected:
@@ -139,25 +168,6 @@ namespace pulsarDb {
       tip::Table * m_psr_name_table;
 
     private:
-      /** \brief Base class to define the interface of ephemeris factory classes.
-                 Note: Template parameter, EPHTYPE, must be either PulsarEph or OrbitalEph.
-      */
-      template <typename EPHTYPE>
-      struct IEphFactory {
-        virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const = 0;
-      };
-
-      /** \brief Concrete class to create a PulsarEph object or an OrbitalEph object.
-                 Note: The first emplate parameter, EPHTYPE, must be either PulsarEph or OrbitalEph.
-                       The second template parameter, EPHSTYLE, must be one of their subclasses.
-      */
-      template <typename EPHTYPE, typename EPHSTYLE>
-      struct EphFactory: public IEphFactory<EPHTYPE> {
-        virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const {
-          return new EPHSTYLE(record, header);
-        }
-      };
-
       typedef std::map<std::string, IEphFactory<PulsarEph> *> spin_factory_cont_type;
       typedef std::map<std::string, IEphFactory<OrbitalEph> *> orbital_factory_cont_type;
 
