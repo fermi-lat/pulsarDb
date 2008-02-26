@@ -1,10 +1,10 @@
-import glob,os,platform
-
+#$Id$
 Import('baseEnv')
 Import('listFiles')
 progEnv = baseEnv.Clone()
 libEnv = baseEnv.Clone()
 
+libEnv.Tool('pulsarDbLib', depsOnly = 1)
 pulsarDbLib = libEnv.StaticLibrary('pulsarDb', listFiles(['src/*.cxx']))
 
 progEnv.Tool('pulsarDbLib')
