@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 TAG
+Tag name: pulsarDb-05-00-03, operation: mov
+Package: pulsarDb
+User: glast  Mon Feb 25 21:28:29 2008
+Files:
+  pulsarDb/SConscript  1.3
+  pulsarDb/pulsarDbLib.py  1.2
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: v5r0p3, operation: mov
 Package: pulsarDb
 User: glast  Mon Feb 25 21:28:08 2008
