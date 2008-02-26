@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Mon Feb 25 21:27:32 PST 2008
+ScienceTools-scons/pulsarDb
+
+Modified Files:
+	pulsarDbLib.py SConscript 
+Log Message:
+Set lib dependencies up for when building libraries
+    *
+------------------------------------------------------------
 User: hirayama  Fri Feb 22 15:45:07 PST 2008
 pulsarDb/src
 
