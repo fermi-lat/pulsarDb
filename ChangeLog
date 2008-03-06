@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar  6 13:56:43 PST 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Correct an error message.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-05-00-03, operation: mov
 Package: pulsarDb
