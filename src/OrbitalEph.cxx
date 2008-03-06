@@ -165,7 +165,7 @@ namespace pulsarDb {
         case ECC:
         case OM:
         case T0:
-          throw std::runtime_error("PulsarDb::getEph(): invalid orbital ephemeris");
+          throw std::runtime_error("SimpleDdEph: invalid orbital ephemeris passed to the constructor");
           break;
         case PBDOT:
         case XDOT:
