@@ -105,8 +105,13 @@ namespace pulsarDb {
       }
 
       const timeSystem::TimeSystem * m_system;
-      std::vector<double> m_par;
+      double m_pb, m_pb_dot;
+      double m_a1, m_x_dot;
+      double m_ecc, m_ecc_dot;
+      double m_om, m_om_dot;
       timeSystem::AbsoluteTime m_t0;
+      double m_gamma;
+      double m_shapiro_r, m_shapiro_s;
   };
 }
 

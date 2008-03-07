@@ -102,9 +102,6 @@ namespace pulsarDb {
 
   }
 
-  // TODO: Hide this in SimpleDdEph class.
-  enum BinaryIndex { PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S, NUMBER_ORBITAL_PAR };
-
   const double SimpleDdEph::s_one_pi = M_PI;
   const double SimpleDdEph::s_two_pi = 2. * SimpleDdEph::s_one_pi;
   const double SimpleDdEph::s_rad_per_deg  = SimpleDdEph::s_one_pi / 180.;
@@ -117,74 +114,40 @@ namespace pulsarDb {
     double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
     double shapiro_r, double shapiro_s):
     OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
-    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_par(NUMBER_ORBITAL_PAR, 0.), m_t0(t0) {
-    m_par[PB] = pb;
-    m_par[PBDOT] = pb_dot;
-    m_par[A1] = a1;
-    m_par[XDOT] = x_dot;
-    m_par[ECC] = ecc;
-    m_par[ECCDOT] = ecc_dot;
-    m_par[OM] = om;
-    m_par[OMDOT] = om_dot;
-    MjdRep mjd_rep(time_system_name, 0, 0.);
-    mjd_rep = t0;
-    m_par[T0] = mjd_rep.getValue().getDouble();
-    m_par[GAMMA] = gamma;
-    m_par[SHAPIRO_R] = shapiro_r;
-    m_par[SHAPIRO_S] = shapiro_s;
-
-    // Adjust units.
-    m_par[OM] *= s_rad_per_deg;
-    m_par[OMDOT] *= s_rad_year_per_deg_sec;
-    m_par[SHAPIRO_R] *= s_sec_per_microsec;
-  }
+    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_pb(pb), m_pb_dot(pb_dot), m_a1(a1), m_x_dot(x_dot),
+    m_ecc(ecc), m_ecc_dot(ecc_dot), m_om(om * s_rad_per_deg), m_om_dot(om_dot * s_rad_year_per_deg_sec), m_t0(t0), m_gamma(gamma),
+    m_shapiro_r(shapiro_r * s_sec_per_microsec), m_shapiro_s(shapiro_s) {}
 
   SimpleDdEph::SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
     OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(0, 10.e-9)), 100),
-    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_par(NUMBER_ORBITAL_PAR, 0.),
-    m_t0("TDB", Duration(0, 0.), Duration(0, 0.)) {
-    m_par[PB] = get(record["PB"]);
-    m_par[PBDOT] = get(record["PBDOT"]);
-    m_par[A1] = get(record["A1"]);
-    m_par[XDOT] = get(record["XDOT"]);
-    m_par[ECC] = get(record["ECC"]);
-    m_par[ECCDOT] = get(record["ECCDOT"]);
-    m_par[OM] = get(record["OM"]);
-    m_par[OMDOT] = get(record["OMDOT"]);
-    m_par[T0] = get(record["T0"]);
-    m_par[GAMMA] = get(record["GAMMA"]);
-    m_par[SHAPIRO_R] = get(record["SHAPIRO_R"]);
-    m_par[SHAPIRO_S] = get(record["SHAPIRO_S"]);
+    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_t0("TDB", Duration(0, 0.), Duration(0, 0.)) {
+    m_pb = get(record["PB"]);
+    m_pb_dot = get(record["PBDOT"]);
+    m_a1 = get(record["A1"]);
+    m_x_dot = get(record["XDOT"]);
+    m_ecc = get(record["ECC"]);
+    m_ecc_dot = get(record["ECCDOT"]);
+    m_om = get(record["OM"]) * s_rad_per_deg;
+    m_om_dot = get(record["OMDOT"]) * s_rad_year_per_deg_sec;
+    double dbl_t0 = get(record["T0"]);
+    m_gamma = get(record["GAMMA"]);
+    m_shapiro_r = get(record["SHAPIRO_R"]) * s_sec_per_microsec;
+    m_shapiro_s = get(record["SHAPIRO_S"]);
 
     // Handle any INDEFs.
-    for (size_t index = 0; index != sizeof(m_par) / sizeof(double); ++index) {
-      if (0 != IsNotANumber(m_par[index])) {
-        switch (index) {
-        case PB:
-        case A1:
-        case ECC:
-        case OM:
-        case T0:
-          throw std::runtime_error("SimpleDdEph: invalid orbital ephemeris passed to the constructor");
-          break;
-        case PBDOT:
-        case XDOT:
-        case ECCDOT:
-        case OMDOT:
-        case GAMMA:
-        case SHAPIRO_R:
-        case SHAPIRO_S:
-        default:
-          m_par[index] = 0.;
-          break;
-        }
-      }
+    if (IsNotANumber(m_pb) || IsNotANumber(m_a1) || IsNotANumber(m_ecc) || IsNotANumber(m_om) || IsNotANumber(dbl_t0)) {
+      throw std::runtime_error("SimpleDdEph: invalid orbital ephemeris passed to the constructor");
     }
+    if (IsNotANumber(m_pb_dot)) m_pb_dot = 0.;
+    if (IsNotANumber(m_x_dot)) m_x_dot = 0.;
+    if (IsNotANumber(m_ecc_dot)) m_ecc_dot = 0.;
+    if (IsNotANumber(m_om_dot)) m_om_dot = 0.;
+    if (IsNotANumber(m_gamma)) m_gamma = 0.;
+    if (IsNotANumber(m_shapiro_r)) m_shapiro_r = 0.;
+    if (IsNotANumber(m_shapiro_s)) m_shapiro_s = 0.;
 
-    m_t0 = timeSystem::AbsoluteTime("TDB", Duration(IntFracPair(m_par[T0]), Day), Duration(0, 0.));
-    m_par[OM] *= s_rad_per_deg;
-    m_par[OMDOT] *= s_rad_year_per_deg_sec;
-    m_par[SHAPIRO_R] *= s_sec_per_microsec;
+    // Create an AbsoluteTime object from the value of "T0" column.
+    m_t0 = timeSystem::AbsoluteTime("TDB", Duration(IntFracPair(dbl_t0), Day), Duration(0, 0.));
   }
 
   SimpleDdEph::~SimpleDdEph() {}
@@ -198,18 +161,21 @@ namespace pulsarDb {
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
     os << std::right;
-    os.prefix().width(14); os << "PB = " << m_par[PB] << std::endl;
-    os.prefix().width(14); os << "PBDOT = " << m_par[PBDOT] << std::endl;
-    os.prefix().width(14); os << "A1 = " << m_par[A1] << std::endl;
-    os.prefix().width(14); os << "XDOT = " << m_par[XDOT] << std::endl;
-    os.prefix().width(14); os << "ECC = " << m_par[ECC] << std::endl;
-    os.prefix().width(14); os << "ECCDOT = " << m_par[ECCDOT] << std::endl;
-    os.prefix().width(14); os << "OM = " << m_par[OM] << std::endl;
-    os.prefix().width(14); os << "OMDOT = " << m_par[OMDOT] << std::endl;
-    os.prefix().width(14); os << "T0 = " << m_par[T0] << std::endl;
-    os.prefix().width(14); os << "GAMMA = " << m_par[GAMMA] << std::endl;
-    os.prefix().width(14); os << "SHAPIRO_R = " << m_par[SHAPIRO_R] << std::endl;
-    os.prefix().width(14); os << "SHAPIRO_S = " << m_par[SHAPIRO_S];
+    os.prefix().width(14); os << "PB = " << m_pb << std::endl;
+    os.prefix().width(14); os << "PBDOT = " << m_pb_dot << std::endl;
+    os.prefix().width(14); os << "A1 = " << m_a1 << std::endl;
+    os.prefix().width(14); os << "XDOT = " << m_x_dot << std::endl;
+    os.prefix().width(14); os << "ECC = " << m_ecc << std::endl;
+    os.prefix().width(14); os << "ECCDOT = " << m_ecc_dot << std::endl;
+    os.prefix().width(14); os << "OM = " << m_om << std::endl;
+    os.prefix().width(14); os << "OMDOT = " << m_om_dot << std::endl;
+    MjdRep mjd_rep(m_system->getName(), 0, 0.);
+    mjd_rep = m_t0;
+    double dbl_t0 = mjd_rep.getValue().getDouble();
+    os.prefix().width(14); os << "T0 = " << dbl_t0 << std::endl;
+    os.prefix().width(14); os << "GAMMA = " << m_gamma << std::endl;
+    os.prefix().width(14); os << "SHAPIRO_R = " << m_shapiro_r << std::endl;
+    os.prefix().width(14); os << "SHAPIRO_S = " << m_shapiro_s;
     os.flags(orig_flags);
     os.precision(orig_prec);
     return os;
@@ -222,10 +188,10 @@ namespace pulsarDb {
     double delta_second = calcElapsedSecond(ev_time);
 
     // Compute the time difference as a fraction of the period.
-    double delta_period = delta_second / m_par[PB];
+    double delta_period = delta_second / m_pb;
 
     // Compute the complete phase.
-    double phase = delta_period * (1. - delta_period * m_par[PBDOT] / 2.0);
+    double phase = delta_period * (1. - delta_period * m_pb_dot / 2.0);
 
     // Express phase as a value between 0. and 1., after adding a global phase offset.
     double int_part; // ignored, needed for modf.
@@ -239,12 +205,12 @@ namespace pulsarDb {
     double delta_second = calcElapsedSecond(ev_time);
 
     // calculate mean anomaly
-    double delta_period = delta_second / m_par[PB];
+    double delta_period = delta_second / m_pb;
     double mean_anomaly = SimpleDdEph::s_two_pi * delta_period
-      * (1. - delta_period * m_par[PBDOT] / 2.0);
+      * (1. - delta_period * m_pb_dot / 2.0);
 
     // solve Kepler's equasion
-    double eccen = m_par[ECC] + m_par[ECCDOT] * delta_second; // eccentricity
+    double eccen = m_ecc + m_ecc_dot * delta_second; // eccentricity
     double eccen_anomaly = 0.0; // eccentric anomaly
     int status = atKepler(mean_anomaly, eccen, &eccen_anomaly);
 
@@ -261,19 +227,19 @@ namespace pulsarDb {
     while ((eccen_anomaly - true_anomaly) > SimpleDdEph::s_one_pi) true_anomaly += SimpleDdEph::s_two_pi;
 
     // compute periastron longitude
-    double omega = m_par[OM]
-      + m_par[OMDOT] * true_anomaly * m_par[PB] / SimpleDdEph::s_two_pi;
+    double omega = m_om
+      + m_om_dot * true_anomaly * m_pb / SimpleDdEph::s_two_pi;
 
     // compute projected semimajor axis
-    double semiax = m_par[A1] + m_par[XDOT] * delta_second;
+    double semiax = m_a1 + m_x_dot * delta_second;
 
     // compute time delays due to orbital motion
     double roemer_frac = std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
       + std::sqrt(1.0 - eccen*eccen) * std::cos(omega) * std::sin(eccen_anomaly);
     double roemer = semiax * roemer_frac;
-    double einstein = m_par[GAMMA] * std::sin(eccen_anomaly);
-    double shapiro = - 2.0 * m_par[SHAPIRO_R]
-      * std::log(1.0 - eccen*std::cos(eccen_anomaly) - m_par[SHAPIRO_S]*roemer_frac);
+    double einstein = m_gamma * std::sin(eccen_anomaly);
+    double shapiro = - 2.0 * m_shapiro_r
+      * std::log(1.0 - eccen*std::cos(eccen_anomaly) - m_shapiro_s*roemer_frac);
 
     // return total delay
     return ElapsedTime(m_system->getName(), Duration(0, roemer + einstein + shapiro));
