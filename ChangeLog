@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar  7 15:56:10 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Remove unnecessary function, IsNotANumber. Remove unnecessary qualifier timeSystem::
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar  7 15:52:10 PST 2008
 pulsarDb/pulsarDb
 
