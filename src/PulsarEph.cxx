@@ -16,23 +16,9 @@
 
 using namespace timeSystem;
 
-namespace {
-
-  // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
-  // TODO: Consider use of IsNotANumber in PulsarEph creation, in order to handle INDEF's properly.
-  inline bool IsNotANumber(double x) {
-#ifdef WIN32
-    return 0 != _isnan(x);
-#else
-    return 0 != std::isnan(x);
-#endif
-  }
-
-}
-
 namespace pulsarDb {
 
-  double PulsarEph::calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
+  double PulsarEph::calcPulsePhase(const AbsoluteTime & ev_time, double phase_offset) const {
     // Compute the cycle count (which includes the iteger part of pulse phase).
     double cycle_count = calcCycleCount(ev_time);
 
@@ -74,7 +60,7 @@ namespace pulsarDb {
   }
 
   FrequencyEph::FrequencyEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
-    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_since("TDB", Duration(0, 0.), Duration(0, 0.)),
+    m_system(&TimeSystem::getSystem("TDB")), m_since("TDB", Duration(0, 0.), Duration(0, 0.)),
     m_until("TDB", Duration(0, 0.), Duration(0, 0.)), m_epoch("TDB", Duration(0, 0.), Duration(0, 0.)), m_ra(0.), m_dec(0.),
     m_phi0(0.), m_f0(0.), m_f1(0.), m_f2(0.) {
     // Epoch and toa are split into int and frac parts.
@@ -148,14 +134,14 @@ namespace pulsarDb {
     os << format("P2",   m_p2);
   }
 
-  double FrequencyEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
+  double FrequencyEph::calcCycleCount(const AbsoluteTime & ev_time) const {
     double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
     double cycle_count = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
     return cycle_count;
   }
 
-  double PeriodEph::calcCycleCount(const timeSystem::AbsoluteTime & ev_time) const {
+  double PeriodEph::calcCycleCount(const AbsoluteTime & ev_time) const {
     // TODO: Compute pulse phase directly from p0, p1, and p2, using indefinite integral of ax^2+bx+c.
     double f0 = 1. / m_p0;
     double f1 = - m_p1 / (m_p0 * m_p0);
@@ -168,7 +154,7 @@ namespace pulsarDb {
     return cycle_count;
   }
 
-  double FrequencyEph::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
+  double FrequencyEph::calcFrequency(const AbsoluteTime & ev_time, int derivative_order) const {
     double return_value = 0.;
     if (0 == derivative_order) {
       double dt = calcElapsedSecond(ev_time);
@@ -184,7 +170,7 @@ namespace pulsarDb {
     return return_value;
   }
 
-  double PeriodEph::calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order) const {
+  double PeriodEph::calcFrequency(const AbsoluteTime & ev_time, int derivative_order) const {
     double return_value = 0.;
 
     // TODO: Compute frequency (or its derivative) directly from p0, p1, and p2, using generic formula (Bell's polynomial?).
@@ -206,11 +192,11 @@ namespace pulsarDb {
     return return_value;
   }
 
-  std::pair<double, double> FrequencyEph::calcSkyPosition(const timeSystem::AbsoluteTime & /* ev_time */) const {
+  std::pair<double, double> FrequencyEph::calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
     return std::make_pair(m_ra, m_dec);
   }
 
-  std::pair<double, double> PeriodEph::calcSkyPosition(const timeSystem::AbsoluteTime & /* ev_time */) const {
+  std::pair<double, double> PeriodEph::calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
     return std::make_pair(m_ra, m_dec);
   }
 }
