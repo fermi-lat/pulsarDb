@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "pulsarDb/FormattedEph.h"
+
 #include "st_stream/Stream.h"
 #include "tip/Table.h"
 
@@ -27,7 +29,7 @@ namespace pulsarDb {
   /** \class PulsarEph
       \brief Base class representing a single pulsar ephemeris.
   */
-  class PulsarEph {
+  class PulsarEph: public FormattedEph {
     public:
       virtual ~PulsarEph() {}
 
@@ -89,67 +91,9 @@ namespace pulsarDb {
 
       /// \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
       virtual void writeModelParameter(st_stream::OStream & os) const = 0;
-
-      /** \class ParameterFormatter
-          \brief Class that formats parameter value listing in a text output. This class is desgined to be used for the shift
-                 operator (<<) for PulsarEph class. All subclasses of PulsarEph should use this in their writeModelParameter
-                 method for unified appearance of their parameter lists.
-      */
-      template <typename ParameterType>
-      struct ParameterFormatter {
-        ParameterFormatter(const std::string & param_name, const ParameterType & param_obj): m_name(param_name),
-          m_obj(&param_obj) {}
-
-        inline st_stream::OStream & write(st_stream::OStream & os) const {
-          os.prefix().width(14); os << m_name + " = " << *m_obj;
-          return os;
-        }
-
-        std::string m_name;
-        const ParameterType * m_obj;
-      };
-
-      /** \brief Return a ParameterFormatter object to be used to format a text output of a given parameter.
-          \param param_name Name of parameter to appear in a formatted text output.
-          \param param_obj Object that holds the parameter value to output. The object must support a shift operator (<<)
-                 for st_stream::OStream.
-      */
-      template <typename ParameterType>
-      ParameterFormatter<ParameterType> format(const std::string & param_name, const ParameterType & param_obj) const {
-        return ParameterFormatter<ParameterType>(param_name, param_obj);
-      }
-
-      // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
-      /** \brief Helper method to get a value from a cell, returning it as a double, and handling the
-          case where the value is null.
-          \param cell The cell whose value to get.
-      */
-      inline double get(const tip::TableCell & cell) const {
-        double value = 0.;
-        get(cell, value);
-        return value;
-      }
-
-      // TODO: Avoid duplication of these get methods (another copy is in OrbitalEph.h).
-      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
-          case where the value is null.
-          \param cell The cell whose value to get.
-          \param value Variable to store the value.
-      */
-      template <typename T>
-      inline void get(const tip::TableCell & cell, T & value) const {
-        // WARNING: This will break for a string column.
-        if (cell.isNull()) value = 0;
-        else cell.get(value);
-      }
   };
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) { return eph.write(os); }
-
-  template <typename ParameterType>
-  inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph::ParameterFormatter<ParameterType> & fmt) {
-    return fmt.write(os);
-  }
 
   /** \class FrequencyEph
       \brief Class representing a single pulsar ephemeris expressed with three frequency coefficients.
