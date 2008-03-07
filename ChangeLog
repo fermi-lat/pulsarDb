@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar  7 15:52:10 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Added Files:
+	FormattedEph.h 
+Log Message:
+Add FormattedEph class for PulsarEph and OrbitalEph to share reading and writing of ephemerides.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar  6 16:10:34 PST 2008
 pulsarDb/src
 
