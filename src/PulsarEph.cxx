@@ -70,10 +70,10 @@ namespace pulsarDb {
     double toa_frac = 0.;
 
     // Read the separate parts from the file.
-    get(record["EPOCH_INT"], epoch_int);
-    get(record["EPOCH_FRAC"], epoch_frac);
-    get(record["TOABARY_INT"], toa_int);
-    get(record["TOABARY_FRAC"], toa_frac);
+    read(record, "EPOCH_INT", epoch_int, 0L);
+    read(record, "EPOCH_FRAC", epoch_frac, 0.);
+    read(record, "TOABARY_INT", toa_int, 0L);
+    read(record, "TOABARY_FRAC", toa_frac, 0.);
 
     // Combine separate parts of epoch and toa to get single values.
     m_epoch = AbsoluteTime(MjdRep("TDB", epoch_int, epoch_frac));
@@ -81,7 +81,7 @@ namespace pulsarDb {
 
     // TODO Handle valid since is indef.
     long valid_since_date = 0;
-    get(record["VALID_SINCE"], valid_since_date);
+    read(record, "VALID_SINCE", valid_since_date, 0L);
 
     m_since = AbsoluteTime(MjdRep("TDB", valid_since_date, 0.));
 
@@ -89,14 +89,14 @@ namespace pulsarDb {
     // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
     // TODO Handle valid_until is indef.
     long valid_until_date = 0;
-    get(record["VALID_UNTIL"], valid_until_date);
+    read(record, "VALID_UNTIL", valid_until_date, 0L);
     m_until = AbsoluteTime(MjdRep("TDB", valid_until_date + 1, 0.));
 
-    m_ra = get(record["RA"]);
-    m_dec = get(record["Dec"]);
-    m_f0 = get(record["F0"]);
-    m_f1 = get(record["F1"]);
-    m_f2 = get(record["F2"]);
+    read(record, "RA",  m_ra , 0.);
+    read(record, "Dec", m_dec, 0.);
+    read(record, "F0",  m_f0 , 1.);
+    read(record, "F1",  m_f1 , 0.);
+    read(record, "F2",  m_f2 , 0.);
 
     // Create temporary copy of this ephemeris with phi0 == 0.
     FrequencyEph tmp("TDB", m_since, m_until, m_epoch, m_ra, m_dec, 0., m_f0, m_f1, m_f2);
