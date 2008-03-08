@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Mar  7 17:23:03 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Replace get method with more generalized read method.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Mar  7 17:23:03 PST 2008
 pulsarDb/pulsarDb
 
 Modified Files:
