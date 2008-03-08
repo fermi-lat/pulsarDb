@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar  7 17:23:03 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Replace get method with more generalized read method.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar  7 15:56:10 PST 2008
 pulsarDb/src
 
