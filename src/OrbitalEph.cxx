@@ -54,15 +54,6 @@ int atKepler(
     return NOT_CONVERGED;
 }
 
-  // TODO: Avoid duplication of these get methods (another copy is in PulsarEph.h).
-  inline bool IsNotANumber(double x) {
-#ifdef WIN32
-    return 0 != _isnan(x);
-#else
-    return 0 != std::isnan(x);
-#endif
-  }
-
 }
 
 namespace pulsarDb {
@@ -102,6 +93,21 @@ namespace pulsarDb {
 
   }
 
+  st_stream::OStream & OrbitalEph::write(st_stream::OStream & os) const {
+    // Save the original settings and set the prefered formats.
+    std::ios::fmtflags orig_flags = os.flags();
+    int orig_prec = os.precision(15);
+    os << std::right;
+
+    // Write subclass-specific parameters (delegated to subclass).
+    writeModelParameter(os);
+
+    // Restore the saved settings.
+    os.flags(orig_flags);
+    os.precision(orig_prec);
+    return os;
+  }
+
   const double SimpleDdEph::s_one_pi = M_PI;
   const double SimpleDdEph::s_two_pi = 2. * SimpleDdEph::s_one_pi;
   const double SimpleDdEph::s_rad_per_deg  = SimpleDdEph::s_one_pi / 180.;
@@ -121,33 +127,30 @@ namespace pulsarDb {
   SimpleDdEph::SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
     OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(0, 10.e-9)), 100),
     m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_t0("TDB", Duration(0, 0.), Duration(0, 0.)) {
-    m_pb = get(record["PB"]);
-    m_pb_dot = get(record["PBDOT"]);
-    m_a1 = get(record["A1"]);
-    m_x_dot = get(record["XDOT"]);
-    m_ecc = get(record["ECC"]);
-    m_ecc_dot = get(record["ECCDOT"]);
-    m_om = get(record["OM"]) * s_rad_per_deg;
-    m_om_dot = get(record["OMDOT"]) * s_rad_year_per_deg_sec;
-    double dbl_t0 = get(record["T0"]);
-    m_gamma = get(record["GAMMA"]);
-    m_shapiro_r = get(record["SHAPIRO_R"]) * s_sec_per_microsec;
-    m_shapiro_s = get(record["SHAPIRO_S"]);
-
-    // Handle any INDEFs.
-    if (IsNotANumber(m_pb) || IsNotANumber(m_a1) || IsNotANumber(m_ecc) || IsNotANumber(m_om) || IsNotANumber(dbl_t0)) {
-      throw std::runtime_error("SimpleDdEph: invalid orbital ephemeris passed to the constructor");
-    }
-    if (IsNotANumber(m_pb_dot)) m_pb_dot = 0.;
-    if (IsNotANumber(m_x_dot)) m_x_dot = 0.;
-    if (IsNotANumber(m_ecc_dot)) m_ecc_dot = 0.;
-    if (IsNotANumber(m_om_dot)) m_om_dot = 0.;
-    if (IsNotANumber(m_gamma)) m_gamma = 0.;
-    if (IsNotANumber(m_shapiro_r)) m_shapiro_r = 0.;
-    if (IsNotANumber(m_shapiro_s)) m_shapiro_s = 0.;
+    // Get parameters from record.
+    // Required fields: PB, A1, ECC, OM, T0.
+    // Optional fields: PBDOT, XDOT, ECCDOT, OMDOT, GAMMA, SHAPIRO_R, SHAPIRO_S.
+    read(record, "PB",        m_pb);
+    read(record, "PBDOT",     m_pb_dot, 0.);
+    read(record, "A1",        m_a1);
+    read(record, "XDOT",      m_x_dot, 0.);
+    read(record, "ECC",       m_ecc);
+    read(record, "ECCDOT",    m_ecc_dot, 0.);
+    read(record, "OM",        m_om);
+    read(record, "OMDOT",     m_om_dot, 0.);
+    double dbl_t0 = 0.;
+    read(record, "T0",        dbl_t0);
+    read(record, "GAMMA",     m_gamma, 0.);
+    read(record, "SHAPIRO_R", m_shapiro_r, 0.);
+    read(record, "SHAPIRO_S", m_shapiro_s, 0.);
 
     // Create an AbsoluteTime object from the value of "T0" column.
     m_t0 = timeSystem::AbsoluteTime("TDB", Duration(IntFracPair(dbl_t0), Day), Duration(0, 0.));
+
+    // Adjust units.
+    m_om *= s_rad_per_deg;
+    m_om_dot *= s_rad_year_per_deg_sec;
+    m_shapiro_r *= s_sec_per_microsec;
   }
 
   SimpleDdEph::~SimpleDdEph() {}
@@ -156,29 +159,22 @@ namespace pulsarDb {
     return (at - m_t0).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
   }
 
-  // TODO: Can this part be unified to PulsarEph::write?
-  st_stream::OStream & SimpleDdEph::write(st_stream::OStream & os) const {
-    std::ios::fmtflags orig_flags = os.flags();
-    int orig_prec = os.precision(15);
-    os << std::right;
-    os.prefix().width(14); os << "PB = " << m_pb << std::endl;
-    os.prefix().width(14); os << "PBDOT = " << m_pb_dot << std::endl;
-    os.prefix().width(14); os << "A1 = " << m_a1 << std::endl;
-    os.prefix().width(14); os << "XDOT = " << m_x_dot << std::endl;
-    os.prefix().width(14); os << "ECC = " << m_ecc << std::endl;
-    os.prefix().width(14); os << "ECCDOT = " << m_ecc_dot << std::endl;
-    os.prefix().width(14); os << "OM = " << m_om << std::endl;
-    os.prefix().width(14); os << "OMDOT = " << m_om_dot << std::endl;
+  void SimpleDdEph::writeModelParameter(st_stream::OStream & os) const {
+    os << format("PB",        m_pb)        << std::endl;
+    os << format("PBDOT",     m_pb_dot)    << std::endl;
+    os << format("A1",        m_a1)        << std::endl;
+    os << format("XDOT",      m_x_dot)     << std::endl;
+    os << format("ECC",       m_ecc)       << std::endl;
+    os << format("ECCDOT",    m_ecc_dot)   << std::endl;
+    os << format("OM",        m_om)        << std::endl;
+    os << format("OMDOT",     m_om_dot)    << std::endl;
     MjdRep mjd_rep(m_system->getName(), 0, 0.);
     mjd_rep = m_t0;
     double dbl_t0 = mjd_rep.getValue().getDouble();
-    os.prefix().width(14); os << "T0 = " << dbl_t0 << std::endl;
-    os.prefix().width(14); os << "GAMMA = " << m_gamma << std::endl;
-    os.prefix().width(14); os << "SHAPIRO_R = " << m_shapiro_r << std::endl;
-    os.prefix().width(14); os << "SHAPIRO_S = " << m_shapiro_s;
-    os.flags(orig_flags);
-    os.precision(orig_prec);
-    return os;
+    os << format("T0",        dbl_t0)      << std::endl;
+    os << format("GAMMA",     m_gamma)     << std::endl;
+    os << format("SHAPIRO_R", m_shapiro_r) << std::endl;
+    os << format("SHAPIRO_S", m_shapiro_s);
   }
 
   OrbitalEph * SimpleDdEph::clone() const { return new SimpleDdEph(*this); }

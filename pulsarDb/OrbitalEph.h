@@ -9,6 +9,8 @@
 #include "st_stream/Stream.h"
 #include "tip/Table.h"
 
+#include "pulsarDb/FormattedEph.h"
+
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"
 
@@ -21,10 +23,8 @@ namespace tip {
 
 namespace pulsarDb {
 
-  class OrbitalEph {
+  class OrbitalEph: public FormattedEph {
     public:
-      OrbitalEph(const timeSystem::ElapsedTime & tolerance, int max_iteration);
-
       void modulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
       void demodulateBinary(timeSystem::AbsoluteTime & ev_time) const;
@@ -35,9 +35,17 @@ namespace pulsarDb {
 
       virtual timeSystem::ElapsedTime calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
+      /// \brief Create a copy of this object.
       virtual OrbitalEph * clone() const = 0;
 
-      virtual st_stream::OStream & write(st_stream::OStream & os) const = 0;
+      /// \brief Output text expression of this PulsarEph to a given output stream.
+      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+
+    protected:
+      OrbitalEph(const timeSystem::ElapsedTime & tolerance, int max_iteration);
+
+      /// \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
+      virtual void writeModelParameter(st_stream::OStream & os) const = 0;
 
     private:
       timeSystem::ElapsedTime m_tolerance;
@@ -75,34 +83,12 @@ namespace pulsarDb {
 
       virtual OrbitalEph * clone() const;
 
-      virtual st_stream::OStream & write(st_stream::OStream & os) const;
+    protected:
+      /// \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
+      virtual void writeModelParameter(st_stream::OStream & os) const;
 
     private:
       virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const;
-
-      // TODO: Avoid duplication of these get methods (another copy is in PulsarEph.h).
-      /** \brief Helper method to get a value from a cell, returning it as a double, and handling the
-          case where the value is null.
-          \param cell The cell whose value to get.
-      */
-      inline double get(const tip::TableCell & cell) const {
-        double value = 0.;
-        get(cell, value);
-        return value;
-      }
-
-      // TODO: Avoid duplication of these get methods (another copy is in PulsarEph.h).
-      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
-          case where the value is null.
-          \param cell The cell whose value to get.
-          \param value Variable to store the value.
-      */
-      template <typename T>
-      inline void get(const tip::TableCell & cell, T & value) const {
-        // WARNING: This will break for a string column.
-        if (cell.isNull()) value = 0;
-        else cell.get(value);
-      }
 
       const timeSystem::TimeSystem * m_system;
       double m_pb, m_pb_dot;
