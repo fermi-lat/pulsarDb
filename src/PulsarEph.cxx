@@ -30,14 +30,18 @@ namespace pulsarDb {
   }
 
   st_stream::OStream & PulsarEph::write(st_stream::OStream & os) const {
+    // Save the original settings and set the prefered formats.
     std::ios::fmtflags orig_flags = os.flags();
     int orig_prec = os.precision(15);
     os << std::right;
-    os.prefix().width(14);
+
+    // Prepare for MJD expression of time.
     std::string time_system_name = getSystem().getName();
     MjdRep mjd_rep(time_system_name, 0, 0.);
 
+    // Write validity window.
     // Note: below, break into two consecutive strings so that width applies to first part only.
+    os.prefix().width(14);
     if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
       mjd_rep = getValidSince();
       os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
@@ -47,8 +51,6 @@ namespace pulsarDb {
       mjd_rep = getValidSince();
       os << "Validity : " << "only at time " << mjd_rep << std::endl;
     }
-    mjd_rep = getEpoch();
-    os << format("Epoch", mjd_rep) << std::endl;
 
     // Write subclass-specific parameters (delegated to subclass).
     writeModelParameter(os);
@@ -69,32 +71,34 @@ namespace pulsarDb {
     long toa_int = 0;
     double toa_frac = 0.;
 
-    // Read the separate parts from the file.
-    read(record, "EPOCH_INT", epoch_int, 0L);
+    // Read reference epoch and pulse TOA (integer parts required, fractional parts optional).
+    read(record, "EPOCH_INT", epoch_int);
     read(record, "EPOCH_FRAC", epoch_frac, 0.);
-    read(record, "TOABARY_INT", toa_int, 0L);
+    read(record, "TOABARY_INT", toa_int);
     read(record, "TOABARY_FRAC", toa_frac, 0.);
 
     // Combine separate parts of epoch and toa to get single values.
     m_epoch = AbsoluteTime(MjdRep("TDB", epoch_int, epoch_frac));
     AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
 
+    // Read the start time of validity window (required).
     // TODO Handle valid since is indef.
     long valid_since_date = 0;
-    read(record, "VALID_SINCE", valid_since_date, 0L);
-
+    read(record, "VALID_SINCE", valid_since_date);
     m_since = AbsoluteTime(MjdRep("TDB", valid_since_date, 0.));
 
-    // One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
+    // Read the end time of validity window (required).
+    // Note: One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
     // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
     // TODO Handle valid_until is indef.
     long valid_until_date = 0;
-    read(record, "VALID_UNTIL", valid_until_date, 0L);
+    read(record, "VALID_UNTIL", valid_until_date);
     m_until = AbsoluteTime(MjdRep("TDB", valid_until_date + 1, 0.));
 
-    read(record, "RA",  m_ra , 0.);
-    read(record, "Dec", m_dec, 0.);
-    read(record, "F0",  m_f0 , 1.);
+    // Read the sky position and frequency coefficients (RA, Dec, F0: required, F1, F2: optional).
+    read(record, "RA",  m_ra);
+    read(record, "Dec", m_dec);
+    read(record, "F0",  m_f0);
     read(record, "F1",  m_f1 , 0.);
     read(record, "F2",  m_f2 , 0.);
 
@@ -117,21 +121,27 @@ namespace pulsarDb {
   }
 
   void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {
-    os << format("RA",   m_ra)   << std::endl;
-    os << format("Dec",  m_dec)  << std::endl;
-    os << format("Phi0", m_phi0) << std::endl;
-    os << format("F0",   m_f0)   << std::endl;
-    os << format("F1",   m_f1)   << std::endl;
-    os << format("F2",   m_f2);
+    MjdRep mjd_rep(m_system->getName(), 0, 0.);
+    mjd_rep = m_epoch;
+    os << format("Epoch", mjd_rep) << std::endl;
+    os << format("RA",    m_ra)    << std::endl;
+    os << format("Dec",   m_dec)   << std::endl;
+    os << format("Phi0",  m_phi0)  << std::endl;
+    os << format("F0",    m_f0)    << std::endl;
+    os << format("F1",    m_f1)    << std::endl;
+    os << format("F2",    m_f2);
   }
 
   void PeriodEph::writeModelParameter(st_stream::OStream & os) const {
-    os << format("RA",   m_ra)   << std::endl;
-    os << format("Dec",  m_dec)  << std::endl;
-    os << format("Phi0", m_phi0) << std::endl;
-    os << format("P0",   m_p0)   << std::endl;
-    os << format("P1",   m_p1)   << std::endl;
-    os << format("P2",   m_p2);
+    MjdRep mjd_rep(m_system->getName(), 0, 0.);
+    mjd_rep = m_epoch;
+    os << format("Epoch", mjd_rep) << std::endl;
+    os << format("RA",    m_ra)    << std::endl;
+    os << format("Dec",   m_dec)   << std::endl;
+    os << format("Phi0",  m_phi0)  << std::endl;
+    os << format("P0",    m_p0)    << std::endl;
+    os << format("P1",    m_p1)    << std::endl;
+    os << format("P2",    m_p2);
   }
 
   double FrequencyEph::calcCycleCount(const AbsoluteTime & ev_time) const {
