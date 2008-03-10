@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 10 15:32:31 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Use FomattedEph. Remove get methods. Restructure write method.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 10 15:31:35 PDT 2008
 pulsarDb/pulsarDb
 
