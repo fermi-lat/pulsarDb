@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 10 15:31:35 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Make all methods protected. Restructure INDEF handling.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar  7 17:23:03 PST 2008
 pulsarDb/src
 
