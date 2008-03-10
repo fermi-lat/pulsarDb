@@ -45,7 +45,7 @@ namespace pulsarDb {
       \brief Class that provides helper functions for reading and writing pulsar ephemerides, both spin and orbital.
   */
   class FormattedEph {
-    public:
+    protected:
       /** \brief Return a ParameterFormatter object to be used to format a text output of a given parameter.
           \param param_name Name of parameter to appear in a formatted text output.
           \param param_obj Object that holds the parameter value to output. The object must support a shift operator (<<)
@@ -71,8 +71,8 @@ namespace pulsarDb {
         if (cell.isNull()) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" is null");
         else cell.get(data_value);
 
-        // Check the cell content for Not-A-Number type of data.
-        if (IsNotAValue(data_value)) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" contains Not-A-Value");
+        // Throw an exception if the cell content is INDEF or not.
+        if (isINDEF(data_value)) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" contains INDEF");
       }
 
       /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
@@ -93,16 +93,19 @@ namespace pulsarDb {
       }
 
     private:
-      /** \brief Helper method to check whether a given templated data is a valid value.
+      /** \brief Helper method to check whether a given templated data is an INDEF.
           \param x The data to be examined.
       */
       template <typename DataType>
-      inline bool IsNotAValue(DataType /* x */) { return false; }
+      inline bool isINDEF(DataType /* data_value */) { return false; }
 
-      /** \brief Specialized helper method to check whether a given double variable is Not-A-Number.
+      // TODO: Write specializations for other floating-point and integral types.
+      inline bool isINDEF(double data_value) { return IsNotANumber(data_value); }
+
+      /** \brief Helper method to check whether a given double variable is Not-A-Number.
           \param x The data to be examined.
       */
-      inline bool IsNotAValue(double x) {
+      inline bool IsNotANumber(double x) {
 #ifdef WIN32
         return 0 != _isnan(x);
 #else
