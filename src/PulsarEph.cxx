@@ -4,6 +4,7 @@
              James Peachey, HEASARC/GSSC
 */
 #include <iomanip>
+#include <limits>
 
 #include "pulsarDb/PulsarEph.h"
 
@@ -32,7 +33,7 @@ namespace pulsarDb {
   st_stream::OStream & PulsarEph::write(st_stream::OStream & os) const {
     // Save the original settings and set the prefered formats.
     std::ios::fmtflags orig_flags = os.flags();
-    int orig_prec = os.precision(15);
+    int orig_prec = os.precision(std::numeric_limits<double>::digits10);
     os << std::right;
 
     // Prepare for MJD expression of time.
@@ -40,17 +41,10 @@ namespace pulsarDb {
     MjdRep mjd_rep(time_system_name, 0, 0.);
 
     // Write validity window.
-    // Note: below, break into two consecutive strings so that width applies to first part only.
-    os.prefix().width(14);
-    if (!getValidSince().equivalentTo(getValidUntil(), ElapsedTime(time_system_name, Duration(0, 1.e-9)))) {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "in range " << "[" << mjd_rep << ", ";
-      mjd_rep = getValidUntil();
-      os << mjd_rep << ")" << std::endl;
-    } else {
-      mjd_rep = getValidSince();
-      os << "Validity : " << "only at time " << mjd_rep << std::endl;
-    }
+    mjd_rep = getValidSince();
+    os << format("Valid Since", mjd_rep, " : ") << std::endl;
+    mjd_rep = getValidUntil();
+    os << format("Valid Until", mjd_rep, " : ") << std::endl;
 
     // Write subclass-specific parameters (delegated to subclass).
     writeModelParameter(os);
