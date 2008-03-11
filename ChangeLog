@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 10 17:11:50 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Use numeric_limits instead of hard-coded 15 for the field width. Improve format of writing validity window for clarify.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 10 17:11:05 PDT 2008
 pulsarDb/src
 
