@@ -25,15 +25,17 @@ namespace pulsarDb {
   */
   template <typename DataType>
   struct ParameterFormatter {
-    ParameterFormatter(const std::string & param_name, const DataType & param_obj): m_name(param_name), m_obj(&param_obj) {}
+    ParameterFormatter(const std::string & param_name, const DataType & param_obj, const std::string & separator):
+      m_name(param_name), m_obj(&param_obj), m_separator(separator) {}
 
     inline st_stream::OStream & write(st_stream::OStream & os) const {
-      os.prefix().width(14); os << m_name + " = " << *m_obj;
+      os.prefix().width(16); os << m_name << m_separator << *m_obj;
       return os;
     }
 
     std::string m_name;
     const DataType * m_obj;
+    std::string m_separator;
   };
 
   template <typename DataType>
@@ -52,8 +54,9 @@ namespace pulsarDb {
                  for st_stream::OStream.
       */
       template <typename DataType>
-      inline ParameterFormatter<DataType> format(const std::string & param_name, const DataType & param_obj) const {
-        return ParameterFormatter<DataType>(param_name, param_obj);
+      inline ParameterFormatter<DataType> format(const std::string & param_name, const DataType & param_obj,
+        const std::string & separator = " = ") const {
+        return ParameterFormatter<DataType>(param_name, param_obj, separator);
       }
 
       /** \brief Helper method to get a value from a cell, returning it as the temmplated type, without handling the
