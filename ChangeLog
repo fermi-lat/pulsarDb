@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 10 17:08:37 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Add a separator as an argument. Widen the name field.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 10 15:33:35 PDT 2008
 pulsarDb/src
 
