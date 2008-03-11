@@ -14,7 +14,9 @@
 #include "timeSystem/TimeSystem.h"
 
 #include <cctype>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -106,20 +108,37 @@ namespace pulsarDb {
 
     // Report the calculated spin ephemeris, provided at least a spin ephemeris was found above.
     if (found_pulsar_eph) {
+      // Choose the best ephemeris for the given time.
+      const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
+
+      // Compute extrapolated ephemeris.
+      std::pair<double, double> ra_dec;
+      double phi0 = 0.;
+      double f0 = 0.;
+      double f1 = 0.;
+      double f2 = 0.;
+      bool computed_ok = false;
       try {
-        // TODO: Is this "try" close too long?
-        const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
-        std::string system_name = chosen_eph.getSystem().getName();
-        std::pair<double, double> ra_dec = chosen_eph.calcSkyPosition(abs_ref_time);
-        double phi0 = chosen_eph.calcPulsePhase(abs_ref_time);
-        double f0 = chosen_eph.calcFrequency(abs_ref_time, 0);
-        double f1 = chosen_eph.calcFrequency(abs_ref_time, 1);
-        double f2 = chosen_eph.calcFrequency(abs_ref_time, 2);
-        FrequencyEph eph(system_name, abs_ref_time, abs_ref_time, abs_ref_time, ra_dec.first, ra_dec.second, phi0, f0, f1, f2);
-        // TODO: Write text output without using FrequencyEph's shift operator.
-        m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time is:" << std::endl << eph << std::endl;
+        ra_dec = chosen_eph.calcSkyPosition(abs_ref_time);
+        phi0 = chosen_eph.calcPulsePhase(abs_ref_time);
+        f0 = chosen_eph.calcFrequency(abs_ref_time, 0);
+        f1 = chosen_eph.calcFrequency(abs_ref_time, 1);
+        f2 = chosen_eph.calcFrequency(abs_ref_time, 2);
+        computed_ok = true;
       } catch (const std::exception & x) {
         m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
+      }
+
+      // Print computed ephemeris.
+      if (computed_ok) {
+        m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time is:" << std::endl;
+        m_os.out().precision(std::numeric_limits<double>::digits10);
+        m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra_dec.first << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << ra_dec.second << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Pulse Phase : " << phi0 << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Pulse Frequency (Hz) : " << f0 << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "1st Derivative (Hz/s) : " << f1 << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "2nd Derivative (Hz/s/s) : " << f1 << std::endl;
       }
     }
   }
