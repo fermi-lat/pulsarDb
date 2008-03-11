@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 10 17:10:10 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Improve text output for clarify for handling of multiple ephemeris models.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 10 17:08:37 PDT 2008
 pulsarDb/pulsarDb
 
