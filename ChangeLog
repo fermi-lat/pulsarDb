@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 10 17:11:05 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx 
+Log Message:
+Use numeric_limits instead of hard-coded 15 for the field width. Add the file header (cosmetic only).
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 10 17:10:10 PDT 2008
 pulsarDb/src
 
