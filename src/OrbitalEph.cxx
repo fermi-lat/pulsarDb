@@ -1,4 +1,10 @@
+/** \file OrbitalEph.cxx
+    \brief Implementation of the OrbitalEph class.
+    \authors Masaharu Hirayama, GSSC,
+             James Peachey, HEASARC/GSSC
+*/
 #include <cmath>
+#include <limits>
 #include <iomanip>
 
 #include "pulsarDb/OrbitalEph.h"
@@ -96,7 +102,7 @@ namespace pulsarDb {
   st_stream::OStream & OrbitalEph::write(st_stream::OStream & os) const {
     // Save the original settings and set the prefered formats.
     std::ios::fmtflags orig_flags = os.flags();
-    int orig_prec = os.precision(15);
+    int orig_prec = os.precision(std::numeric_limits<double>::digits10);
     os << std::right;
 
     // Write subclass-specific parameters (delegated to subclass).
