@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Mar 15 19:54:45 PDT 2008
+pulsarDb/data/outref
+
+Removed Files:
+	crab_twice.fits 
+Log Message:
+No longer used in the unit test.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Mar 15 19:52:33 PDT 2008
 pulsarDb/src/test
 
