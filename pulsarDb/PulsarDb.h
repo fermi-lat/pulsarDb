@@ -15,6 +15,7 @@
 
 #include "tip/FileSummary.h"
 #include "tip/Table.h"
+#include "tip/TipFile.h"
 
 namespace tip {
   class Extension;
@@ -59,15 +60,19 @@ namespace pulsarDb {
     public:
       typedef std::vector<tip::Table *> TableCont;
 
-      /** \brief Create a data base access object for the given ephermerides db file.
-                 This opens a copy of the file in memory. The version on disk will be
-                 unaffected.
-          \param in_file The input file name.
+      /** \brief Create a data base object for the given FITS template file.
+          \param tpl_file The name of the FITS template file used to create the file in memory.
           \param edit_in_place Changes will affect input file.
       */
-      PulsarDb(const std::string & in_file, bool edit_in_place = false);
+      PulsarDb(const std::string & tpl_file);
 
       virtual ~PulsarDb();
+
+      /** \brief Load ephemerides and related information from the given ephemerides database file.
+                 This copies the file in memory, and the version on disk will be unaffected.
+          \param in_file The name of the input ephemerides database file.
+      */
+      virtual void load(const std::string & in_file);
 
       /** \brief Filter the current database using the given row filtering expression. The filtering is
                  performed in place.
@@ -103,10 +108,12 @@ namespace pulsarDb {
                  For example, if none of the ephemerides are for binary pulsars, the output ORBITAL_PARAMETERS
                  table will not include any ephemerides.
           \param out_file The name of the output file.
-          \param tpl_file The name of the template file, only used if the output file does not already exist.
+          \param clobber If true, it overwrites the output file even if it already exists.  If no and the output file
+                 already exists, it throws an exception.
       */
-      virtual void save(const std::string & out_file, const std::string & tpl_file) const;
+      virtual void save(const std::string & out_file, bool clobber = false) const;
 
+      // TODO: Make updateKeywords private.
       void updateKeywords(tip::Extension & ext) const;
 
       /// \brief Get the currently selected container of spin (pulsar) ephemerides.
@@ -138,14 +145,26 @@ namespace pulsarDb {
         m_orbital_factory_cont[eph_style] = &EphFactory<OrbitalEph, EPHSTYLE>::getFactory();
       }
 
-    protected:
-      PulsarDb();
+    private:
+      typedef std::vector<std::string> ParsedLine;
+      typedef std::map<std::string, IEphFactory<PulsarEph> *> spin_factory_cont_type;
+      typedef std::map<std::string, IEphFactory<OrbitalEph> *> orbital_factory_cont_type;
 
-      /** \brief Load data tables from the associated pulsar ephemerides database file.
-          \param edit_in_place If true any filterings will affect the input file. If false, filtering
-          will take place on a copy of the file in memory only.
+      /** \brief Load ephemerides and related information from the given FITS file.
+          \param in_file The name of the input FITS file.
       */
-      virtual void loadTables(bool edit_in_place);
+      virtual void loadFits(const std::string & in_file);
+
+      /** \brief Load ephemerides and related information from the given TEXT file.
+          \param in_file The name of the input TEXT file.
+      */
+      virtual void loadText(const std::string & in_file);
+
+      /** \brief Helper method to parse a text line for loadText method.
+          \param line The line to parse (input).
+          \param parsed_line The parsed line (output).
+      */
+      virtual void parseLine(const char * line, ParsedLine & parsed_line);
 
       /** \brief Clean up all extensions based on current set of selected spin and orbital ephemerides. All
           information in the OBSERVERS and ALTERNATIVE_NAMES extension which is not associated with a pulsar
@@ -159,18 +178,14 @@ namespace pulsarDb {
       */
       virtual std::string createFilter(const std::string & field_name, const std::set<std::string> & values) const;
 
-      std::string m_in_file;
+      std::string m_tpl_file;
+      tip::TipFile m_tip_file;
       tip::FileSummary m_summary;
       TableCont m_all_table;
       TableCont m_spin_par_table;
       TableCont m_orbital_par_table;
       TableCont m_obs_code_table;
       TableCont m_psr_name_table;
-
-    private:
-      typedef std::map<std::string, IEphFactory<PulsarEph> *> spin_factory_cont_type;
-      typedef std::map<std::string, IEphFactory<OrbitalEph> *> orbital_factory_cont_type;
-
       spin_factory_cont_type m_spin_factory_cont;
       orbital_factory_cont_type m_orbital_factory_cont;
   };
