@@ -13,7 +13,6 @@
 
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarDbApp.h"
-#include "pulsarDb/TextPulsarDb.h"
 
 #include "st_app/AppParGroup.h"
 
@@ -68,64 +67,49 @@ namespace pulsarDb {
     // Find template file.
     m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarEph.tpl");
 
-    // Create output file, respecting clobber.
-    tip::IFileSvc::instance().createFile(out_file, m_tpl_file, pars["clobber"]);
+    // Check whether the output file already exists, when clobber is set to no.
+    bool clobber = pars["clobber"];
+    if (!clobber && tip::IFileSvc::instance().fileExists(out_file)) {
+      throw std::runtime_error("Output file \"" + out_file + "\" already exists");
+    }
 
     // Get contents of input file, which may be a list of files.
     st_facilities::FileSys::FileNameCont file_names = st_facilities::FileSys::expandFileList(in_file);
 
+    // Display an error message if no input files were found.
     if (file_names.empty()) throw std::runtime_error("No files were found matching input file \"" + in_file + "\"");
 
-    for (st_facilities::FileSys::FileNameCont::const_iterator itor = file_names.begin(); itor != file_names.end(); ++itor) {
-      // Create data base representation.
-      std::auto_ptr<PulsarDb> data_base(openDbFile(*itor));
+    // Create an empty pulsar ephemerides database, using the template file.
+    PulsarDb data_base(m_tpl_file);
 
-      // Write output.
-      data_base->save(out_file, m_tpl_file);
+    // Load input ephemerides.
+    for (st_facilities::FileSys::FileNameCont::const_iterator itor = file_names.begin(); itor != file_names.end(); ++itor) {
+      data_base.load(*itor);
     }
 
-    // Re-open the output file as the data_base object.
-    std::auto_ptr<PulsarDb> data_base(openDbFile(out_file, true));
-
+    // Filter ephemerides.
     if (filter == "name") {
       // Filter on pulsar name.
       std::string psr_name = pars["psrname"];
-      data_base->filterName(psr_name);
+      data_base.filterName(psr_name);
       
     } else if (filter == "time") {
       // Filter on time.
       double t_start = pars["tstart"];
       double t_stop = pars["tstop"];
-      data_base->filterInterval(t_start, t_stop);
+      data_base.filterInterval(t_start, t_stop);
 
     } else if (filter == "solareph") {
       // Filter on solar system ephemeris.
       std::string solar_eph = pars["solareph"];
-      data_base->filterSolarEph(solar_eph);
+      data_base.filterSolarEph(solar_eph);
     }
 
-    if (0 >= data_base->getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
+    // Display a warning message if no ephemerides are left after filtering.
+    if (0 >= data_base.getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
+
+    // Write output.
+    data_base.save(out_file, clobber);
   }
 
-  PulsarDb * PulsarDbApp::openDbFile(const std::string & in_file, bool edit_in_place) {
-    m_os.setMethod("openDbFile(const std::string &...)");
-    PulsarDb * data_base = 0;
-
-    // First try opening a tip file containing the ephemerides.
-    try {
-      data_base = new PulsarDb(in_file, edit_in_place);
-    } catch (const tip::TipException &) {
-      // Ignore an error; hope that maybe it is a text file.
-    }
-
-    // Next try opening it as a text file if there was a problem.
-    if (0 == data_base) {
-      try {
-        data_base = new TextPulsarDb(in_file, m_tpl_file);
-      } catch (const std::exception &) {
-        throw std::runtime_error("Could not open file " + in_file + " as either a FITS file or a text data file");
-      }
-    }
-    return data_base;
-  }
 }
