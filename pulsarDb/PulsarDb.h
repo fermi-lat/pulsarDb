@@ -113,9 +113,6 @@ namespace pulsarDb {
       */
       virtual void save(const std::string & out_file, bool clobber = false) const;
 
-      // TODO: Make updateKeywords private.
-      void updateKeywords(tip::Extension & ext) const;
-
       /// \brief Get the currently selected container of spin (pulsar) ephemerides.
       virtual void getEph(PulsarEphCont & cont) const;
 
