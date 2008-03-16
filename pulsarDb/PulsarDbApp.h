@@ -27,8 +27,6 @@ namespace pulsarDb {
 
       virtual void run();
 
-      PulsarDb * openDbFile(const std::string & in_file, bool edit_in_place = false);
-
     private:
       st_stream::StreamFormatter m_os;
       std::string m_tpl_file;

@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include "facilities/commonUtilities.h"
+
 #include "hoops/hoops_exception.h"
 
 #include "pulsarDb/EphChooser.h"
@@ -28,7 +30,6 @@
 #include "timeSystem/TimeRep.h"
 
 #include "tip/Header.h"
-#include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
 using namespace st_facilities;
@@ -295,9 +296,17 @@ namespace pulsarDb {
     }
 
     if (eph_style_uc == "DB" || m_tcmode_bin != SUPPRESSED) {
-      // Open the database.
+      // Create an empty pulsar ephemerides database, using template file.
+      std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"),
+        "PulsarEph.tpl");
+      PulsarDb database(tpl_file);
+
+      // Load the given ephemerides database(s).
       std::string psrdb_file = pars["psrdbfile"];
-      PulsarDb database(psrdb_file);
+      FileSys::FileNameCont file_name_cont = FileSys::expandFileList(psrdb_file);
+      for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
+        database.load(*itor);
+      }
 
       // Select only ephemerides for this pulsar.
       std::string psr_name = pars["psrname"];

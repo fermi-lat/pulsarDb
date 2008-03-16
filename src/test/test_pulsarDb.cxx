@@ -19,7 +19,6 @@
 #include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
-#include "pulsarDb/TextPulsarDb.h"
 
 #include "st_app/StApp.h"
 #include "st_app/StAppFactory.h"
@@ -112,7 +111,6 @@ class PulsarDbTest : public st_app::StApp {
   private:
     std::string m_data_dir;
     std::string m_in_file;
-    std::string m_out_file;
     std::string m_tpl_file;
 };
 
@@ -125,9 +123,6 @@ void PulsarDbTest::run() {
 
   // Find test file.
   m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4r1.fits");
-
-  // Output file.
-  m_out_file = "spud.fits";
 
   // Find template file.
   m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarEph.tpl");
@@ -159,7 +154,9 @@ void PulsarDbTest::testAlternateName() {
   std::string method_name = "testAlternateName";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
+
   // Guess who?
   database.filterName("CRab");
 
@@ -176,14 +173,15 @@ void PulsarDbTest::testAlternateName() {
 
   // Write this output to form basis for comparing future tests.
   remove("crab_db.fits");
-  database.save("crab_db.fits", m_tpl_file);
+  database.save("crab_db.fits");
 }
 
 void PulsarDbTest::testBadInterval() {
   std::string method_name = "testBadInterval";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   try {
     // Invalid interval, with start time later than stop time.
@@ -200,7 +198,8 @@ void PulsarDbTest::testChooser() {
   std::string method_name = "testChooser";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   std::string pulsar_name = "PSR J0139+5814";
 
@@ -214,7 +213,7 @@ void PulsarDbTest::testChooser() {
 
   // Write this output to form basis for comparing future tests.
   remove("chooser_db.fits");
-  database.save("chooser_db.fits", m_tpl_file);
+  database.save("chooser_db.fits");
 
   MjdRep mjd_tdb("TDB", 54012, .5);
   AbsoluteTime pick_time(mjd_tdb);
@@ -292,7 +291,8 @@ void PulsarDbTest::testChooser() {
 
   // Test choosing OrbitalEph.
   // Get new independent access to database, to keep independent from the tests above.
-  PulsarDb database2(m_in_file);
+  PulsarDb database2(m_tpl_file);
+  database2.load(m_in_file);
 
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
@@ -413,7 +413,8 @@ void PulsarDbTest::testExplicitName() {
   std::string method_name = "testExplicitName";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   // Filter a pulsar known to be present.
   database.filterName("PSr j0323+3944");
@@ -428,7 +429,8 @@ void PulsarDbTest::testExpression() {
   std::string method_name = "testExpression";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   // Filter using more complex criteria.
   database.filter("F2 != 0.");
@@ -440,14 +442,15 @@ void PulsarDbTest::testExpression() {
 
   // Test saving this for basis of comparing future test output.
   remove("f2not0_db.fits");
-  database.save("f2not0_db.fits", m_tpl_file);
+  database.save("f2not0_db.fits");
 }
 
 void PulsarDbTest::testNoOp() {
-  std::string method_name = "testExpression";
+  std::string method_name = "testNoOp";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   // Make sure the test data has expected size.
   int num_eph = database.getNumEph();
@@ -491,7 +494,8 @@ void PulsarDbTest::testTime() {
   std::string method_name = "testTime";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   // Give a time filter.
   database.filterInterval(53400., 53800.);
@@ -507,7 +511,8 @@ void PulsarDbTest::testSolarEph() {
   std::string method_name = "testSolarEph";
 
   // Create pulsar database object.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   // Give a time filter.
   database.filterSolarEph("JPL DE405");
@@ -685,40 +690,39 @@ void PulsarDbTest::testTimingModel() {
 void PulsarDbTest::testAppend() {
   std::string method_name = "testAppend";
 
-  PulsarDb database(facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits"));
+  PulsarDb database(m_tpl_file);
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits"));
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits"));
   remove("groD4-dc2v4_twice.fits");
-  database.save("groD4-dc2v4_twice.fits", m_tpl_file);
-  database.save("groD4-dc2v4_twice.fits", m_tpl_file);
+  database.save("groD4-dc2v4_twice.fits");
 }
 
 void PulsarDbTest::testTextPulsarDb() {
   std::string method_name = "testTextPulsarDb";
 
   // Ingest one of each type of table.
-  TextPulsarDb text_psrdb_spin(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_spin.txt"), m_tpl_file);
-  TextPulsarDb text_psrdb_binary(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_binary.txt"), m_tpl_file);
-  TextPulsarDb text_psrdb_obs(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_obs.txt"), m_tpl_file);
-  TextPulsarDb text_psrdb_name(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_name.txt"), m_tpl_file);
+  PulsarDb database(m_tpl_file);
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_spin.txt"));
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_binary.txt"));
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_obs.txt"));
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_name.txt"));
 
   // Save all tables into one FITS file.
-  std::string filename("psrdb_all.fits");
-  remove(filename.c_str());
-  text_psrdb_binary.save(filename, m_tpl_file);
-  text_psrdb_spin.save(filename, m_tpl_file);
-  text_psrdb_obs.save(filename, m_tpl_file);
-  text_psrdb_name.save(filename, m_tpl_file);
+  std::string filename1("psrdb_all.fits");
+  remove(filename1.c_str());
+  database.save(filename1);
 
   // Copy an existing FITS database.
-  PulsarDb fits_psrdb("crab_db.fits");
-  filename = "psrdb_append.fits";
-  remove(filename.c_str());
-  fits_psrdb.save(filename, m_tpl_file);
+  PulsarDb fits_psrdb(m_tpl_file);
+  fits_psrdb.load("crab_db.fits");
 
   // Append all tables into the FITS database.
-  text_psrdb_name.save(filename, m_tpl_file);
-  text_psrdb_obs.save(filename, m_tpl_file);
-  text_psrdb_binary.save(filename, m_tpl_file);
-  text_psrdb_spin.save(filename, m_tpl_file);
+  fits_psrdb.load(filename1);
+
+  // Save all tables into another FITS file.
+  std::string filename2 = "psrdb_append.fits";
+  remove(filename2.c_str());
+  fits_psrdb.save(filename2);
 }
 
 void PulsarDbTest::testOrbitalEph() {
@@ -789,7 +793,8 @@ void PulsarDbTest::testEphComputer() {
   StrictEphChooser chooser;
 
   // Get access to database.
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
 
   // Filter a pulsar known to be present.
   database.filterName("PSr j0323+3944");
@@ -873,7 +878,8 @@ void PulsarDbTest::testEphComputer() {
 
   // Test binary modulation/demodulation.
   // Get new independent access to database, to keep independent from the tests above.
-  PulsarDb database2(m_in_file);
+  PulsarDb database2(m_tpl_file);
+  database2.load(m_in_file);
 
   // Select a particular pulsar.
   database2.filterName("PSR J1834-0010");
@@ -938,7 +944,8 @@ void PulsarDbTest::testEphComputer() {
       " ephemerides, not 0 as expected." << std::endl;
 
   // Get access to database.
-  PulsarDb database3(m_in_file);
+  PulsarDb database3(m_tpl_file);
+  database3.load(m_in_file);
 
   // Filter a pulsar known to be present.
   database3.filterName("PSR J1959+2048");
@@ -970,7 +977,8 @@ void PulsarDbTest::testEphComputer() {
 void PulsarDbTest::testEphGetter() {
   std::string method_name = "testEphGetter";
 
-  PulsarDb database(m_in_file);
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
   if (pulsar_eph_cont.size() != size_t(database.getNumEph()))
