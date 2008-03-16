@@ -36,14 +36,11 @@ namespace pulsarDb {
   PulsarDb::PulsarDb(const std::string & tpl_file): m_tpl_file(tpl_file), m_tip_file(), m_summary(), m_all_table(),
     m_spin_par_table(), m_orbital_par_table(), m_obs_code_table(), m_psr_name_table(), m_spin_factory_cont(),
     m_orbital_factory_cont() {
-    // Get alias to tip's file service, for brevity.
-    IFileSvc & file_svc(IFileSvc::instance());
-
     // Create a FITS file in memory that holds ephemeris data.
-    m_tip_file = file_svc.createMemFile("pulsardb.fits", m_tpl_file);
+    m_tip_file = IFileSvc::instance().createMemFile("pulsardb.fits", m_tpl_file);
 
     // Get summary of extensions in the memory FITS file.
-    file_svc.getFileSummary(m_tip_file.getName(), m_summary);
+    IFileSvc::instance().getFileSummary(m_tip_file.getName(), m_summary);
 
     // If memory FITS file is empty, throw exception.
     FileSummary::const_iterator ext_itor = m_summary.begin();
@@ -57,7 +54,7 @@ namespace pulsarDb {
       Table * table = 0;
       std::ostringstream oss;
       oss << ext_number;
-      table = file_svc.editTable(m_tip_file.getName(), oss.str());
+      table = IFileSvc::instance().editTable(m_tip_file.getName(), oss.str());
 
       // Add this table to an appropriate list of tables.
       std::string ext_name = ext_itor->getExtId();
@@ -88,7 +85,7 @@ namespace pulsarDb {
     bool try_text = false;
     try {
       pulsar_db->loadFits(in_file);
-    } catch (const tip::TipException &) {
+    } catch (const TipException &) {
       // Discard the temporary PulsarDb object because it might be corrupted.
       pulsar_db.reset(0);
 
@@ -243,74 +240,27 @@ namespace pulsarDb {
   }
 
   void PulsarDb::save(const std::string & out_file, bool clobber) const {
-    // Get first extension in input file.
-    FileSummary::const_iterator ext_itor = m_summary.begin();
+    // Copy the entire contents of the memory FITS file to an output file.
+    m_tip_file.copyFile(out_file, clobber);
 
-    // If input file was empty, throw exception.
-    if (m_summary.end() == ext_itor) throw std::runtime_error("Input ephemeris file is empty");
+    // Loop over all extensions in output file and update header keywords.
+    FileSummary file_summary;
+    IFileSvc::instance().getFileSummary(out_file, file_summary);
+    int ext_number = 0;
+    for (FileSummary::const_iterator ext_itor = file_summary.begin(); ext_itor != file_summary.end();
+       ++ext_itor, ++ext_number) {
+      // Open this extension by extension number.
+      std::ostringstream oss;
+      oss << ext_number;
+      std::auto_ptr<Extension> ext(IFileSvc::instance().editExtension(out_file, oss.str()));
+      Header & header(ext->getHeader());
 
-    // Get alias to tip's file service, for brevity.
-    IFileSvc & file_svc(IFileSvc::instance());
-
-    // Find data directory for this app.
-    std::string data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
-
-    // Create output file using the same FITS template as this object, respecting clobber.
-    file_svc.createFile(out_file, m_tpl_file, clobber);
-
-    // Update keywords only in primary extension.
-    std::auto_ptr<Extension> primary(file_svc.editExtension(out_file, ext_itor->getExtId()));
-
-    // Update standard keywords.
-    updateKeywords(*primary);
-
-    // Loop over all extensions in input file.
-    // Skip the primary by incrementing the iterator in the first clause of the for loop.
-    // TODO: Revise this section for new design of D4 FITS definition.
-    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor) {
-      const std::string ext_name = ext_itor->getExtId();
-
-      // Find the right tip::Table object.
-      const TableCont * table_cont(0);
-      const Table * in_table(0);
-      if ("SPIN_PARAMETERS" == ext_name) table_cont = &m_spin_par_table;
-      else if ("ORBITAL_PARAMETERS" == ext_name) table_cont = &m_orbital_par_table;
-      else if ("OBSERVERS" == ext_name) table_cont = &m_obs_code_table;
-      else if ("ALTERNATIVE_NAMES" == ext_name) table_cont = &m_psr_name_table;
-      else throw std::runtime_error("Unknown extension name: " + ext_name);
-      if (table_cont->empty()) {
-        throw std::logic_error("Extension \"" + ext_name + "\" does not exist in pulsar ephemerides file");
-      } else {
-        in_table = *(table_cont->begin());
-      }
-
-      // Open output table.
-      std::auto_ptr<Table> out_table(file_svc.editTable(out_file, ext_name));
-
-      // Update standard keywords.
-      updateKeywords(*out_table);
-
-      // Start at beginning of both tables.
-      Table::ConstIterator in_itor = in_table->begin();
-      Table::Iterator out_itor = out_table->end();
-
-      // TODO: Resize output to match input. Requires tip to handle random access iterators.
-//      out_table->setNumRecords(in_table->getNumRecords() + out_table->getNumRecords());
-
-      // Copy all rows in table.
-      for (; in_itor != in_table->end(); ++in_itor, ++out_itor) *out_itor = *in_itor;
+      // Update header keywords.
+      Header::KeyValCont_t keywords;
+      keywords.push_back(Header::KeyValPair_t("DATE", header.formatTime(time(0))));
+      keywords.push_back(Header::KeyValPair_t("CREATOR", "gtpulsardb"));
+      header.update(keywords);
     }
-  }
-
-  void PulsarDb::updateKeywords(tip::Extension & ext) const {
-    // Update necessary keywords.
-    tip::Header::KeyValCont_t keywords;
-    tip::Header & header(ext.getHeader());
-
-    keywords.push_back(tip::Header::KeyValPair_t("DATE", header.formatTime(time(0))));
-    keywords.push_back(tip::Header::KeyValPair_t("CREATOR", "gtpulsardb"));
-
-    header.update(keywords);
   }
 
   void PulsarDb::clean() {
@@ -384,14 +334,14 @@ namespace pulsarDb {
 
     for (TableCont::const_iterator table_itor = m_spin_par_table.begin(); table_itor != m_spin_par_table.end(); ++table_itor) {
       const Table & spin_table = **table_itor;
-      const tip::Header & header(spin_table.getHeader());
+      const Header & header(spin_table.getHeader());
 
       // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
       const IEphFactory<PulsarEph> * factory(0);
       std::string eph_style;
       try {
         header["EPHSTYLE"].get(eph_style);
-      } catch (const tip::TipException &) {
+      } catch (const TipException &) {
         // Use FrequencyEph if EPHSTYLE keyword is missing.
         factory = &EphFactory<PulsarEph, FrequencyEph>::getFactory();
       }
@@ -424,14 +374,14 @@ namespace pulsarDb {
     for (TableCont::const_iterator table_itor = m_orbital_par_table.begin(); table_itor != m_orbital_par_table.end(); ++table_itor) {
       const Table & orbital_table = **table_itor;
       cont.reserve(orbital_table.getNumRecords());
-      const tip::Header & header(orbital_table.getHeader());
+      const Header & header(orbital_table.getHeader());
 
       // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
       const IEphFactory<OrbitalEph> * factory(0);
       std::string eph_style;
       try {
         header["EPHSTYLE"].get(eph_style);
-      } catch (const tip::TipException &) {
+      } catch (const TipException &) {
         // Use SimpleDdEph if EPHSTYLE keyword is missing.
         factory = &EphFactory<OrbitalEph, SimpleDdEph>::getFactory();
       }
@@ -472,12 +422,9 @@ namespace pulsarDb {
   }
 
   void PulsarDb::loadFits(const std::string & in_file) {
-    // Get alias to tip's file service, for brevity.
-    IFileSvc & file_svc(IFileSvc::instance());
-
     // Get summary of extensions in input file.
-    tip::FileSummary in_summary;
-    file_svc.getFileSummary(in_file, in_summary);
+    FileSummary in_summary;
+    IFileSvc::instance().getFileSummary(in_file, in_summary);
 
     // Get first extension in input file.
     FileSummary::const_iterator ext_itor = in_summary.begin();
@@ -509,7 +456,7 @@ namespace pulsarDb {
       // Open input table by extension number, in order to work with multiple extensions of the same extension name.
       std::ostringstream oss;
       oss << ext_number;
-      std::auto_ptr<const Table> in_table(file_svc.readTable(in_file, oss.str()));
+      std::auto_ptr<const Table> in_table(IFileSvc::instance().readTable(in_file, oss.str()));
 
       // Start at beginning of both tables.
       Table::ConstIterator in_itor = in_table->begin();
