@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sat Mar 15 19:49:28 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Change to always hold ephemerides info on memory.
+    *
+------------------------------------------------------------
+User: hirayama  Sat Mar 15 19:49:28 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
