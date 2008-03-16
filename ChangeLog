@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Mar 16 11:25:08 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Simplify save method. Remove updateKeywords method. Minor cosmetic changes (remove tip::, file_svc variable, etc.).
+    *
+------------------------------------------------------------
 User: hirayama  Sat Mar 15 19:54:45 PDT 2008
 pulsarDb/data/outref
 
