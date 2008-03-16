@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Mar 16 11:25:31 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Remove updateKeywords method.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Mar 16 11:25:08 PDT 2008
 pulsarDb/src
 
