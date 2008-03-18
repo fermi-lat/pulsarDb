@@ -70,12 +70,14 @@ namespace pulsarDb {
         // Get the cell.
         const tip::TableCell & cell = record[field_name];
 
+        // Check whether this cell has a defined value.
+        if (cell.isNull()) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" is undefined");
+
         // Try to get the cell content.
-        if (cell.isNull()) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" is null");
-        else cell.get(data_value);
+        cell.get(data_value);
 
         // Throw an exception if the cell content is INDEF or not.
-        if (isINDEF(data_value)) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" contains INDEF");
+        if (isNan(data_value)) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" is not a number");
       }
 
       /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
@@ -100,15 +102,16 @@ namespace pulsarDb {
           \param x The data to be examined.
       */
       template <typename DataType>
-      inline bool isINDEF(DataType /* data_value */) { return false; }
+      inline bool isNan(DataType /* data_value */) { return false; }
 
-      // TODO: Write specializations for other floating-point and integral types.
-      inline bool isINDEF(double data_value) { return IsNotANumber(data_value); }
+      inline bool isNan(float data_value) { return isNotANumber(data_value); }
+      inline bool isNan(double data_value) { return isNotANumber(data_value); }
 
       /** \brief Helper method to check whether a given double variable is Not-A-Number.
           \param x The data to be examined.
       */
-      inline bool IsNotANumber(double x) {
+      template <typename T>
+      inline bool isNotANumber(T x) {
 #ifdef WIN32
         return 0 != _isnan(x);
 #else
