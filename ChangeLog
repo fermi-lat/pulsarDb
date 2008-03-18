@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Mar 18 14:37:35 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Improve handling of undefined values.
+    *
+------------------------------------------------------------
 User: peachey  Tue Mar 18 13:34:56 PDT 2008
 pulsarDb/src
 
