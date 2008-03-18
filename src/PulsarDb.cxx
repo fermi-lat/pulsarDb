@@ -10,6 +10,7 @@
 #include <cctype>
 #include <cstddef>
 #include <fstream>
+#include <list>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -54,22 +55,19 @@ namespace pulsarDb {
       Table * table = 0;
       std::ostringstream oss;
       oss << ext_number;
-      table = IFileSvc::instance().editTable(m_tip_file.getName(), oss.str());
+      table = m_tip_file.editTable(oss.str());
 
       // Add this table to an appropriate list of tables.
+      m_all_table.push_back(table);
       std::string ext_name = ext_itor->getExtId();
       if ("SPIN_PARAMETERS" == ext_name) {
         m_spin_par_table.push_back(table);
-        m_all_table.push_back(table);
       } else if ("ORBITAL_PARAMETERS" == ext_name) {
         m_orbital_par_table.push_back(table);
-        m_all_table.push_back(table);
       } else if ("OBSERVERS" == ext_name) {
         m_obs_code_table.push_back(table);
-        m_all_table.push_back(table);
       } else if ("ALTERNATIVE_NAMES" == ext_name) {
         m_psr_name_table.push_back(table);
-        m_all_table.push_back(table);
       } else {
         // Do nothing for other extensions.
         ;
@@ -468,6 +466,102 @@ namespace pulsarDb {
       // Copy all rows in table.
       for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
     }
+  }
+
+  Table * PulsarDb::updateMatchingHeader(const Header::KeySeq_t & required_record) {
+    // Prepare for the matching and updating.
+    Table * matched_table(0);
+    Header::KeySeq_t::size_type num_required_record(required_record.size());
+    typedef std::list<std::pair<tip::Header::Iterator, tip::Header::ConstIterator> > MatchedPairCont;
+    MatchedPairCont updater_pair;
+
+    // Walk through all tables.
+    for (TableCont::iterator table_itor = m_all_table.begin(); table_itor != m_all_table.end(); ++table_itor) {
+      Table & table(**table_itor);
+      Header & header(table.getHeader());
+
+      // Prepare containers of matched pairs.
+      MatchedPairCont tight_match; // Contains pairs whose keyword names and values match.
+      MatchedPairCont loose_match; // Contains pairs whose keyword names match and at least one of their values is empty.
+
+      // Find matching keyword-value pairs in the header, by case-insensitive string comparison.
+      for (Header::Iterator header_key_itor = header.begin(); header_key_itor != header.end(); ++header_key_itor) {
+        // Get keyword name and value, and make them case-insensitive.
+        std::string name_header(header_key_itor->getName());
+        for (std::string::iterator str_itor = name_header.begin(); str_itor != name_header.end(); ++str_itor) {
+          *str_itor = std::toupper(*str_itor);
+        }
+        std::string value_header(header_key_itor->getValue());
+        for (std::string::iterator str_itor = value_header.begin(); str_itor != value_header.end(); ++str_itor) {
+          *str_itor = std::toupper(*str_itor);
+        }
+
+        // Check all required records.
+        for (Header::ConstIterator required_key_itor = required_record.begin(); required_key_itor != required_record.end();
+          ++required_key_itor) {
+          // Get keyword name and make it case-insensitive.
+          std::string name_required(required_key_itor->getName());
+          for (std::string::iterator str_itor = name_required.begin(); str_itor != name_required.end(); ++str_itor) {
+            *str_itor = std::toupper(*str_itor);
+          }
+
+          // Compare two records.
+          if (name_header == name_required) {
+            if (header_key_itor->empty() || required_key_itor->empty()) {
+              loose_match.push_back(std::make_pair(header_key_itor, required_key_itor));
+            } else {
+              // Get keyword value and make it case-insensitive.
+              std::string value_required(required_key_itor->getName());
+              for (std::string::iterator str_itor = value_required.begin(); str_itor != value_required.end(); ++str_itor) {
+                *str_itor = std::toupper(*str_itor);
+              }
+              if (value_header == value_required) tight_match.push_back(std::make_pair(header_key_itor, required_key_itor));
+            }
+          }
+        }
+      }
+
+      // Append loosely matched pairs to tightly matched pairs.
+      MatchedPairCont matched_pair(tight_match);
+      matched_pair.insert(matched_pair.end(), loose_match.begin(), loose_match.end());
+
+      // Prepare for containers for match evaluation.
+      std::set<Header::Iterator> header_key_taken;
+      std::set<Header::ConstIterator> required_key_taken;
+
+      // Evaluate goodness of matching; first check tightly matched pairs.
+      updater_pair.clear();
+      for (MatchedPairCont::const_iterator pair_itor = matched_pair.begin(); pair_itor != matched_pair.end(); ++pair_itor) {
+        const Header::Iterator & header_key(pair_itor->first);
+        const Header::ConstIterator & required_key(pair_itor->second);
+        if (header_key_taken.find(header_key) == header_key_taken.end()
+          && required_key_taken.find(required_key) == required_key_taken.end()) {
+          header_key_taken.insert(header_key);
+          required_key_taken.insert(required_key);
+
+          // Collect matched pairs which requires to update this header.
+          if (header_key->empty() && !required_key->empty()) updater_pair.push_back(*pair_itor);
+        }
+      }
+
+      // Judge completeness of matchup.
+      if (required_key_taken.size() == num_required_record) {
+        if (matched_table) throw std::runtime_error("More than one extension contain the given list of header keywords.");
+        else matched_table = &table;
+      }
+    }
+
+    // Update the matched header.
+    if (matched_table) {
+      for (MatchedPairCont::iterator pair_itor = updater_pair.begin(); pair_itor != updater_pair.end(); ++pair_itor) {
+        Header::Iterator & header_key(pair_itor->first);
+        Header::ConstIterator & required_key(pair_itor->second);
+        header_key->setValue(required_key->getValue());
+      }
+    }
+
+    // Return the matched table, if only one match found.
+    return matched_table;
   }
 
   void PulsarDb::loadText(const std::string & in_file) {
