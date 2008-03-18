@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: peachey  Tue Mar 18 13:34:56 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Fix a typo (write f2 for 2nd derivative) and cosmetically change
+the way the user time is reported.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 17 21:22:16 PDT 2008
 pulsarDb/src
 
