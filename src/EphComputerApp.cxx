@@ -76,8 +76,6 @@ namespace pulsarDb {
     initEphComputer(pars, *chooser, "DB");
     EphComputer & computer(getEphComputer());
 
-    m_os.out() << prefix << "User supplied time " << *time_rep << std::endl;
-
     // Cosmetic: suppress info.
     m_os.info().setPrefix(m_os.out().getPrefix());
 
@@ -131,14 +129,14 @@ namespace pulsarDb {
 
       // Print computed ephemeris.
       if (computed_ok) {
-        m_os.out() << prefix << "Spin ephemeris estimated at the user supplied time is:" << std::endl;
+        m_os.out() << prefix << "Spin ephemeris estimated at " << *time_rep << " is:" << std::endl;
         m_os.out().precision(std::numeric_limits<double>::digits10);
         m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra_dec.first << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << ra_dec.second << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Pulse Phase : " << phi0 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Pulse Frequency (Hz) : " << f0 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "1st Derivative (Hz/s) : " << f1 << std::endl;
-        m_os.out().prefix().width(30); m_os.out() << "2nd Derivative (Hz/s/s) : " << f1 << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "2nd Derivative (Hz/s/s) : " << f2 << std::endl;
       }
     }
   }
