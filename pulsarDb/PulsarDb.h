@@ -154,9 +154,9 @@ namespace pulsarDb {
 
       /** \brief Helper method to find an extension that contains all required keyword-value pairs,
           and update its header if necessary.
-          \param required_record List of keyword-value pairs that must be found in an extension to find.
+          \param required_keyword List of keyword-value pairs that must be found in an extension to find.
       */
-      virtual tip::Table * updateMatchingHeader(const tip::Header::KeySeq_t & required_record);
+      virtual tip::Table * updateMatchingHeader(const tip::Header::KeySeq_t & required_keyword);
 
       /** \brief Load ephemerides and related information from the given TEXT file.
           \param in_file The name of the input TEXT file.
