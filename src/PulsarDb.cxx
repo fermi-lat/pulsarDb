@@ -436,42 +436,52 @@ namespace pulsarDb {
     for (++ext_itor; ext_itor != in_summary.end(); ++ext_itor, ++ext_number) {
       const std::string ext_name = ext_itor->getExtId();
 
-      // Find the right tip::Table object.
-      // TODO: Generalize this part for new D4 FITS definition with multiple ephemerides models.
-      TableCont * target_table_cont(0);
-      Table * target_table(0);
-      if ("SPIN_PARAMETERS" == ext_name) target_table_cont = &m_spin_par_table;
-      else if ("ORBITAL_PARAMETERS" == ext_name) target_table_cont = &m_orbital_par_table;
-      else if ("OBSERVERS" == ext_name) target_table_cont = &m_obs_code_table;
-      else if ("ALTERNATIVE_NAMES" == ext_name) target_table_cont = &m_psr_name_table;
-      else throw std::runtime_error("Unknown extension name: " + ext_name);
-      if (target_table_cont->empty()) {
-        throw std::logic_error("Could not find extension \"" + ext_name + "\" in file \"" + in_file + "\"");
-      } else {
-        target_table = *(target_table_cont->begin());
-      }
-
       // Open input table by extension number, in order to work with multiple extensions of the same extension name.
       std::ostringstream oss;
       oss << ext_number;
       std::auto_ptr<const Table> in_table(IFileSvc::instance().readTable(in_file, oss.str()));
 
-      // Start at beginning of both tables.
-      Table::ConstIterator in_itor = in_table->begin();
-      Table::Iterator target_itor = target_table->end();
+      // Collect header keyword to require.
+      const Header & in_header(in_table->getHeader());
+      Header::KeySeq_t required_keyword;
+      for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
+        // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, and DATE.
+        std::string keyword_name(key_itor->getName());
+        if (!keyword_name.empty()) {
+          for (std::string::iterator str_itor = keyword_name.begin(); str_itor != keyword_name.end(); ++str_itor) {
+            *str_itor = std::toupper(*str_itor);
+          }
+          if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM"
+            && keyword_name != "DATASUM" && keyword_name != "DATE" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
+        }
+      }
 
-      // TODO: Resize output to match input. Requires tip to handle random access iterators.
-      // target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
+      // Find the right tip::Table object.
+      Table * target_table = updateMatchingHeader(required_keyword);
 
-      // Copy all rows in table.
-      for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
+      // Copy all rows in the table if a matching extension is found.
+      if (target_table) {
+        // Start at beginning of both tables.
+        Table::ConstIterator in_itor = in_table->begin();
+        Table::Iterator target_itor = target_table->end();
+
+        // TODO: Resize output to match input. Requires tip to handle random access iterators.
+        // target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
+
+        // Copy all rows in table.
+        for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
+      } else {
+        // Throw an exception if no extension is found to load to.
+        throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
+          + in_file + "\"");
+      }
     }
   }
 
-  Table * PulsarDb::updateMatchingHeader(const Header::KeySeq_t & required_record) {
+  Table * PulsarDb::updateMatchingHeader(const Header::KeySeq_t & required_keyword) {
     // Prepare for the matching and updating.
     Table * matched_table(0);
-    Header::KeySeq_t::size_type num_required_record(required_record.size());
+    Header::KeySeq_t::size_type num_required_keyword(required_keyword.size());
     typedef std::list<std::pair<tip::Header::Iterator, tip::Header::ConstIterator> > MatchedPairCont;
     MatchedPairCont updater_pair;
 
@@ -486,18 +496,14 @@ namespace pulsarDb {
 
       // Find matching keyword-value pairs in the header, by case-insensitive string comparison.
       for (Header::Iterator header_key_itor = header.begin(); header_key_itor != header.end(); ++header_key_itor) {
-        // Get keyword name and value, and make them case-insensitive.
+        // Get keyword name and make it case-insensitive.
         std::string name_header(header_key_itor->getName());
         for (std::string::iterator str_itor = name_header.begin(); str_itor != name_header.end(); ++str_itor) {
           *str_itor = std::toupper(*str_itor);
         }
-        std::string value_header(header_key_itor->getValue());
-        for (std::string::iterator str_itor = value_header.begin(); str_itor != value_header.end(); ++str_itor) {
-          *str_itor = std::toupper(*str_itor);
-        }
 
         // Check all required records.
-        for (Header::ConstIterator required_key_itor = required_record.begin(); required_key_itor != required_record.end();
+        for (Header::ConstIterator required_key_itor = required_keyword.begin(); required_key_itor != required_keyword.end();
           ++required_key_itor) {
           // Get keyword name and make it case-insensitive.
           std::string name_required(required_key_itor->getName());
@@ -507,15 +513,34 @@ namespace pulsarDb {
 
           // Compare two records.
           if (name_header == name_required) {
+            // Mark as a loosely matched pair if one of them is empty.
             if (header_key_itor->empty() || required_key_itor->empty()) {
               loose_match.push_back(std::make_pair(header_key_itor, required_key_itor));
             } else {
-              // Get keyword value and make it case-insensitive.
-              std::string value_required(required_key_itor->getName());
-              for (std::string::iterator str_itor = value_required.begin(); str_itor != value_required.end(); ++str_itor) {
+              // Get keyword values and make them case-insensitive.
+              std::string string_value_header(header_key_itor->getValue());
+              for (std::string::iterator str_itor = string_value_header.begin(); str_itor != string_value_header.end(); ++str_itor) {
                 *str_itor = std::toupper(*str_itor);
               }
-              if (value_header == value_required) tight_match.push_back(std::make_pair(header_key_itor, required_key_itor));
+              std::string string_value_required(required_key_itor->getValue());
+              for (std::string::iterator str_itor = string_value_required.begin(); str_itor != string_value_required.end(); ++str_itor) {
+                *str_itor = std::toupper(*str_itor);
+              }
+
+              // Compare keyword values as string.
+              bool value_identical = false;
+              if (string_value_header == string_value_required) {
+                value_identical = true;
+              } else {
+                // Get keyword values as double.
+                double double_nan = std::numeric_limits<double>::quiet_NaN();
+                double double_value_header(double_nan);
+                header_key_itor->getValue(double_value_header);
+                double double_value_required(double_nan);
+                header_key_itor->getValue(double_value_required);
+                if (double_value_header == double_value_required && double_value_header != double_nan) value_identical = true;
+              }
+              if (value_identical) tight_match.push_back(std::make_pair(header_key_itor, required_key_itor));
             }
           }
         }
@@ -545,7 +570,7 @@ namespace pulsarDb {
       }
 
       // Judge completeness of matchup.
-      if (required_key_taken.size() == num_required_record) {
+      if (required_key_taken.size() == num_required_keyword) {
         if (matched_table) throw std::runtime_error("More than one extension contain the given list of header keywords.");
         else matched_table = &table;
       }
