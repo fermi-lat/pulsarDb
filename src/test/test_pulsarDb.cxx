@@ -122,7 +122,7 @@ void PulsarDbTest::run() {
   m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
   // Find test file.
-  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4r1.fits");
+  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4r2.fits");
 
   // Find template file.
   m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarEph.tpl");
@@ -689,12 +689,11 @@ void PulsarDbTest::testTimingModel() {
 
 void PulsarDbTest::testAppend() {
   std::string method_name = "testAppend";
-
   PulsarDb database(m_tpl_file);
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits"));
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4.fits"));
-  remove("groD4-dc2v4_twice.fits");
-  database.save("groD4-dc2v4_twice.fits");
+  database.load(m_in_file);
+  database.load(m_in_file);
+  remove("twice_db.fits");
+  database.save("twice_db.fits");
 }
 
 void PulsarDbTest::testTextPulsarDb() {
