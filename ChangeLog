@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Wed Mar 19 13:52:35 PDT 2008
+ScienceTools-scons/pulsarDb
+
+Modified Files:
+	SConscript 
+Log Message:
+Register data files
+    *
+------------------------------------------------------------
 User: hirayama  Tue Mar 18 14:37:35 PDT 2008
 pulsarDb/pulsarDb
 
