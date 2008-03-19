@@ -1,4 +1,267 @@
 ------------------------------------------------------------
+User: peachey  Tue Jan 29 12:53:00 PST 2008
+pulsarDb/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Changes for v5r0p3.
+    *
+------------------------------------------------------------
+User: peachey  Tue Jan 29 12:51:30 PST 2008
+pulsarDb
+
+Modified Files:
+	SConscript 
+Log Message:
+Used new name gtephem, added unit test code.
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jan 28 14:03:24 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx 
+Log Message:
+Add TODO marker for debugging.
+
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jan 28 14:02:49 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Split OrbitalEph class into a base class (OrbitalEph) and a derived class (SimpleDdEph).
+
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jan 28 14:02:49 PST 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx PulsarDb.cxx 
+Log Message:
+Split OrbitalEph class into a base class (OrbitalEph) and a derived class (SimpleDdEph).
+
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jan 28 14:02:49 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Split OrbitalEph class into a base class (OrbitalEph) and a derived class (SimpleDdEph).
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:36:06 PST 2008
+pulsarDb/src
+
+Removed Files:
+	TimingModel.cxx 
+Log Message:
+Remove TimingModel class.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:36:06 PST 2008
+pulsarDb/pulsarDb
+
+Removed Files:
+	TimingModel.h 
+Log Message:
+Remove TimingModel class.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:35:32 PST 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove use of TimingModel class objects.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 15:34:56 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Add default value to phase_offset argument.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 14:43:31 PST 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx EphComputerApp.cxx PulsarDb.cxx 
+	PulsarToolApp.cxx 
+Log Message:
+Remove use of TimingModel class object.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 14:43:30 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h PulsarDb.h PulsarToolApp.h 
+Log Message:
+Remove use of TimingModel class object.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 14:41:56 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Remove unnecesary qualifier.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:50:39 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Remove unnecessary header. Remove unnecessary default argument value.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:42:25 PST 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx 
+Log Message:
+Move three methods from TimingModel to PulsarEph.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:42:25 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h TimingModel.h 
+Log Message:
+Move three methods from TimingModel to PulsarEph.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:19:07 PST 2008
+pulsarDb/src
+
+Modified Files:
+	OrbitalEph.cxx TimingModel.cxx 
+Log Message:
+Move four methods from TimingModel to OrbitalEph: calcOrbitalPhase, calcOrbitalDelay, modulateBinary, demodulateBinary.
+
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jan 18 13:19:07 PST 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h 
+Log Message:
+Move four methods from TimingModel to OrbitalEph: calcOrbitalPhase, calcOrbitalDelay, modulateBinary, demodulateBinary.
+
+    *
+------------------------------------------------------------
+User: golpa  Mon Dec 10 13:34:18 PST 2007
+pulsarDb
+
+Added Files:
+	SConscript pulsarDbLib.py 
+Log Message:
+Initial import of SCons files
+    *
+------------------------------------------------------------
+TAG
+Tag name: v5r0p2, operation: add
+Package: pulsarDb
+User: hirayama  Tue Nov 13 15:54:24 2007
+Files:
+  pulsarDb/ChangeLog  1.402
+  pulsarDb/cmt/requirements  1.7
+  pulsarDb/data/psrdb_spin.txt  1.1
+  pulsarDb/data/groD4-dc2v4r1.fits  1.1
+  pulsarDb/data/psrdb_obs.txt  1.1
+  pulsarDb/data/groD4-dc2v3.fits  1.1.1.1
+  pulsarDb/data/psrdb_name.txt  1.1
+  pulsarDb/data/psrdb_binary.txt  1.1
+  pulsarDb/data/groD4-dc2v4.fits  1.1
+  pulsarDb/data/PulsarEph.tpl  1.4
+  pulsarDb/data/outref/chooser_db.fits  1.7
+  pulsarDb/data/outref/psrdb_append.fits  1.5
+  pulsarDb/data/outref/crab_db.fits  1.7
+  pulsarDb/data/outref/psrdb_all.fits  1.5
+  pulsarDb/data/outref/f2not0_db.fits  1.7
+  pulsarDb/data/outref/groD4-dc2v4_twice.fits  1.5
+  pulsarDb/data/outref/crab_twice.fits  1.1
+  pulsarDb/doc/release.notes  1.34
+  pulsarDb/pfiles/gtephem.par  1.14
+  pulsarDb/pfiles/gtephcomp.par  1.11
+  pulsarDb/pfiles/gtpulsardb.par  1.7
+  pulsarDb/pulsarDb/PulsarDb.h  1.15
+  pulsarDb/pulsarDb/TextPulsarDb.h  1.3
+  pulsarDb/pulsarDb/OrbitalEph.h  1.9
+  pulsarDb/pulsarDb/EphChooser.h  1.5
+  pulsarDb/pulsarDb/PulsarEph.h  1.16
+  pulsarDb/pulsarDb/PulsarToolApp.h  1.22
+  pulsarDb/pulsarDb/TimingModel.h  1.16
+  pulsarDb/pulsarDb/EphComputer.h  1.11
+  pulsarDb/pulsarDb/PulsarDbApp.h  1.3
+  pulsarDb/pulsarDb/EphComputerApp.h  1.2
+  pulsarDb/src/EphComputerApp.cxx  1.21
+  pulsarDb/src/TimingModel.cxx  1.15
+  pulsarDb/src/EphComputer.cxx  1.12
+  pulsarDb/src/OrbitalEph.cxx  1.15
+  pulsarDb/src/PulsarDbApp.cxx  1.11
+  pulsarDb/src/mainpage.h  1.10
+  pulsarDb/src/TextPulsarDb.cxx  1.9
+  pulsarDb/src/.mainpage.h.swp  1.1.1.1
+  pulsarDb/src/PulsarToolApp.cxx  1.40
+  pulsarDb/src/PulsarDb.cxx  1.29
+  pulsarDb/src/PulsarEph.cxx  1.20
+  pulsarDb/src/EphChooser.cxx  1.12
+  pulsarDb/src/gtephcomp/README  1.1
+  pulsarDb/src/gtephem/gtephem.cxx  1.2
+  pulsarDb/src/gtpulsardb/gtpulsardb.cxx  1.1.1.1
+  pulsarDb/src/test/test_pulsarDb.cxx  1.49
+
+    *
+------------------------------------------------------------
+User: hirayama  Tue Nov 13 15:44:57 PST 2007
+pulsarDb/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Changes for v5r0p2.
+
+    *
+------------------------------------------------------------
+User: hirayama  Tue Oct 30 14:36:00 PDT 2007
+pulsarDb/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+Minor corrections for enumerated strings.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r0p1, operation: add
 Package: pulsarDb
