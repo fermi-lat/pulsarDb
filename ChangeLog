@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Mar 19 15:13:11 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Use updateMatchingHeader method in loadFits method.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Mar 19 15:11:59 PDT 2008
 pulsarDb/pulsarDb
 
