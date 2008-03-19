@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Mar 19 15:11:59 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Cosmetic changes in argument names.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-05-00-03, operation: mov
 Package: pulsarDb
