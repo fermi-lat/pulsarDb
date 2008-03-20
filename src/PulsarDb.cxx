@@ -600,12 +600,13 @@ namespace pulsarDb {
     static const size_t s_line_size = 2048;
     char buf[s_line_size];
 
-    std::auto_ptr<Table> out_table(0);
+    Table * out_table(0);
     ParsedLine parsed_line;
     ParsedLine field_name;
+    Header::KeySeq_t header_keyword;
 
     // Read table until extension name is found.
-    std::string extension;
+    std::string ext_name;
     while (in_table) {
       // Get next line.
       in_table.getline(buf, s_line_size);
@@ -615,11 +616,8 @@ namespace pulsarDb {
 
       if (parsed_line.size() > 1) throw std::runtime_error(std::string("Expected name of an extension on line ") + buf);
       else if (parsed_line.size() == 1) {
-        extension = *parsed_line.begin();
-        out_table.reset(m_tip_file.editTable(extension));
-        // Get list of fields in the table.
-        Table::FieldCont field = out_table->getValidFields();
-        field_name.assign(field.begin(), field.end());
+        ext_name = *parsed_line.begin();
+        header_keyword.push_back(KeyRecord("EXTNAME = " + ext_name));
         break;
       }
     }
@@ -634,9 +632,33 @@ namespace pulsarDb {
       // Parse it into fields.
       parseLine(buf, parsed_line);
 
-      if (parsed_line.size() > 0) {
+      // Ignore comment lines, etc.
+      if (parsed_line.size() == 0) continue;
+
+      // Check whether it is a header keyword line.
+      bool header_line = false;
+      const std::string str_buf(buf);
+      for (std::string::const_iterator itor = str_buf.begin(); itor != str_buf.end(); ++itor) if (*itor == '=') header_line = true;
+      if (header_line) {
+        // Collect header keyword to require for an appropriate table for this text file.
+        KeyRecord key_record(str_buf);
+        header_keyword.push_back(key_record);
+
+      } else {
+        // Find an appropriate table and update its header.
+        out_table = updateMatchingHeader(header_keyword);
+        if (out_table == 0) {
+          // Throw an exception if no extension is found to load to.
+          throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
+            + in_file + "\"");
+        }
+
+        // Get list of fields in the table.
+        Table::FieldCont field = out_table->getValidFields();
+        field_name.assign(field.begin(), field.end());
+
+        // Convert to lowercase, because field names are all lowercase.
         for (ParsedLine::iterator itor = parsed_line.begin(); itor != parsed_line.end(); ++itor) {
-          // Convert to lowercase, because field names are all lowercase.
           for (std::string::iterator s_itor = itor->begin(); s_itor != itor->end(); ++s_itor) *s_itor = tolower(*s_itor);
         }
 
@@ -652,7 +674,7 @@ namespace pulsarDb {
     }
   
     if (found_map.empty())
-      throw std::runtime_error("File " + in_file + " does not have any columns in common with output extension " + extension);
+      throw std::runtime_error("File " + in_file + " does not have any columns in common with output extension " + ext_name);
 
     // Populate output table starting at the beginning.
     Table::Iterator out_itor = out_table->begin();
@@ -665,6 +687,7 @@ namespace pulsarDb {
       // Parse it into fields.
       parseLine(buf, parsed_line);
 
+      // Ignore comment lines, etc.
       if (parsed_line.size() == 0) continue;
 
       // Make sure the correct number of fields are found.
