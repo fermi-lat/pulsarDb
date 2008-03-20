@@ -125,7 +125,7 @@ void PulsarDbTest::run() {
   m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4r2.fits");
 
   // Find template file.
-  m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarEph.tpl");
+  m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarDb.tpl");
 
   // Successful tests.
   testNoOp();

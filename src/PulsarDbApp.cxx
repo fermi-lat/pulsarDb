@@ -65,7 +65,7 @@ namespace pulsarDb {
     std::string out_file = pars["outfile"];
 
     // Find template file.
-    m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarEph.tpl");
+    m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
 
     // Check whether the output file already exists, when clobber is set to no.
     bool clobber = pars["clobber"];

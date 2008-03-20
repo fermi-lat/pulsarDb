@@ -297,8 +297,7 @@ namespace pulsarDb {
 
     if (eph_style_uc == "DB" || m_tcmode_bin != SUPPRESSED) {
       // Create an empty pulsar ephemerides database, using template file.
-      std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"),
-        "PulsarEph.tpl");
+      std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
       PulsarDb database(tpl_file);
 
       // Load the given ephemerides database(s).
