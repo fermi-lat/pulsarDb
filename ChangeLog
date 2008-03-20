@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Mar 19 17:54:26 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Use updateMatchingHeader method in loadText method.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Mar 19 15:14:41 PDT 2008
 pulsarDb/data/outref
 
