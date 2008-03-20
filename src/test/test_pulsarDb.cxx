@@ -112,6 +112,7 @@ class PulsarDbTest : public st_app::StApp {
     std::string m_data_dir;
     std::string m_in_file;
     std::string m_tpl_file;
+    std::string m_creator;
 };
 
 using namespace pulsarDb;
@@ -126,6 +127,9 @@ void PulsarDbTest::run() {
 
   // Find template file.
   m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarDb.tpl");
+
+  // Set a default value for CREATOR header keyword.
+  m_creator = "test_pulsarDb";
 
   // Successful tests.
   testNoOp();
@@ -173,7 +177,7 @@ void PulsarDbTest::testAlternateName() {
 
   // Write this output to form basis for comparing future tests.
   remove("crab_db.fits");
-  database.save("crab_db.fits");
+  database.save("crab_db.fits", m_creator);
 }
 
 void PulsarDbTest::testBadInterval() {
@@ -213,7 +217,7 @@ void PulsarDbTest::testChooser() {
 
   // Write this output to form basis for comparing future tests.
   remove("chooser_db.fits");
-  database.save("chooser_db.fits");
+  database.save("chooser_db.fits", m_creator);
 
   MjdRep mjd_tdb("TDB", 54012, .5);
   AbsoluteTime pick_time(mjd_tdb);
@@ -442,7 +446,7 @@ void PulsarDbTest::testExpression() {
 
   // Test saving this for basis of comparing future test output.
   remove("f2not0_db.fits");
-  database.save("f2not0_db.fits");
+  database.save("f2not0_db.fits", m_creator);
 }
 
 void PulsarDbTest::testNoOp() {
@@ -693,7 +697,7 @@ void PulsarDbTest::testAppend() {
   database.load(m_in_file);
   database.load(m_in_file);
   remove("twice_db.fits");
-  database.save("twice_db.fits");
+  database.save("twice_db.fits", m_creator);
 }
 
 void PulsarDbTest::testTextPulsarDb() {
@@ -709,7 +713,7 @@ void PulsarDbTest::testTextPulsarDb() {
   // Save all tables into one FITS file.
   std::string filename1("psrdb_all.fits");
   remove(filename1.c_str());
-  database.save(filename1);
+  database.save(filename1, m_creator);
 
   // Copy an existing FITS database.
   PulsarDb fits_psrdb(m_tpl_file);
@@ -721,7 +725,7 @@ void PulsarDbTest::testTextPulsarDb() {
   // Save all tables into another FITS file.
   std::string filename2 = "psrdb_append.fits";
   remove(filename2.c_str());
-  fits_psrdb.save(filename2);
+  fits_psrdb.save(filename2, m_creator);
 }
 
 void PulsarDbTest::testOrbitalEph() {

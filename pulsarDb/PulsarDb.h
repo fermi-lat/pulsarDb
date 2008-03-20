@@ -108,10 +108,11 @@ namespace pulsarDb {
                  For example, if none of the ephemerides are for binary pulsars, the output ORBITAL_PARAMETERS
                  table will not include any ephemerides.
           \param out_file The name of the output file.
+          \param creator The name of a creator of the output file, to be assigned to a value of CREATOR header keyword.
           \param clobber If true, it overwrites the output file even if it already exists.  If no and the output file
                  already exists, it throws an exception.
       */
-      virtual void save(const std::string & out_file, bool clobber = false) const;
+      virtual void save(const std::string & out_file, const std::string & creator, bool clobber = false) const;
 
       /// \brief Get the currently selected container of spin (pulsar) ephemerides.
       virtual void getEph(PulsarEphCont & cont) const;

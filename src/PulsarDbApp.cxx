@@ -109,7 +109,7 @@ namespace pulsarDb {
     if (0 >= data_base.getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
 
     // Write output.
-    data_base.save(out_file, clobber);
+    data_base.save(out_file, "gtpulsardb", clobber);
   }
 
 }

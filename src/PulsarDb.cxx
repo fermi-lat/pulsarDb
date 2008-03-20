@@ -237,7 +237,7 @@ namespace pulsarDb {
     clean();
   }
 
-  void PulsarDb::save(const std::string & out_file, bool clobber) const {
+  void PulsarDb::save(const std::string & out_file, const std::string & creator, bool clobber) const {
     // Copy the entire contents of the memory FITS file to an output file.
     m_tip_file.copyFile(out_file, clobber);
 
@@ -256,7 +256,7 @@ namespace pulsarDb {
       // Update header keywords.
       Header::KeyValCont_t keywords;
       keywords.push_back(Header::KeyValPair_t("DATE", header.formatTime(time(0))));
-      keywords.push_back(Header::KeyValPair_t("CREATOR", "gtpulsardb"));
+      keywords.push_back(Header::KeyValPair_t("CREATOR", creator));
       header.update(keywords);
     }
   }
@@ -445,14 +445,14 @@ namespace pulsarDb {
       const Header & in_header(in_table->getHeader());
       Header::KeySeq_t required_keyword;
       for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
-        // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, and DATE.
+        // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2.
         std::string keyword_name(key_itor->getName());
         if (!keyword_name.empty()) {
           for (std::string::iterator str_itor = keyword_name.begin(); str_itor != keyword_name.end(); ++str_itor) {
             *str_itor = std::toupper(*str_itor);
           }
-          if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM"
-            && keyword_name != "DATASUM" && keyword_name != "DATE" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
+          if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM" && keyword_name != "DATASUM"
+            && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
         }
       }
 
