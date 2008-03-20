@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 20 13:58:19 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Handle CREATOR keyword properly.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 20 13:28:41 PDT 2008
 pulsarDb/src/test
 
