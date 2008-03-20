@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 20 13:28:41 PDT 2008
+pulsarDb/data
+
+Added Files:
+	PulsarDb.tpl 
+Removed Files:
+	PulsarEph.tpl 
+Log Message:
+Rename PulsarEph.tpl to PulsarDb.tpl for clarity.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Mar 19 17:54:26 PDT 2008
 pulsarDb/src
 
