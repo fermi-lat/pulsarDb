@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 20 18:18:02 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits psrdb_all.fits 
+	psrdb_append.fits twice_db.fits 
+Log Message:
+Add EPHSTYLE header keyword.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 20 14:02:32 PDT 2008
 pulsarDb/data/outref
 
