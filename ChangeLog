@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 20 18:19:28 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl psrdb_binary.txt psrdb_spin.txt 
+Log Message:
+Add EPHSTYLE header keyword.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 20 18:18:02 PDT 2008
 pulsarDb/data/outref
 
