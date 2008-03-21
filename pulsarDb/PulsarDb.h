@@ -189,7 +189,6 @@ namespace pulsarDb {
 
       std::string m_tpl_file;
       tip::TipFile m_tip_file;
-      tip::FileSummary m_summary;
       TableCont m_all_table;
       TableCont m_spin_par_table;
       TableCont m_orbital_par_table;
