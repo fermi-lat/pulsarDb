@@ -205,6 +205,10 @@ void PulsarDbTest::testChooser() {
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
 
+  // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+  database.registerPulsarEph<FrequencyEph>("FREQ");
+  database.registerOrbitalEph<SimpleDdEph>("DD");
+
   std::string pulsar_name = "PSR J0139+5814";
 
   // Select pulsar we want to use.
@@ -297,6 +301,10 @@ void PulsarDbTest::testChooser() {
   // Get new independent access to database, to keep independent from the tests above.
   PulsarDb database2(m_tpl_file);
   database2.load(m_in_file);
+
+  // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+  database2.registerPulsarEph<FrequencyEph>("FREQ");
+  database2.registerOrbitalEph<SimpleDdEph>("DD");
 
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
@@ -799,6 +807,10 @@ void PulsarDbTest::testEphComputer() {
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
 
+  // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+  database.registerPulsarEph<FrequencyEph>("FREQ");
+  database.registerOrbitalEph<SimpleDdEph>("DD");
+
   // Filter a pulsar known to be present.
   database.filterName("PSr j0323+3944");
 
@@ -884,6 +896,10 @@ void PulsarDbTest::testEphComputer() {
   PulsarDb database2(m_tpl_file);
   database2.load(m_in_file);
 
+  // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+  database2.registerPulsarEph<FrequencyEph>("FREQ");
+  database2.registerOrbitalEph<SimpleDdEph>("DD");
+
   // Select a particular pulsar.
   database2.filterName("PSR J1834-0010");
   OrbitalEphCont orbital_eph_cont;
@@ -950,6 +966,10 @@ void PulsarDbTest::testEphComputer() {
   PulsarDb database3(m_tpl_file);
   database3.load(m_in_file);
 
+  // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+  database3.registerPulsarEph<FrequencyEph>("FREQ");
+  database3.registerOrbitalEph<SimpleDdEph>("DD");
+
   // Filter a pulsar known to be present.
   database3.filterName("PSR J1959+2048");
 
@@ -980,8 +1000,14 @@ void PulsarDbTest::testEphComputer() {
 void PulsarDbTest::testEphGetter() {
   std::string method_name = "testEphGetter";
 
+  // Get access to database.
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
+
+  // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+  database.registerPulsarEph<FrequencyEph>("FREQ");
+  database.registerOrbitalEph<SimpleDdEph>("DD");
+
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
   if (pulsar_eph_cont.size() != size_t(database.getNumEph()))

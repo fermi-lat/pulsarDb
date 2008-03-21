@@ -113,17 +113,9 @@ namespace pulsarDb {
 
   PulsarDb::~PulsarDb() {
     // Clear out orbital ephemeris factories.
-    for (orbital_factory_cont_type::reverse_iterator itor = m_orbital_factory_cont.rbegin();
-      itor != m_orbital_factory_cont.rend(); ++itor) {
-      delete itor->second;
-    }
     m_orbital_factory_cont.clear();
 
     // Clear out pulsar ephemeris factories.
-    for (spin_factory_cont_type::reverse_iterator itor = m_spin_factory_cont.rbegin();
-      itor != m_spin_factory_cont.rend(); ++itor) {
-      delete itor->second;
-    }
     m_spin_factory_cont.clear();
 
     // Delete all tip::Table objects.
@@ -635,13 +627,29 @@ namespace pulsarDb {
       // Ignore comment lines, etc.
       if (parsed_line.size() == 0) continue;
 
-      // Check whether it is a header keyword line.
-      bool header_line = false;
-      const std::string str_buf(buf);
-      for (std::string::const_iterator itor = str_buf.begin(); itor != str_buf.end(); ++itor) if (*itor == '=') header_line = true;
-      if (header_line) {
-        // Collect header keyword to require for an appropriate table for this text file.
-        KeyRecord key_record(str_buf);
+      // Check whether it is a header keyword line, by looking for the equal sign ("=") in the line.
+      std::string str_buf(buf);
+      std::string::size_type pos_equal = str_buf.find('=');
+
+      if (pos_equal != std::string::npos) {
+        // Parse out keyword name.
+        std::string str_name = str_buf.substr(0, pos_equal);
+        stripWhiteSpace(str_name);
+        str_buf.erase(0, pos_equal + 1);
+
+        // Parse out keyword value.
+        std::string::size_type pos_slash = str_buf.find('/');
+        std::string str_value = str_buf.substr(0, pos_slash);
+        stripWhiteSpace(str_value);
+        if (pos_slash == std::string::npos) str_buf.clear();
+        else str_buf.erase(0, pos_slash + 1);
+
+        // Parse out keyword comment.
+        std::string str_comment = str_buf;
+        stripWhiteSpace(str_comment);
+
+        // Add this header keyword, in order to require for an appropriate table for this text file.
+        KeyRecord key_record(str_name, str_value, str_comment);
         header_keyword.push_back(key_record);
 
       } else {
@@ -765,5 +773,20 @@ namespace pulsarDb {
     }
 
     if (in_quote) throw std::runtime_error(std::string("Line ") + line + " contains an unbalanced quote");
+  }
+
+  void PulsarDb::stripWhiteSpace(std::string & string_value) {
+    // Remove leading white spaces.
+    for (std::string::iterator itor = string_value.begin(); itor != string_value.end() && std::isspace(*itor); ++itor) {
+      string_value.erase(itor);
+    }
+
+    // Remove trailing white spaces.
+    for (std::string::reverse_iterator r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor);
+      ++r_itor) {
+      std::string::iterator itor = r_itor.base();
+      --itor;
+      string_value.erase(itor);
+    }
   }
 }
