@@ -34,23 +34,24 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  PulsarDb::PulsarDb(const std::string & tpl_file): m_tpl_file(tpl_file), m_tip_file(), m_summary(), m_all_table(),
+  PulsarDb::PulsarDb(const std::string & tpl_file): m_tpl_file(tpl_file), m_tip_file(), m_all_table(),
     m_spin_par_table(), m_orbital_par_table(), m_obs_code_table(), m_psr_name_table(), m_spin_factory_cont(),
     m_orbital_factory_cont() {
     // Create a FITS file in memory that holds ephemeris data.
     m_tip_file = IFileSvc::instance().createMemFile("pulsardb.fits", m_tpl_file);
 
     // Get summary of extensions in the memory FITS file.
-    IFileSvc::instance().getFileSummary(m_tip_file.getName(), m_summary);
+    FileSummary file_summary;
+    IFileSvc::instance().getFileSummary(m_tip_file.getName(), file_summary);
 
     // If memory FITS file is empty, throw exception.
-    FileSummary::const_iterator ext_itor = m_summary.begin();
-    if (m_summary.end() == ext_itor) throw std::runtime_error("Given FITS template produces an empty FITS file");
+    FileSummary::const_iterator ext_itor = file_summary.begin();
+    if (file_summary.end() == ext_itor) throw std::runtime_error("Given FITS template produces an empty FITS file");
 
     // Loop over remaining extensions in output file.
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
     int ext_number = 1;
-    for (++ext_itor; ext_itor != m_summary.end(); ++ext_itor, ++ext_number) {
+    for (++ext_itor; ext_itor != file_summary.end(); ++ext_itor, ++ext_number) {
       // Get a table and its extension name.
       Table * table = 0;
       std::ostringstream oss;
