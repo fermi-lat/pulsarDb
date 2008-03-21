@@ -300,6 +300,10 @@ namespace pulsarDb {
       std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
       PulsarDb database(tpl_file);
 
+      // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
+      database.registerPulsarEph<FrequencyEph>("FREQ");
+      database.registerOrbitalEph<SimpleDdEph>("DD");
+
       // Load the given ephemerides database(s).
       std::string psrdb_file = pars["psrdbfile"];
       FileSys::FileNameCont file_name_cont = FileSys::expandFileList(psrdb_file);

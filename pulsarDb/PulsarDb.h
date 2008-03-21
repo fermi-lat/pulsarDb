@@ -170,6 +170,11 @@ namespace pulsarDb {
       */
       virtual void parseLine(const char * line, ParsedLine & parsed_line);
 
+      /** \brief Helper method to strip out leading and trailing white spaces.
+          \param string_value The string object from which white spaces are to be stripped.
+      */
+      virtual void stripWhiteSpace(std::string & string_value);
+
       /** \brief Clean up all extensions based on current set of selected spin and orbital ephemerides. All
           information in the OBSERVERS and ALTERNATIVE_NAMES extension which is not associated with a pulsar
           contained in the SPIN_PARAMETERS or ORBITAL_PARAMETERS extensions will be removed.
