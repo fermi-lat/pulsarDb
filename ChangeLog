@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 20 18:21:11 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Support EPHSTYLE header keyword.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 20 18:19:28 PDT 2008
 pulsarDb/data
 
