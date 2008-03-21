@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 21 13:43:49 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Remove a data member, m_summary.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 21 13:43:48 PDT 2008
 pulsarDb/pulsarDb
 
