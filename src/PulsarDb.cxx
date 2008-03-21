@@ -52,15 +52,28 @@ namespace pulsarDb {
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
     int ext_number = 1;
     for (++ext_itor; ext_itor != file_summary.end(); ++ext_itor, ++ext_number) {
+      std::string ext_name = ext_itor->getExtId();
+
       // Get a table and its extension name.
       Table * table = 0;
       std::ostringstream oss;
       oss << ext_number;
       table = m_tip_file.editTable(oss.str());
 
+      // Check EPHSTYLE header keyword in SPIN_PARAMETERS and ORBITAL_PARAMETERS extensions.
+      if ("SPIN_PARAMETERS" == ext_name || "ORBITAL_PARAMETERS" == ext_name) {
+        Header & header(table->getHeader());
+        std::string eph_style;
+        try {
+          header["EPHSTYLE"].get(eph_style);
+        } catch (const TipException &) {
+          throw std::runtime_error("Could not find header keyword \"EPHSTYLE\" in extension \"" + ext_name + "\" in FITS template \""
+            + tpl_file + "\"");
+        }
+      }
+
       // Add this table to an appropriate list of tables.
       m_all_table.push_back(table);
-      std::string ext_name = ext_itor->getExtId();
       if ("SPIN_PARAMETERS" == ext_name) {
         m_spin_par_table.push_back(table);
       } else if ("ORBITAL_PARAMETERS" == ext_name) {
@@ -313,23 +326,22 @@ namespace pulsarDb {
       const Header & header(spin_table.getHeader());
 
       // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
-      const IEphFactory<PulsarEph> * factory(0);
       std::string eph_style;
       try {
         header["EPHSTYLE"].get(eph_style);
       } catch (const TipException &) {
-        // Use FrequencyEph if EPHSTYLE keyword is missing.
-        factory = &EphFactory<PulsarEph, FrequencyEph>::getFactory();
+        // Note: EPHSTYLE must exist in SPIN_PARAMETER extension, and it is enforced in the constructor of this class.
+        //       Not finding EPHSTYLE here suggests inconsistency in methods of this class.
+        throw std::logic_error("EPHSTYLE header keyword is missing in SPIN_PARAMETER extension");
       }
 
-      // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
-      if (0 == factory) {
-        spin_factory_cont_type::const_iterator factory_itor = m_spin_factory_cont.find(eph_style);
-        if (factory_itor != m_spin_factory_cont.end()) {
-          factory = factory_itor->second;
-        } else {
-          throw std::runtime_error("Unknown pulsar ephemeris style: EPHSTYLE = " + eph_style);
-        }
+      // Use a registered subclass of PulsarEph, if EPHSTYLE keyword exists.
+      const IEphFactory<PulsarEph> * factory(0);
+      spin_factory_cont_type::const_iterator factory_itor = m_spin_factory_cont.find(eph_style);
+      if (factory_itor != m_spin_factory_cont.end()) {
+        factory = factory_itor->second;
+      } else {
+        throw std::runtime_error("Unknown pulsar ephemeris style: EPHSTYLE = " + eph_style);
       }
 
       // Iterate over current selection.
@@ -353,23 +365,22 @@ namespace pulsarDb {
       const Header & header(orbital_table.getHeader());
 
       // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
-      const IEphFactory<OrbitalEph> * factory(0);
       std::string eph_style;
       try {
         header["EPHSTYLE"].get(eph_style);
       } catch (const TipException &) {
-        // Use SimpleDdEph if EPHSTYLE keyword is missing.
-        factory = &EphFactory<OrbitalEph, SimpleDdEph>::getFactory();
+        // Note: EPHSTYLE must exist in ORBITAL_PARAMETER extension, and it is enforced in the constructor of this class.
+        //       Not finding EPHSTYLE here suggests inconsistency in methods of this class.
+        throw std::logic_error("EPHSTYLE header keyword is missing in ORBITAL_PARAMETER extension");
       }
 
       // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
-      if (0 == factory) {
-        orbital_factory_cont_type::const_iterator factory_itor = m_orbital_factory_cont.find(eph_style);
-        if (factory_itor != m_orbital_factory_cont.end()) {
-          factory = factory_itor->second;
-        } else {
-          throw std::runtime_error("Unknown orbital ephemeris style: EPHSTYLE = " + eph_style);
-        }
+      const IEphFactory<OrbitalEph> * factory(0);
+      orbital_factory_cont_type::const_iterator factory_itor = m_orbital_factory_cont.find(eph_style);
+      if (factory_itor != m_orbital_factory_cont.end()) {
+        factory = factory_itor->second;
+      } else {
+        throw std::runtime_error("Unknown orbital ephemeris style: EPHSTYLE = " + eph_style);
       }
 
       for (Table::ConstIterator record_itor = orbital_table.begin(); record_itor != orbital_table.end(); ++record_itor) {
