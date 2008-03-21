@@ -76,33 +76,18 @@ namespace pulsarDb {
   }
 
   void PulsarDb::load(const std::string & in_file) {
-    // Create a temporary PulsarDb object in the same format as this object.
-    std::auto_ptr<PulsarDb> pulsar_db(new PulsarDb(m_tpl_file));
-
-    // First try opening a tip file containing the ephemerides.
-    bool try_text = false;
+    // Determine a type of the input file, FITS or TEXT.
+    bool is_fits = true;
     try {
-      pulsar_db->loadFits(in_file);
+      // Try opening a primary extension of a FITS file.
+      std::auto_ptr<const Extension> ext(IFileSvc::instance().readExtension(in_file, "0"));
     } catch (const TipException &) {
-      // Discard the temporary PulsarDb object because it might be corrupted.
-      pulsar_db.reset(0);
-
-      // Hope that maybe it is a text file.
-      try_text = true;
+      is_fits = false;
     }
 
-    // Next try opening it as a text file if there was a problem.
-    if (try_text) {
-      pulsar_db.reset(new PulsarDb(m_tpl_file));
-      try {
-        pulsar_db->loadText(in_file);
-      } catch (const std::exception &) {
-        throw std::runtime_error("Could not open file " + in_file + " as either a FITS file or a text data file");
-      }
-    }
-
-    // Merge the temporary PulsarDb object into this object.
-    loadFits(pulsar_db->m_tip_file.getName());
+    // Call an appropriate loader method.
+    if (is_fits) loadFits(in_file);
+    else loadText(in_file);
 
     // Refresh the tip table objects.
     // TODO: Do we really need to do this?
