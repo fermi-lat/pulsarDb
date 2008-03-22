@@ -62,9 +62,13 @@ namespace pulsarDb {
 
       /** \brief Create a data base object for the given FITS template file.
           \param tpl_file The name of the FITS template file used to create the file in memory.
-          \param edit_in_place Changes will affect input file.
+          \param default_spin_ext The extension number of SPIN_PARAMETER extension in a given template file (tpl_file),
+                 to which spin ephemerides in pulsar database file in the original format (w/o EPHSTYLE) will be loaded.
+                 If zero (0) is given, an exception will be thrown for spin-ephemeris extensions in the original format.
+                 Give one (1) for the first HDU after the primary HDU.
+          \param default_orbital_ext Same as above, but for ORBITAL_PARAMETER extensions.
       */
-      PulsarDb(const std::string & tpl_file);
+      PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext = 0, TableCont::size_type default_orbital_ext = 0);
 
       virtual ~PulsarDb();
 
@@ -148,6 +152,14 @@ namespace pulsarDb {
       typedef std::map<std::string, IEphFactory<PulsarEph> *> spin_factory_cont_type;
       typedef std::map<std::string, IEphFactory<OrbitalEph> *> orbital_factory_cont_type;
 
+      /** \brief Helper method for the constructor, to check and pick up an appropriate table for
+          a default spin or orbital extension to support the original ephemerides file format.
+          \param ext_number The extension number. Same as constructor arguments, default_spin/orbital_ext.
+          \param is_spin_table If true, it looks for a spin parameter table. If false, it looks for an
+          orbital parameter table.
+      */
+      tip::Table * findDefaultTable(TableCont::size_type ext_number, bool is_spin_table) const;
+
       /** \brief Load ephemerides and related information from the given FITS file.
           \param in_file The name of the input FITS file.
       */
@@ -194,6 +206,8 @@ namespace pulsarDb {
       TableCont m_orbital_par_table;
       TableCont m_obs_code_table;
       TableCont m_psr_name_table;
+      tip::Table * m_default_spin_par_table;
+      tip::Table * m_default_orbital_par_table;
       spin_factory_cont_type m_spin_factory_cont;
       orbital_factory_cont_type m_orbital_factory_cont;
   };
