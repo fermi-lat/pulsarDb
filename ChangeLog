@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 21 17:33:50 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	groD4-dc2v4r2.fits 
+Log Message:
+Add EPHSTYLE header keyword.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 21 14:29:56 PDT 2008
 pulsarDb/src
 
