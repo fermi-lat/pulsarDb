@@ -34,9 +34,9 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  PulsarDb::PulsarDb(const std::string & tpl_file): m_tpl_file(tpl_file), m_tip_file(), m_all_table(),
-    m_spin_par_table(), m_orbital_par_table(), m_obs_code_table(), m_psr_name_table(), m_spin_factory_cont(),
-    m_orbital_factory_cont() {
+  PulsarDb::PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext, TableCont::size_type default_orbital_ext):
+    m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_obs_code_table(), m_psr_name_table(),
+    m_default_spin_par_table(0), m_default_orbital_par_table(0), m_spin_factory_cont(), m_orbital_factory_cont() {
     // Create a FITS file in memory that holds ephemeris data.
     m_tip_file = IFileSvc::instance().createMemFile("pulsardb.fits", m_tpl_file);
 
@@ -87,7 +87,42 @@ namespace pulsarDb {
         ;
       }
     }
+
+    // Set default spin and orbital tables.
+    m_default_spin_par_table = findDefaultTable(default_spin_ext, true);
+    m_default_orbital_par_table = findDefaultTable(default_orbital_ext, false);
   }
+
+  Table * PulsarDb::findDefaultTable(TableCont::size_type ext_number, bool is_spin_table) const {
+    Table * return_table(0);
+     std::string table_type = (is_spin_table ? "spin" : "orbital");
+
+    if (ext_number >= m_all_table.size()) { 
+      // Throw an exception for extension number out of bound.
+      std::ostringstream os;
+      os << "Default extension number for " << table_type << " parameters out of bound: " << ext_number << std::endl;
+      throw std::runtime_error(os.str());
+
+    } else if (ext_number == 0) {
+      // Return zero to indicate no default.
+      return_table = 0;
+
+    } else {
+      // Set a designated table to the return value.
+      return_table = m_all_table[ext_number - 1];
+
+      // Check whether the chosen table is really a table of the requested type (spin or orbital).
+      const TableCont & table_cont = (is_spin_table ? m_spin_par_table : m_orbital_par_table);
+      const std::set<const Table *> table_set(table_cont.begin(), table_cont.end());
+      if (table_set.find(return_table) == table_set.end()) {
+        std::ostringstream os;
+        os << "Default " << table_type << " parameter extension is set to an extension not for " << table_type << " parameters";
+        throw std::runtime_error(os.str());
+      }
+    }
+ 
+    return return_table;
+ }
 
   void PulsarDb::load(const std::string & in_file) {
     // Determine a type of the input file, FITS or TEXT.
@@ -330,9 +365,9 @@ namespace pulsarDb {
       try {
         header["EPHSTYLE"].get(eph_style);
       } catch (const TipException &) {
-        // Note: EPHSTYLE must exist in SPIN_PARAMETER extension, and it is enforced in the constructor of this class.
+        // Note: EPHSTYLE must exist in SPIN_PARAMETERS extension, and it is enforced in the constructor of this class.
         //       Not finding EPHSTYLE here suggests inconsistency in methods of this class.
-        throw std::logic_error("EPHSTYLE header keyword is missing in SPIN_PARAMETER extension");
+        throw std::logic_error("EPHSTYLE header keyword is missing in SPIN_PARAMETERS extension");
       }
 
       // Use a registered subclass of PulsarEph, if EPHSTYLE keyword exists.
@@ -369,9 +404,9 @@ namespace pulsarDb {
       try {
         header["EPHSTYLE"].get(eph_style);
       } catch (const TipException &) {
-        // Note: EPHSTYLE must exist in ORBITAL_PARAMETER extension, and it is enforced in the constructor of this class.
+        // Note: EPHSTYLE must exist in ORBITAL_PARAMETERS extension, and it is enforced in the constructor of this class.
         //       Not finding EPHSTYLE here suggests inconsistency in methods of this class.
-        throw std::logic_error("EPHSTYLE header keyword is missing in ORBITAL_PARAMETER extension");
+        throw std::logic_error("EPHSTYLE header keyword is missing in ORBITAL_PARAMETERS extension");
       }
 
       // Use a registered subclass of OrbitalEph, if EPHSTYLE keyword exists.
@@ -433,6 +468,7 @@ namespace pulsarDb {
       // Collect header keyword to require.
       const Header & in_header(in_table->getHeader());
       Header::KeySeq_t required_keyword;
+      bool ephstyle_found = false;
       for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
         // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2.
         std::string keyword_name(key_itor->getName());
@@ -442,28 +478,42 @@ namespace pulsarDb {
           }
           if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM" && keyword_name != "DATASUM"
             && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
+
+          // Use EPHSTYLE header keyword as an indicator of the current format.
+          if (keyword_name == "EPHSTYLE") ephstyle_found = true;
         }
       }
 
       // Find the right tip::Table object.
-      Table * target_table = updateMatchingHeader(required_keyword);
+      Table * target_table(0);
+      if ("SPIN_PARAMETERS" == ext_name && !ephstyle_found) {
+        // Treat the input as a spin parameter table in the original format.
+        target_table = m_default_spin_par_table;
 
-      // Copy all rows in the table if a matching extension is found.
-      if (target_table) {
-        // Start at beginning of both tables.
-        Table::ConstIterator in_itor = in_table->begin();
-        Table::Iterator target_itor = target_table->end();
+      } else if ("ORBITAL_PARAMETERS" == ext_name && !ephstyle_found) {
+        // Treat the input as an orbital parameter table in the original format.
+        target_table = m_default_orbital_par_table;
 
-        // TODO: Resize output to match input. Requires tip to handle random access iterators.
-        // target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
-
-        // Copy all rows in table.
-        for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
       } else {
+        // Treat the input as any table in the current format.
+        target_table = updateMatchingHeader(required_keyword);
+      }
+
+      if (target_table == 0) {
         // Throw an exception if no extension is found to load to.
         throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
           + in_file + "\"");
       }
+
+      // Copy all rows in the table if a matching extension is found, start at beginning of both tables.
+      Table::ConstIterator in_itor = in_table->begin();
+      Table::Iterator target_itor = target_table->end();
+
+      // TODO: Resize output to match input. Requires tip to handle random access iterators.
+      // target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
+
+      // Copy all rows in table.
+      for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
     }
   }
 
@@ -589,7 +639,7 @@ namespace pulsarDb {
     static const size_t s_line_size = 2048;
     char buf[s_line_size];
 
-    Table * out_table(0);
+    Table * target_table(0);
     ParsedLine parsed_line;
     ParsedLine field_name;
     Header::KeySeq_t header_keyword;
@@ -606,7 +656,7 @@ namespace pulsarDb {
       if (parsed_line.size() > 1) throw std::runtime_error(std::string("Expected name of an extension on line ") + buf);
       else if (parsed_line.size() == 1) {
         ext_name = *parsed_line.begin();
-        header_keyword.push_back(KeyRecord("EXTNAME = " + ext_name));
+        header_keyword.push_back(KeyRecord("EXTNAME", ext_name, "name of this binary table extension"));
         break;
       }
     }
@@ -614,6 +664,7 @@ namespace pulsarDb {
     std::map<std::string, size_t> found_map;
 
     // Read table until names of fields are found.
+    bool keyword_found = false;
     while (in_table) {
       // Get next line.
       in_table.getline(buf, s_line_size);
@@ -648,18 +699,31 @@ namespace pulsarDb {
         // Add this header keyword, in order to require for an appropriate table for this text file.
         KeyRecord key_record(str_name, str_value, str_comment);
         header_keyword.push_back(key_record);
+        keyword_found = true;
 
       } else {
         // Find an appropriate table and update its header.
-        out_table = updateMatchingHeader(header_keyword);
-        if (out_table == 0) {
-          // Throw an exception if no extension is found to load to.
+        if ("SPIN_PARAMETERS" == ext_name && !keyword_found) {
+          // Treat the input as a spin parameter table in the original format.
+          target_table = m_default_spin_par_table;
+
+        } else if ("ORBITAL_PARAMETERS" == ext_name && !keyword_found) {
+          // Treat the input as an orbital parameter table in the original format.
+          target_table = m_default_orbital_par_table;
+
+        } else {
+          // Treat the input as any table in the current format.
+          target_table = updateMatchingHeader(header_keyword);
+        }
+
+        // Throw an exception if no extension is found to load to.
+        if (target_table == 0) {
           throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
             + in_file + "\"");
         }
 
         // Get list of fields in the table.
-        Table::FieldCont field = out_table->getValidFields();
+        Table::FieldCont field = target_table->getValidFields();
         field_name.assign(field.begin(), field.end());
 
         // Convert to lowercase, because field names are all lowercase.
@@ -682,7 +746,7 @@ namespace pulsarDb {
       throw std::runtime_error("File " + in_file + " does not have any columns in common with output extension " + ext_name);
 
     // Populate output table starting at the beginning.
-    Table::Iterator out_itor = out_table->begin();
+    Table::Iterator target_itor = target_table->begin();
 
     // Read the rest of input table to populate fields.
     while (in_table) {
@@ -708,13 +772,13 @@ namespace pulsarDb {
         std::map<std::string, size_t>::iterator found_itor = found_map.find(*in_itor);
         if (found_map.end() != found_itor) {
           // Found column, so look up the input table column number from the output column number.
-          (*out_itor)[*in_itor].set(parsed_line[found_itor->second]);
+          (*target_itor)[*in_itor].set(parsed_line[found_itor->second]);
         } else {
           // TODO: Make this write an INDEF in the field (requires further changes to tip).
-          // (*out_itor)[*in_itor].set([found_itor->second]);
+          // (*target_itor)[*in_itor].set([found_itor->second]);
         }
       }
-      ++out_itor;
+      ++target_itor;
     }
   }
 
