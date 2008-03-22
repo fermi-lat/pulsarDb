@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 21 17:35:55 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Add support for the original database format.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 21 17:33:50 PDT 2008
 pulsarDb/data
 
