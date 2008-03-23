@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Mar 23 14:33:11 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of ephemerides loading.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Mar 23 14:32:27 PDT 2008
 pulsarDb/src
 
