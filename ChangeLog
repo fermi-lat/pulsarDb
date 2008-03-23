@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Mar 23 14:32:27 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Fix a bug in checking index out of bound.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 21 17:35:55 PDT 2008
 pulsarDb/src
 
