@@ -97,7 +97,7 @@ namespace pulsarDb {
     Table * return_table(0);
      std::string table_type = (is_spin_table ? "spin" : "orbital");
 
-    if (ext_number >= m_all_table.size()) { 
+    if (ext_number > m_all_table.size()) { 
       // Throw an exception for extension number out of bound.
       std::ostringstream os;
       os << "Default extension number for " << table_type << " parameters out of bound: " << ext_number << std::endl;
