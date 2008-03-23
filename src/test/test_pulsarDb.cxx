@@ -4,12 +4,15 @@
              James Peachey, HEASARC/GSSC
 */
 #include <cstdio>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <list>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "facilities/commonUtilities.h"
 
@@ -28,7 +31,10 @@
 #include "timeSystem/TimeConstant.h"
 #include "timeSystem/TimeRep.h"
 
+#include "tip/IFileSvc.h"
+
 using namespace timeSystem;
+using namespace pulsarDb;
 
 /** \class ErrorMsg
     \brief Trivial helper class for formatting output.
@@ -108,14 +114,26 @@ class PulsarDbTest : public st_app::StApp {
     /// Test PdotCanceler class.
     virtual void testPdotCanceler();
 
+    /// Test support for multiple ephemeris models.
+    virtual void testMultipleEphModel();
+
   private:
+    typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
+
     std::string m_data_dir;
     std::string m_in_file;
     std::string m_tpl_file;
     std::string m_creator;
-};
 
-using namespace pulsarDb;
+    /// Helper method for testMultipleEphModel, to test loading ephemerides from FITS database files.
+    void testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
+      bool load_original, bool expected_to_fail);
+
+    /// Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
+    void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & database,
+      const ExtInfoCont & ext_info_cont, bool load_original, bool expected_to_fail);
+
+};
 
 void PulsarDbTest::run() {
 
@@ -147,6 +165,7 @@ void PulsarDbTest::run() {
   testEphComputer();
   testEphGetter();
   testPdotCanceler();
+  testMultipleEphModel();
 
   // Failures.
   testBadInterval();
@@ -1066,6 +1085,210 @@ void PulsarDbTest::testPdotCanceler() {
   if (fabs(pdot_t - correct_t) > epsilon) {
     ErrorMsg(method_name) << "After constructed from PulsarEph, PdotCanceler::cancelPdot produced pdot-corrected time == "
       << pdot_t << " not " << correct_t << std::endl;
+  }
+}
+
+void PulsarDbTest::testMultipleEphModel() {
+  std::string method_name = "testMultipleEphModel";
+
+  std::auto_ptr<PulsarDb> database(0);
+
+  // Test rejection of a template file w/o EPHSTYLE in SPIN_PARAMETERS extension.
+  std::string tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "test_pulsarDb_badspin.tpl");
+  try {
+    database.reset(new PulsarDb(tpl_file));
+    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  // Test rejection of a template file w/o EPHSTYLE in ORBITAL_PARAMETERS extension.
+  tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "test_pulsarDb_badorbital.tpl");
+  try {
+    database.reset(new PulsarDb(tpl_file));
+    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  // Test successful creation of a PulsarDb object with a correct template.
+  tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "test_pulsarDb.tpl");
+  try {
+    database.reset(new PulsarDb(tpl_file));
+  } catch (const std::exception & x) {
+    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\") threw exception: " << std::endl <<
+      x.what() << std::endl;
+  }
+
+  // Test rejection of a wrong target extension for spin ephemerides in the original format.
+  try {
+    database.reset(new PulsarDb(tpl_file, 3, 4));
+    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 3, 4) did not throw an exception" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  // Test rejection of a wrong target extension for orbital ephemerides in the original format.
+  try {
+    database.reset(new PulsarDb(tpl_file, 2, 1));
+    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 1) did not throw an exception" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  // Test successful creation of a PulsarDb object with a correct target extension for spin and orbital ephemerides
+  // in the original format.
+  try {
+    database.reset(new PulsarDb(tpl_file, 2, 4));
+  } catch (const std::exception & x) {
+    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 4) threw exception: " << std::endl <<
+      x.what() << std::endl;
+  }
+
+  // Test loading ephemerides from FITS database files in the current format.
+  database.reset(new PulsarDb(tpl_file));
+  bool load_original = false;
+  bool expected_to_fail = false;
+  testLoadingFits(method_name, *database, tpl_file, load_original, expected_to_fail);
+
+  // Test getting ephemerides that were loaded from FITS database files in the current format.
+  // TODO: Write this test!!!
+
+  // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
+  database.reset(new PulsarDb(tpl_file));
+  load_original = true;
+  expected_to_fail = true;
+  testLoadingFits(method_name, *database, tpl_file, load_original, expected_to_fail);
+
+  // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
+  database.reset(new PulsarDb(tpl_file, 1, 3));
+  load_original = true;
+  expected_to_fail = false;
+  testLoadingFits(method_name, *database, tpl_file, load_original, expected_to_fail);
+
+  // Test getting ephemerides that were loaded from FITS database files in the original format.
+  // TODO: Write this test!!!
+
+  // Prepare information of extensions for loading ephemerides from text database files.
+  std::list<std::pair<std::string, std::string> > ext_info_cont;
+  ext_info_cont.push_back(std::make_pair("SPIN_PARAMETERS", "MODEL1"));
+  ext_info_cont.push_back(std::make_pair("SPIN_PARAMETERS", "MODEL2"));
+  ext_info_cont.push_back(std::make_pair("ORBITAL_PARAMETERS", "MODEL1"));
+  ext_info_cont.push_back(std::make_pair("ORBITAL_PARAMETERS", "MODEL2"));
+
+  // Test loading ephemerides from text database files in the current format.
+  database.reset(new PulsarDb(tpl_file));
+  load_original = false;
+  expected_to_fail = false;
+  testLoadingText(method_name, *database, ext_info_cont, load_original, expected_to_fail);
+
+  // Test getting ephemerides that were loaded from text database files.
+  // TODO: Write this test!!!
+
+  // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
+  database.reset(new PulsarDb(tpl_file));
+  load_original = true;
+  expected_to_fail = true;
+  testLoadingText(method_name, *database, ext_info_cont, load_original, expected_to_fail);
+
+  // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
+  database.reset(new PulsarDb(tpl_file, 1, 3));
+  load_original = true;
+  expected_to_fail = false;
+  testLoadingText(method_name, *database, ext_info_cont, load_original, expected_to_fail);
+
+  // Test getting ephemerides that were loaded from FITS database files in the original format.
+  // TODO: Write this test!!!
+}
+
+void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
+  bool load_original, bool expected_to_fail) {
+  std::string filename = "testdb.fits";
+
+  // Create a FITS file to load ephemerides from.
+  tip::IFileSvc & file_svc(tip::IFileSvc::instance());
+  file_svc.createFile(filename, tpl_file, true);
+  tip::FileSummary file_summary;
+  file_svc.getFileSummary(filename, file_summary);
+  int int_value = 0;
+  for (std::size_t ext_number = 1; ext_number < file_summary.size(); ++ext_number) {
+    // Open an extension.
+    std::ostringstream oss;
+    oss << ext_number;
+    std::auto_ptr<tip::Table> table(file_svc.editTable(filename, oss.str()));
+
+    // Put the integer number in INTVALUE column.
+    tip::Table::Iterator record_itor = table->begin();
+    tip::TableRecord & record(*record_itor);
+    record["INTVALUE"].set(int_value);
+
+    // Erase EPHSTYLE header record, if the original format is requested.
+    if (load_original) table->getHeader().erase("EPHSTYLE");
+
+    // Increment the column value to distinguish test database files.
+    ++int_value;
+  }
+
+  // Test loading ephemerides.
+  try {
+    // Load the text database.
+    database.load(filename);
+    if (expected_to_fail) {
+      ErrorMsg(method_name) << "PulsarDb::load method did not throw exception for FITS file \"" << filename <<
+        "\"" << std::endl;
+    } else {
+      // This is fine.
+    }
+  } catch (const std::exception & x) {
+    if (expected_to_fail) {
+      // This is fine.
+    } else {
+      ErrorMsg(method_name) << "PulsarDb::load method threw exception for FITS file \"" << filename <<
+        "\": " << std::endl << x.what() << std::endl;
+    }
+  }
+}
+
+void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & database, const ExtInfoCont & ext_info_cont,
+  bool load_original, bool expected_to_fail) {
+  std::string filename("testdb.txt");
+
+  int int_value = 0;
+  for (ExtInfoCont::const_iterator itor = ext_info_cont.begin(); itor != ext_info_cont.end(); ++itor) {
+    const std::string & ext_name(itor->first);
+    const std::string & model_name(itor->second);
+  
+    // Create a text database file.
+    remove(filename.c_str());
+    std::ofstream ofs(filename.c_str());
+    ofs << ext_name << std::endl;
+    if (!load_original) ofs << "EPHSTYLE = " << model_name << std::endl;
+    ofs << "INTVALUE" << std::endl;
+    ofs << int_value << std::endl;
+    ofs.close();
+
+    // Load the text database.
+    try {
+      database.load(filename);
+      if (expected_to_fail) {
+        ErrorMsg(method_name) << "PulsarDb::load method did not throw exception for text file \"" << filename <<
+          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", INTVALUE=" << int_value <<
+          ": " << std::endl;
+      } else {
+        // This is fine.
+      }
+    } catch (const std::exception & x) {
+      if (expected_to_fail) {
+        // This is fine.
+      } else {
+        ErrorMsg(method_name) << "PulsarDb::load method threw exception for text file \"" << filename <<
+          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", INTVALUE=" << int_value <<
+          ": " << std::endl << x.what() << std::endl;
+      }
+    }
+
+    // Increment the column value to distinguish test database files.
+    ++int_value;
   }
 }
 
