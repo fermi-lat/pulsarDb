@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 24 12:48:38 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of ephemerides routing from loading (loadFits/Text methods) to getting (getEph methods).
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 24 12:47:35 PDT 2008
 pulsarDb/src
 
