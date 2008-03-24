@@ -22,8 +22,8 @@ DATASUM      =                             / checksum for data table
 DATE         =                             / file creation date (YYYY-MM-DDThh:mm:ss UT)
 EXTNAME      = 'SPIN_PARAMETERS'           / name of this binary table extension
 EPHSTYLE     = 'MODEL1'                    / name of pulsar ephemeris model
-TTYPE1       = 'INTVALUE'                  / name of field
-TFORM1       = 'I'                         / data format of field
+TTYPE1       = 'STRING_VALUE'              / name of field
+TFORM1       = '16A'                       / data format of field
 END
 
 XTENSION     = 'BINTABLE'                  / binary table extension
@@ -39,8 +39,8 @@ DATASUM      =                             / checksum for data table
 DATE         =                             / file creation date (YYYY-MM-DDThh:mm:ss UT)
 EXTNAME      = 'SPIN_PARAMETERS'           / name of this binary table extension
 EPHSTYLE     = 'MODEL2'                    / name of pulsar ephemeris model
-TTYPE1       = 'INTVALUE'                  / name of field
-TFORM1       = 'I'                         / data format of field
+TTYPE1       = 'STRING_VALUE'              / name of field
+TFORM1       = '16A'                       / data format of field
 END
 
 XTENSION     = 'BINTABLE'                  / binary table extension
@@ -56,8 +56,8 @@ DATASUM      =                             / checksum for data table
 DATE         =                             / file creation date (YYYY-MM-DDThh:mm:ss UT)
 EXTNAME      = 'ORBITAL_PARAMETERS'        / name of this binary table extension
 EPHSTYLE     = 'MODEL1'                    / name of pulsar ephemeris model
-TTYPE1       = 'INTVALUE'                  / name of field
-TFORM1       = 'I'                         / data format of field
+TTYPE1       = 'STRING_VALUE'              / name of field
+TFORM1       = '16A'                       / data format of field
 END
 
 XTENSION     = 'BINTABLE'                  / binary table extension
@@ -73,6 +73,6 @@ DATASUM      =                             / checksum for data table
 DATE         =                             / file creation date (YYYY-MM-DDThh:mm:ss UT)
 EXTNAME      = 'ORBITAL_PARAMETERS'        / name of this binary table extension
 EPHSTYLE     = 'MODEL2'                    / name of pulsar ephemeris model
-TTYPE1       = 'INTVALUE'                  / name of field
-TFORM1       = 'I'                         / data format of field
+TTYPE1       = 'STRING_VALUE'              / name of field
+TFORM1       = '16A'                       / data format of field
 END
