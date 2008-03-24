@@ -56,6 +56,8 @@ const ErrorMsg & operator <<(const ErrorMsg & msg, const T & t) { std::cerr << t
 
 int ErrorMsg::s_status = 0;
 
+class EphRoutingInfo;
+
 /** \class PulsarDbTest
     \brief Test application.
 */
@@ -130,9 +132,12 @@ class PulsarDbTest : public st_app::StApp {
       bool load_original, bool expected_to_fail);
 
     /// Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
-    void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & database,
-      const ExtInfoCont & ext_info_cont, bool load_original, bool expected_to_fail);
+    void testLoadingText(const std::string & method_name, PulsarDb & database, const ExtInfoCont & ext_info_cont,
+      bool load_original, bool expected_to_fail);
 
+    /// Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
+    void checkEphRouting(const std::string & method_name, const PulsarDb & database,
+      const std::map<std::string, EphRoutingInfo> & expected_route_dict) const;
 };
 
 void PulsarDbTest::run() {
@@ -160,12 +165,17 @@ void PulsarDbTest::run() {
   testAppend();
   testExpression();
   testChooser();
-  testTextPulsarDb();
+  testTextPulsarDb(); // TODO: This test seems to interfere test MultipleEphModel. See below for details.
   testOrbitalEph();
-  testEphComputer();
-  testEphGetter();
+  testEphComputer(); // TODO: This test seems to interfere test MultipleEphModel. See below for details.
+  testEphGetter(); // TODO: This test seems to interfere test MultipleEphModel. See below for details.
   testPdotCanceler();
   testMultipleEphModel();
+  // TODO: Nail down a mysterious behavior of PulsarDb::loadFits/Text method.
+  // Symptoms: testTextPulsarDb, testEphComputer, and testEphGetter seem to interfere testMultipleEphModel.
+  //           testMultipleEphModel produces an error if filterRow("#row>0") is not performed on all tables
+  //           in the memory FITS file at the end of PulsarDb::loadFits/Text methods, AND if one of the
+  //           interferring tests are performed. Otherwise, it doesn't produce an error. Why?
 
   // Failures.
   testBadInterval();
@@ -1088,6 +1098,133 @@ void PulsarDbTest::testPdotCanceler() {
   }
 }
 
+class EphRoutingInfo {
+  public:
+    EphRoutingInfo(): m_string_value(), m_ext_name(), m_model_name(), m_class_name() {}
+
+    EphRoutingInfo(const std::string & string_value, const std::string & ext_name, const std::string & model_name,
+      const std::string & class_name): m_string_value(string_value), m_ext_name(ext_name), m_model_name(model_name),
+      m_class_name(class_name) {}
+
+    EphRoutingInfo(const tip::Table::ConstRecord & record, const tip::Header & header, const std::string & base_name,
+      int class_number): m_string_value(), m_ext_name(), m_model_name(), m_class_name() {
+      // Get SRTING_VALUE and store it.
+      try {
+        record["STRING_VALUE"].get(m_string_value);
+      } catch (const tip::TipException &) {
+        m_string_value.clear();
+      }
+
+      // Get EXTNAME and store it.
+      try {
+        header["EXTNAME"].get(m_ext_name);
+      } catch (const tip::TipException &) {
+        m_ext_name.clear();
+      }
+
+      // Get EPHSTYLE and store it.
+      try {
+        header["EPHSTYLE"].get(m_model_name);
+      } catch (const tip::TipException &) {
+        m_model_name.clear();
+      }
+
+      // Construct a class name.
+      std::ostringstream oss;
+      oss << base_name << class_number;
+      m_class_name = oss.str();
+    }
+
+    const std::string & getStringValue() const { return m_string_value; }
+    const std::string & getExtensionName() const { return m_ext_name; }
+    const std::string & getModelName() const { return m_model_name; }
+    const std::string & getClassName() const { return m_class_name; }
+
+  private:
+    std::string m_string_value;
+    std::string m_ext_name;
+    std::string m_model_name;
+    std::string m_class_name;
+};
+
+class BogusPulsarEphBase: public PulsarEph {
+  public:
+    virtual const EphRoutingInfo & getRoutingInfo() const {
+      static const EphRoutingInfo s_bogus_info;
+      return s_bogus_info;
+    }
+
+    virtual const TimeSystem & getSystem() const { return TimeSystem::getSystem("TDB"); }
+    virtual const AbsoluteTime & getValidSince() const { return getBogusTime(); }
+    virtual const AbsoluteTime & getValidUntil() const { return getBogusTime(); }
+    virtual const AbsoluteTime & getEpoch() const { return getBogusTime(); }
+    virtual PulsarEph * clone() const { return new BogusPulsarEphBase(*this); }
+    virtual double calcFrequency(const AbsoluteTime & /* ev_time */, int /* derivative_order */ = 0) const { return 0.; }
+    virtual std::pair<double, double> calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
+      return std::make_pair(0., 0.); 
+    }
+
+  protected:
+    virtual void writeModelParameter(st_stream::OStream & /* os */) const {}
+    virtual double calcCycleCount(const AbsoluteTime & /* ev_time */) const { return 0.; }
+
+  private:
+    inline const AbsoluteTime & getBogusTime() const {
+      static const AbsoluteTime s_bogus_time("TDB", Duration(0, 0.), Duration(0, 0.));
+      return s_bogus_time;
+    }
+};
+
+template<int CLASSNUMBER>
+class BogusPulsarEph: public BogusPulsarEphBase {
+  public:
+    BogusPulsarEph(const tip::Table::ConstRecord & record, const tip::Header & header):
+      m_routing_info(record, header, "BogusPulsarEph", CLASSNUMBER) {}
+    virtual ~BogusPulsarEph() {}
+    virtual const EphRoutingInfo & getRoutingInfo() const { return m_routing_info; }
+
+  private:
+    EphRoutingInfo m_routing_info;
+};
+
+class BogusOrbitalEphBase: public OrbitalEph {
+  public:
+    BogusOrbitalEphBase(): OrbitalEph(timeSystem::ElapsedTime("TDB", Duration(0, 10.e-9)), 100) {}
+
+    virtual const EphRoutingInfo & getRoutingInfo() const {
+      static const EphRoutingInfo s_bogus_info;
+      return s_bogus_info;
+    }
+
+    virtual const AbsoluteTime & t0() const {
+      static const AbsoluteTime s_bogus_absolute_time("TDB", Duration(0, 0.), Duration(0, 0.));
+      return s_bogus_absolute_time;
+    }
+    virtual double calcOrbitalPhase(const AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
+      return 0.;
+    }
+    virtual ElapsedTime calcOrbitalDelay(const timeSystem::AbsoluteTime & /* ev_time */) const {
+      static const ElapsedTime s_bogus_elapsed_time("TDB", Duration(0, 0.));
+      return s_bogus_elapsed_time;
+    }
+    virtual OrbitalEph * clone() const { return new BogusOrbitalEphBase(*this); }
+
+  protected:
+    virtual void writeModelParameter(st_stream::OStream & /* os */) const {}
+};
+
+template<int CLASSNUMBER>
+class BogusOrbitalEph: public BogusOrbitalEphBase {
+  public:
+    BogusOrbitalEph(const tip::Table::ConstRecord & record, const tip::Header & header):
+      m_routing_info(record, header, "BogusOrbitalEph", CLASSNUMBER) {}
+    virtual ~BogusOrbitalEph() {}
+    virtual const EphRoutingInfo & getRoutingInfo() const { return m_routing_info; }
+
+  private:
+    EphRoutingInfo m_routing_info;
+};
+
 void PulsarDbTest::testMultipleEphModel() {
   std::string method_name = "testMultipleEphModel";
 
@@ -1149,25 +1286,43 @@ void PulsarDbTest::testMultipleEphModel() {
   database.reset(new PulsarDb(tpl_file));
   bool load_original = false;
   bool expected_to_fail = false;
-  testLoadingFits(method_name, *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits(method_name + " (loading current FITS)", *database, tpl_file, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the current format.
-  // TODO: Write this test!!!
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  std::map<std::string, EphRoutingInfo> expected_route_dict;
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
+  checkEphRouting(method_name + " (checking current FITS)", *database, expected_route_dict);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
   database.reset(new PulsarDb(tpl_file));
   load_original = true;
   expected_to_fail = true;
-  testLoadingFits(method_name, *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits(method_name + " (loading original FITS)", *database, tpl_file, load_original, expected_to_fail);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
   database.reset(new PulsarDb(tpl_file, 1, 3));
   load_original = true;
   expected_to_fail = false;
-  testLoadingFits(method_name, *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits(method_name + " (loading original FITS)", *database, tpl_file, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the original format.
-  // TODO: Write this test!!!
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  checkEphRouting(method_name + " (checking original FITS)", *database, expected_route_dict);
 
   // Prepare information of extensions for loading ephemerides from text database files.
   std::list<std::pair<std::string, std::string> > ext_info_cont;
@@ -1180,25 +1335,43 @@ void PulsarDbTest::testMultipleEphModel() {
   database.reset(new PulsarDb(tpl_file));
   load_original = false;
   expected_to_fail = false;
-  testLoadingText(method_name, *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText(method_name + " (loading current TEXT)", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from text database files.
-  // TODO: Write this test!!!
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
+  checkEphRouting(method_name + " (checking current TEXT)", *database, expected_route_dict);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
   database.reset(new PulsarDb(tpl_file));
   load_original = true;
   expected_to_fail = true;
-  testLoadingText(method_name, *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText(method_name + " (loading original TEXT)", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
   database.reset(new PulsarDb(tpl_file, 1, 3));
   load_original = true;
   expected_to_fail = false;
-  testLoadingText(method_name, *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText(method_name + " (loading original TEXT)", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the original format.
-  // TODO: Write this test!!!
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  checkEphRouting(method_name + " (checking original TEXT)", *database, expected_route_dict);
 }
 
 void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
@@ -1210,23 +1383,20 @@ void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & d
   file_svc.createFile(filename, tpl_file, true);
   tip::FileSummary file_summary;
   file_svc.getFileSummary(filename, file_summary);
-  int int_value = 0;
   for (std::size_t ext_number = 1; ext_number < file_summary.size(); ++ext_number) {
     // Open an extension.
     std::ostringstream oss;
     oss << ext_number;
     std::auto_ptr<tip::Table> table(file_svc.editTable(filename, oss.str()));
 
-    // Put the integer number in INTVALUE column.
+    // Put the integer number in STRING_VALUE column.
     tip::Table::Iterator record_itor = table->begin();
     tip::TableRecord & record(*record_itor);
-    record["INTVALUE"].set(int_value);
+    std::string string_value = "VALUE" + oss.str();
+    record["STRING_VALUE"].set(string_value);
 
     // Erase EPHSTYLE header record, if the original format is requested.
     if (load_original) table->getHeader().erase("EPHSTYLE");
-
-    // Increment the column value to distinguish test database files.
-    ++int_value;
   }
 
   // Test loading ephemerides.
@@ -1253,18 +1423,21 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
   bool load_original, bool expected_to_fail) {
   std::string filename("testdb.txt");
 
-  int int_value = 0;
+  int int_value = 1;
   for (ExtInfoCont::const_iterator itor = ext_info_cont.begin(); itor != ext_info_cont.end(); ++itor) {
     const std::string & ext_name(itor->first);
     const std::string & model_name(itor->second);
+    std::ostringstream oss;
+    oss << "VALUE" << int_value;
+    const std::string string_value = oss.str();
   
     // Create a text database file.
     remove(filename.c_str());
     std::ofstream ofs(filename.c_str());
     ofs << ext_name << std::endl;
     if (!load_original) ofs << "EPHSTYLE = " << model_name << std::endl;
-    ofs << "INTVALUE" << std::endl;
-    ofs << int_value << std::endl;
+    ofs << "STRING_VALUE" << std::endl;
+    ofs << string_value << std::endl;
     ofs.close();
 
     // Load the text database.
@@ -1272,7 +1445,7 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
       database.load(filename);
       if (expected_to_fail) {
         ErrorMsg(method_name) << "PulsarDb::load method did not throw exception for text file \"" << filename <<
-          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", INTVALUE=" << int_value <<
+          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", STRING_VALUE=" << string_value <<
           ": " << std::endl;
       } else {
         // This is fine.
@@ -1282,7 +1455,7 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
         // This is fine.
       } else {
         ErrorMsg(method_name) << "PulsarDb::load method threw exception for text file \"" << filename <<
-          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", INTVALUE=" << int_value <<
+          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", STRING_VALUE=" << string_value <<
           ": " << std::endl << x.what() << std::endl;
       }
     }
@@ -1290,6 +1463,101 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
     // Increment the column value to distinguish test database files.
     ++int_value;
   }
+}
+
+void PulsarDbTest::checkEphRouting(const std::string & method_name, const PulsarDb & database,
+  const std::map<std::string, EphRoutingInfo> & expected_route_dict) const {
+  // Get pulsar and orbital ephemerides out of database.
+  PulsarEphCont pulsar_eph_cont;
+  database.getEph(pulsar_eph_cont);
+  OrbitalEphCont orbital_eph_cont;
+  database.getEph(orbital_eph_cont);
+
+  // Collect ephemeris routing information returned by PulsarDb::getEph method.
+  std::list<EphRoutingInfo> returned_route_list;
+  for (PulsarEphCont::const_iterator itor = pulsar_eph_cont.begin(); itor != pulsar_eph_cont.end(); ++itor) {
+    BogusPulsarEphBase * eph(dynamic_cast<BogusPulsarEphBase *>(*itor));
+    if (eph == 0) {
+      ErrorMsg(method_name) << "PulsarDb::getEph(PulsarEphCont &) returned an object of an unregistered class" <<
+        std::endl;
+      continue;
+    } else {
+      returned_route_list.push_back(eph->getRoutingInfo());
+    }
+  }
+  for (OrbitalEphCont::const_iterator itor = orbital_eph_cont.begin(); itor != orbital_eph_cont.end(); ++itor) {
+    BogusOrbitalEphBase * eph(dynamic_cast<BogusOrbitalEphBase *>(*itor));
+    if (eph == 0) {
+      ErrorMsg(method_name) << "PulsarDb::getEph(OrbitalEphCont &) returned an object of an unregistered class" <<
+        std::endl;
+      continue;
+    } else {
+      returned_route_list.push_back(eph->getRoutingInfo());
+    }
+  }
+
+  // Check whether all expected ephemerides are found only once in return ephemerides.
+  for (std::map<std::string, EphRoutingInfo>::const_iterator expected_itor = expected_route_dict.begin();
+    expected_itor != expected_route_dict.end(); ++expected_itor) {
+    const std::string & string_value(expected_itor->first);
+    std::size_t num_eph_found = 0;
+    for (std::list<EphRoutingInfo>::const_iterator returned_itor = returned_route_list.begin();
+      returned_itor != returned_route_list.end(); ++returned_itor) {
+      if (string_value == returned_itor->getStringValue()) ++num_eph_found;
+    }
+    if (num_eph_found == 0) {
+      ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+        "\" was not returned by PulsarDb::getEph method" << std::endl;
+    } else if (num_eph_found > 1) {
+      ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+        "\" was returned more than once by PulsarDb::getEph method" << std::endl;
+    }
+  }
+
+  for (std::list<EphRoutingInfo>::const_iterator returned_itor = returned_route_list.begin();
+    returned_itor != returned_route_list.end(); ++returned_itor) {
+    // Get routing information of this ephemeris entry.
+    std::string string_value = returned_itor->getStringValue();
+    std::string ext_name = returned_itor->getExtensionName();
+    std::string model_name = returned_itor->getModelName();
+    std::string class_name = returned_itor->getClassName();
+
+    // Look for this entry in the expected routing information dictionary.
+    std::map<std::string, EphRoutingInfo>::const_iterator expected_itor = expected_route_dict.find(string_value);
+    if (expected_itor == expected_route_dict.end()) {
+      ErrorMsg(method_name) << "PulsarDb::getEph method returned an unexpected ephemeris data: " <<
+        string_value << std::endl;
+
+    } else {
+      // Check an extension value of this ephemeris entry.
+      std::string expected_ext_name = expected_itor->second.getExtensionName();
+      if (ext_name != expected_ext_name) {
+      ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+        "\" was loaded into an extension with EXTNAME=" << ext_name << ", not " << expected_ext_name <<
+        " as expected" << std::endl;
+      }
+
+      // Check EPHSTYLE keyword value of an extension that this ephemeris entry was coming through.
+      std::string expected_model_name = expected_itor->second.getModelName();
+      if (model_name != expected_model_name) {
+        ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+          "\" was loaded into an extension with EPHSTYLE=" << model_name << ", not " << expected_model_name <<
+          " as expected" << std::endl;
+      }
+
+      // Check a class name that this ephemeris entry was passed to.
+      std::string expected_class_name = expected_itor->second.getClassName();
+      if (class_name != expected_class_name) {
+        ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+          "\" was passed to " << class_name << " class, not " << expected_class_name <<
+          " as expected" << std::endl;
+      }
+    }
+  }
+
+  // Clear the contents of the pulsar ephemeris container.
+  for (PulsarEphCont::iterator itor = pulsar_eph_cont.begin(); itor != pulsar_eph_cont.end(); ++itor) delete *itor;
+  pulsar_eph_cont.clear();
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("test_pulsarDb");
