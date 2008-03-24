@@ -137,12 +137,6 @@ namespace pulsarDb {
     // Call an appropriate loader method.
     if (is_fits) loadFits(in_file);
     else loadText(in_file);
-
-    // Refresh the tip table objects.
-    // TODO: Do we really need to do this?
-    for (TableCont::iterator itor = m_all_table.begin(); itor != m_all_table.end(); ++itor) {
-      (*itor)->filterRows("#row>0");
-    }
   }
 
   PulsarDb::~PulsarDb() {
@@ -394,9 +388,15 @@ namespace pulsarDb {
     // Empty container then refill it.
     cont.clear();
 
+    // Reserve space for all ephemerides.
+    int num_record = 0;
+    for (TableCont::const_iterator itor = m_orbital_par_table.begin(); itor != m_orbital_par_table.end(); ++itor) {
+      num_record += (*itor)->getNumRecords();
+    }
+    cont.reserve(num_record);
+
     for (TableCont::const_iterator table_itor = m_orbital_par_table.begin(); table_itor != m_orbital_par_table.end(); ++table_itor) {
       const Table & orbital_table = **table_itor;
-      cont.reserve(orbital_table.getNumRecords());
       const Header & header(orbital_table.getHeader());
 
       // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
@@ -514,6 +514,12 @@ namespace pulsarDb {
 
       // Copy all rows in table.
       for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
+
+      // Synchronize the memory FITS file to the tip table objects.
+      // TODO: Do we really need to do this?
+      for (TableCont::iterator itor = m_all_table.begin(); itor != m_all_table.end(); ++itor) {
+        (*itor)->filterRows("#row>0");
+      }
     }
   }
 
@@ -745,8 +751,8 @@ namespace pulsarDb {
     if (found_map.empty())
       throw std::runtime_error("File " + in_file + " does not have any columns in common with output extension " + ext_name);
 
-    // Populate output table starting at the beginning.
-    Table::Iterator target_itor = target_table->begin();
+    // Add new ephemerides at the end of table.
+    Table::Iterator target_itor = target_table->end();
 
     // Read the rest of input table to populate fields.
     while (in_table) {
@@ -779,6 +785,12 @@ namespace pulsarDb {
         }
       }
       ++target_itor;
+    }
+
+    // Synchronize the memory FITS file to the tip table objects.
+    // TODO: Do we really need to do this?
+    for (TableCont::iterator itor = m_all_table.begin(); itor != m_all_table.end(); ++itor) {
+      (*itor)->filterRows("#row>0");
     }
   }
 
