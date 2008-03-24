@@ -31,6 +31,7 @@ namespace pulsarDb {
 
       virtual const timeSystem::AbsoluteTime & t0() const = 0;
 
+      // TODO: Split calcOrbitalPhase into two parts: computation of orbital phase and truncation of integer part.
       virtual double calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
 
       virtual timeSystem::ElapsedTime calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const = 0;
