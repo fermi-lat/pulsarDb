@@ -22,6 +22,6 @@ CHECKSUM     =                             / checksum for entire HDU
 DATASUM      =                             / checksum for data table
 DATE         =                             / file creation date (YYYY-MM-DDThh:mm:ss UT)
 EXTNAME      = 'ORBITAL_PARAMETERS'        / name of this binary table extension
-TTYPE1       = 'INTVALUE'                  / name of field
-TFORM1       = 'I'                         / data format of field
+TTYPE1       = 'STRING_VALUE'              / name of field
+TFORM1       = '32A'                       / data format of field
 END
