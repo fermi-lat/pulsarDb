@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 24 12:47:35 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Relocate synchronization from load method to loadFits/Text methods. Fix use of vector::reserve in getEph method for orbital ephemerides.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 24 12:45:23 PDT 2008
 pulsarDb/pulsarDb
 
