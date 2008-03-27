@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 27 12:54:46 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Add trimPhaseValue method to unify computation of the fractional part of phase values in PulsarEph and OrbitalEph. Make some methods const.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 24 12:48:38 PDT 2008
 pulsarDb/src/test
 
