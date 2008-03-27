@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 27 13:01:49 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove BogusPulsarEph::calcCycleCount method.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 27 12:58:25 PDT 2008
 pulsarDb/src/test
 
