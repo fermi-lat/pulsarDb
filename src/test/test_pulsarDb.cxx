@@ -1159,6 +1159,9 @@ class BogusPulsarEphBase: public PulsarEph {
     virtual const AbsoluteTime & getValidUntil() const { return getBogusTime(); }
     virtual const AbsoluteTime & getEpoch() const { return getBogusTime(); }
     virtual PulsarEph * clone() const { return new BogusPulsarEphBase(*this); }
+    virtual double calcPulsePhase(const timeSystem::AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
+      return 0.;
+    }
     virtual double calcFrequency(const AbsoluteTime & /* ev_time */, int /* derivative_order */ = 0) const { return 0.; }
     virtual std::pair<double, double> calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
       return std::make_pair(0., 0.); 
