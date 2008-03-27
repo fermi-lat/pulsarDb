@@ -66,7 +66,7 @@ namespace pulsarDb {
           \param data_value Variable to store the value.
       */
       template <typename DataType>
-      void read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) {
+      void read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) const {
         // Get the cell.
         const tip::TableCell & cell = record[field_name];
 
@@ -89,7 +89,7 @@ namespace pulsarDb {
       */
       template <typename DataType>
       void read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value,
-        const DataType & failed_value) {
+        const DataType & failed_value) const {
         try {
           read(record, field_name, data_value);
         } catch (...) {
@@ -97,21 +97,33 @@ namespace pulsarDb {
         }
       }
 
+      /** \brief Helper method that returns the fractional part of a given value, making sure that
+          the return value is in the range of [0, 1).
+          param phase_value Phase value whose fractional part is to be returned.
+          \param phase_offset Phase value to be added to the computed pulse or orbital phase.
+      */
+      double trimPhaseValue(double phase_value, double phase_offset = 0.) const {
+        double int_part; // ignored, needed for modf.
+        double phase = std::modf(phase_value + phase_offset, &int_part);
+        if (phase < 0.) ++phase;
+        return phase;
+      }
+
     private:
       /** \brief Helper method to check whether a given templated data is an INDEF.
           \param x The data to be examined.
       */
       template <typename DataType>
-      inline bool isNan(DataType /* data_value */) { return false; }
+      inline bool isNan(DataType /* data_value */) const { return false; }
 
-      inline bool isNan(float data_value) { return isNotANumber(data_value); }
-      inline bool isNan(double data_value) { return isNotANumber(data_value); }
+      inline bool isNan(float data_value) const { return isNotANumber(data_value); }
+      inline bool isNan(double data_value) const { return isNotANumber(data_value); }
 
       /** \brief Helper method to check whether a given double variable is Not-A-Number.
           \param x The data to be examined.
       */
       template <typename T>
-      inline bool isNotANumber(T x) {
+      inline bool isNotANumber(T x) const {
 #ifdef WIN32
         return 0 != _isnan(x);
 #else
