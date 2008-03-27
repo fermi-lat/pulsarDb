@@ -196,10 +196,7 @@ namespace pulsarDb {
     double phase = delta_period * (1. - delta_period * m_pb_dot / 2.0);
 
     // Express phase as a value between 0. and 1., after adding a global phase offset.
-    double int_part; // ignored, needed for modf.
-    phase = std::modf(phase_offset + phase, &int_part);
-    if (phase < 0.) ++phase;
-    return phase;
+    return trimPhaseValue(phase, phase_offset);
   }
 
   timeSystem::ElapsedTime SimpleDdEph::calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const {
