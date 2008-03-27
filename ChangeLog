@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 27 12:56:06 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h 
+Log Message:
+Use FormatterEph::trimPhaseValue. Remove calcCycleCount method.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 27 12:54:46 PDT 2008
 pulsarDb/pulsarDb
 
