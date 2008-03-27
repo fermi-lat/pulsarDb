@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 27 12:58:25 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Modify BogusPulsarEph class to adopt to the recent change in PulsarEph class.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 27 12:56:23 PDT 2008
 pulsarDb/src
 
