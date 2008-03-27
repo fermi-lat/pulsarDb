@@ -19,17 +19,6 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  double PulsarEph::calcPulsePhase(const AbsoluteTime & ev_time, double phase_offset) const {
-    // Compute the cycle count (which includes the iteger part of pulse phase).
-    double cycle_count = calcCycleCount(ev_time);
-
-    // Express phase as a value between 0. and 1., after adding a global phase offset.
-    double int_part; // ignored, needed for modf.
-    double phase = std::modf(phase_offset + cycle_count, &int_part);
-    if (phase < 0.) ++phase;
-    return phase;
-  }
-
   st_stream::OStream & PulsarEph::write(st_stream::OStream & os) const {
     // Save the original settings and set the prefered formats.
     std::ios::fmtflags orig_flags = os.flags();
@@ -138,24 +127,31 @@ namespace pulsarDb {
     os << format("P2",    m_p2);
   }
 
-  double FrequencyEph::calcCycleCount(const AbsoluteTime & ev_time) const {
+  double FrequencyEph::calcPulsePhase(const AbsoluteTime & ev_time, double phase_offset) const {
+    // Compute a pulse phase value.
     double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
-    double cycle_count = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
-    return cycle_count;
+    double phase = m_phi0 + m_f0 * dt + m_f1/2.0 * dt_squared + m_f2/6.0 * dt * dt_squared;
+
+    // Express phase as a value between 0. and 1., after adding a global phase offset.
+    return trimPhaseValue(phase, phase_offset);
   }
 
-  double PeriodEph::calcCycleCount(const AbsoluteTime & ev_time) const {
+  double PeriodEph::calcPulsePhase(const AbsoluteTime & ev_time, double phase_offset) const {
     // TODO: Compute pulse phase directly from p0, p1, and p2, using indefinite integral of ax^2+bx+c.
     double f0 = 1. / m_p0;
     double f1 = - m_p1 / (m_p0 * m_p0);
     double p0sq = m_p0 * m_p0;
     double f2 = 2. * m_p1 * m_p1 / (m_p0 * p0sq) - m_p2 / p0sq;
 
+    // Compute a pulse phase value.
     double dt = calcElapsedSecond(ev_time);
     double dt_squared = dt * dt;
-    double cycle_count = m_phi0 + f0 * dt + f1/2.0 * dt_squared + f2/6.0 * dt * dt_squared;
-    return cycle_count;
+    double phase = m_phi0 + f0 * dt + f1/2.0 * dt_squared + f2/6.0 * dt * dt_squared;
+    return phase;
+
+    // Express phase as a value between 0. and 1., after adding a global phase offset.
+    return trimPhaseValue(phase, phase_offset);
   }
 
   double FrequencyEph::calcFrequency(const AbsoluteTime & ev_time, int derivative_order) const {
