@@ -1169,7 +1169,6 @@ class BogusPulsarEphBase: public PulsarEph {
 
   protected:
     virtual void writeModelParameter(st_stream::OStream & /* os */) const {}
-    virtual double calcCycleCount(const AbsoluteTime & /* ev_time */) const { return 0.; }
 
   private:
     inline const AbsoluteTime & getBogusTime() const {
