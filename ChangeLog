@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 27 19:41:08 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h PulsarDb.h PulsarEph.h 
+Log Message:
+Remove TODO markers that are no longer necessary.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 27 19:27:04 PDT 2008
 pulsarDb/src
 
