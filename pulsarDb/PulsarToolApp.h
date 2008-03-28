@@ -12,6 +12,8 @@
 
 #include "st_app/StApp.h"
 
+#include "timeSystem/EventTimeHandler.h"
+
 #include "tip/Table.h"
 
 namespace st_app {
@@ -86,8 +88,11 @@ namespace pulsarDb {
 
       timeSystem::AbsoluteTime getEventTime();
 
-      // TODO: Accept data types other than double.
-      void setFieldValue(const std::string & field_name, double field_value);
+      template <typename DataType>
+      void setFieldValue(const std::string & field_name, const DataType & field_value) {
+        tip::TableRecord & record = (*m_event_handler_itor)->getCurrentRecord();
+        record[field_name].set(field_value);
+      }
 
       timeSystem::AbsoluteTime getStartTime();
 

@@ -619,11 +619,6 @@ namespace pulsarDb {
     return readTimeColumn(**m_event_handler_itor, m_time_field, true);
   }
 
-  void PulsarToolApp::setFieldValue(const std::string & field_name, double field_value) {
-    tip::TableRecord & record = (*m_event_handler_itor)->getCurrentRecord();
-    record[field_name].set(field_value);
-  }
-
   AbsoluteTime PulsarToolApp::getStartTime() {
     return computeTimeBoundary(true, true);
   }
