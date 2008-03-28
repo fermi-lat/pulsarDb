@@ -119,10 +119,10 @@ namespace pulsarDb {
       virtual void save(const std::string & out_file, const std::string & creator, bool clobber = false) const;
 
       /// \brief Get the currently selected container of spin (pulsar) ephemerides.
-      virtual void getEph(PulsarEphCont & cont) const;
+      virtual void getEph(PulsarEphCont & cont) const { getEphBody(m_spin_par_table, m_spin_factory_cont, cont); }
 
       /// \brief Get the currently selected container of orbital ephemerides.
-      virtual void getEph(OrbitalEphCont & cont) const;
+      virtual void getEph(OrbitalEphCont & cont) const { getEphBody(m_orbital_par_table, m_orbital_factory_cont, cont); }
 
       /// \brief Get the number of currently selected ephemerides.
       virtual int getNumEph(bool spin_table = true) const;
@@ -149,8 +149,6 @@ namespace pulsarDb {
 
     private:
       typedef std::vector<std::string> ParsedLine;
-      typedef std::map<std::string, IEphFactory<PulsarEph> *> spin_factory_cont_type;
-      typedef std::map<std::string, IEphFactory<OrbitalEph> *> orbital_factory_cont_type;
 
       /** \brief Helper method for the constructor, to check and pick up an appropriate table for
           a default spin or orbital extension to support the original ephemerides file format.
@@ -199,6 +197,15 @@ namespace pulsarDb {
       */
       virtual std::string createFilter(const std::string & field_name, const std::set<std::string> & values) const;
 
+      /** \brief Helper method for getEph methods for PulsarEphCont and OrbitalEphCont.
+          \param table_cont The container of tip tables, from which ephemerides are extracted.
+          \param factory_cont The container of ephemeris factories to be used to create appropriate ephemeris objects.
+          \param eph_cont The ephemeris container to be filled with appropriate ephemeris objects.
+          Note: the original contents of this object will be removed from the container.
+      */
+      template <typename FactoryCont, typename EphCont>
+      void PulsarDb::getEphBody(const TableCont & table_cont, const FactoryCont & factory_cont, EphCont & eph_cont) const;
+
       std::string m_tpl_file;
       tip::TipFile m_tip_file;
       TableCont m_all_table;
@@ -208,8 +215,59 @@ namespace pulsarDb {
       TableCont m_psr_name_table;
       tip::Table * m_default_spin_par_table;
       tip::Table * m_default_orbital_par_table;
-      spin_factory_cont_type m_spin_factory_cont;
-      orbital_factory_cont_type m_orbital_factory_cont;
+      std::map<std::string, IEphFactory<PulsarEph> *> m_spin_factory_cont;
+      std::map<std::string, IEphFactory<OrbitalEph> *> m_orbital_factory_cont;
   };
+
+  template <typename FactoryCont, typename EphCont>
+  void PulsarDb::getEphBody(const TableCont & table_cont, const FactoryCont & factory_cont, EphCont & eph_cont) const {
+    // Empty container then refill it.
+    eph_cont.clear();
+
+    // Reserve space for all ephemerides.
+    int num_record = 0;
+    for (TableCont::const_iterator itor = table_cont.begin(); itor != table_cont.end(); ++itor) {
+      num_record += (*itor)->getNumRecords();
+    }
+    eph_cont.reserve(num_record);
+
+    for (TableCont::const_iterator table_itor = table_cont.begin(); table_itor != table_cont.end(); ++table_itor) {
+      const tip::Table & table = **table_itor;
+      const tip::Header & header(table.getHeader());
+
+      // Get the extension name.
+      std::string ext_name;
+      header["EXTNAME"].get(ext_name);
+
+      // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
+      std::string eph_style;
+      try {
+        header["EPHSTYLE"].get(eph_style);
+      } catch (const tip::TipException &) {
+        // Note: EPHSTYLE must exist in SPIN_PARAMETERS and ORBITAL_PARAMETERS extensions, and it is enforced
+        //       in the constructor of this class. Not finding EPHSTYLE here suggests inconsistency in methods
+        //       of this class, or a bug most likely.
+        throw std::logic_error("EPHSTYLE header keyword is missing in " + ext_name + " extension");
+      }
+
+      // Use a registered subclass of PulsarEph or OrbitalEph whichever appropriate, if EPHSTYLE keyword exists.
+      typename FactoryCont::mapped_type factory(0);
+      typename FactoryCont::const_iterator factory_itor = factory_cont.find(eph_style);
+      if (factory_itor != factory_cont.end()) {
+        factory = factory_itor->second;
+      } else {
+        throw std::runtime_error("Unknown ephemeris style for " + ext_name + " extension: EPHSTYLE = " + eph_style);
+      }
+
+      // Iterate over current selection.
+      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+        // For convenience, get record from iterator.
+        tip::Table::ConstRecord & record(*record_itor);
+
+        // Add the ephemeris to the container.
+        eph_cont.push_back(factory->create(record, header));
+      }
+    }
+  }
 }
 #endif
