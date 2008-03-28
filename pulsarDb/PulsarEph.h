@@ -175,13 +175,6 @@ namespace pulsarDb {
         double phi0, double p0, double p1, double p2): m_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
         m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
-      /** \brief Create a pulsar ephemeris object with the parameters stored in tip record.
-          \param time_system_name Name of time system to interpret frequency parameters, such as "TDB" or "UTC".
-          \param record Record that stores all parameters for an ephemeris being created.
-      */
-      // TODO: Implement new constructor of PeriodEph with this signature.
-      //PeriodEph(const std::string & time_system_name, const tip::Table::ConstRecord & record);
-
       virtual ~PeriodEph() {}
 
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }

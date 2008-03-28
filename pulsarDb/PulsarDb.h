@@ -131,7 +131,6 @@ namespace pulsarDb {
           \param eph_style Keyword to be associated to a PulsarEph class.
                  Note: Template parameter, EPHSTYLE, must be one of PulsarEph subclasses.
       */
-      // TODO: Write a test code for this method.
       template <typename EPHSTYLE>
       void registerPulsarEph(const std::string & eph_style) {
         m_spin_factory_cont[eph_style] = &EphFactory<PulsarEph, EPHSTYLE>::getFactory();
@@ -141,7 +140,6 @@ namespace pulsarDb {
           \param eph_style Keyword to be associated to a OrbitalEph class.
                  Note: Template parameter, EPHSTYLE, must be one of OrbitalEph subclasses.
       */
-      // TODO: Write a test code for this method.
       template <typename EPHSTYLE>
       void registerOrbitalEph(const std::string & eph_style) {
         m_orbital_factory_cont[eph_style] = &EphFactory<OrbitalEph, EPHSTYLE>::getFactory();
