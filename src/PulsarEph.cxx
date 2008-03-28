@@ -65,7 +65,6 @@ namespace pulsarDb {
     AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
 
     // Read the start time of validity window (required).
-    // TODO Handle valid since is indef.
     long valid_since_date = 0;
     read(record, "VALID_SINCE", valid_since_date);
     m_since = AbsoluteTime(MjdRep("TDB", valid_since_date, 0.));
@@ -73,7 +72,6 @@ namespace pulsarDb {
     // Read the end time of validity window (required).
     // Note: One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
     // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
-    // TODO Handle valid_until is indef.
     long valid_until_date = 0;
     read(record, "VALID_UNTIL", valid_until_date);
     m_until = AbsoluteTime(MjdRep("TDB", valid_until_date + 1, 0.));
