@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 27 19:27:04 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Add templated getEphBody method to eliminate duplication of codes in overloaded getEph methods.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 27 13:01:49 PDT 2008
 pulsarDb/src/test
 
