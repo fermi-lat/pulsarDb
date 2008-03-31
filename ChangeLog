@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: hirayama  Sun Mar 30 17:15:38 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarEph.cxx OrbitalEph.cxx 
+Added Files:
+	FrequencyEph.cxx PeriodEph.cxx SimpleDdEph.cxx 
+Log Message:
+Split header and source files to have one pair of files for each class.
+    *
+------------------------------------------------------------
+User: hirayama  Sun Mar 30 17:15:38 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
