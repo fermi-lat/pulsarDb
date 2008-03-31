@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 31 00:15:10 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PeriodEph.cxx 
+Log Message:
+Introduce the exact computations of pulse phase and pulse frequency.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Mar 30 17:17:00 PDT 2008
 pulsarDb/src/test
 
