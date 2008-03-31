@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Sun Mar 30 17:15:38 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h OrbitalEph.h 
+Added Files:
+	FrequencyEph.h PeriodEph.h SimpleDdEph.h 
+Log Message:
+Split header and source files to have one pair of files for each class.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 27 20:19:06 PDT 2008
 pulsarDb/src
 
