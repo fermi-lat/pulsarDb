@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 31 14:41:27 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Reorganize the tests (renaming and resorting).
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 31 14:40:12 PDT 2008
 pulsarDb/src
 
