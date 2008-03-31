@@ -18,10 +18,13 @@
 
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
+#include "pulsarDb/FrequencyEph.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PdotCanceler.h"
+#include "pulsarDb/PeriodEph.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
+#include "pulsarDb/SimpleDdEph.h"
 
 #include "st_app/StApp.h"
 #include "st_app/StAppFactory.h"

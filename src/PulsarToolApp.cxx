@@ -14,9 +14,12 @@
 
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
+#include "pulsarDb/FrequencyEph.h"
+#include "pulsarDb/PeriodEph.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/PulsarToolApp.h"
+#include "pulsarDb/SimpleDdEph.h"
 
 #include "st_app/AppParGroup.h"
 
