@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 31 00:15:35 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Minor improvements in the error messages.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 31 00:15:10 PDT 2008
 pulsarDb/src
 
