@@ -609,9 +609,11 @@ void PulsarDbTest::testPulsarEph() {
   for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
     if (0. == value1[ii] || 0. == value2[ii]) {
       if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
-        ErrorMsg(method_name) << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] << std::endl;
+        ErrorMsg(method_name) << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] <<
+          " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
     } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
-      ErrorMsg(method_name) << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] << std::endl;
+      ErrorMsg(method_name) << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] <<
+        " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
     }
   }
 }
