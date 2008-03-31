@@ -157,6 +157,7 @@ void PulsarDbTest::run() {
   // Set a default value for CREATOR header keyword.
   m_creator = "test_pulsarDb";
 
+#if 0
   // Test filtering of database entries.
   testNoOp();
   testExplicitName();
@@ -172,7 +173,9 @@ void PulsarDbTest::run() {
 
   // Test ephemeris computation.
   testFrequencyEph();
+#endif
   testPeriodEph();
+#if 0
   testSimpleDdEph();
   testPdotCanceler();
 
@@ -186,6 +189,7 @@ void PulsarDbTest::run() {
   //           testMultipleEphModel produces an error if filterRow("#row>0") is not performed on all tables
   //           in the memory FITS file at the end of PulsarDb::loadFits/Text methods, AND if one of the
   //           interferring tests are performed. Otherwise, it doesn't produce an error. Why?
+#endif
 
   if (0 != ErrorMsg::getStatus()) throw std::runtime_error("PulsarDbTest::run: test failed.");
 }
@@ -482,16 +486,30 @@ void PulsarDbTest::testFrequencyEph() {
 #endif
 }
 
+class SimplePeriodEph {
+  public:
+    SimplePeriodEph(double p0, double p1, double p2): m_p0(p0), m_p1(p1), m_p2(p2) {}
+
+    double calcFrequency(double dt, double step, int order) {
+      if (order < 0) throw std::runtime_error("Bad test parameter given: a negative derivative order");
+      if (order == 0) return 1. / (m_p0 + m_p1*dt + m_p2/2.*dt*dt);
+      else return (calcFrequency(dt+step/2., step, order-1) - calcFrequency(dt-step/2., step, order-1)) / step;
+    }
+
+  private:
+    double m_p0, m_p1, m_p2;
+};
+
 void PulsarDbTest::testPeriodEph() {
   std::string method_name = "testPeriodEph";
 
-  MetRep glast_tt("TT", 51910, 0., 0.);
-  glast_tt.setValue(0.);
-  AbsoluteTime since(glast_tt);
-  glast_tt.setValue(1.);
-  AbsoluteTime until(glast_tt);
-  glast_tt.setValue(123.456789);
-  AbsoluteTime epoch(glast_tt);
+  MetRep glast_tdb("TDB", 51910, 0., 0.);
+  glast_tdb.setValue(0.);
+  AbsoluteTime since(glast_tdb);
+  glast_tdb.setValue(1.);
+  AbsoluteTime until(glast_tdb);
+  glast_tdb.setValue(123.456789);
+  AbsoluteTime epoch(glast_tdb);
 
   // Create a frequency ephemeris.
   FrequencyEph f_eph("TDB", since, until, epoch, 22., 45., 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
@@ -504,7 +522,7 @@ void PulsarDbTest::testPeriodEph() {
   // Compare frequency & period.
   double epsilon = 1.e-8;
   const double nano_sec = 1.e-9;
-  ElapsedTime tolerance("TT", Duration(0, nano_sec));
+  ElapsedTime tolerance("TDB", Duration(0, nano_sec));
 
   if (!f_eph.getEpoch().equivalentTo(p_eph.getEpoch(), tolerance))
     ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
@@ -524,6 +542,35 @@ void PulsarDbTest::testPeriodEph() {
     } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
       ErrorMsg(method_name) << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] <<
         " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
+    }
+  }
+
+  // Test frequency computation away from the reference epoch.
+  double time_since_epoch = 1000.;
+  double step_size = 100.;
+  glast_tdb = epoch;
+  double dbl_epoch = glast_tdb.getValue();
+  glast_tdb.setValue(dbl_epoch + time_since_epoch);
+  AbsoluteTime abs_time(glast_tdb);
+  double ra = 22.;
+  double dec = 45.;
+  double phi0 = 0.875;
+  double p0 = 1.23456789;
+  double p1 = 9.87654321e-5;
+  double p2 = 1.357902468e-10;
+  PeriodEph p_eph1("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
+  SimplePeriodEph s_eph1(p0, p1, p2);
+
+  epsilon = 1.e-3; // Note: Need a loose tolerance because SimplePeriodEph::calcFrequency is not that precise.
+  for (int order = 0; order < 5; ++order) {
+    double result = p_eph1.calcFrequency(abs_time, order);
+    double expected = s_eph1.calcFrequency(time_since_epoch, step_size, order);
+    bool test_failed = true;
+    if (0. == result || 0. == expected) test_failed = fabs(result + expected) > std::numeric_limits<double>::epsilon();
+    else test_failed = std::fabs(result / expected - 1.) > epsilon;
+    if (test_failed) {
+      ErrorMsg(method_name) << "PeriodEph::calcFrequency(abs_time, " << order << ") returned " << result <<
+        ", not " << expected << " as expected" << std::endl;
     }
   }
 }
