@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 31 16:17:54 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove if-endif pairs inserted by mistake.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 31 16:04:51 PDT 2008
 pulsarDb/src/test
 
