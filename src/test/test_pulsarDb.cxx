@@ -157,7 +157,6 @@ void PulsarDbTest::run() {
   // Set a default value for CREATOR header keyword.
   m_creator = "test_pulsarDb";
 
-#if 0
   // Test filtering of database entries.
   testNoOp();
   testExplicitName();
@@ -173,9 +172,7 @@ void PulsarDbTest::run() {
 
   // Test ephemeris computation.
   testFrequencyEph();
-#endif
   testPeriodEph();
-#if 0
   testSimpleDdEph();
   testPdotCanceler();
 
