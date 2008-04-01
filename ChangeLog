@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 31 21:37:09 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add more tests of PeriodEph::calcPulsePhase method.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 31 18:34:41 PDT 2008
 pulsarDb/src/test
 
