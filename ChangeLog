@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Mar 31 18:34:21 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PeriodEph.cxx 
+Log Message:
+Fix a bug (m_p1 -> m_p2). Modify boolean expressions for safety (p0_is_zero, etc.).
+    *
+------------------------------------------------------------
 User: hirayama  Mon Mar 31 17:43:29 PDT 2008
 pulsarDb/src/test
 
