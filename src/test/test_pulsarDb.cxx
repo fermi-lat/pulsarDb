@@ -186,7 +186,6 @@ void PulsarDbTest::run() {
   //           testMultipleEphModel produces an error if filterRow("#row>0") is not performed on all tables
   //           in the memory FITS file at the end of PulsarDb::loadFits/Text methods, AND if one of the
   //           interferring tests are performed. Otherwise, it doesn't produce an error. Why?
-#endif
 
   if (0 != ErrorMsg::getStatus()) throw std::runtime_error("PulsarDbTest::run: test failed.");
 }
