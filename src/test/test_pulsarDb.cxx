@@ -625,8 +625,6 @@ void PulsarDbTest::testPeriodEph() {
 
   // Test pulse phase computation away from the reference epoch, with and without a non-zero global offset.
   step_size = time_since_epoch / 1000.;
-  glast_tdb.setValue(dbl_epoch + time_since_epoch);
-  abs_time = glast_tdb;
   double global_phase_offset = 0.34567;
 
   double phase_tolerance = 1.e-5;
@@ -647,6 +645,52 @@ void PulsarDbTest::testPeriodEph() {
   if (test_failed) {
     ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
       ", not close enough to " << expected << " as expected" << std::endl;
+  }
+
+  // Test pulse phase computation for artificial parameters to cover all cases of frequency integration.
+  phase_tolerance = 1.e-3;
+  double good_period_par[][3] = {
+    {0.123456789, 0., 0.}, {123.456789, -1.23456789e-2, 0.},
+    {2., 1.e-5, 1.e-10}, {2., 1.9e-5, 1.e-10}, {2., 2.e-5, 1.e-10}
+    // Note: Branch for 2 * p0p2 == p1^2 is almost impossible to test; difficult to achieve the exact equality.
+    //       Parameters {2., 2.e-5, 1.e-10} and {1., 1.e-5, 2.e-10} were tried on Linux, but either of them
+    //       did not achieve the equality as desired.
+  };
+  for (size_t ii = 0; ii != sizeof (good_period_par)/sizeof(double[3]); ++ii) {
+    p0 = good_period_par[ii][0];
+    p1 = good_period_par[ii][1];
+    p2 = good_period_par[ii][2];
+    PeriodEph p_eph2("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
+    SimplePeriodEph s_eph2(phi0, p0, p1, p2);
+    result = p_eph2.calcPulsePhase(abs_time);
+    expected = s_eph2.calcPulsePhase(time_since_epoch, step_size, 0.);
+    test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
+      && fabs(result - expected - 1) > phase_tolerance);
+    if (test_failed) {
+      ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, 0.) returned " << result <<
+        ", not close enough to " << expected << " as expected" << std::endl;
+    }
+  }
+
+  // Test pulse phase computation for problematic parameters.
+  double bad_period_par[][3] = {
+    {0., 0., 0.}, {123.456789, -1.23456789, 0.}, {2., -2.e-2, 1.e-8}
+    // Note: Branch for 2 * p0p2 == p1^2 is almost impossible to test; difficult to achieve the exact equality.
+    //       Parameters {2., -2.e-2, 1.e-4} and {2., 2.e-2, -1.e-4} were tried on Linux, but either of them
+    //       did not achieve the equality as desired.
+  };
+  for (size_t ii = 0; ii != sizeof (bad_period_par)/sizeof(double[3]); ++ii) {
+    p0 = bad_period_par[ii][0];
+    p1 = bad_period_par[ii][1];
+    p2 = bad_period_par[ii][2];
+    PeriodEph p_eph3("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
+    try {
+      p_eph3.calcPulsePhase(abs_time);
+      ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time) did not throw an exception for p0=" << p0 <<
+        ", p1=" << p1 << ", p2=" << p2 << std::endl;
+    } catch (const std::exception & x) {
+      // This is fine.
+    }
   }
 }
 
