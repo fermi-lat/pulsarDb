@@ -484,16 +484,67 @@ void PulsarDbTest::testFrequencyEph() {
 
 class SimplePeriodEph {
   public:
-    SimplePeriodEph(double p0, double p1, double p2): m_p0(p0), m_p1(p1), m_p2(p2) {}
+    SimplePeriodEph(double phi0, double p0, double p1, double p2): m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
-    double calcFrequency(double dt, double step, int order) {
+    double calcPulsePhase(double dt, double step, double global_offset) const {
+      // Check and normalize step size.
+      if (step == 0.) throw std::runtime_error("Bad test parameter given: step size for differenciation is zero");
+      step = std::fabs(step);
+
+      // Set integration boundary.
+      double t0 = 0.;
+      double t1 = 0.;
+      if (dt < 0.) {
+        t0 = dt;
+        t1 = 0.;
+      } else if (dt > 0.) {
+        t0 = 0;
+        t1 = dt;
+      } else {
+        t0 = 0.;
+        t1 = 0.;
+      }
+      std::list<double> tx;
+      for (int ii=0; ii < int(std::ceil(dt/step)) - 1; ++ii) tx.push_back(step*ii);
+      tx.push_back(t1);
+
+      // Perform integration.
+      double t_left = t0;
+      double v_left = 1. / calcPeriod(t0);
+      double t_right = 0.;
+      double v_right = 0.;
+      double phase = m_phi0 + global_offset;
+      for (std::list<double>::const_iterator itor = tx.begin(); itor != tx.end(); ++itor) {
+        t_right = *itor;
+        v_right = 1. / calcPeriod(t_right);
+        phase += (v_left + v_right) * (t_right - t_left) / 2.;
+
+        if (phase < 0. || phase >= 1.) {
+          double int_part; // ignored, needed for modf.
+          phase = std::modf(phase, &int_part);
+          if (phase < 0.) ++phase;
+        }
+
+        t_left = t_right;
+        v_left = v_right;
+      }
+      return phase;
+    }
+
+    double calcFrequency(double dt, double step, int order) const {
+      // Check and normalize step size.
+      if (step == 0.) throw std::runtime_error("Bad test parameter given: step size for differenciation is zero");
+      step = std::fabs(step);
+
+      // Perform differenciation recursively.
       if (order < 0) throw std::runtime_error("Bad test parameter given: a negative derivative order");
-      if (order == 0) return 1. / (m_p0 + m_p1*dt + m_p2/2.*dt*dt);
+      if (order == 0) return 1. / calcPeriod(dt);
       else return (calcFrequency(dt+step/2., step, order-1) - calcFrequency(dt-step/2., step, order-1)) / step;
     }
 
   private:
-    double m_p0, m_p1, m_p2;
+    double calcPeriod(double dt) const { return m_p0 + m_p1*dt + m_p2/2.*dt*dt; }
+    double m_phi0, m_p0, m_p1, m_p2;
 };
 
 void PulsarDbTest::testPeriodEph() {
@@ -555,19 +606,47 @@ void PulsarDbTest::testPeriodEph() {
   double p1 = 9.87654321e-5;
   double p2 = 1.357902468e-10;
   PeriodEph p_eph1("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
-  SimplePeriodEph s_eph1(p0, p1, p2);
+  SimplePeriodEph s_eph1(phi0, p0, p1, p2);
 
   epsilon = 1.e-3; // Note: Need a loose tolerance because SimplePeriodEph::calcFrequency is not that precise.
+  double result = 0.;
+  double expected = 0.;
+  bool test_failed = true;
   for (int order = 0; order < 5; ++order) {
-    double result = p_eph1.calcFrequency(abs_time, order);
-    double expected = s_eph1.calcFrequency(time_since_epoch, step_size, order);
-    bool test_failed = true;
+    result = p_eph1.calcFrequency(abs_time, order);
+    expected = s_eph1.calcFrequency(time_since_epoch, step_size, order);
     if (0. == result || 0. == expected) test_failed = fabs(result + expected) > std::numeric_limits<double>::epsilon();
     else test_failed = std::fabs(result / expected - 1.) > epsilon;
     if (test_failed) {
       ErrorMsg(method_name) << "PeriodEph::calcFrequency(abs_time, " << order << ") returned " << result <<
         ", not " << expected << " as expected" << std::endl;
     }
+  }
+
+  // Test pulse phase computation away from the reference epoch, with and without a non-zero global offset.
+  step_size = time_since_epoch / 1000.;
+  glast_tdb.setValue(dbl_epoch + time_since_epoch);
+  abs_time = glast_tdb;
+  double global_phase_offset = 0.34567;
+
+  double phase_tolerance = 1.e-5;
+  result = p_eph1.calcPulsePhase(abs_time, global_phase_offset);
+  expected = s_eph1.calcPulsePhase(time_since_epoch, step_size, global_phase_offset);
+  test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
+    && fabs(result - expected - 1) > phase_tolerance);
+  if (test_failed) {
+    ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
+      ", not close enough to " << expected << " as expected" << std::endl;
+  }
+
+  global_phase_offset = 0.;
+  result = p_eph1.calcPulsePhase(abs_time, global_phase_offset);
+  expected = s_eph1.calcPulsePhase(time_since_epoch, step_size, global_phase_offset);
+  test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
+    && fabs(result - expected - 1) > phase_tolerance);
+  if (test_failed) {
+    ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
+      ", not close enough to " << expected << " as expected" << std::endl;
   }
 }
 
