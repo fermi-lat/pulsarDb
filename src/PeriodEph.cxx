@@ -52,9 +52,9 @@ namespace pulsarDb {
     static const std::string s_integral_error("PeriodEph: pulse period predicted to be zero at a time between the reference epoch and the time for which a pulse phase is to be computed");
 
     // Compute contribution from p0, p1, and p2.
-    bool p0_is_zero = m_p0 == 0.;
-    bool p1_is_zero = m_p1 == 0.;
-    bool p2_is_zero = m_p2 == 0.;
+    bool p0_is_zero = (0. == m_p0);
+    bool p1_is_zero = (0. == m_p1);
+    bool p2_is_zero = (0. == m_p2);
     if (p0_is_zero && p1_is_zero && p2_is_zero) {
       // Throw an exception for p0 == p1 == p2 == 0.
       throw std::runtime_error("PeriodEph: all coefficients are zeros (p0 = p1 = p2 = 0.)");
@@ -75,7 +75,7 @@ namespace pulsarDb {
 
     } else {
       // Compute pulse phase for any p0, any p1, and p2 != 0.
-      double two_p0p2_minus_p1sq = 2. * m_p0 * m_p1 - m_p1 * m_p1;
+      double two_p0p2_minus_p1sq = 2. * m_p0 * m_p2 - m_p1 * m_p1;
       if (two_p0p2_minus_p1sq > 0.) {
         double sqrt_term = std::sqrt(two_p0p2_minus_p1sq);
         double u0 = m_p1 / sqrt_term;
