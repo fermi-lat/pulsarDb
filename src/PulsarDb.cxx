@@ -37,8 +37,10 @@ namespace pulsarDb {
   PulsarDb::PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext, TableCont::size_type default_orbital_ext):
     m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_obs_code_table(), m_psr_name_table(),
     m_default_spin_par_table(0), m_default_orbital_par_table(0), m_spin_factory_cont(), m_orbital_factory_cont() {
-    // Create a FITS file in memory that holds ephemeris data.
-    m_tip_file = IFileSvc::instance().createMemFile("pulsardb.fits", m_tpl_file);
+    // Create a FITS file in memory that holds ephemeris data, using a unique name.
+    std::ostringstream oss;
+    oss << "pulsardb" << this << ".fits";
+    m_tip_file = IFileSvc::instance().createMemFile(oss.str(), m_tpl_file);
 
     // Get summary of extensions in the memory FITS file.
     FileSummary file_summary;
