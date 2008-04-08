@@ -44,7 +44,8 @@ namespace pulsarDb {
     m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(),
     m_reference_header(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
-    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0), m_event_handler_itor() {}
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0),
+    m_event_handler_itor(m_event_handler_cont.begin()) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
     resetApp();
@@ -635,9 +636,6 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::resetApp() {
-    // TODO: How should iterators pointing to nothing be reset?
-    // m_event_handler_itor = 0;
-
     // Destroy target TimeRep object.
     delete m_target_time_rep; m_target_time_rep = 0;
 
@@ -674,6 +672,9 @@ namespace pulsarDb {
       delete *itor;
     }
     m_event_handler_cont.clear();
+
+    // Reset iterator so that it points to the beginning of the (empty) container.
+    m_event_handler_itor = m_event_handler_cont.begin();
   }
 
   AbsoluteTime PulsarToolApp::readTimeColumn(EventTimeHandler & handler, const std::string & column_name,
