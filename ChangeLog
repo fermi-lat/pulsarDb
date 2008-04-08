@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: peachey  Tue Apr  8 13:54:34 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Reset iterator while resetting the application object.
+    *
+------------------------------------------------------------
 User: peachey  Tue Apr  8 13:40:08 PDT 2008
 pulsarDb/src/test
 
