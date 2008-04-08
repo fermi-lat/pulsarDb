@@ -422,17 +422,11 @@ namespace pulsarDb {
       Table::ConstIterator in_itor = in_table->begin();
       Table::Iterator target_itor = target_table->end();
 
-      // TODO: Resize output to match input. Requires tip to handle random access iterators.
-      // target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
+      // Resize output to match input.
+      target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
 
       // Copy all rows in table.
       for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
-
-      // Synchronize the memory FITS file to the tip table objects.
-      // TODO: Do we really need to do this?
-      for (TableCont::iterator itor = m_all_table.begin(); itor != m_all_table.end(); ++itor) {
-        (*itor)->filterRows("#row>0");
-      }
     }
   }
 
@@ -667,6 +661,9 @@ namespace pulsarDb {
     // Add new ephemerides at the end of table.
     Table::Iterator target_itor = target_table->end();
 
+    // Get the total number of records; used to resize the table later.
+    std::size_t num_rec = target_table->getNumRecords();
+
     // Read the rest of input table to populate fields.
     while (in_table) {
       // Get next line.
@@ -685,6 +682,10 @@ namespace pulsarDb {
         throw std::runtime_error(os.str());
       }
   
+      // Resize output to match input. This may be a performance hit.
+      ++num_rec;
+      target_table->setNumRecords(num_rec);
+
       // Populate the parsed line by iterating over output columns.
       for (ParsedLine::iterator in_itor = field_name.begin(); in_itor != field_name.end(); ++in_itor) {
         // See if this column was found amongst the input table columns.
@@ -698,12 +699,6 @@ namespace pulsarDb {
         }
       }
       ++target_itor;
-    }
-
-    // Synchronize the memory FITS file to the tip table objects.
-    // TODO: Do we really need to do this?
-    for (TableCont::iterator itor = m_all_table.begin(); itor != m_all_table.end(); ++itor) {
-      (*itor)->filterRows("#row>0");
     }
   }
 
