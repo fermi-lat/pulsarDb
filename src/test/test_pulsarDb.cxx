@@ -168,7 +168,7 @@ void PulsarDbTest::run() {
 
   // Test database manipulation.
   testAppend();
-  testTextPulsarDb(); // TODO: This test seems to interfere test MultipleEphModel. See below for details.
+  testTextPulsarDb();
 
   // Test ephemeris computation.
   testFrequencyEph();
@@ -178,15 +178,11 @@ void PulsarDbTest::run() {
 
   // Test ephemeris manipulation.
   testChooser();
-  testEphComputer(); // TODO: This test seems to interfere test MultipleEphModel. See below for details.
-  testEphGetter(); // TODO: This test seems to interfere test MultipleEphModel. See below for details.
+  testEphComputer();
+  testEphGetter();
   testMultipleEphModel();
-  // TODO: Nail down a mysterious behavior of PulsarDb::loadFits/Text method.
-  // Symptoms: testTextPulsarDb, testEphComputer, and testEphGetter seem to interfere testMultipleEphModel.
-  //           testMultipleEphModel produces an error if filterRow("#row>0") is not performed on all tables
-  //           in the memory FITS file at the end of PulsarDb::loadFits/Text methods, AND if one of the
-  //           interferring tests are performed. Otherwise, it doesn't produce an error. Why?
 
+  // Throw an exception when one or more errors occur.
   if (0 != ErrorMsg::getStatus()) throw std::runtime_error("PulsarDbTest::run: test failed.");
 }
 
