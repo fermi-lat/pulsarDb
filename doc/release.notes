@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.34 2007/11/13 23:44:57 hirayama Exp $
+$Id: release.notes,v 1.35 2008/01/29 20:53:00 peachey Exp $
 
 \verbatim
+08-apr-2008        v6 JP  Add support for multiple ephemeris models. Improve output of gtephem.
 29-jan-2008    v5r0p3 JP  Rename gtephcomp to gtephem in SConscript. Add test code.
 13-nov-2007    v5r0p2 MH  Improve mainpage.h.
 30-oct-2007    v5r0p1 JP  Address JIRA issues PULS 41 and PULS 42. Use phi0 parameter
