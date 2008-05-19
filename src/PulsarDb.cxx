@@ -21,10 +21,6 @@
 
 #include "pulsarDb/PulsarDb.h"
 
-#include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/IntFracPair.h"
-#include "timeSystem/TimeRep.h"
-
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
