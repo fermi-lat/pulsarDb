@@ -9,6 +9,7 @@
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/FrequencyEph.h"
 
+#include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/TimeInterval.h"
 #include "timeSystem/TimeRep.h"
@@ -22,9 +23,8 @@ namespace tip {
 namespace pulsarDb {
 
   FrequencyEph::FrequencyEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
-    m_system(&TimeSystem::getSystem("TDB")), m_since("TDB", Duration(0, 0.), Duration(0, 0.)),
-    m_until("TDB", Duration(0, 0.), Duration(0, 0.)), m_epoch("TDB", Duration(0, 0.), Duration(0, 0.)), m_ra(0.), m_dec(0.),
-    m_phi0(0.), m_f0(0.), m_f1(0.), m_f2(0.) {
+    m_system(&TimeSystem::getSystem("TDB")), m_since("TDB", 0, 0.), m_until("TDB", 0, 0.), m_epoch("TDB", 0, 0.),
+    m_ra(0.), m_dec(0.), m_phi0(0.), m_f0(0.), m_f1(0.), m_f2(0.) {
     // Epoch and toa are split into int and frac parts.
     long epoch_int = 0;
     double epoch_frac = 0.;

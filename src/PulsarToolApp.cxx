@@ -337,7 +337,7 @@ namespace pulsarDb {
 
   AbsoluteTime PulsarToolApp::computeTimeBoundary(bool request_start_time, bool request_time_correction) {
     bool candidate_found = false;
-    AbsoluteTime abs_candidate_time("TDB", Duration(0, 0.), Duration(0, 0.));
+    AbsoluteTime abs_candidate_time("TDB", 0, 0.);
 
     // First, look for requested time (start or stop) in the GTI.
     for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
@@ -386,7 +386,7 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & str_origin) {
-    AbsoluteTime abs_origin("TDB", Duration(0, 0.), Duration(0, 0.));
+    AbsoluteTime abs_origin("TDB", 0, 0.);
 
     // Make str_origin argument case-insensitive.
     std::string str_origin_uc = str_origin;

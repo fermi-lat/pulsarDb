@@ -85,7 +85,7 @@ namespace pulsarDb {
 
   SimpleDdEph::SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
     OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(0, 10.e-9)), 100),
-    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_t0("TDB", Duration(0, 0.), Duration(0, 0.)) {
+    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_t0("TDB", 0, 0.) {
     // Get parameters from record.
     // Required fields: PB, A1, ECC, OM, T0.
     // Optional fields: PBDOT, XDOT, ECCDOT, OMDOT, GAMMA, SHAPIRO_R, SHAPIRO_S.
@@ -104,7 +104,7 @@ namespace pulsarDb {
     read(record, "SHAPIRO_S", m_shapiro_s, 0.);
 
     // Create an AbsoluteTime object from the value of "T0" column.
-    m_t0 = timeSystem::AbsoluteTime("TDB", Duration(IntFracPair(dbl_t0), Day), Duration(0, 0.));
+    m_t0 = timeSystem::AbsoluteTime("TDB", Mjd1(dbl_t0));
 
     // Adjust units.
     m_om *= s_rad_per_deg;
