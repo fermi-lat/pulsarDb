@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Mon May 19 16:54:22 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Replace calls of the AbsoluteTime constructor that takes Duration objects with those of new constructors.
+    *
+------------------------------------------------------------
+User: hirayama  Mon May 19 16:54:22 PDT 2008
 pulsarDb/src
 
 Modified Files:
