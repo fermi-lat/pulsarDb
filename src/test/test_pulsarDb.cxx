@@ -724,34 +724,34 @@ void PulsarDbTest::testSimpleDdEph() {
   // Test binary modulation and demodulation.
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
   // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0)
-  AbsoluteTime abs_t0("TDB", Duration(45888, SecPerDay() * .1172487), Duration(0, 0.));
+  AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
   SimpleDdEph eph1("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662,
                    abs_t0, 0.004295, 0.0, 0.0);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
-  Duration mjd_test_values[][2] = {
-    { Duration(45988, SecPerDay() * .00001172486599971307e+04),
-      Duration(45988, SecPerDay() * .00001172823346967320e+04) },
-    { Duration(45988, SecPerDay() * .00001519708822161192e+04),
-      Duration(45988, SecPerDay() * .00001520057480382526e+04) },
-    { Duration(45988, SecPerDay() * .00001866931044423836e+04),
-      Duration(45988, SecPerDay() * .00001867233097334768e+04) },
-    { Duration(45988, SecPerDay() * .00002214153266613721e+04),
-      Duration(45988, SecPerDay() * .00002214303721880313e+04) },
-    { Duration(45988, SecPerDay() * .00002561375488876365e+04),
-      Duration(45988, SecPerDay() * .00002561254377882811e+04) },
-    { Duration(45988, SecPerDay() * .00002908597711066250e+04),
-      Duration(45988, SecPerDay() * .00002908532530402717e+04) },
-    { Duration(45988, SecPerDay() * .00003255819933328894e+04),
-      Duration(45988, SecPerDay() * .00003255877721779576e+04) },
-    { Duration(45988, SecPerDay() * .00003603042155518779e+04),
-      Duration(45988, SecPerDay() * .00003603213319299883e+04) },
-    { Duration(45988, SecPerDay() * .00003950264377781423e+04),
-      Duration(45988, SecPerDay() * .00003950526724878252e+04) },
-    { Duration(45988, SecPerDay() * .00004297486599971307e+04),
-      Duration(45988, SecPerDay() * .00004297811300504257e+04) },
-    { Duration(45988, SecPerDay() * .00004644708822161192e+04),
-      Duration(45988, SecPerDay() * .00004645058955188297e+04) }
+  Mjd mjd_test_values[][2] = {
+    { Mjd(45988, .00001172486599971307e+04),
+      Mjd(45988, .00001172823346967320e+04) },
+    { Mjd(45988, .00001519708822161192e+04),
+      Mjd(45988, .00001520057480382526e+04) },
+    { Mjd(45988, .00001866931044423836e+04),
+      Mjd(45988, .00001867233097334768e+04) },
+    { Mjd(45988, .00002214153266613721e+04),
+      Mjd(45988, .00002214303721880313e+04) },
+    { Mjd(45988, .00002561375488876365e+04),
+      Mjd(45988, .00002561254377882811e+04) },
+    { Mjd(45988, .00002908597711066250e+04),
+      Mjd(45988, .00002908532530402717e+04) },
+    { Mjd(45988, .00003255819933328894e+04),
+      Mjd(45988, .00003255877721779576e+04) },
+    { Mjd(45988, .00003603042155518779e+04),
+      Mjd(45988, .00003603213319299883e+04) },
+    { Mjd(45988, .00003950264377781423e+04),
+      Mjd(45988, .00003950526724878252e+04) },
+    { Mjd(45988, .00004297486599971307e+04),
+      Mjd(45988, .00004297811300504257e+04) },
+    { Mjd(45988, .00004644708822161192e+04),
+      Mjd(45988, .00004645058955188297e+04) }
   };
 
   // Permitted difference is 100 ns.
@@ -759,23 +759,25 @@ void PulsarDbTest::testSimpleDdEph() {
   ElapsedTime tolerance("TDB", Duration(0, delta));
 
   std::cerr.precision(24);
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
-    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0], Duration(0, 0.));
-    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1], Duration(0, 0.));
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph1.modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      ErrorMsg(method_name) << "Binary modulation of " << mjd_test_values[ii][0] << " was computed to be " << tdb_mjd <<
-        ", not " << mjd_test_values[ii][1] << ", as expected." << std::endl;
+      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", "MJD") << " was computed to be " <<
+        tdb_mjd.represent("TDB", "MJD") << ", not " << expected_tdb_mjd.represent("TDB", "MJD") << ", as expected." << std::endl;
     }
   }
 
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Duration[2]); ++ii) {
-    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1], Duration(0, 0.));
-    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0], Duration(0, 0.));
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph1.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      ErrorMsg(method_name) << "Binary demodulation of " << mjd_test_values[ii][1] << " was computed to be " << tdb_mjd <<
-        ", not " << mjd_test_values[ii][0] << ", as expected." << std::endl;
+      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", "MJD") << " was computed to be " <<
+        tdb_mjd.represent("TDB", "MJD") << ", not " << expected_tdb_mjd.represent("TDB", "MJD") << ", as expected." << std::endl;
     }
   }
 } 
@@ -955,13 +957,13 @@ void PulsarDbTest::testChooser() {
 
   // Test tiebreaking with different tolerances.
   eph_cont.clear();
-  Duration origin(51910, 0.);
-  AbsoluteTime valid_since("TDB", origin, Duration(0, 101.));
-  AbsoluteTime valid_until("TDB", origin, Duration(0, 200.));
-  AbsoluteTime epoch("TDB", origin, Duration(0, 150.));
-  AbsoluteTime t("TDB", origin, Duration(0, 120.));
+  long origin = 51910;
+  AbsoluteTime valid_since("TDB", origin, 101.);
+  AbsoluteTime valid_until("TDB", origin, 200.);
+  AbsoluteTime epoch("TDB", origin, 150.);
+  AbsoluteTime t("TDB", origin, 120.);
   eph_cont.push_back(new FrequencyEph("TT", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
-  valid_since = AbsoluteTime("TDB", origin, Duration(0, 100.));
+  valid_since = AbsoluteTime("TDB", origin, 100.);
   eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
 
   StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(0, .99)));
@@ -1349,7 +1351,7 @@ class BogusPulsarEphBase: public PulsarEph {
 
   private:
     inline const AbsoluteTime & getBogusTime() const {
-      static const AbsoluteTime s_bogus_time("TDB", Duration(0, 0.), Duration(0, 0.));
+      static const AbsoluteTime s_bogus_time("TDB", 0, 0.);
       return s_bogus_time;
     }
 };
@@ -1376,7 +1378,7 @@ class BogusOrbitalEphBase: public OrbitalEph {
     }
 
     virtual const AbsoluteTime & t0() const {
-      static const AbsoluteTime s_bogus_absolute_time("TDB", Duration(0, 0.), Duration(0, 0.));
+      static const AbsoluteTime s_bogus_absolute_time("TDB", 0, 0.);
       return s_bogus_absolute_time;
     }
     virtual double calcOrbitalPhase(const AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
