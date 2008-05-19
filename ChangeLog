@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon May 19 16:54:22 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	FrequencyEph.cxx PulsarToolApp.cxx SimpleDdEph.cxx 
+Log Message:
+Replace calls of the AbsoluteTime constructor that takes Duration objects with those of new constructors.
+    *
+------------------------------------------------------------
 User: hirayama  Mon May 19 16:53:44 PDT 2008
 pulsarDb/src
 
