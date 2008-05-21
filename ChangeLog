@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed May 21 14:23:28 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove non-essential use of MetRep.
+    *
+------------------------------------------------------------
 User: hirayama  Tue May 20 21:00:56 PDT 2008
 pulsarDb/src
 
