@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue May 20 21:00:56 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Remove a redundant parseTime method.
+    *
+------------------------------------------------------------
 User: hirayama  Tue May 20 18:27:01 PDT 2008
 pulsarDb/src
 
