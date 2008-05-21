@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue May 20 18:25:34 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx FrequencyEph.cxx PeriodEph.cxx 
+	PulsarEph.cxx SimpleDdEph.cxx 
+Log Message:
+Use new AbsoluteTime methods in place with MjdRep objects.
+    *
+------------------------------------------------------------
 User: hirayama  Mon May 19 16:54:22 PDT 2008
 pulsarDb/src/test
 
