@@ -12,7 +12,6 @@
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/TimeInterval.h"
-#include "timeSystem/TimeRep.h"
 
 using namespace timeSystem;
 
@@ -38,20 +37,20 @@ namespace pulsarDb {
     read(record, "TOABARY_FRAC", toa_frac, 0.);
 
     // Combine separate parts of epoch and toa to get single values.
-    m_epoch = AbsoluteTime(MjdRep("TDB", epoch_int, epoch_frac));
-    AbsoluteTime toa(MjdRep("TDB", toa_int, toa_frac));
+    m_epoch = AbsoluteTime("TDB", Mjd(epoch_int, epoch_frac));
+    AbsoluteTime toa("TDB", Mjd(toa_int, toa_frac));
 
     // Read the start time of validity window (required).
     long valid_since_date = 0;
     read(record, "VALID_SINCE", valid_since_date);
-    m_since = AbsoluteTime(MjdRep("TDB", valid_since_date, 0.));
+    m_since = AbsoluteTime("TDB", Mjd(valid_since_date, 0.));
 
     // Read the end time of validity window (required).
     // Note: One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
     // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
     long valid_until_date = 0;
     read(record, "VALID_UNTIL", valid_until_date);
-    m_until = AbsoluteTime(MjdRep("TDB", valid_until_date + 1, 0.));
+    m_until = AbsoluteTime("TDB", Mjd(valid_until_date + 1, 0.));
 
     // Read the sky position and frequency coefficients (RA, Dec, F0: required, F1, F2: optional).
     read(record, "RA",  m_ra);
@@ -75,14 +74,13 @@ namespace pulsarDb {
   }
 
   void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {
-    MjdRep mjd_rep(m_system->getName(), 0, 0.);
-    mjd_rep = m_epoch;
-    os << format("Epoch", mjd_rep) << std::endl;
-    os << format("RA",    m_ra)    << std::endl;
-    os << format("Dec",   m_dec)   << std::endl;
-    os << format("Phi0",  m_phi0)  << std::endl;
-    os << format("F0",    m_f0)    << std::endl;
-    os << format("F1",    m_f1)    << std::endl;
+    std::string epoch_string = m_epoch.represent(m_system->getName(), "MJD");
+    os << format("Epoch", epoch_string) << std::endl;
+    os << format("RA",    m_ra)         << std::endl;
+    os << format("Dec",   m_dec)        << std::endl;
+    os << format("Phi0",  m_phi0)       << std::endl;
+    os << format("F0",    m_f0)         << std::endl;
+    os << format("F1",    m_f1)         << std::endl;
     os << format("F2",    m_f2);
   }
 

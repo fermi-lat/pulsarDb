@@ -10,7 +10,6 @@
 
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/TimeInterval.h"
-#include "timeSystem/TimeRep.h"
 #include "timeSystem/TimeSystem.h"
 
 using namespace timeSystem;
@@ -30,14 +29,13 @@ namespace pulsarDb {
   }
 
   void PeriodEph::writeModelParameter(st_stream::OStream & os) const {
-    MjdRep mjd_rep(m_system->getName(), 0, 0.);
-    mjd_rep = m_epoch;
-    os << format("Epoch", mjd_rep) << std::endl;
-    os << format("RA",    m_ra)    << std::endl;
-    os << format("Dec",   m_dec)   << std::endl;
-    os << format("Phi0",  m_phi0)  << std::endl;
-    os << format("P0",    m_p0)    << std::endl;
-    os << format("P1",    m_p1)    << std::endl;
+    std::string epoch_string = m_epoch.represent(m_system->getName(), "MJD");
+    os << format("Epoch", epoch_string) << std::endl;
+    os << format("RA",    m_ra)         << std::endl;
+    os << format("Dec",   m_dec)        << std::endl;
+    os << format("Phi0",  m_phi0)       << std::endl;
+    os << format("P0",    m_p0)         << std::endl;
+    os << format("P1",    m_p1)         << std::endl;
     os << format("P2",    m_p2);
   }
 

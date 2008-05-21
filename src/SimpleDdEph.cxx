@@ -15,7 +15,6 @@
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeInterval.h"
-#include "timeSystem/TimeRep.h"
 
 using namespace timeSystem;
 
@@ -127,10 +126,9 @@ namespace pulsarDb {
     os << format("ECCDOT",    m_ecc_dot)   << std::endl;
     os << format("OM",        m_om)        << std::endl;
     os << format("OMDOT",     m_om_dot)    << std::endl;
-    MjdRep mjd_rep(m_system->getName(), 0, 0.);
-    mjd_rep = m_t0;
-    double dbl_t0 = mjd_rep.getValue().getDouble();
-    os << format("T0",        dbl_t0)      << std::endl;
+    Mjd1 mjd(0.);
+    m_t0.get(m_system->getName(), mjd);
+    os << format("T0",        mjd.m_day)   << std::endl;
     os << format("GAMMA",     m_gamma)     << std::endl;
     os << format("SHAPIRO_R", m_shapiro_r) << std::endl;
     os << format("SHAPIRO_S", m_shapiro_s);
