@@ -51,22 +51,19 @@ namespace pulsarDb {
     resetApp();
   }
 
-  TimeRep * PulsarToolApp::createTimeRep(const std::string & time_format, const std::string & time_system,
+  AbsoluteTime PulsarToolApp::parseTime(const std::string & time_format, const std::string & time_system,
     const std::string & time_value, const tip::Header * header) const {
     // Create dummy outputs of time format and time system.
     std::string time_format_nc;
     std::string time_system_nc;
 
-    // Call non-const version of createTimeRep method.
-    return createTimeRep(time_format, time_system, time_value, time_format_nc, time_system_nc, header);
+    // Call non-const version of parseTime method.
+    return parseTime(time_format, time_system, time_value, time_format_nc, time_system_nc, header);
   }
 
-  TimeRep * PulsarToolApp::createTimeRep(const std::string & input_time_format, const std::string & input_time_system,
+  AbsoluteTime PulsarToolApp::parseTime(const std::string & input_time_format, const std::string & input_time_system,
     const std::string & time_value, std::string & output_time_format, std::string & output_time_system,
     const tip::Header * header) const {
-
-    TimeRep * time_rep(0);
-
     // Make upper case copies of input for case insensitive comparisons.
     std::string time_format_rat(input_time_format);
     for (std::string::iterator itor = time_format_rat.begin(); itor != time_format_rat.end(); ++itor) *itor = std::toupper(*itor);
@@ -96,6 +93,7 @@ namespace pulsarDb {
     output_time_system = time_system_rat;
 
     // Create representation for this time format and time system.
+    AbsoluteTime abs_time("TDB", 0, 0.);
     if ("FILE" == time_format_rat) {
       // Check TELESCOP keyword for supported missions.
       std::string telescope;
@@ -106,39 +104,41 @@ namespace pulsarDb {
       // Get the mjdref from the header, which is not as simple as just reading a single keyword.
       MjdRefDatabase mjd_ref_db;
       IntFracPair mjd_ref(mjd_ref_db(*header));
-      time_rep = new MetRep(time_system_rat, mjd_ref, 0.);
+      MetRep time_rep(time_system_rat, mjd_ref, 0.);
+
+      // Assign the time supplied by the user to the representation.
+      time_rep.assign(time_value);
+      abs_time = time_rep;
 
     } else {
       // Create representation for supported time formats.
       if ("GLAST" == time_format_rat) {
-        time_rep = new GlastMetRep(time_system_rat, 0.);
+        GlastMetRep time_rep(time_system_rat, 0.);
+
+        // Assign the time supplied by the user to the representation.
+        time_rep.assign(time_value);
+        abs_time = time_rep;
+
       } else if ("MJD" == time_format_rat) {
-        time_rep = new MjdRep(time_system_rat, 0, 0.);
+        abs_time.set(time_system_rat, "MJD", time_value);
       } else {
         throw std::runtime_error("Time format \"" + input_time_format + "\" is not supported for ephemeris time");
       }
 
     }
 
-    // Assign the time supplied by the user to the representation.
-    time_rep->assign(time_value);
-
-    return time_rep;
+    return abs_time;
   }
 
   TimeRep * PulsarToolApp::createMetRep(const std::string & time_system, const AbsoluteTime & abs_reference) const {
     // Compute MJD of abs_reference (the origin of the time series to analyze), to be given as MJDREF of MetRep.
     // NOTE: MetRep should take AbsoluteTime for its MJDREF (Need refactor of AbsoluteTime for that).
     // TODO: Once MetRep is refactored, remove this method.
-    std::auto_ptr<TimeRep> mjd_rep(new MjdRep(time_system, 0, 0.));
-    *mjd_rep = abs_reference;
-    long mjd_int = 0;
-    double mjd_frac = 0.;
-    mjd_rep->get("MJDI", mjd_int);
-    mjd_rep->get("MJDF", mjd_frac);
+    Mjd mjd(0, 0.);
+    abs_reference.get(time_system, mjd);
 
     // Create MetRep to represent the time series to analyze and return it.
-    return new MetRep(time_system, mjd_int, mjd_frac, 0.);
+    return new MetRep(time_system, mjd.m_int, mjd.m_frac, 0.);
   }
 
   void PulsarToolApp::openEventFile(const st_app::AppParGroup & pars, bool read_only) {
@@ -254,9 +254,8 @@ namespace pulsarDb {
         std::string epoch_time_format = pars["timeformat"];
         std::string epoch_time_sys = pars["timesys"];
         std::string epoch = pars["ephepoch"];
-        std::auto_ptr<TimeRep> time_rep(createTimeRep(epoch_time_format, epoch_time_sys, epoch, epoch_time_format,
-          epoch_time_sys, m_reference_header));
-        AbsoluteTime abs_epoch(*time_rep);
+        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format,
+          epoch_time_sys, m_reference_header);
 
         // Read phi0 parameter.  If it doesn't exist in the parameter file, let phi0 = 0.
         double phi0 = 0.;
@@ -427,8 +426,7 @@ namespace pulsarDb {
       std::string origin_time_sys = pars["usersys"].Value();
 
       // Convert user-specified time into AbsoluteTime.
-      std::auto_ptr<TimeRep> time_rep(createTimeRep(origin_time_format, origin_time_sys, origin_time, m_reference_header));
-      abs_origin = *time_rep;
+      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, m_reference_header);
 
     } else {
       throw std::runtime_error("Unsupported time origin " + str_origin_uc);
