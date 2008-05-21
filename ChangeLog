@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue May 20 18:25:34 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use new AbsoluteTime methods in place with MjdRep objects.
+    *
+------------------------------------------------------------
+User: hirayama  Tue May 20 18:25:34 PDT 2008
 pulsarDb/src
 
 Modified Files:
