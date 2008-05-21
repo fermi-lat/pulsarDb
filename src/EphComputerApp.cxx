@@ -10,7 +10,6 @@
 #include "st_app/AppParGroup.h"
 
 #include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/TimeRep.h"
 #include "timeSystem/TimeSystem.h"
 
 #include <cctype>
@@ -63,8 +62,9 @@ namespace pulsarDb {
 
     // Create the correct time representation for this time system and format,
     // and set the time of the representation to be the given reference time.
-    std::auto_ptr<TimeRep> time_rep(createTimeRep(time_format, time_sys, ref_time));
-    AbsoluteTime abs_ref_time(*time_rep);
+    std::string time_format_parsed;
+    std::string time_sys_parsed;
+    AbsoluteTime abs_ref_time = parseTime(time_format, time_sys, ref_time, time_format_parsed, time_sys_parsed);
 
     // Set up EphComputer for ephemeris computations.
     std::auto_ptr<EphChooser> chooser(0);
@@ -129,8 +129,10 @@ namespace pulsarDb {
 
       // Print computed ephemeris.
       if (computed_ok) {
-        m_os.out() << prefix << "Spin ephemeris estimated at " << *time_rep << " is:" << std::endl;
+        m_os.out() << prefix << "Spin ephemeris estimated is:" << std::endl;
         m_os.out().precision(std::numeric_limits<double>::digits10);
+        std::string time_string = abs_ref_time.represent(time_sys_parsed, "MJD");
+        m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << time_string << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra_dec.first << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << ra_dec.second << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Pulse Phase : " << phi0 << std::endl;

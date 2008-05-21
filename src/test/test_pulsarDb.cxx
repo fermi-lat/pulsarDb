@@ -854,8 +854,8 @@ void PulsarDbTest::testChooser() {
   remove("chooser_db.fits");
   database.save("chooser_db.fits", m_creator);
 
-  MjdRep mjd_tdb("TDB", 54012, .5);
-  AbsoluteTime pick_time(mjd_tdb);
+  AbsoluteTime pick_time("TDB", Mjd1(54012.5));
+  AbsoluteTime expected_epoch("TDB", 0, 0.);
 
   PulsarEphCont eph_cont;
 
@@ -865,24 +865,22 @@ void PulsarDbTest::testChooser() {
 
   // Test one with no tiebreaking needed.
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
-  mjd_tdb.setValue(54262, 0.);
+  expected_epoch.set("TDB", Mjd1(54262.));
   ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
-  if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->getEpoch(), tolerance))
+  if (!expected_epoch.equivalentTo(chosen->getEpoch(), tolerance))
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
-      ", not " << AbsoluteTime(mjd_tdb) << " as expected." << std::endl;
+      ", not " << expected_epoch << " as expected." << std::endl;
 
   // Test one with tiebreaking.
-  mjd_tdb.setValue(53545, .5);
-  pick_time = mjd_tdb;
+  pick_time.set("TDB", Mjd1(53545.5));
   chosen = &chooser.choose(eph_cont, pick_time);
-  mjd_tdb.setValue(53891, 0.);
-  if (!AbsoluteTime(mjd_tdb).equivalentTo(chosen->getEpoch(), tolerance))
+  expected_epoch.set("TDB", Mjd1(53891.));
+  if (!expected_epoch.equivalentTo(chosen->getEpoch(), tolerance))
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
-      ", not " << AbsoluteTime(mjd_tdb) << " as expected." << std::endl;
+      ", not " << expected_epoch << " as expected." << std::endl;
 
   // Test one which is too early.
-  mjd_tdb.setValue(53544, .5);
-  pick_time = mjd_tdb;
+  pick_time.set("TDB", Mjd1(53544.5));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
@@ -891,8 +889,7 @@ void PulsarDbTest::testChooser() {
   }
 
   // Test one which is too late.
-  mjd_tdb.setValue(55579, .5);
-  pick_time = mjd_tdb;
+  pick_time.set("TDB", Mjd1(55579.5));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
@@ -901,8 +898,7 @@ void PulsarDbTest::testChooser() {
   }
 
   // Try one which is too late, but without being strict about validity.
-  mjd_tdb.setValue(55579, .5);
-  pick_time = mjd_tdb;
+  pick_time.set("TDB", Mjd1(55579.5));
   try {
     chosen = &(SloppyEphChooser().choose(eph_cont, pick_time));
   } catch (const std::runtime_error &) {
@@ -919,8 +915,7 @@ void PulsarDbTest::testChooser() {
   database.getEph(eph_cont);
 
   // Try to choose an ephemeris from the empty set.
-  mjd_tdb.setValue(55579, .5);
-  pick_time = mjd_tdb;
+  pick_time.set("TDB", Mjd1(55579.5));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
     ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
@@ -940,19 +935,18 @@ void PulsarDbTest::testChooser() {
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
   database2.getEph(orbital_cont);
-  mjd_tdb.setValue(52500, 0.);
-  pick_time = mjd_tdb;
+  pick_time.set("TDB", Mjd1(52500.));
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
-    mjd_tdb.setValue(52060, .84100795);
-    AbsoluteTime expected_t0(mjd_tdb);
+    AbsoluteTime expected_t0("TDB", Mjd1(52060.84100795));
     ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
     if (!orbital_eph.t0().equivalentTo(expected_t0, tolerance)) {
       ErrorMsg(method_name) << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
         expected_t0 << std::endl;
     }
   } catch (const std::runtime_error & x) {
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " << x.what() << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " <<
+    x.what() << std::endl;
   }
 
   // Test tiebreaking with different tolerances.
@@ -961,91 +955,93 @@ void PulsarDbTest::testChooser() {
   AbsoluteTime valid_since("TDB", origin, 101.);
   AbsoluteTime valid_until("TDB", origin, 200.);
   AbsoluteTime epoch("TDB", origin, 150.);
-  AbsoluteTime t("TDB", origin, 120.);
   eph_cont.push_back(new FrequencyEph("TT", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
   valid_since = AbsoluteTime("TDB", origin, 100.);
   eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
 
   StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(0, .99)));
-  chosen = &strict_chooser.choose(eph_cont, t);
+  pick_time = AbsoluteTime("TDB", origin, 120.);
+  chosen = &strict_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time " << t << " with tolerance .99, chooser chose eph with " << chosen->getSystem().getName() <<
-      ", not TT as expected" << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << " with tolerance .99, chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   strict_chooser = StrictEphChooser(ElapsedTime("TDB", Duration(0, 1.01)));
-  chosen = &strict_chooser.choose(eph_cont, t);
+  chosen = &strict_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time " << t << " with tolerance 1.01, chooser chose eph with " << chosen->getSystem().getName() <<
-      ", not TDB as expected" << std::endl;
+    ErrorMsg(method_name) << "for time " << pick_time << " with tolerance 1.01, chooser chose eph with " <<
+      chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
 
   // Test sloppy chooser around two disjoint ephemerides.
   eph_cont.clear();
-  epoch = MjdRep("TDB", 51910, 0.);
-  eph_cont.push_back(new FrequencyEph("TT", AbsoluteTime(MjdRep("TDB", 51910, 0.)), AbsoluteTime(MjdRep("TDB", 51920, 0.)), epoch, 22., 45., 0., 1., 0., 0.));
-  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime(MjdRep("TDB", 51930, 0.)), AbsoluteTime(MjdRep("TDB", 51940, 0.)), epoch, 22., 45., 0., 1., 0., 0.));
+  epoch.set("TDB", Mjd1(51910.));
+  eph_cont.push_back(new FrequencyEph("TT", AbsoluteTime("TDB", Mjd1(51910.)), AbsoluteTime("TDB", Mjd1(51920.)),
+    epoch, 22., 45., 0., 1., 0., 0.));
+  eph_cont.push_back(new FrequencyEph("TDB", AbsoluteTime("TDB", Mjd1(51930.)), AbsoluteTime("TDB", Mjd1(51940.)),
+    epoch, 22., 45., 0., 1., 0., 0.));
 
   SloppyEphChooser sloppy_chooser;
-  t = MjdRep("TDB", 51905, 0.);
-  chosen = &sloppy_chooser.choose(eph_cont, t);
+  pick_time.set("TDB", Mjd1(51905.));
+  chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time before either ephemeris: " << t << ", chooser chose eph with " <<
+    ErrorMsg(method_name) << "for time before either ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
-  t = MjdRep("TDB", 51915, 0.);
-  chosen = &sloppy_chooser.choose(eph_cont, t);
+  pick_time.set("TDB", Mjd1(51915.));
+  chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time during first ephemeris: " << t << ", chooser chose eph with " <<
+    ErrorMsg(method_name) << "for time during first ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
-  t = MjdRep("TDB", 51921, 0.);
-  chosen = &sloppy_chooser.choose(eph_cont, t);
+  pick_time.set("TDB", Mjd1(51921.));
+  chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time shortly after first ephemeris: " << t << ", chooser chose eph with " <<
+    ErrorMsg(method_name) << "for time shortly after first ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
-  t = MjdRep("TDB", 51929, 0.);
-  chosen = &sloppy_chooser.choose(eph_cont, t);
+  pick_time.set("TDB", Mjd1(51929.));
+  chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time shortly before second ephemeris: " << t << ", chooser chose eph with " <<
+    ErrorMsg(method_name) << "for time shortly before second ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
-  t = MjdRep("TDB", 51935, 0.);
-  chosen = &sloppy_chooser.choose(eph_cont, t);
+  pick_time.set("TDB", Mjd1(51935.));
+  chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time during second ephemeris: " << t << ", chooser chose eph with " <<
+    ErrorMsg(method_name) << "for time during second ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
-  t = MjdRep("TDB", 51945, 0.);
-  chosen = &sloppy_chooser.choose(eph_cont, t);
+  pick_time.set("TDB", Mjd1(51945.));
+  chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time after second ephemeris: " << t << ", chooser chose eph with " <<
+    ErrorMsg(method_name) << "for time after second ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   // Test choice from prehistory, say 100000 years before origin of MJD.
-  t = MjdRep("TDB", -36525000, 0.);
+  pick_time.set("TDB", Mjd1(-36525000.));
   try {
-    chosen = &sloppy_chooser.choose(eph_cont, t);
+    chosen = &sloppy_chooser.choose(eph_cont, pick_time);
     if ("TT" != chosen->getSystem().getName())
-      ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser chose eph with " <<
-        chosen->getSystem().getName() << ", not TT as expected" << std::endl;
+      ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << pick_time <<
+        ", chooser chose eph with " << chosen->getSystem().getName() << ", not TT as expected" << std::endl;
   } catch (const std::exception & x) {
-    ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << t << ", chooser threw exception: " <<
-      std::endl << x.what() << std::endl;
+    ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << pick_time <<
+      ", chooser threw exception: " << std::endl << x.what() << std::endl;
   }
 
   // Test choice from far future, say 100000 years after origin of MJD.
-  t = MjdRep("TDB", 36525000, 0.);
+  pick_time.set("TDB", Mjd1(36525000.));
   try {
-    chosen = &sloppy_chooser.choose(eph_cont, t);
+    chosen = &sloppy_chooser.choose(eph_cont, pick_time);
     if ("TDB" != chosen->getSystem().getName())
-      ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser chose eph with " <<
-        chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
+      ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << pick_time <<
+        ", chooser chose eph with " << chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
   } catch (const std::exception & x) {
-    ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << t << ", chooser threw exception: " <<
-      std::endl << x.what() << std::endl;
+    ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << pick_time <<
+      ", chooser threw exception: " << std::endl << x.what() << std::endl;
   }
 
   // Clean up.

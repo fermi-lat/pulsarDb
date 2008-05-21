@@ -9,7 +9,7 @@
 
 #include "pulsarDb/PulsarEph.h"
 
-#include "timeSystem/TimeRep.h"
+#include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/TimeSystem.h"
 
 using namespace timeSystem;
@@ -24,13 +24,13 @@ namespace pulsarDb {
 
     // Prepare for MJD expression of time.
     std::string time_system_name = getSystem().getName();
-    MjdRep mjd_rep(time_system_name, 0, 0.);
+    std::string time_string;
 
     // Write validity window.
-    mjd_rep = getValidSince();
-    os << format("Valid Since", mjd_rep, " : ") << std::endl;
-    mjd_rep = getValidUntil();
-    os << format("Valid Until", mjd_rep, " : ") << std::endl;
+    time_string = getValidSince().represent(time_system_name, "MJD");
+    os << format("Valid Since", time_string, " : ") << std::endl;
+    time_string = getValidUntil().represent(time_system_name, "MJD");
+    os << format("Valid Until", time_string, " : ") << std::endl;
 
     // Write subclass-specific parameters (delegated to subclass).
     writeModelParameter(os);
