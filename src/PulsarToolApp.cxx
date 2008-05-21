@@ -52,20 +52,10 @@ namespace pulsarDb {
   }
 
   AbsoluteTime PulsarToolApp::parseTime(const std::string & time_format, const std::string & time_system,
-    const std::string & time_value, const tip::Header * header) const {
-    // Create dummy outputs of time format and time system.
-    std::string time_format_nc;
-    std::string time_system_nc;
-
-    // Call non-const version of parseTime method.
-    return parseTime(time_format, time_system, time_value, time_format_nc, time_system_nc, header);
-  }
-
-  AbsoluteTime PulsarToolApp::parseTime(const std::string & input_time_format, const std::string & input_time_system,
-    const std::string & time_value, std::string & output_time_format, std::string & output_time_system,
+    const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
     const tip::Header * header) const {
     // Make upper case copies of input for case insensitive comparisons.
-    std::string time_format_rat(input_time_format);
+    std::string time_format_rat(time_format);
     for (std::string::iterator itor = time_format_rat.begin(); itor != time_format_rat.end(); ++itor) *itor = std::toupper(*itor);
 
     // Check whether the header is given or not when time format is specified as FILE.
@@ -74,7 +64,7 @@ namespace pulsarDb {
     }
 
     // Make upper case copies of input for case insensitive comparisons.
-    std::string time_system_rat(input_time_system);
+    std::string time_system_rat(time_system);
     for (std::string::iterator itor = time_system_rat.begin(); itor != time_system_rat.end(); ++itor) *itor = std::toupper(*itor);
 
     // First check whether time system should be read from the tip::Header.
@@ -89,8 +79,8 @@ namespace pulsarDb {
     }
 
     // Replace arguments for time format and time system with rationalized ones.
-    output_time_format = time_format_rat;
-    output_time_system = time_system_rat;
+    parsed_time_format = time_format_rat;
+    parsed_time_system = time_system_rat;
 
     // Create representation for this time format and time system.
     AbsoluteTime abs_time("TDB", 0, 0.);
@@ -122,7 +112,7 @@ namespace pulsarDb {
       } else if ("MJD" == time_format_rat) {
         abs_time.set(time_system_rat, "MJD", time_value);
       } else {
-        throw std::runtime_error("Time format \"" + input_time_format + "\" is not supported for ephemeris time");
+        throw std::runtime_error("Time format \"" + time_format + "\" is not supported for ephemeris time");
       }
 
     }
@@ -254,8 +244,8 @@ namespace pulsarDb {
         std::string epoch_time_format = pars["timeformat"];
         std::string epoch_time_sys = pars["timesys"];
         std::string epoch = pars["ephepoch"];
-        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format,
-          epoch_time_sys, m_reference_header);
+        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format, epoch_time_sys,
+          m_reference_header);
 
         // Read phi0 parameter.  If it doesn't exist in the parameter file, let phi0 = 0.
         double phi0 = 0.;
@@ -426,7 +416,10 @@ namespace pulsarDb {
       std::string origin_time_sys = pars["usersys"].Value();
 
       // Convert user-specified time into AbsoluteTime.
-      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, m_reference_header);
+      std::string parsed_time_format;
+      std::string parsed_time_sys;
+      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys,
+        m_reference_header);
 
     } else {
       throw std::runtime_error("Unsupported time origin " + str_origin_uc);

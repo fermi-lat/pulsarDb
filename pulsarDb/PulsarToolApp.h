@@ -49,10 +49,7 @@ namespace pulsarDb {
       virtual void run() = 0;
 
       virtual timeSystem::AbsoluteTime parseTime(const std::string & time_format, const std::string & time_system,
-        const std::string & time_value, const tip::Header * header = 0) const;
-
-      virtual timeSystem::AbsoluteTime parseTime(const std::string & input_time_format, const std::string & input_time_system,
-        const std::string & time_value, std::string & output_time_format, std::string & output_time_system,
+        const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
         const tip::Header * header = 0) const;
 
       void openEventFile(const st_app::AppParGroup & pars, bool read_only = true);
