@@ -48,10 +48,10 @@ namespace pulsarDb {
       virtual ~PulsarToolApp() throw();
       virtual void run() = 0;
 
-      virtual timeSystem::TimeRep * createTimeRep(const std::string & time_format, const std::string & time_system,
+      virtual timeSystem::AbsoluteTime parseTime(const std::string & time_format, const std::string & time_system,
         const std::string & time_value, const tip::Header * header = 0) const;
 
-      virtual timeSystem::TimeRep * createTimeRep(const std::string & input_time_format, const std::string & input_time_system,
+      virtual timeSystem::AbsoluteTime parseTime(const std::string & input_time_format, const std::string & input_time_system,
         const std::string & time_value, std::string & output_time_format, std::string & output_time_system,
         const tip::Header * header = 0) const;
 
