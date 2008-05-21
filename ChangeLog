@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue May 20 18:27:01 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Replace createTimeRep method with parseTime method that returns an AbsoluteTime object. Use new AbsoluteTime methods in place with MjdRep objects.
+    *
+------------------------------------------------------------
 User: hirayama  Tue May 20 18:25:34 PDT 2008
 pulsarDb/src/test
 
