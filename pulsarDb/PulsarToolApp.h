@@ -12,6 +12,7 @@
 
 #include "st_app/StApp.h"
 
+#include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/EventTimeHandler.h"
 
 #include "tip/Table.h"
@@ -21,7 +22,6 @@ namespace st_app {
 }
 
 namespace timeSystem {
-  class AbsoluteTime;
   class EventTimeHandler;
   class TimeRep;
 }
@@ -122,12 +122,10 @@ namespace pulsarDb {
       bool m_request_bary;
       bool m_demod_bin;
       bool m_cancel_pdot;
-      timeSystem::TimeRep * m_target_time_rep;
+      std::string m_target_time_sys;
+      timeSystem::AbsoluteTime m_target_time_origin;
 
       handler_cont_type::iterator m_event_handler_itor;
-
-      // TODO: refactor MetRep to include functionality of this method and remove this method.
-      timeSystem::TimeRep * createMetRep(const std::string & time_system, const timeSystem::AbsoluteTime & abs_reference) const;
 
       timeSystem::AbsoluteTime readTimeColumn(timeSystem::EventTimeHandler & handler, const std::string & column_name,
         bool request_time_correction);

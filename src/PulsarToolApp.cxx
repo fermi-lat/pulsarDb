@@ -27,9 +27,13 @@
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/BaryTimeComputer.h"
+#include "timeSystem/Duration.h"
+#include "timeSystem/ElapsedTime.h"
 #include "timeSystem/EventTimeHandler.h"
 #include "timeSystem/GlastMetRep.h"
 #include "timeSystem/GlastTimeHandler.h"
+#include "timeSystem/IntFracPair.h"
+#include "timeSystem/TimeInterval.h"
 #include "timeSystem/TimeRep.h"
 
 #include "tip/Header.h"
@@ -44,7 +48,7 @@ namespace pulsarDb {
     m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(),
     m_reference_header(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
-    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_rep(0),
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_sys(), m_target_time_origin("TDB", 0, 0.),
     m_event_handler_itor(m_event_handler_cont.begin()) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
@@ -118,17 +122,6 @@ namespace pulsarDb {
     }
 
     return abs_time;
-  }
-
-  TimeRep * PulsarToolApp::createMetRep(const std::string & time_system, const AbsoluteTime & abs_reference) const {
-    // Compute MJD of abs_reference (the origin of the time series to analyze), to be given as MJDREF of MetRep.
-    // NOTE: MetRep should take AbsoluteTime for its MJDREF (Need refactor of AbsoluteTime for that).
-    // TODO: Once MetRep is refactored, remove this method.
-    Mjd mjd(0, 0.);
-    abs_reference.get(time_system, mjd);
-
-    // Create MetRep to represent the time series to analyze and return it.
-    return new MetRep(time_system, mjd.m_int, mjd.m_frac, 0.);
   }
 
   void PulsarToolApp::openEventFile(const st_app::AppParGroup & pars, bool read_only) {
@@ -395,19 +388,13 @@ namespace pulsarDb {
       AbsoluteTime abs_tstart = computeTimeBoundary(true, false);
       AbsoluteTime abs_tstop = computeTimeBoundary(false, false);
 
+      // Get time system name from the header.
       std::string time_sys;
       (*m_reference_header)["TIMESYS"].get(time_sys);
-      std::auto_ptr<TimeRep> time_rep(createMetRep(time_sys, abs_tstart));
 
-      double tstart = 0.;
-      double tstop = 0.;
-      *time_rep = abs_tstart;
-      time_rep->get("TIME", tstart);
-      *time_rep = abs_tstop;
-      time_rep->get("TIME", tstop);
-      time_rep->set("TIME", .5 * (tstart + tstop));
-
-      abs_origin = *time_rep;
+      // Compute mid-time difference between TSTART and TSTOP.
+      double elapsed = (abs_tstop - abs_tstart).computeElapsedTime(time_sys).getTime().getValue(Sec).getDouble();
+      abs_origin = abs_tstart + ElapsedTime(time_sys, Duration(0, elapsed * 0.5));
 
     } else if (str_origin_uc == "USER") {
       // Get time of origin and its format and system from parameters.
@@ -458,9 +445,8 @@ namespace pulsarDb {
     m_request_bary = (m_tcmode_bary == REQUIRED || m_tcmode_bary == ALLOWED);
 
     // Initialize the time series to analyze.
-    std::string target_time_sys;
+    m_target_time_origin = abs_origin;
     bool time_system_set = false;
-
     if (!m_request_bary && !m_demod_bin && !m_cancel_pdot) {
       // When NO corrections are requested, the analysis will be performed in the time system written in event files,
       // requiring all event files have same time system.
@@ -470,30 +456,27 @@ namespace pulsarDb {
         const tip::Header & header(event_handler.getHeader());
         header["TIMESYS"].get(this_time_system);
         if (!time_system_set) {
-          target_time_sys = this_time_system;
+          m_target_time_sys = this_time_system;
           time_system_set = true;
-        } else if (this_time_system != target_time_sys) {
+        } else if (this_time_system != m_target_time_sys) {
           throw std::runtime_error("event files with different TIMESYS values cannot be combined");
         }
       }
     } else {
       // When ANY correction(s) are requested, the analysis will be performed in TDB system.
-      target_time_sys = "TDB";
+      m_target_time_sys = "TDB";
       time_system_set = true;
     }
 
     // Check whether time system is successfully set.
     if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
 
-    // Set up target time representation, used to compute the time series to analyze.
-    m_target_time_rep = createMetRep(target_time_sys, abs_origin);
-
     // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
     if (m_cancel_pdot) {
       const int max_derivative = 2;
       if (guess_pdot) {
-        // Compute an ephemeris at abs_origin to use for pdot cancellation, up to the second time derivative.
-        m_computer->setPdotCancelParameter(abs_origin, max_derivative);
+        // Compute an ephemeris at m_target_time_origin to use for pdot cancellation, up to the second time derivative.
+        m_computer->setPdotCancelParameter(m_target_time_origin, max_derivative);
 
       } else {
         // Read parameters for pdot cancellation from pfile.
@@ -508,13 +491,14 @@ namespace pulsarDb {
           std::vector<double> fdot_ratio(max_derivative, 0.);
           if (max_derivative > 0) fdot_ratio[0] = pars["f1f0ratio"];
           if (max_derivative > 1) fdot_ratio[1] = pars["f2f0ratio"];
-          m_computer->setPdotCancelParameter(target_time_sys, abs_origin, fdot_ratio);
+          m_computer->setPdotCancelParameter(m_target_time_sys, m_target_time_origin, fdot_ratio);
         } else if (eph_style == "PER") {
           double p0 = 1.;
           double p1 = pars["p1p0ratio"];
           double p2 = pars["p2p0ratio"];
-          m_computer->setPdotCancelParameter(abs_origin,
-            PeriodEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, p0, p1, p2), max_derivative);
+          m_computer->setPdotCancelParameter(m_target_time_origin,
+            PeriodEph(m_target_time_sys, m_target_time_origin, m_target_time_origin, m_target_time_origin,
+              ra, dec, phi0, p0, p1, p2), max_derivative);
         } else {
           throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
         }
@@ -537,30 +521,19 @@ namespace pulsarDb {
         double f0 = 0.;
         double f1 = 0.;
         double f2 = 0.;
-        ephemerides.push_back(FrequencyEph(target_time_sys, abs_origin, abs_origin, abs_origin, ra, dec, phi0, f0, f1, f2).clone());
+        ephemerides.push_back(FrequencyEph(m_target_time_sys, m_target_time_origin, m_target_time_origin, m_target_time_origin,
+          ra, dec, phi0, f0, f1, f2).clone());
       }
     }
 
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
-    double time_value = 0.;
-
-    // Assign the absolute time to the time representation.
-    *m_target_time_rep = abs_time;
-
-    // Get value from the time representation.
-    m_target_time_rep->get("TIME", time_value);
-
-    return time_value;
+    return (abs_time - m_target_time_origin).computeElapsedTime(m_target_time_sys).getTime().getValue(Sec).getDouble();
   }
 
   AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
-    // Assign the elapsed time to the time representation.
-    m_target_time_rep->set("TIME", elapsed_time);
-
-    // Convert it to AbsoluteTime object and return it.
-    return AbsoluteTime(*m_target_time_rep);
+    return m_target_time_origin + ElapsedTime(m_target_time_sys, Duration(0, elapsed_time));
   }
 
   void PulsarToolApp::setupCurrentEventTable() {
@@ -627,8 +600,9 @@ namespace pulsarDb {
   }
 
   void PulsarToolApp::resetApp() {
-    // Destroy target TimeRep object.
-    delete m_target_time_rep; m_target_time_rep = 0;
+    // Reset target time settings.
+    m_target_time_origin = AbsoluteTime("TDB", 0, 0.);
+    m_target_time_sys.clear();
 
     // Reset time correction flags.
     m_cancel_pdot = false;
