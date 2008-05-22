@@ -34,7 +34,6 @@
 #include "timeSystem/GlastTimeHandler.h"
 #include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeInterval.h"
-#include "timeSystem/TimeRep.h"
 
 #include "tip/Header.h"
 #include "tip/Table.h"
