@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 22 14:05:51 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Remove unnecessary forward declaration.
+    *
+------------------------------------------------------------
 User: hirayama  Thu May 22 13:53:43 PDT 2008
 pulsarDb/src
 
