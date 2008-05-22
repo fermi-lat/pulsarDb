@@ -23,7 +23,6 @@ namespace st_app {
 
 namespace timeSystem {
   class EventTimeHandler;
-  class TimeRep;
 }
 
 namespace tip {
