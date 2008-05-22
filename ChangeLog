@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 22 13:53:43 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Replace the TimeRep data member to a time system name and an AbsoluteTime object representing the origin of target times. Use ElapsedTime instead of MetRep when possible. Remove createMetRep method.
+    *
+------------------------------------------------------------
 User: hirayama  Wed May 21 14:23:28 PDT 2008
 pulsarDb/src/test
 
