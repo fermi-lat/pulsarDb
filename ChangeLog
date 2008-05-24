@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri May 23 17:42:34 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Modify creation procedure of EventTimeHandler objects.
+    *
+------------------------------------------------------------
 User: hirayama  Thu May 22 14:06:12 PDT 2008
 pulsarDb/src
 
