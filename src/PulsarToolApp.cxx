@@ -143,17 +143,23 @@ namespace pulsarDb {
       std::string file_name = *itor;
 
       // Create and store an event time handler for EVENTS extension.
-      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(file_name, event_extension, sc_file, sc_extension,
-        ang_tolerance, read_only));
+      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(file_name, event_extension, ang_tolerance, read_only));
       m_event_handler_cont.push_back(event_handler);
+
+      // Set a spacecraft file and extension.
+      // TODO: Should we allow a bogus sc_file when no barycentering is needed?
+      event_handler->setSpacecraftFile(sc_file, sc_extension);
 
       // Check solar system ephemeris for EVENTS extension.
       if (check_solar_eph) event_handler->checkSolarEph(solar_eph);
 
       // Create and store an event time handler for GTI extension.
-      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(file_name, "GTI", sc_file, sc_extension,
-        ang_tolerance, read_only));
+      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(file_name, "GTI", ang_tolerance, read_only));
       m_gti_handler_cont.push_back(gti_handler);
+
+      // Set a spacecraft file and extension.
+      // TODO: Should we allow a bogus sc_file when no barycentering is needed?
+      gti_handler->setSpacecraftFile(sc_file, sc_extension);
 
       // Check solar system ephemeris for GTI extension.
       if (check_solar_eph) gti_handler->checkSolarEph(solar_eph);
