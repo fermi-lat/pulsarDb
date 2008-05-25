@@ -35,6 +35,7 @@
 #include "timeSystem/TimeInterval.h"
 
 #include "tip/Header.h"
+#include "tip/IFileSvc.h"
 #include "tip/Table.h"
 
 using namespace st_facilities;
@@ -84,19 +85,20 @@ namespace pulsarDb {
     parsed_time_format = time_format_rat;
     parsed_time_system = time_system_rat;
 
-    // Create representation for this time format and time system.
+    // Parse a time string and convert it to an absolute time.
     AbsoluteTime abs_time("TDB", 0, 0.);
     if ("FILE" == time_format_rat) {
       abs_time = m_reference_handler->parseTimeString(time_value, time_system_rat);
 
     } else {
-      // Create representation for supported time formats.
       if ("GLAST" == time_format_rat) {
-        // TODO: Replace the following file with a proper one.
-        // Note: It is best if we can use an official FITS template ft1.tpl.
-        std::string file_name = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("timeSystem"),
-          "my_pulsar_events_v3.fits");
-        std::auto_ptr<EventTimeHandler> handler(GlastTimeHandler::createInstance(file_name, "EVENTS", 1.e-8));
+        // TODO: Should we use fitsGen/*/data/ft1.tpl instead?
+        std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"),
+          "timeformat_glast.tpl"); // Copied from fitsGen/*/data/ft1.tpl on May 25th, 2008.
+        std::ostringstream oss;
+        oss << "eventfile" << this << ".fits";
+        tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(oss.str(), tpl_file);
+        std::auto_ptr<EventTimeHandler> handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS", 1.e-8));
         if (handler.get()) {
           abs_time = handler->parseTimeString(time_value, time_system_rat);
         } else {
