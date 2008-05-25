@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat May 24 18:44:35 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Use EventTimeHandler to parse a time string instead of MetRep.
+    *
+------------------------------------------------------------
 User: hirayama  Sat May 24 18:44:34 PDT 2008
 pulsarDb/pulsarDb
 
