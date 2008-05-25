@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun May 25 16:35:10 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Use a FITS template instead of an actual FITS file for parsing a time string.
+    *
+------------------------------------------------------------
 User: hirayama  Sat May 24 18:44:35 PDT 2008
 pulsarDb/src
 
