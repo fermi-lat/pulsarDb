@@ -30,7 +30,6 @@
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/EventTimeHandler.h"
-#include "timeSystem/GlastMetRep.h"
 #include "timeSystem/GlastTimeHandler.h"
 #include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeInterval.h"
@@ -45,7 +44,7 @@ namespace pulsarDb {
 
   PulsarToolApp::PulsarToolApp(): m_event_handler_cont(), m_gti_handler_cont(), m_time_field(),
     m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(),
-    m_reference_header(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
+    m_reference_handler(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
     m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_sys(), m_target_time_origin("TDB", 0, 0.),
     m_event_handler_itor(m_event_handler_cont.begin()) {}
@@ -88,32 +87,25 @@ namespace pulsarDb {
     // Create representation for this time format and time system.
     AbsoluteTime abs_time("TDB", 0, 0.);
     if ("FILE" == time_format_rat) {
-      // Check TELESCOP keyword for supported missions.
-      std::string telescope;
-      (*header)["TELESCOP"].get(telescope);
-      for (std::string::iterator itor = telescope.begin(); itor != telescope.end(); ++itor) *itor = std::toupper(*itor);
-      if (telescope != "GLAST") throw std::runtime_error("Only GLAST supported for now");
-
-      // Get the mjdref from the header, which is not as simple as just reading a single keyword.
-      MjdRefDatabase mjd_ref_db;
-      IntFracPair mjd_ref(mjd_ref_db(*header));
-      MetRep time_rep(time_system_rat, mjd_ref, 0.);
-
-      // Assign the time supplied by the user to the representation.
-      time_rep.assign(time_value);
-      abs_time = time_rep;
+      abs_time = m_reference_handler->parseTimeString(time_value, time_system_rat);
 
     } else {
       // Create representation for supported time formats.
       if ("GLAST" == time_format_rat) {
-        GlastMetRep time_rep(time_system_rat, 0.);
-
-        // Assign the time supplied by the user to the representation.
-        time_rep.assign(time_value);
-        abs_time = time_rep;
+        // TODO: Replace the following file with a proper one.
+        // Note: It is best if we can use an official FITS template ft1.tpl.
+        std::string file_name = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("timeSystem"),
+          "my_pulsar_events_v3.fits");
+        std::auto_ptr<EventTimeHandler> handler(GlastTimeHandler::createInstance(file_name, "EVENTS", 1.e-8));
+        if (handler.get()) {
+          abs_time = handler->parseTimeString(time_value, time_system_rat);
+        } else {
+          throw std::runtime_error("Error occurred in parsing a time string \"" + time_value + "\"");
+        }
 
       } else if ("MJD" == time_format_rat) {
         abs_time.set(time_system_rat, "MJD", time_value);
+
       } else {
         throw std::runtime_error("Time format \"" + time_format + "\" is not supported for ephemeris time");
       }
@@ -170,9 +162,8 @@ namespace pulsarDb {
     m_gti_start_field = "START";
     m_gti_stop_field = "STOP";
 
-    // Select and set reference header.
-    EventTimeHandler * reference_handler = m_event_handler_cont.at(0);
-    m_reference_header = &(reference_handler->getHeader());
+    // Select and set reference handler.
+    m_reference_handler = m_event_handler_cont.at(0);
   }
 
   void PulsarToolApp::reserveOutputField(const std::string & field_name, const std::string & field_format) {
@@ -242,8 +233,8 @@ namespace pulsarDb {
         std::string epoch_time_format = pars["timeformat"];
         std::string epoch_time_sys = pars["timesys"];
         std::string epoch = pars["ephepoch"];
-        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format, epoch_time_sys,
-          m_reference_header);
+        tip::Header & header = m_reference_handler->getHeader();
+        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format, epoch_time_sys, &header);
 
         // Read phi0 parameter.  If it doesn't exist in the parameter file, let phi0 = 0.
         double phi0 = 0.;
@@ -395,7 +386,8 @@ namespace pulsarDb {
 
       // Get time system name from the header.
       std::string time_sys;
-      (*m_reference_header)["TIMESYS"].get(time_sys);
+      tip::Header & header = m_reference_handler->getHeader();
+      header["TIMESYS"].get(time_sys);
 
       // Compute mid-time difference between TSTART and TSTOP.
       double elapsed = (abs_tstop - abs_tstart).computeElapsedTime(time_sys).getTime().getValue(Sec).getDouble();
@@ -410,8 +402,8 @@ namespace pulsarDb {
       // Convert user-specified time into AbsoluteTime.
       std::string parsed_time_format;
       std::string parsed_time_sys;
-      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys,
-        m_reference_header);
+      tip::Header & header = m_reference_handler->getHeader();
+      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys, &header);
 
     } else {
       throw std::runtime_error("Unsupported time origin " + str_origin_uc);
@@ -625,8 +617,8 @@ namespace pulsarDb {
     // Get rid of current EphComputer.
     delete m_computer; m_computer = 0;
 
-    // Reset reference header.
-    m_reference_header = 0;
+    // Reset reference handler.
+    m_reference_handler = 0;
 
     // Reset columns to be modified.
     m_output_field_cont.clear();
