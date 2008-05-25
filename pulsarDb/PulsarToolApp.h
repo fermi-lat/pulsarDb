@@ -110,7 +110,7 @@ namespace pulsarDb {
       std::string m_gti_start_field;
       std::string m_gti_stop_field;
       std::vector<std::pair<std::string, std::string> > m_output_field_cont;
-      const tip::Header * m_reference_header;
+      timeSystem::EventTimeHandler * m_reference_handler;
       EphComputer * m_computer;
       std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bary;
       std::map<const std::string, TimeCorrectionMode_e> m_tcmode_dict_bin;
