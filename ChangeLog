@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Sun Jun  1 15:24:46 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx FrequencyEph.cxx PdotCanceler.cxx PeriodEph.cxx 
+	PulsarToolApp.cxx SimpleDdEph.cxx 
+Log Message:
+Modify to use new Duration interface.
+    *
+------------------------------------------------------------
 User: hirayama  Sun May 25 16:35:10 PDT 2008
 pulsarDb/src
 
