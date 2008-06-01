@@ -25,7 +25,7 @@ namespace {
 namespace pulsarDb {
 
   double PeriodEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
-    return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
+    return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().get("Sec");
   }
 
   void PeriodEph::writeModelParameter(st_stream::OStream & os) const {

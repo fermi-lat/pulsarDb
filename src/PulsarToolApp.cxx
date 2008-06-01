@@ -392,7 +392,7 @@ namespace pulsarDb {
       header["TIMESYS"].get(time_sys);
 
       // Compute mid-time difference between TSTART and TSTOP.
-      double elapsed = (abs_tstop - abs_tstart).computeElapsedTime(time_sys).getTime().getValue(Sec).getDouble();
+      double elapsed = (abs_tstop - abs_tstart).computeElapsedTime(time_sys).getTime().get("Sec");
       abs_origin = abs_tstart + ElapsedTime(time_sys, Duration(0, elapsed * 0.5));
 
     } else if (str_origin_uc == "USER") {
@@ -528,7 +528,7 @@ namespace pulsarDb {
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
-    return (abs_time - m_target_time_origin).computeElapsedTime(m_target_time_sys).getTime().getValue(Sec).getDouble();
+    return (abs_time - m_target_time_origin).computeElapsedTime(m_target_time_sys).getTime().get("Sec");
   }
 
   AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {

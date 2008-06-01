@@ -74,7 +74,7 @@ namespace pulsarDb {
 
   double EphChooser::measureTimeSeparation(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     // Use TDB because: 1) we must choose *some* system, and 2) TDB is "steadier" than TT, TAI or UTC.
-    return std::fabs((at1 - at2).computeElapsedTime("TDB").getTime().getValue(Day).getDouble());
+    return std::fabs((at1 - at2).computeElapsedTime("TDB").getTime().get("Day"));
   }
 
   StrictEphChooser::StrictEphChooser(const timeSystem::ElapsedTime & tolerance): m_tolerance(tolerance) {}

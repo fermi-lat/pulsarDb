@@ -70,7 +70,7 @@ namespace pulsarDb {
   }
 
   double FrequencyEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
-    return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().getValue(Sec).getDouble();
+    return (at1 - at2).computeElapsedTime(m_system->getName()).getTime().get("Sec");
   }
 
   void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {

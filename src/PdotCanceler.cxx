@@ -29,7 +29,7 @@ namespace pulsarDb {
   void PdotCanceler::cancelPdot(timeSystem::AbsoluteTime & abs_time) const {
     // Compute elapsed seconds from time origin.
     timeSystem::Duration dt_dur = (abs_time - m_time_origin).computeElapsedTime(m_system_name).getTime();
-    double dt = dt_dur.getValue(timeSystem::Sec).getDouble();
+    double dt = dt_dur.get("Sec");
 
     // Compute time correction.
     double correction = 0.;
