@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Mon Jun  2 18:27:24 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx FrequencyEph.cxx PdotCanceler.cxx PeriodEph.cxx 
+	PulsarToolApp.cxx SimpleDdEph.cxx 
+Log Message:
+Modify for changes in ElapsedTime and TimeInterval classes.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Jun  1 15:24:46 PDT 2008
 pulsarDb/src
 
