@@ -114,7 +114,7 @@ namespace pulsarDb {
   SimpleDdEph::~SimpleDdEph() {}
 
   double SimpleDdEph::calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
-    return (at - m_t0).computeElapsedTime(m_system->getName()).getTime().get("Sec");
+    return (at - m_t0).computeDuration(m_system->getName(), "Sec");
   }
 
   void SimpleDdEph::writeModelParameter(st_stream::OStream & os) const {
