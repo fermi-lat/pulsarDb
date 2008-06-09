@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Jun  8 17:32:48 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	FrequencyEph.cxx SimpleDdEph.cxx 
+Log Message:
+Include MjdFormat.h.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jun  2 18:27:24 PDT 2008
 pulsarDb/src
 
