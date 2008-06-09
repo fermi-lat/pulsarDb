@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sun Jun  8 17:32:48 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Include MjdFormat.h.
+    *
+------------------------------------------------------------
+User: hirayama  Sun Jun  8 17:32:48 PDT 2008
 pulsarDb/src
 
 Modified Files:
