@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jun 13 17:15:18 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx FrequencyEph.cxx PdotCanceler.cxx PeriodEph.cxx 
+	PulsarToolApp.cxx SimpleDdEph.cxx 
+Log Message:
+Remove unnecessary header files to include.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Jun  8 17:32:48 PDT 2008
 pulsarDb/src/test
 
