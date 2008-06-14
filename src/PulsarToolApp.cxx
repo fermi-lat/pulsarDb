@@ -31,7 +31,6 @@
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/EventTimeHandler.h"
 #include "timeSystem/GlastTimeHandler.h"
-#include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeInterval.h"
 
 #include "tip/Header.h"

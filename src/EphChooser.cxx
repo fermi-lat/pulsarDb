@@ -10,8 +10,6 @@
 #include "pulsarDb/EphChooser.h"
 
 #include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/Duration.h"
-#include "timeSystem/IntFracPair.h"
 #include "timeSystem/TimeInterval.h"
 
 using namespace timeSystem;
