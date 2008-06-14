@@ -8,7 +8,6 @@
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/PeriodEph.h"
 
-#include "timeSystem/ElapsedTime.h"
 #include "timeSystem/TimeInterval.h"
 #include "timeSystem/TimeSystem.h"
 

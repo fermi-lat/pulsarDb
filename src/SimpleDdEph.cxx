@@ -13,7 +13,6 @@
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
-#include "timeSystem/IntFracPair.h"
 #include "timeSystem/MjdFormat.h"
 #include "timeSystem/TimeInterval.h"
 

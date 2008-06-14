@@ -10,7 +10,6 @@
 #include "pulsarDb/FrequencyEph.h"
 
 #include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/ElapsedTime.h"
 #include "timeSystem/MjdFormat.h"
 #include "timeSystem/TimeInterval.h"
 
