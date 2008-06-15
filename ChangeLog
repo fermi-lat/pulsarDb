@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Jun 14 18:42:38 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphChooser.h 
+Log Message:
+Improve use of Duration objects for clarity.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jun 13 17:15:18 PDT 2008
 pulsarDb/src
 
