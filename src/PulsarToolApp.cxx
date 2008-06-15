@@ -392,7 +392,7 @@ namespace pulsarDb {
 
       // Compute mid-time difference between TSTART and TSTOP.
       double elapsed = (abs_tstop - abs_tstart).computeDuration(time_sys, "Sec");
-      abs_origin = abs_tstart + ElapsedTime(time_sys, Duration(0, elapsed * 0.5));
+      abs_origin = abs_tstart + ElapsedTime(time_sys, Duration(elapsed * 0.5, "Sec"));
 
     } else if (str_origin_uc == "USER") {
       // Get time of origin and its format and system from parameters.
@@ -531,7 +531,7 @@ namespace pulsarDb {
   }
 
   AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
-    return m_target_time_origin + ElapsedTime(m_target_time_sys, Duration(0, elapsed_time));
+    return m_target_time_origin + ElapsedTime(m_target_time_sys, Duration(elapsed_time, "Sec"));
   }
 
   void PulsarToolApp::setupCurrentEventTable() {

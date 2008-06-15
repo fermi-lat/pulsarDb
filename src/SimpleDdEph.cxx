@@ -77,13 +77,13 @@ namespace pulsarDb {
   SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot,
     double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
     double shapiro_r, double shapiro_s):
-    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(0, 10.e-9)), 100),
+    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(10.e-9, "Sec")), 100),
     m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_pb(pb), m_pb_dot(pb_dot), m_a1(a1), m_x_dot(x_dot),
     m_ecc(ecc), m_ecc_dot(ecc_dot), m_om(om * s_rad_per_deg), m_om_dot(om_dot * s_rad_year_per_deg_sec), m_t0(t0), m_gamma(gamma),
     m_shapiro_r(shapiro_r * s_sec_per_microsec), m_shapiro_s(shapiro_s) {}
 
   SimpleDdEph::SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
-    OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(0, 10.e-9)), 100),
+    OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(10.e-9, "Sec")), 100),
     m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_t0("TDB", 0, 0.) {
     // Get parameters from record.
     // Required fields: PB, A1, ECC, OM, T0.
@@ -192,7 +192,7 @@ namespace pulsarDb {
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - m_shapiro_s*roemer_frac);
 
     // return total delay
-    return ElapsedTime(m_system->getName(), Duration(0, roemer + einstein + shapiro));
+    return ElapsedTime(m_system->getName(), Duration(roemer + einstein + shapiro, "Sec"));
   }
 
 }
