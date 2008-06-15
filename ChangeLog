@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sat Jun 14 18:42:38 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PdotCanceler.cxx PulsarToolApp.cxx SimpleDdEph.cxx 
+Log Message:
+Improve use of Duration objects for clarity.
+    *
+------------------------------------------------------------
+User: hirayama  Sat Jun 14 18:42:38 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
