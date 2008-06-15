@@ -67,7 +67,7 @@ namespace pulsarDb {
   */
   class StrictEphChooser : public EphChooser {
     public:
-      StrictEphChooser(const timeSystem::ElapsedTime & tolerance = timeSystem::ElapsedTime("TDB", timeSystem::Duration(0, 1.e-6)));
+      StrictEphChooser(const timeSystem::ElapsedTime & tolerance = timeSystem::ElapsedTime("TDB", timeSystem::Duration(1.e-6, "Sec")));
 
       /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
 
