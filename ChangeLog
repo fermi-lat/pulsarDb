@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Jun 16 16:44:20 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PdotCanceler.h PulsarToolApp.h 
+Log Message:
+Change a time system data member from a std::string object to timeSystem::TimeSystem.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Jun 14 18:42:38 PDT 2008
 pulsarDb/src
 
