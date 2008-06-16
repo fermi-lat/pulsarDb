@@ -11,6 +11,10 @@
 
 #include "timeSystem/AbsoluteTime.h"
 
+namespace timeSystem {
+  class TimeSystem;
+}
+
 namespace pulsarDb {
 
   class PulsarEph;
@@ -49,7 +53,7 @@ namespace pulsarDb {
       virtual void cancelPdot(timeSystem::AbsoluteTime & abs_time) const;
 
     protected:
-      std::string m_system_name;
+      const timeSystem::TimeSystem * m_time_system;
       timeSystem::AbsoluteTime m_time_origin;
       std::vector<double>  m_fdot_ratio;
   };
