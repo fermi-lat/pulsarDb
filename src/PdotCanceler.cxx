@@ -10,14 +10,17 @@
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/TimeInterval.h"
+#include "timeSystem/TimeSystem.h"
 
 namespace pulsarDb {
 
   PdotCanceler::PdotCanceler(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
-    const std::vector<double> & fdot_ratio): m_system_name(time_system_name), m_time_origin(time_origin), m_fdot_ratio(fdot_ratio) {}
+    const std::vector<double> & fdot_ratio): m_time_system(&timeSystem::TimeSystem::getSystem(time_system_name)),
+    m_time_origin(time_origin), m_fdot_ratio(fdot_ratio) {}
 
   PdotCanceler::PdotCanceler(const timeSystem::AbsoluteTime & time_origin, const PulsarEph & pulsar_eph, int max_derivative):
-    m_system_name(pulsar_eph.getSystem().getName()), m_time_origin(time_origin), m_fdot_ratio(max_derivative, 0.) {
+    m_time_system(&timeSystem::TimeSystem::getSystem(pulsar_eph.getSystem().getName())), m_time_origin(time_origin),
+    m_fdot_ratio(max_derivative, 0.) {
     // Compute frequency derivatives.
     double f0 = pulsar_eph.calcFrequency(m_time_origin, 0);
     for (std::vector<double>::size_type ii = 0; ii < m_fdot_ratio.size(); ++ii) {
@@ -27,7 +30,8 @@ namespace pulsarDb {
 
   void PdotCanceler::cancelPdot(timeSystem::AbsoluteTime & abs_time) const {
     // Compute elapsed seconds from time origin.
-    double dt = (abs_time - m_time_origin).computeDuration(m_system_name, "Sec");
+    const std::string time_system_name = m_time_system->getName();
+    double dt = (abs_time - m_time_origin).computeDuration(time_system_name, "Sec");
 
     // Compute time correction.
     double correction = 0.;
@@ -38,6 +42,6 @@ namespace pulsarDb {
     }
 
     // Apply time correction.
-    abs_time += timeSystem::ElapsedTime(m_system_name, timeSystem::Duration(correction, "Sec"));
+    abs_time += timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(correction, "Sec"));
   }
 }

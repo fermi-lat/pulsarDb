@@ -121,7 +121,7 @@ namespace pulsarDb {
       bool m_request_bary;
       bool m_demod_bin;
       bool m_cancel_pdot;
-      std::string m_target_time_sys;
+      const timeSystem::TimeSystem * m_target_time_system;
       timeSystem::AbsoluteTime m_target_time_origin;
 
       handler_cont_type::iterator m_event_handler_itor;

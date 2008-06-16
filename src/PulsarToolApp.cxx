@@ -46,7 +46,7 @@ namespace pulsarDb {
     m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(),
     m_reference_handler(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
-    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_sys(), m_target_time_origin("TDB", 0, 0.),
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_system(0), m_target_time_origin("TDB", 0, 0.),
     m_event_handler_itor(m_event_handler_cont.begin()) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
@@ -444,6 +444,7 @@ namespace pulsarDb {
 
     // Initialize the time series to analyze.
     m_target_time_origin = abs_origin;
+    std::string time_system_name("");
     bool time_system_set = false;
     if (!m_request_bary && !m_demod_bin && !m_cancel_pdot) {
       // When NO corrections are requested, the analysis will be performed in the time system written in event files,
@@ -454,17 +455,18 @@ namespace pulsarDb {
         const tip::Header & header(event_handler.getHeader());
         header["TIMESYS"].get(this_time_system);
         if (!time_system_set) {
-          m_target_time_sys = this_time_system;
+          time_system_name = this_time_system;
           time_system_set = true;
-        } else if (this_time_system != m_target_time_sys) {
+        } else if (this_time_system != time_system_name) {
           throw std::runtime_error("event files with different TIMESYS values cannot be combined");
         }
       }
     } else {
       // When ANY correction(s) are requested, the analysis will be performed in TDB system.
-      m_target_time_sys = "TDB";
+      time_system_name = "TDB";
       time_system_set = true;
     }
+    m_target_time_system = &timeSystem::TimeSystem::getSystem(time_system_name);
 
     // Check whether time system is successfully set.
     if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
@@ -489,13 +491,13 @@ namespace pulsarDb {
           std::vector<double> fdot_ratio(max_derivative, 0.);
           if (max_derivative > 0) fdot_ratio[0] = pars["f1f0ratio"];
           if (max_derivative > 1) fdot_ratio[1] = pars["f2f0ratio"];
-          m_computer->setPdotCancelParameter(m_target_time_sys, m_target_time_origin, fdot_ratio);
+          m_computer->setPdotCancelParameter(m_target_time_system->getName(), m_target_time_origin, fdot_ratio);
         } else if (eph_style == "PER") {
           double p0 = 1.;
           double p1 = pars["p1p0ratio"];
           double p2 = pars["p2p0ratio"];
           m_computer->setPdotCancelParameter(m_target_time_origin,
-            PeriodEph(m_target_time_sys, m_target_time_origin, m_target_time_origin, m_target_time_origin,
+            PeriodEph(m_target_time_system->getName(), m_target_time_origin, m_target_time_origin, m_target_time_origin,
               ra, dec, phi0, p0, p1, p2), max_derivative);
         } else {
           throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
@@ -519,19 +521,19 @@ namespace pulsarDb {
         double f0 = 0.;
         double f1 = 0.;
         double f2 = 0.;
-        ephemerides.push_back(FrequencyEph(m_target_time_sys, m_target_time_origin, m_target_time_origin, m_target_time_origin,
-          ra, dec, phi0, f0, f1, f2).clone());
+        ephemerides.push_back(FrequencyEph(m_target_time_system->getName(), m_target_time_origin, m_target_time_origin,
+          m_target_time_origin, ra, dec, phi0, f0, f1, f2).clone());
       }
     }
 
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
-    return (abs_time - m_target_time_origin).computeDuration(m_target_time_sys, "Sec");
+    return (abs_time - m_target_time_origin).computeDuration(m_target_time_system->getName(), "Sec");
   }
 
   AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
-    return m_target_time_origin + ElapsedTime(m_target_time_sys, Duration(elapsed_time, "Sec"));
+    return m_target_time_origin + ElapsedTime(m_target_time_system->getName(), Duration(elapsed_time, "Sec"));
   }
 
   void PulsarToolApp::setupCurrentEventTable() {
@@ -600,7 +602,7 @@ namespace pulsarDb {
   void PulsarToolApp::resetApp() {
     // Reset target time settings.
     m_target_time_origin = AbsoluteTime("TDB", 0, 0.);
-    m_target_time_sys.clear();
+    m_target_time_system = 0;
 
     // Reset time correction flags.
     m_cancel_pdot = false;
