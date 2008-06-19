@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Thu Jun 19 16:40:44 PDT 2008
+ScienceTools-scons/pulsarDb
+
+Modified Files:
+	SConscript 
+Log Message:
+Added Author and Version fields
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jun 16 16:44:20 PDT 2008
 pulsarDb/src
 
