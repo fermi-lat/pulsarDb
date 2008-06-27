@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jun 27 14:20:43 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx FrequencyEph.cxx PeriodEph.cxx 
+	PulsarEph.cxx 
+Log Message:
+Switch absolute time representation from MJD to Calendar when MJD fails for an inserted leap second and such.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Jun 22 15:16:08 PDT 2008
 pulsarDb/src
 
