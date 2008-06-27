@@ -10,6 +10,7 @@
 #include "pulsarDb/FrequencyEph.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
 #include "timeSystem/TimeInterval.h"
 
@@ -74,7 +75,12 @@ namespace pulsarDb {
   }
 
   void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {
-    std::string epoch_string = m_epoch.represent(m_system->getName(), "MJD");
+    std::string epoch_string;
+    try {
+      epoch_string = m_epoch.represent(m_system->getName(), "MJD");
+    } catch (const std::exception &) {
+      epoch_string = m_epoch.represent(m_system->getName(), "Calendar");
+    } 
     os << format("Epoch", epoch_string) << std::endl;
     os << format("RA",    m_ra)         << std::endl;
     os << format("Dec",   m_dec)        << std::endl;

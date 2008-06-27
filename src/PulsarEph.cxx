@@ -10,6 +10,8 @@
 #include "pulsarDb/PulsarEph.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/CalendarFormat.h"
+#include "timeSystem/MjdFormat.h"
 #include "timeSystem/TimeSystem.h"
 
 using namespace timeSystem;
@@ -26,10 +28,20 @@ namespace pulsarDb {
     std::string time_system_name = getSystem().getName();
     std::string time_string;
 
-    // Write validity window.
-    time_string = getValidSince().represent(time_system_name, "MJD");
+    // Write the start time of the validity window.
+    try {
+      time_string = getValidSince().represent(time_system_name, "MJD");
+    } catch (const std::exception &) {
+      time_string = getValidSince().represent(time_system_name, "Calendar");
+    }
     os << format("Valid Since", time_string, " : ") << std::endl;
-    time_string = getValidUntil().represent(time_system_name, "MJD");
+
+    // Write the stop time of the validity window.
+    try {
+      time_string = getValidUntil().represent(time_system_name, "MJD");
+    } catch (const std::exception &) {
+      time_string = getValidUntil().represent(time_system_name, "Calendar");
+    }
     os << format("Valid Until", time_string, " : ") << std::endl;
 
     // Write subclass-specific parameters (delegated to subclass).
