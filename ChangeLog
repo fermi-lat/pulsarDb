@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jun 27 14:21:33 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add a header file to include to adopt to new design of TimeFormat subclasses.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jun 27 14:20:43 PDT 2008
 pulsarDb/src
 
