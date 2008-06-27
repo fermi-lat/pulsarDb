@@ -10,6 +10,8 @@
 #include "st_app/AppParGroup.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/CalendarFormat.h"
+#include "timeSystem/MjdFormat.h"
 #include "timeSystem/TimeSystem.h"
 
 #include <cctype>
@@ -127,11 +129,18 @@ namespace pulsarDb {
         m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
       }
 
+      // Compose a string expression of the given time.
+      std::string time_string;
+      try {
+        time_string = abs_ref_time.represent(time_sys_parsed, "MJD");
+      } catch (const std::exception &) {
+        time_string = abs_ref_time.represent(time_sys_parsed, "Calendar");
+      }
+
       // Print computed ephemeris.
       if (computed_ok) {
         m_os.out() << prefix << "Spin ephemeris estimated is:" << std::endl;
         m_os.out().precision(std::numeric_limits<double>::digits10);
-        std::string time_string = abs_ref_time.represent(time_sys_parsed, "MJD");
         m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << time_string << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra_dec.first << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << ra_dec.second << std::endl;
