@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Mon Jun 30 17:03:55 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change for new TimeFormat design.
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jun 30 17:03:55 PDT 2008
 pulsarDb/src
 
 Modified Files:
