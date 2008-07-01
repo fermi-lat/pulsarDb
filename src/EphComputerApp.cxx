@@ -132,9 +132,9 @@ namespace pulsarDb {
       // Compose a string expression of the given time.
       std::string time_string;
       try {
-        time_string = abs_ref_time.represent(time_sys_parsed, "MJD");
+        time_string = abs_ref_time.represent(time_sys_parsed, MjdFmt);
       } catch (const std::exception &) {
-        time_string = abs_ref_time.represent(time_sys_parsed, "Calendar");
+        time_string = abs_ref_time.represent(time_sys_parsed, CalendarFmt);
       }
 
       // Print computed ephemeris.

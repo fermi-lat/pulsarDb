@@ -77,9 +77,9 @@ namespace pulsarDb {
   void FrequencyEph::writeModelParameter(st_stream::OStream & os) const {
     std::string epoch_string;
     try {
-      epoch_string = m_epoch.represent(m_system->getName(), "MJD");
+      epoch_string = m_epoch.represent(m_system->getName(), MjdFmt);
     } catch (const std::exception &) {
-      epoch_string = m_epoch.represent(m_system->getName(), "Calendar");
+      epoch_string = m_epoch.represent(m_system->getName(), CalendarFmt);
     } 
     os << format("Epoch", epoch_string) << std::endl;
     os << format("RA",    m_ra)         << std::endl;

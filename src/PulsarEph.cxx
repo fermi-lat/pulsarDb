@@ -30,17 +30,17 @@ namespace pulsarDb {
 
     // Write the start time of the validity window.
     try {
-      time_string = getValidSince().represent(time_system_name, "MJD");
+      time_string = getValidSince().represent(time_system_name, MjdFmt);
     } catch (const std::exception &) {
-      time_string = getValidSince().represent(time_system_name, "Calendar");
+      time_string = getValidSince().represent(time_system_name, CalendarFmt);
     }
     os << format("Valid Since", time_string, " : ") << std::endl;
 
     // Write the stop time of the validity window.
     try {
-      time_string = getValidUntil().represent(time_system_name, "MJD");
+      time_string = getValidUntil().represent(time_system_name, MjdFmt);
     } catch (const std::exception &) {
-      time_string = getValidUntil().represent(time_system_name, "Calendar");
+      time_string = getValidUntil().represent(time_system_name, CalendarFmt);
     }
     os << format("Valid Until", time_string, " : ") << std::endl;
 

@@ -105,7 +105,7 @@ namespace pulsarDb {
         }
 
       } else if ("MJD" == time_format_rat) {
-        abs_time.set(time_system_rat, "MJD", time_value);
+        abs_time.set(time_system_rat, MjdFmt, time_value);
 
       } else {
         throw std::runtime_error("Time format \"" + time_format + "\" is not supported for ephemeris time");
