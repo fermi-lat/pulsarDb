@@ -752,8 +752,8 @@ void PulsarDbTest::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph1.modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", "MJD") << " was computed to be " <<
-        tdb_mjd.represent("TDB", "MJD") << ", not " << expected_tdb_mjd.represent("TDB", "MJD") << ", as expected." << std::endl;
+      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
 
@@ -763,8 +763,8 @@ void PulsarDbTest::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph1.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", "MJD") << " was computed to be " <<
-        tdb_mjd.represent("TDB", "MJD") << ", not " << expected_tdb_mjd.represent("TDB", "MJD") << ", as expected." << std::endl;
+      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
 } 
