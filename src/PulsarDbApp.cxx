@@ -80,7 +80,7 @@ namespace pulsarDb {
     if (file_names.empty()) throw std::runtime_error("No files were found matching input file \"" + in_file + "\"");
 
     // Create an empty pulsar ephemerides database, using the template file.
-    PulsarDb data_base(m_tpl_file);
+    PulsarDb data_base(m_tpl_file, 1, 2);
 
     // Load input ephemerides.
     for (st_facilities::FileSys::FileNameCont::const_iterator itor = file_names.begin(); itor != file_names.end(); ++itor) {
