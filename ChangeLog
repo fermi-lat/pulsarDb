@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Jul  3 11:25:51 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Accept D4 FITS/TEXT file(s) in the original format w/o EPHSTYLE.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Jun 30 17:03:55 PDT 2008
 pulsarDb/src/test
 
