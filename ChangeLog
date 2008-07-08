@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Mon Jul  7 20:08:06 PDT 2008
+pulsarDb/pfiles
+
+Modified Files:
+	gtephem.par 
+Log Message:
+Add ISO time format for applications to accept.
+    *
+------------------------------------------------------------
+User: hirayama  Mon Jul  7 20:08:06 PDT 2008
 pulsarDb/src
 
 Modified Files:
