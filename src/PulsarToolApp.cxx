@@ -27,10 +27,12 @@
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/BaryTimeComputer.h"
+#include "timeSystem/CalendarFormat.h"
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/EventTimeHandler.h"
 #include "timeSystem/GlastTimeHandler.h"
+#include "timeSystem/MjdFormat.h"
 #include "timeSystem/TimeInterval.h"
 
 #include "tip/Header.h"
@@ -106,6 +108,43 @@ namespace pulsarDb {
 
       } else if ("MJD" == time_format_rat) {
         abs_time.set(time_system_rat, MjdFmt, time_value);
+
+      } else if ("ISO" == time_format_rat) {
+        bool abs_time_set = false;
+
+        // Try Calendar Date and Time format.
+        if (!abs_time_set) {
+          try {
+            abs_time.set(time_system_rat, CalendarFmt, time_value);
+            abs_time_set = true;
+          } catch (const std::exception &) {
+            abs_time_set = false;
+          }
+        }
+
+        // Try ISO Week Date and Time format.
+        if (!abs_time_set) {
+          try {
+            abs_time.set(time_system_rat, IsoWeekFmt, time_value);
+            abs_time_set = true;
+          } catch (const std::exception &) {
+            abs_time_set = false;
+          }
+        }
+
+        // Try Ordinal Date and Time format.
+        if (!abs_time_set) {
+          try {
+            abs_time.set(time_system_rat, OrdinalFmt, time_value);
+            abs_time_set = true;
+          } catch (const std::exception &) {
+            abs_time_set = false;
+          }
+        }
+
+        if (!abs_time_set) {
+          throw std::runtime_error("Error in interpreting the given time in ISO format: \"" + time_value + "\"");
+        }
 
       } else {
         throw std::runtime_error("Time format \"" + time_format + "\" is not supported for ephemeris time");
