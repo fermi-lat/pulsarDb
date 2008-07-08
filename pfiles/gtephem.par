@@ -1,7 +1,7 @@
 psrdbfile,      f, a, , , , "Pulsar ephemerides database file name"
 psrname,        s, a, "ANY", , , "Pulsar name"
 reftime,        s, a, "0.", , , "Reference time at which to find/compute ephemeris"
-timeformat,     s, a, MJD, "MJD|GLAST", , "Time format for spin ephemeris epoch"
+timeformat,     s, a, MJD, "MJD|ISO|GLAST", , "Time format for spin ephemeris epoch"
 timesys,        s, a, TDB, "TAI|TDB|TT|UTC", , "Time system for spin ephemeris epoch"
 strict,         b, h, no, , , "Only choose ephemeris if the given time is in validity range"
 solareph,       s, h, JPL DE405, JPL DE200|JPL DE405, , "Solar system ephemeris of interest"
