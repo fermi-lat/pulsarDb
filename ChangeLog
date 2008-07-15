@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: peachey  Tue Jul 15 14:14:14 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Do not use name of class within the class for method declaration.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-06-02, operation: add
 Package: pulsarDb
