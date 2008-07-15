@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: peachey  Tue Jul 15 14:14:52 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Correct the syntax for pseudocode to make intention clearer.
+    *
+------------------------------------------------------------
 User: peachey  Tue Jul 15 14:14:14 PDT 2008
 pulsarDb/pulsarDb
 
