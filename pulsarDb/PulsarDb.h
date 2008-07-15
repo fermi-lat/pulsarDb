@@ -202,7 +202,7 @@ namespace pulsarDb {
           Note: the original contents of this object will be removed from the container.
       */
       template <typename FactoryCont, typename EphCont>
-      void PulsarDb::getEphBody(const TableCont & table_cont, const FactoryCont & factory_cont, EphCont & eph_cont) const;
+      void getEphBody(const TableCont & table_cont, const FactoryCont & factory_cont, EphCont & eph_cont) const;
 
       std::string m_tpl_file;
       tip::TipFile m_tip_file;
