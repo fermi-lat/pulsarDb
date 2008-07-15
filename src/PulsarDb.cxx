@@ -691,7 +691,7 @@ namespace pulsarDb {
           (*target_itor)[*in_itor].set(parsed_line[found_itor->second]);
         } else {
           // TODO: Make this write an INDEF in the field (requires further changes to tip).
-          // (*target_itor)[*in_itor].set([found_itor->second]);
+          // (*target_itor)[*in_itor].setIndef();
         }
       }
       ++target_itor;
