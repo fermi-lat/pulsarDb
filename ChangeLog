@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Aug  9 19:38:17 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Introduce variables to hold a constant integer value for clarify.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Aug  9 19:37:22 PDT 2008
 pulsarDb/src
 
