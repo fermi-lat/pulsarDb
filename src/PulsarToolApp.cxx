@@ -48,7 +48,8 @@ namespace pulsarDb {
     m_gti_start_field(), m_gti_stop_field(), m_output_field_cont(),
     m_reference_handler(0), m_computer(0), m_tcmode_dict_bary(), m_tcmode_dict_bin(), m_tcmode_dict_pdot(),
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
-    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_target_time_system(0), m_target_time_origin("TDB", 0, 0.),
+    m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_vary_ra_dec(true),
+    m_target_time_system(0), m_target_time_origin("TDB", 0, 0.),
     m_event_handler_itor(m_event_handler_cont.begin()) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
@@ -99,7 +100,7 @@ namespace pulsarDb {
         std::ostringstream oss;
         oss << "eventfile" << this << ".fits";
         tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(oss.str(), tpl_file);
-        std::auto_ptr<EventTimeHandler> handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS", 1.e-8));
+        std::auto_ptr<EventTimeHandler> handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS"));
         if (handler.get()) {
           abs_time = handler->parseTimeString(time_value, time_system_rat);
         } else {
@@ -159,15 +160,6 @@ namespace pulsarDb {
     // Read parameters from the parameter file.
     std::string event_file = pars["evfile"];
     std::string event_extension = pars["evtable"];
-    std::string sc_file = pars["scfile"];
-    std::string sc_extension = pars["sctable"];
-    std::string solar_eph = pars["solareph"];
-    double ang_tolerance = pars["angtol"];
-
-    // Determine whether to check solar system ephemeris used for barycentered event files.
-    std::string match_solar_eph = pars["matchsolareph"];
-    for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
-    bool check_solar_eph = (match_solar_eph == "EVENT" || match_solar_eph == "ALL");
 
     // Open the event table(s), either for reading or reading and writing.
     FileSys::FileNameCont file_name_cont = FileSys::expandFileList(event_file);
@@ -175,26 +167,12 @@ namespace pulsarDb {
       std::string file_name = *itor;
 
       // Create and store an event time handler for EVENTS extension.
-      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(file_name, event_extension, ang_tolerance, read_only));
+      EventTimeHandler * event_handler(IEventTimeHandlerFactory::createHandler(file_name, event_extension, read_only));
       m_event_handler_cont.push_back(event_handler);
 
-      // Set a spacecraft file and extension.
-      // TODO: Should we allow a bogus sc_file when no barycentering is needed?
-      event_handler->setSpacecraftFile(sc_file, sc_extension);
-
-      // Check solar system ephemeris for EVENTS extension.
-      if (check_solar_eph) event_handler->checkSolarEph(solar_eph);
-
       // Create and store an event time handler for GTI extension.
-      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(file_name, "GTI", ang_tolerance, read_only));
+      EventTimeHandler * gti_handler(IEventTimeHandlerFactory::createHandler(file_name, "GTI", read_only));
       m_gti_handler_cont.push_back(gti_handler);
-
-      // Set a spacecraft file and extension.
-      // TODO: Should we allow a bogus sc_file when no barycentering is needed?
-      gti_handler->setSpacecraftFile(sc_file, sc_extension);
-
-      // Check solar system ephemeris for GTI extension.
-      if (check_solar_eph) gti_handler->checkSolarEph(solar_eph);
     }
 
     // Set names of TIME column in EVENTS exetension and START/STOP coulmns in GTI extensions.
@@ -395,15 +373,16 @@ namespace pulsarDb {
     return abs_candidate_time;
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot) {
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot) {
     // Read timeorigin parameter.
     std::string str_origin = pars["timeorigin"];
 
     // Initialize time correction with the given time origin.
-    initTimeCorrection(pars, guess_pdot, str_origin);
+    initTimeCorrection(pars, vary_ra_dec, guess_pdot, str_origin);
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & str_origin) {
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
+    const std::string & str_origin) {
     AbsoluteTime abs_origin("TDB", 0, 0.);
 
     // Make str_origin argument case-insensitive.
@@ -450,10 +429,11 @@ namespace pulsarDb {
     }
 
     // Initialize time correction with the time origin just computed.
-    initTimeCorrection(pars, guess_pdot, abs_origin);
+    initTimeCorrection(pars, vary_ra_dec, guess_pdot, abs_origin);
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const AbsoluteTime & abs_origin) {
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
+    const AbsoluteTime & abs_origin) {
     // Determine whether to perform binary demodulation.
     m_demod_bin = false;
     if ((m_tcmode_bin == REQUIRED) || (m_tcmode_bin == ALLOWED)) {
@@ -545,26 +525,44 @@ namespace pulsarDb {
     }
 
     // Initialize barycentric corrections.
+    m_vary_ra_dec = vary_ra_dec;
     if (m_request_bary) {
+      // Read parameters from the parameter file.
+      std::string sc_file = pars["scfile"];
+      std::string sc_extension = pars["sctable"];
       std::string solar_eph = pars["solareph"];
-      BaryTimeComputer::getComputer().initialize(solar_eph);
+      double ang_tolerance = pars["angtol"];
 
-      // Load RA and Dec to PulsarEph container for barycentric correction, if none is loaded.
-      PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-      if (ephemerides.empty()) {
-        double ra = pars["ra"];
-        double dec = pars["dec"];
-        
-        // Set dummy phi0, f0, f1, and f2 (those are not used in barycentric correction.
-        double phi0 = 0.;
-        double f0 = 0.;
-        double f1 = 0.;
-        double f2 = 0.;
-        ephemerides.push_back(FrequencyEph(m_target_time_system->getName(), m_target_time_origin, m_target_time_origin,
-          m_target_time_origin, ra, dec, phi0, f0, f1, f2).clone());
+      // Get the uncorrected start time of event list as a reference time for initial RA and Dec for barycentric corrections.
+      AbsoluteTime abs_start = computeTimeBoundary(true, false);
+
+      // Determine whether to check solar system ephemeris used for barycentered event files.
+      std::string match_solar_eph = pars["matchsolareph"];
+      for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
+      bool request_match_solar_eph = (match_solar_eph == "EVENT" || match_solar_eph == "ALL");
+
+      // Get initial RA and Dec for barycentric corrections.
+      double ra = 0.;
+      double dec = 0.;
+      if (!m_vary_ra_dec) {
+        ra = pars["ra"];
+        dec = pars["dec"];
+      }
+
+      // Initialize event extensions for barycentric corrections.
+      for (handler_cont_type::const_iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
+        EventTimeHandler & event_handler = *(*itor);
+        event_handler.initTimeCorrection(sc_file, sc_extension, solar_eph, request_match_solar_eph, ang_tolerance);
+        if (!m_vary_ra_dec) event_handler.setSourcePosition(ra, dec);
+      }
+
+      // Initialize GTI extensions for barycentric corrections.
+      for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
+        EventTimeHandler & gti_handler = *(*itor);
+        gti_handler.initTimeCorrection(sc_file, sc_extension, solar_eph, request_match_solar_eph, ang_tolerance);
+        if (!m_vary_ra_dec) gti_handler.setSourcePosition(ra, dec);
       }
     }
-
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
@@ -644,6 +642,7 @@ namespace pulsarDb {
     m_target_time_system = 0;
 
     // Reset time correction flags.
+    m_vary_ra_dec = true;
     m_cancel_pdot = false;
     m_demod_bin = false;
     m_request_bary = false;
@@ -685,17 +684,20 @@ namespace pulsarDb {
     bool request_time_correction) {
 
     // Read the original photon arrival time.
-    AbsoluteTime abs_time = handler.readColumn(column_name);
+    AbsoluteTime abs_time = handler.readTime(column_name);
 
     // Apply selected corrections, if requested.
     if (request_time_correction) {
       // Apply barycentric correction, if requested.
       if (m_request_bary) {
-        // Get RA and Dec for the given arrival time.
-        std::pair<double, double> ra_dec = m_computer->calcSkyPosition(abs_time);
+        // Reset RA and Dec for the given arrival time, if requested.
+        if (m_vary_ra_dec) {
+          std::pair<double, double> ra_dec = m_computer->calcSkyPosition(abs_time);
+          handler.setSourcePosition(ra_dec.first, ra_dec.second);
+        }
 
         // Try barycentric correction with the RA and Dec.
-        abs_time = handler.readColumn(column_name, ra_dec.first, ra_dec.second);
+        abs_time = handler.getBaryTime(column_name);
       }
 
       // Apply binary demodulation, if requested.
