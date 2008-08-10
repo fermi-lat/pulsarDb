@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sat Aug  9 19:37:22 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Adopt to the EventTimeHandler restructure. Also fix the bug reported as JIRA PULS-44.
+    *
+------------------------------------------------------------
+User: hirayama  Sat Aug  9 19:37:22 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
