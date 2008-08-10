@@ -66,11 +66,12 @@ namespace pulsarDb {
 
       void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser);
 
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot);
 
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const std::string & str_origin);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, const std::string & str_origin);
 
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool guess_pdot, const timeSystem::AbsoluteTime & abs_origin);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
+        const timeSystem::AbsoluteTime & abs_origin);
 
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);
 
@@ -121,6 +122,7 @@ namespace pulsarDb {
       bool m_request_bary;
       bool m_demod_bin;
       bool m_cancel_pdot;
+      bool m_vary_ra_dec;
       const timeSystem::TimeSystem * m_target_time_system;
       timeSystem::AbsoluteTime m_target_time_origin;
 
