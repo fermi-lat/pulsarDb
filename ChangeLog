@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Aug  9 19:37:22 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Adopt to the EventTimeHandler restructure. Also fix the bug reported as JIRA PULS-44.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-07-00, operation: add
 Package: pulsarDb
