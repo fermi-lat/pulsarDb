@@ -312,21 +312,44 @@ namespace pulsarDb {
       for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
         database.load(*itor);
       }
+      int num_eph_total = database.getNumEph();
 
       // Select only ephemerides for this pulsar.
       std::string psr_name = pars["psrname"];
       database.filterName(psr_name);
+      int num_eph_psrname = database.getNumEph();
 
       // Select only ephemerides with the solar system ephemeris used for barycentering.
+      std::string solar_eph = pars["solareph"];
       std::string match_solar_eph = pars["matchsolareph"];
       for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
-      if (match_solar_eph == "PSRDB" || match_solar_eph == "ALL") {
-        std::string solar_eph = pars["solareph"];
-        database.filterSolarEph(solar_eph);
+      bool solar_eph_must_match = (match_solar_eph == "PSRDB" || match_solar_eph == "ALL");
+      if (solar_eph_must_match) database.filterSolarEph(solar_eph);
+      int num_eph_solareph = database.getNumEph();
+
+      // Load the selected pulsar ephemerides.
+      if (eph_style_uc == "DB") {
+        // Thrown an exception if no ephemeris is left in the database.
+        if (0 == database.getNumEph()) {
+          std::ostringstream os;
+          os << "No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following." <<
+            std::endl;
+          os << num_eph_total << " spin ephemeri(de)s in the database." << std::endl;
+          os << num_eph_psrname << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" in the database." << std::endl;
+          if (solar_eph_must_match) {
+            os << num_eph_solareph << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" with solar system ephemeris \"" <<
+              solar_eph << "\" in the database.";
+          } else {
+            os << "(Solar system ephemeris in spin parameters was not requested to match \"" << solar_eph << "\" given by user.)";
+          }
+          throw std::runtime_error(os.str());
+        }
+
+        // Load spin parameters.
+        m_computer->loadPulsarEph(database);
       }
 
-      // Load the selected ephemerides.
-      if (eph_style_uc == "DB") m_computer->loadPulsarEph(database);
+      // Load orbital parameters.
       if (m_tcmode_bin != SUPPRESSED) m_computer->loadOrbitalEph(database);
     }
   }
