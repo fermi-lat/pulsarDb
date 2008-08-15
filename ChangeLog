@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Aug 15 13:33:43 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add diagnostic messages in case no ephemeris is left in the database after selection.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-06-01-00, operation: add
 Package: pulsarDb
