@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Aug 19 15:16:04 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx 
+Log Message:
+Make findClosest method protected. Add more Doxygen comments. Change argument variable names for clarity.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Aug 19 15:16:04 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
