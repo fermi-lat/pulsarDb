@@ -16,16 +16,16 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  const PulsarEph & EphChooser::findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
+  const PulsarEph & EphChooser::findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
     if (ephemerides.empty()) throw std::runtime_error("EphChooser::findClosest was passed empty container of ephemerides");
     PulsarEphCont::const_iterator candidate = ephemerides.begin();
 
     // Seed the current difference with a value which will be larger than any other.
     double diff = std::numeric_limits<double>::max();
-    
+
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double diff_since = measureTimeSeparation(t, (*itor)->getValidSince());
-      double diff_until = measureTimeSeparation(t, (*itor)->getValidUntil());
+      double diff_since = measureTimeSeparation(abs_time, (*itor)->getValidSince());
+      double diff_until = measureTimeSeparation(abs_time, (*itor)->getValidUntil());
       double new_diff = std::min(diff_since, diff_until);
       // Found a better candidate if the new difference is smaller than the previous difference.
       if (new_diff <= diff) {
@@ -37,14 +37,14 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "EphChooser::findClosest could not find an ephemeris for time " << t;
+      os << "EphChooser::findClosest could not find an ephemeris for time " << abs_time;
       throw std::runtime_error(os.str());
     }
 
     return *(*candidate);
   }
 
-  const OrbitalEph & EphChooser::findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
+  const OrbitalEph & EphChooser::findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
     if (ephemerides.empty()) throw std::runtime_error("EphChooser::findClosest was passed empty container of ephemerides");
     // Start with minimum = maximum value.
     double min_time_diff = std::numeric_limits<double>::max();
@@ -53,7 +53,7 @@ namespace pulsarDb {
     
     // Find the closest ephemeris time to the given time.
     for (OrbitalEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
-      double time_diff = measureTimeSeparation(t, (*itor)->t0());
+      double time_diff = measureTimeSeparation(abs_time, (*itor)->t0());
       if (time_diff <= min_time_diff) {
         candidate = itor;
         min_time_diff = time_diff;
@@ -63,7 +63,7 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "EphChooser::findClosest could not find an orbital ephemeris for time " << t;
+      os << "EphChooser::findClosest could not find an orbital ephemeris for time " << abs_time;
       throw std::runtime_error(os.str());
     }
 
@@ -77,12 +77,12 @@ namespace pulsarDb {
 
   StrictEphChooser::StrictEphChooser(const timeSystem::ElapsedTime & tolerance): m_tolerance(tolerance) {}
 
-  const PulsarEph & StrictEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
+  const PulsarEph & StrictEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
     PulsarEphCont::const_iterator candidate = ephemerides.end();
 
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
       // See if this ephemeris contains the time.
-      if ((*itor)->getValidSince() <= t && t < (*itor)->getValidUntil()) {
+      if ((*itor)->getValidSince() <= abs_time && abs_time < (*itor)->getValidUntil()) {
 
         // See if this is the first candidate, which is automatically accepted.
         if (ephemerides.end() == candidate) {
@@ -103,15 +103,15 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "StrictEphChooser::choose could not find a spin ephemeris for time " << t;
+      os << "StrictEphChooser::choose could not find a spin ephemeris for time " << abs_time;
       throw std::runtime_error(os.str());
     }
 
     return *(*candidate);
   }
 
-  const OrbitalEph & StrictEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
-    return findClosest(ephemerides, t);
+  const OrbitalEph & StrictEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+    return findClosest(ephemerides, abs_time);
   }
 
   EphChooser * StrictEphChooser::clone() const {
@@ -122,20 +122,20 @@ namespace pulsarDb {
 
   SloppyEphChooser::SloppyEphChooser(const timeSystem::ElapsedTime & tolerance): m_strict_chooser(tolerance) {}
 
-  const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
+  const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
     if (ephemerides.empty()) throw std::runtime_error("SloppyEphChooser::choose was passed empty container of ephemerides");
     // First try to get a strictly correct choice.
     try {
-      return m_strict_chooser.choose(ephemerides, t);
+      return m_strict_chooser.choose(ephemerides, abs_time);
     } catch (const std::exception &) {
       // Ignore this exception because the sloppy code below will then try.
     }
 
-    return findClosest(ephemerides, t);
+    return findClosest(ephemerides, abs_time);
   }
 
-  const OrbitalEph & SloppyEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const {
-    return findClosest(ephemerides, t);
+  const OrbitalEph & SloppyEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+    return findClosest(ephemerides, abs_time);
   }
 
   EphChooser * SloppyEphChooser::clone() const {
