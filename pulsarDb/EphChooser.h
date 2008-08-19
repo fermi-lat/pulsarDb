@@ -32,9 +32,10 @@ namespace pulsarDb {
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
-          \param t The time of interest.
+          \param ephemerides Container of pulsar ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
       */
-      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const = 0;
+      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const = 0;
 
       /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
 
@@ -43,17 +44,27 @@ namespace pulsarDb {
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
-          \param t The time of interest.
+          \param ephemerides Container of orbital ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
       */
-      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const = 0;
+      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const = 0;
 
+      /// \brief Returns an object of the same type as this object.
       virtual EphChooser * clone() const = 0;
 
-      const PulsarEph & findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
-
-      const OrbitalEph & findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
-
     protected:
+      /** \brief Find a pulsar ephemeris whose reference epoch is the closest to the given absolute time.
+          \param ephemerides Container of pulsar ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
+      */
+      const PulsarEph & findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
+
+      /** \brief Find an orbital ephemeris whose reference epoch is the closest to the given absolute time.
+          \param ephemerides Container of orbital ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
+      */
+      const OrbitalEph & findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
+
       /** \brief Compute a time separation between two absolute times, to be used to compare more than one ephemerides
                  to find a best candidate. Return value of this method is non-negative.
           \param at1 One absolute time.
@@ -76,12 +87,24 @@ namespace pulsarDb {
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
-          \param t The time of interest.
+          \param ephemerides Container of pulsar ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
       */
-      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
+      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
 
-      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
+      /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
 
+                 The ephmeris returned contains the time in the half-open interval [VALID_SINCE, VALID_UNTIL)
+                 If more than one candidate ephemeris contains the time, the ephemeris with the latest start
+                 time is chosen. If more than one candidate has the same start time, the one with the latest
+                 stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
+                 which appears last in the table is selected.
+          \param ephemerides Container of orbital ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
+      */
+      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
+
+      /// \brief Returns an object of the same type as this object.
       virtual EphChooser * clone() const;
 
     protected:
@@ -106,9 +129,10 @@ namespace pulsarDb {
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
-          \param t The time of interest.
+          \param ephemerides Container of pulsar ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
       */
-      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
+      virtual const PulsarEph & choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
 
       /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
 
@@ -117,10 +141,12 @@ namespace pulsarDb {
                  time is chosen. If more than one candidate has the same start time, the one with the latest
                  stop time is chosen. If more than one candidate has the same start and stop times, the ephemeris
                  which appears last in the table is selected.
-          \param t The time of interest.
+          \param ephemerides Container of orbital ephemerides from which the closest ephemeris is to be found.
+          \param abs_time The time of interest.
       */
-      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & t) const;
+      virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
 
+      /// \brief Returns an object of the same type as this object.
       virtual EphChooser * clone() const;
 
     protected:
