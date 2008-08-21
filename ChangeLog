@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Aug 21 14:54:15 PDT 2008
+pulsarDb/data/outref
+
+Added Files:
+	j0323_db.fits noop_db.fits solar_db.fits time_db.fits 
+Log Message:
+Add reference FITS files to compare with test outputs.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Aug 21 14:54:06 PDT 2008
 pulsarDb/src/test
 
