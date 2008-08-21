@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Thu Aug 21 14:54:06 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add REMARKS extension to pulsar database.
+    *
+------------------------------------------------------------
+User: hirayama  Thu Aug 21 14:54:06 PDT 2008
 pulsarDb/src
 
 Modified Files:
