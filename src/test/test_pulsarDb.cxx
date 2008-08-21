@@ -151,7 +151,7 @@ void PulsarDbTest::run() {
   m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
   // Find test file.
-  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v4r2.fits");
+  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v5.fits");
 
   // Find template file.
   m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarDb.tpl");
@@ -231,6 +231,11 @@ void PulsarDbTest::testNoOp() {
   num_eph = database.getNumEph();
   if (1141 != num_eph)
     ErrorMsg(method_name) << "PulsarDbTest::run, after no-op filter there are " << num_eph << " ephemerides, not 1141" << std::endl;
+
+  // Save the result for basis of comparing future test output.
+  std::string outfile("noop_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testExplicitName() {
@@ -247,6 +252,11 @@ void PulsarDbTest::testExplicitName() {
   int num_eph = database.getNumEph();
   if (2 != num_eph)
     ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for PSR J0323+3944, not 2" << std::endl;
+
+  // Save the result for basis of comparing future test output.
+  std::string outfile("j0323_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testAlternateName() {
@@ -271,8 +281,9 @@ void PulsarDbTest::testAlternateName() {
     ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for the crab, not 36" << std::endl;
 
   // Write this output to form basis for comparing future tests.
-  remove("crab_db.fits");
-  database.save("crab_db.fits", m_creator);
+  std::string outfile("crab_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testTime() {
@@ -290,6 +301,10 @@ void PulsarDbTest::testTime() {
   if (406 != num_eph)
     ErrorMsg(method_name) << "after filterInterval(53400., 53800.) there are " << num_eph << " ephemerides, not 406" << std::endl;
 
+  // Save the result for basis of comparing future test output.
+  std::string outfile("time_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testBadInterval() {
@@ -307,7 +322,6 @@ void PulsarDbTest::testBadInterval() {
   } catch (const std::exception &) {
     // This is fine.
   }
-
 }
 
 void PulsarDbTest::testSolarEph() {
@@ -329,6 +343,11 @@ void PulsarDbTest::testSolarEph() {
   num_eph = database.getNumEph(false);
   if (4 != num_eph)
     ErrorMsg(method_name) << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " orbital ephemerides, not 4" << std::endl;
+
+  // Save the result for basis of comparing future test output.
+  std::string outfile("solar_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testExpression() {
@@ -347,8 +366,9 @@ void PulsarDbTest::testExpression() {
     ErrorMsg(method_name) << "found " << num_eph << " ephemerides with F2 != 0., not 837" << std::endl;
 
   // Test saving this for basis of comparing future test output.
-  remove("f2not0_db.fits");
-  database.save("f2not0_db.fits", m_creator);
+  std::string outfile("f2not0_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testAppend() {
@@ -356,8 +376,11 @@ void PulsarDbTest::testAppend() {
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
   database.load(m_in_file);
-  remove("twice_db.fits");
-  database.save("twice_db.fits", m_creator);
+
+  // Save the result for basis of comparing future test output.
+  std::string outfile("twice_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 }
 
 void PulsarDbTest::testTextPulsarDb() {
@@ -367,6 +390,7 @@ void PulsarDbTest::testTextPulsarDb() {
   PulsarDb database(m_tpl_file);
   database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_spin.txt"));
   database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_binary.txt"));
+  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_remark.txt"));
   database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_obs.txt"));
   database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_name.txt"));
 
@@ -829,8 +853,9 @@ void PulsarDbTest::testChooser() {
     ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for " << pulsar_name << ", not 8" << std::endl;
 
   // Write this output to form basis for comparing future tests.
-  remove("chooser_db.fits");
-  database.save("chooser_db.fits", m_creator);
+  std::string outfile("chooser_db.fits");
+  remove(outfile.c_str());
+  database.save(outfile, m_creator);
 
   AbsoluteTime pick_time("TDB", Mjd1(54012.5));
   AbsoluteTime expected_epoch("TDB", 0, 0.);

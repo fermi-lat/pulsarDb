@@ -31,8 +31,9 @@ using namespace tip;
 namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext, TableCont::size_type default_orbital_ext):
-    m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_obs_code_table(), m_psr_name_table(),
-    m_default_spin_par_table(0), m_default_orbital_par_table(0), m_spin_factory_cont(), m_orbital_factory_cont() {
+    m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_eph_remark_table(),
+    m_obs_code_table(), m_psr_name_table(), m_default_spin_par_table(0), m_default_orbital_par_table(0), m_spin_factory_cont(),
+    m_orbital_factory_cont() {
     // Create a FITS file in memory that holds ephemeris data, using a unique name.
     std::ostringstream oss;
     oss << "pulsardb" << this << ".fits";
@@ -76,6 +77,8 @@ namespace pulsarDb {
         m_spin_par_table.push_back(table);
       } else if ("ORBITAL_PARAMETERS" == ext_name) {
         m_orbital_par_table.push_back(table);
+      } else if ("REMARKS" == ext_name) {
+        m_eph_remark_table.push_back(table);
       } else if ("OBSERVERS" == ext_name) {
         m_obs_code_table.push_back(table);
       } else if ("ALTERNATIVE_NAMES" == ext_name) {
@@ -152,12 +155,13 @@ namespace pulsarDb {
     for (TableCont::iterator itor = m_spin_par_table.begin(); itor != m_spin_par_table.end(); ++itor) {
       (*itor)->filterRows(expression);
     }
+    clean();
   }
 
   void PulsarDb::filterInterval(double t_start, double t_stop) {
-    std::ostringstream os;
-
+    // Check arguments.
     if (t_start > t_stop) {
+      std::ostringstream os;
       os << "PulsarDb::filterInterval was passed interval with start > stop: [" << t_start << ", " << t_stop << "]" << std::endl;
       throw std::runtime_error(os.str());
     }
@@ -168,10 +172,18 @@ namespace pulsarDb {
     // !(t_stop < VALID_SINCE || VALID_UNTIL < t_start)
     // This is logically equivalent to:
     // t_stop > VALID_SINCE && VALID_UNTIL > t_start
-    os << t_stop << ">VALID_SINCE&&VALID_UNTIL>" << t_start;
+    std::ostringstream os_spin;
+    os_spin << t_stop << ">VALID_SINCE&&VALID_UNTIL>" << t_start;
     for (TableCont::iterator itor = m_spin_par_table.begin(); itor != m_spin_par_table.end(); ++itor) {
-      (*itor)->filterRows(os.str());
+      (*itor)->filterRows(os_spin.str());
     }
+
+    std::ostringstream os_remark;
+    os_remark << t_stop << ">EFFECTIVE_SINCE&&EFFECTIVE_UNTIL>" << t_start;
+    for (TableCont::iterator itor = m_eph_remark_table.begin(); itor != m_eph_remark_table.end(); ++itor) {
+      (*itor)->filterRows(os_remark.str());
+    }
+
     clean();
   }
 
@@ -314,8 +326,14 @@ namespace pulsarDb {
       }
     }
 
+    // Filter ephemeris remarks based on names found in the spin/orbital extensions.
+    std::string expression = createFilter("PSRNAME", pulsar_names);
+    for (TableCont::iterator itor = m_eph_remark_table.begin(); itor != m_eph_remark_table.end(); ++itor) {
+      (*itor)->filterRows(expression);
+    }
+
     // Filter observer codes based on codes found in the spin/orbital extensions.
-    std::string expression = createFilter("OBSERVER_CODE", observer_codes);
+    expression = createFilter("OBSERVER_CODE", observer_codes);
     for (TableCont::iterator itor = m_obs_code_table.begin(); itor != m_obs_code_table.end(); ++itor) {
       (*itor)->filterRows(expression);
     }

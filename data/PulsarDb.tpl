@@ -163,6 +163,36 @@ TTYPE15      = 'SOLAR_SYSTEM_EPHEMERIS'    / name of solar system ephemeris used
 TFORM15      = '32A'                       / data format of field: character
 END
 
+XTENSION     = 'BINTABLE'                  / binary table extension
+BITPIX       = 8                           / 8-bit bytes
+NAXIS        = 2                           / 2-dimensional binary table
+NAXIS1       =                             / width of table in bytes
+NAXIS2       =                             / number of rows in table
+PCOUNT       =                             / size of special data area
+GCOUNT       = 1                           / one data group (required keyword)
+TFIELDS      =                             / number of fields in each row
+CHECKSUM     =                             / checksum for entire HDU
+DATASUM      =                             / checksum for data table
+TELESCOP     = 'GLAST'                     / name of telescope generating data
+INSTRUME     = 'LAT'                       / name of instrument generating data
+EQUINOX      = 2000.0                      / equinox for ra and dec
+RADECSYS     = 'FK5'                       / world coord. system for this file (FK5 or FK4)
+DATE         =                             / file creation date (YYYY-MM-DDThh:mm:ss UT)
+EXTNAME      = 'REMARKS'                   / name of this binary table extension
+TTYPE1       = 'PSRNAME'                   / pulsar name in PSR Jxxxx+xx[xx[aa]] format whenever available, or in any format otherwise
+TFORM1       = '32A'                       / data format of field: character
+TTYPE2       = 'EFFECTIVE_SINCE'           / time in MJD since when remark on ephemeri(de)s is effective
+TFORM2       = 'D'                         / data format of field: 8-byte DOUBLE
+TUNIT2       = 'd'                         / physical unit of field
+TTYPE3       = 'EFFECTIVE_UNTIL'           / time in MJD until when remark on ephemeri(de)s is effective
+TFORM3       = 'D'                         / data format of field: 8-byte DOUBLE
+TUNIT3       = 'd'                         / physical unit of field
+TTYPE4       = 'DESCRIPTION'               / description of remark on ephemeri(de)s
+TFORM4       = '128A'                      / data format of field: character
+TTYPE5       = 'OBSERVER_CODE'             / source of timing information
+TFORM5       = '4A'                        / data format of field: character
+END
+
 XTENSION    = 'BINTABLE'                  / binary table extension
 BITPIX      = 8                           / 8-bit bytes
 NAXIS       = 2                           / 2-dimensional binary table
