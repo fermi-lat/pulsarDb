@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Thu Aug 21 14:54:05 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits psrdb_all.fits 
+	psrdb_append.fits twice_db.fits 
+Log Message:
+Add REMARKS extension to pulsar database.
+    *
+------------------------------------------------------------
+User: hirayama  Thu Aug 21 14:54:05 PDT 2008
 pulsarDb/data
 
 Modified Files:
