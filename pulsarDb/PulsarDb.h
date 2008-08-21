@@ -209,6 +209,7 @@ namespace pulsarDb {
       TableCont m_all_table;
       TableCont m_spin_par_table;
       TableCont m_orbital_par_table;
+      TableCont m_eph_remark_table;
       TableCont m_obs_code_table;
       TableCont m_psr_name_table;
       tip::Table * m_default_spin_par_table;

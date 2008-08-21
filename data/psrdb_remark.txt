@@ -1,0 +1,15 @@
+REMARKS
+OBSERVER_CODE PSRNAME EFFECTIVE_SINCE EFFECTIVE_UNTIL DESCRIPTION
+
+#
+# example entry for one pulsar
+#
+G "PSR J0534+2200" 54321.987654 54567.89012 "Excessive timing noise"
+
+#
+# another example
+#
+A "PSR J0633+1746" 55000 56010 "Glitch suspected"
+#
+# and go on...
+#
