@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Aug 21 15:06:35 PDT 2008
+pulsarDb/data
+
+Added Files:
+	timeformat_glast.tpl 
+Log Message:
+Add a FITS template to represent GLAST time format.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Aug 21 14:54:15 PDT 2008
 pulsarDb/data/outref
 
