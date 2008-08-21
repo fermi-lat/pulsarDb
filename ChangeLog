@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Thu Aug 21 14:54:05 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl 
+Added Files:
+	groD4-dc2v5.fits psrdb_remark.txt 
+Log Message:
+Add REMARKS extension to pulsar database.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 19 15:16:04 PDT 2008
 pulsarDb/src
 
