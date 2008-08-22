@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Aug 22 14:31:06 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Fix memory leak by deleting unnecessary Pulsar/OrbitalEph objects.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Aug 21 15:06:35 PDT 2008
 pulsarDb/data
 
