@@ -221,6 +221,7 @@ namespace pulsarDb {
   template <typename FactoryCont, typename EphCont>
   void PulsarDb::getEphBody(const TableCont & table_cont, const FactoryCont & factory_cont, EphCont & eph_cont) const {
     // Empty container then refill it.
+    for (typename EphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
     eph_cont.clear();
 
     // Reserve space for all ephemerides.

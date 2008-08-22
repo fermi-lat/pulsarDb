@@ -17,8 +17,10 @@ namespace pulsarDb {
   }
 
   EphComputer::~EphComputer() {
-    delete m_pdot_canceler;
     delete m_chooser;
+    delete m_pdot_canceler;
+    for (OrbitalEphCont::reverse_iterator itor = m_orbital_eph_cont.rbegin(); itor != m_orbital_eph_cont.rend(); ++itor) delete *itor;
+    for (PulsarEphCont::reverse_iterator itor = m_pulsar_eph_cont.rbegin(); itor != m_pulsar_eph_cont.rend(); ++itor) delete *itor;
   }
 
   void EphComputer::load(const PulsarDb & database) {
