@@ -952,8 +952,11 @@ void PulsarDbTest::testChooser() {
     x.what() << std::endl;
   }
 
-  // Test tiebreaking with different tolerances.
+  // Clean up.
+  for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
   eph_cont.clear();
+
+  // Test tiebreaking with different tolerances.
   long origin = 51910;
   AbsoluteTime valid_since("TDB", origin, 101.);
   AbsoluteTime valid_until("TDB", origin, 200.);
@@ -977,9 +980,9 @@ void PulsarDbTest::testChooser() {
 
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
+  eph_cont.clear();
 
   // Test sloppy chooser around two disjoint ephemerides.
-  eph_cont.clear();
   epoch.set("TDB", Mjd1(51910.));
   eph_cont.push_back(new FrequencyEph("TT", AbsoluteTime("TDB", Mjd1(51910.)), AbsoluteTime("TDB", Mjd1(51920.)),
     epoch, 22., 45., 0., 1., 0., 0.));
@@ -1049,6 +1052,9 @@ void PulsarDbTest::testChooser() {
 
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
+  eph_cont.clear();
+  for (OrbitalEphCont::reverse_iterator itor = orbital_cont.rbegin(); itor != orbital_cont.rend(); ++itor) delete *itor;
+  orbital_cont.clear();
 }
 
 void PulsarDbTest::testEphComputer() {
@@ -1235,6 +1241,11 @@ void PulsarDbTest::testEphComputer() {
     ErrorMsg(method_name) << "After loading orbital orbital ephemerides, there were " << orbital_eph_ref.size() <<
       " ephemerides, not 7 as expected." << std::endl;
 
+  // Clean up.
+  for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
+  eph_cont.clear();
+  for (OrbitalEphCont::reverse_iterator itor = orbital_eph_cont.rbegin(); itor != orbital_eph_cont.rend(); ++itor) delete *itor;
+  orbital_eph_cont.clear();
 }
 
 void PulsarDbTest::testEphGetter() {
@@ -1260,6 +1271,12 @@ void PulsarDbTest::testEphGetter() {
   if (orbital_eph_cont.size() != expected_orbital) 
     ErrorMsg(method_name) << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
       expected_orbital << ", as expected." << std::endl;
+
+  // Clean up.
+  for (PulsarEphCont::reverse_iterator itor = pulsar_eph_cont.rbegin(); itor != pulsar_eph_cont.rend(); ++itor) delete *itor;
+  pulsar_eph_cont.clear();
+  for (OrbitalEphCont::reverse_iterator itor = orbital_eph_cont.rbegin(); itor != orbital_eph_cont.rend(); ++itor) delete *itor;
+  orbital_eph_cont.clear();
 }
 
 class EphRoutingInfo {
@@ -1721,9 +1738,11 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
     }
   }
 
-  // Clear the contents of the pulsar ephemeris container.
-  for (PulsarEphCont::iterator itor = pulsar_eph_cont.begin(); itor != pulsar_eph_cont.end(); ++itor) delete *itor;
+  // Clean up.
+  for (PulsarEphCont::reverse_iterator itor = pulsar_eph_cont.rbegin(); itor != pulsar_eph_cont.rend(); ++itor) delete *itor;
   pulsar_eph_cont.clear();
+  for (OrbitalEphCont::reverse_iterator itor = orbital_eph_cont.rbegin(); itor != orbital_eph_cont.rend(); ++itor) delete *itor;
+  orbital_eph_cont.clear();
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("test_pulsarDb");
