@@ -36,7 +36,6 @@ namespace pulsarDb {
 
   class PulsarToolApp : public st_app::StApp {
     public:
-      typedef std::vector<const tip::Table *> table_cont_type;
       typedef std::vector<timeSystem::EventTimeHandler *> handler_cont_type;
 
       enum TimeCorrectionMode_e {
