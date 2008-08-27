@@ -37,8 +37,7 @@ namespace pulsarDb {
     using namespace st_app;
 
     // Get parameters.
-    // TODO: Remove "gtpulsardb" (unnecessary).
-    AppParGroup & pars(getParGroup("gtpulsardb"));
+    AppParGroup & pars(getParGroup());
 
     // Prompt and save.
     pars.Prompt("psrdbfile");
