@@ -287,6 +287,8 @@ namespace pulsarDb {
       Header::KeyValCont_t keywords;
       keywords.push_back(Header::KeyValPair_t("DATE", header.formatTime(time(0))));
       keywords.push_back(Header::KeyValPair_t("CREATOR", creator));
+      keywords.push_back(Header::KeyValPair_t("FILENAME", out_file));
+      keywords.push_back(Header::KeyValPair_t("DATASUM", "-1")); // Force update of DATASUM keyword.
       header.update(keywords);
     }
   }
