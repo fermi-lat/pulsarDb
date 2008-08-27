@@ -12,11 +12,9 @@ EQUINOX     = 2000.0                              / equinox for ra and dec
 RADECSYS    = 'FK5'                               / world coord. system for this file (FK5 or FK4)
 DATE        =                                     / file creation date (YYYY-MM-DDThh:mm:ss UT)
 FILENAME    =                                     / name of this file
-ORIGIN      = ''                                  / name of organization making file
-AUTHOR      = ''                                  / name of person responsible for file generation
+ORIGIN      = 'LISOC'                             / name of organization making file
 CREATOR     =                                     / software and version creating file
-VERSION     =                                     / release version of the file
-SOFTWARE    =                                     / version of the processing software
+VERSION     = 1                                   / release version of the file
 END
 
 XTENSION     = 'BINTABLE'                  / binary table extension
