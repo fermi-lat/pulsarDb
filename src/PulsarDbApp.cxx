@@ -37,6 +37,7 @@ namespace pulsarDb {
     using namespace st_app;
 
     // Get parameters.
+    // TODO: Remove "gtpulsardb" (unnecessary).
     AppParGroup & pars(getParGroup("gtpulsardb"));
 
     // Prompt and save.
@@ -111,7 +112,7 @@ namespace pulsarDb {
     if (0 >= data_base.getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
 
     // Write output.
-    data_base.save(out_file, "gtpulsardb", clobber);
+    data_base.save(out_file, getName() + " " + getVersion(), clobber);
   }
 
 }

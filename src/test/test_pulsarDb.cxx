@@ -38,6 +38,8 @@
 
 #include "tip/IFileSvc.h"
 
+static const std::string s_cvs_id("$Name:  $");
+
 using namespace timeSystem;
 using namespace pulsarDb;
 
@@ -68,6 +70,8 @@ class EphRoutingInfo;
 */
 class PulsarDbTest : public st_app::StApp {
   public:
+    PulsarDbTest();
+
     virtual ~PulsarDbTest() throw() {}
 
     /// Do all tests.
@@ -145,7 +149,9 @@ class PulsarDbTest : public st_app::StApp {
       const std::map<std::string, EphRoutingInfo> & expected_route_dict) const;
 };
 
-void PulsarDbTest::run() {
+PulsarDbTest::PulsarDbTest(): m_data_dir(), m_in_file(), m_tpl_file(), m_creator() {
+  setName("test_pulsarDb");
+  setVersion(s_cvs_id);
 
   // Find data directory for this app.
   m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
@@ -157,8 +163,10 @@ void PulsarDbTest::run() {
   m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarDb.tpl");
 
   // Set a default value for CREATOR header keyword.
-  m_creator = "test_pulsarDb";
+  m_creator = getName() + " " + getVersion();
+}
 
+void PulsarDbTest::run() {
   // Test filtering of database entries.
   testNoOp();
   testExplicitName();
