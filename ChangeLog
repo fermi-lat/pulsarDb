@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug 27 15:23:08 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Call getParGroup with no argument.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug 27 14:48:58 PDT 2008
 pulsarDb/data/outref
 
