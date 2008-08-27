@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug 27 14:47:07 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl 
+Log Message:
+Fill ORIGIN and VERSION values. Remove AUTHOR (OBSERVERS extension contains the info in more detail). Remove SOFTWARE (a version number is included in CREATOR instead.)
+    *
+------------------------------------------------------------
 User: hirayama  Fri Aug 22 17:12:54 PDT 2008
 pulsarDb/pulsarDb
 
