@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug 27 14:48:58 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits j0323_db.fits 
+	noop_db.fits psrdb_all.fits psrdb_append.fits solar_db.fits 
+	time_db.fits twice_db.fits 
+Log Message:
+Fill empty header keywords.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug 27 14:47:47 PDT 2008
 pulsarDb/src/test
 
