@@ -36,6 +36,7 @@
 #include "timeSystem/TimeConstant.h"
 #include "timeSystem/TimeInterval.h"
 
+#include "tip/Header.h"
 #include "tip/IFileSvc.h"
 
 static const std::string s_cvs_id("$Name:  $");
@@ -132,34 +133,41 @@ class PulsarDbTest : public st_app::StApp {
     typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
 
     std::string m_data_dir;
+    std::string m_outref_dir;
     std::string m_in_file;
     std::string m_tpl_file;
     std::string m_creator;
 
     /// Helper method for testMultipleEphModel, to test loading ephemerides from FITS database files.
     void testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
-      bool load_original, bool expected_to_fail);
+      bool load_original, bool expected_to_fail) const;
 
     /// Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
     void testLoadingText(const std::string & method_name, PulsarDb & database, const ExtInfoCont & ext_info_cont,
-      bool load_original, bool expected_to_fail);
+      bool load_original, bool expected_to_fail) const;
 
     /// Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
     void checkEphRouting(const std::string & method_name, const PulsarDb & database,
       const std::map<std::string, EphRoutingInfo> & expected_route_dict) const;
+
+    /// Helper method to compare an output FITS file with its reference file in data/outref/ directory.
+    void checkOutputFits(const std::string & method_name, const std::string & file_name) const;
 };
 
-PulsarDbTest::PulsarDbTest(): m_data_dir(), m_in_file(), m_tpl_file(), m_creator() {
+PulsarDbTest::PulsarDbTest(): m_data_dir(), m_outref_dir(), m_in_file(), m_tpl_file(), m_creator() {
   setName("test_pulsarDb");
   setVersion(s_cvs_id);
 
   // Find data directory for this app.
   m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
 
-  // Find test file.
+  // Set the directory name for output reference files.
+  m_outref_dir = facilities::commonUtilities::joinPath(m_data_dir, "outref");
+
+  // Set test file name.
   m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v5.fits");
 
-  // Find template file.
+  // Set template file name.
   m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarDb.tpl");
 
   // Set a default value for CREATOR header keyword.
@@ -244,6 +252,9 @@ void PulsarDbTest::testNoOp() {
   std::string outfile("noop_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testExplicitName() {
@@ -265,6 +276,9 @@ void PulsarDbTest::testExplicitName() {
   std::string outfile("j0323_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testAlternateName() {
@@ -292,6 +306,9 @@ void PulsarDbTest::testAlternateName() {
   std::string outfile("crab_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testTime() {
@@ -313,6 +330,9 @@ void PulsarDbTest::testTime() {
   std::string outfile("time_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testBadInterval() {
@@ -356,6 +376,9 @@ void PulsarDbTest::testSolarEph() {
   std::string outfile("solar_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testExpression() {
@@ -377,6 +400,9 @@ void PulsarDbTest::testExpression() {
   std::string outfile("f2not0_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testAppend() {
@@ -389,6 +415,9 @@ void PulsarDbTest::testAppend() {
   std::string outfile("twice_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 }
 
 void PulsarDbTest::testTextPulsarDb() {
@@ -407,6 +436,9 @@ void PulsarDbTest::testTextPulsarDb() {
   remove(filename1.c_str());
   database.save(filename1, m_creator);
 
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, filename1);
+
   // Copy an existing FITS database.
   PulsarDb fits_psrdb(m_tpl_file);
   fits_psrdb.load("crab_db.fits");
@@ -418,6 +450,9 @@ void PulsarDbTest::testTextPulsarDb() {
   std::string filename2 = "psrdb_append.fits";
   remove(filename2.c_str());
   fits_psrdb.save(filename2, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, filename2);
 }
 
 void PulsarDbTest::testFrequencyEph() {
@@ -864,6 +899,9 @@ void PulsarDbTest::testChooser() {
   std::string outfile("chooser_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator);
+
+  // Check the result against its reference file in data/outref/ directory.
+  checkOutputFits(method_name, outfile);
 
   AbsoluteTime pick_time("TDB", Mjd1(54012.5));
   AbsoluteTime expected_epoch("TDB", 0, 0.);
@@ -1566,7 +1604,7 @@ void PulsarDbTest::testMultipleEphModel() {
 }
 
 void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
-  bool load_original, bool expected_to_fail) {
+  bool load_original, bool expected_to_fail) const {
   std::string filename = "testdb.fits";
 
   // Create a FITS file to load ephemerides from.
@@ -1611,7 +1649,7 @@ void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & d
 }
 
 void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & database, const ExtInfoCont & ext_info_cont,
-  bool load_original, bool expected_to_fail) {
+  bool load_original, bool expected_to_fail) const {
   std::string filename("testdb.txt");
 
   int int_value = 1;
@@ -1751,6 +1789,84 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
   pulsar_eph_cont.clear();
   for (OrbitalEphCont::reverse_iterator itor = orbital_eph_cont.rbegin(); itor != orbital_eph_cont.rend(); ++itor) delete *itor;
   orbital_eph_cont.clear();
+}
+
+void PulsarDbTest::checkOutputFits(const std::string & method_name, const std::string & file_name) const {
+  // Set reference file name.
+  std::string out_file(file_name);
+  std::string ref_file = facilities::commonUtilities::joinPath(m_outref_dir, out_file);
+
+  // Check file existence.
+  if (!tip::IFileSvc::instance().fileExists(out_file)) {
+    ErrorMsg(method_name) << "File to check does not exist: " << out_file << std::endl;
+  }
+  if (!tip::IFileSvc::instance().fileExists(ref_file)) {
+    ErrorMsg(method_name) << "Reference file for " << out_file << " does not exist: " << ref_file << std::endl;
+  }
+
+  // Get fille summaries for FITS files to compare.
+  tip::FileSummary out_summary;
+  tip::IFileSvc::instance().getFileSummary(out_file, out_summary);
+  tip::FileSummary ref_summary;
+  tip::IFileSvc::instance().getFileSummary(ref_file, ref_summary);
+
+  // Compare the number of extensions.
+  tip::FileSummary::size_type out_size = out_summary.size();
+  tip::FileSummary::size_type ref_size = ref_summary.size();
+  if (out_size != ref_summary.size()) {
+    ErrorMsg(method_name) << "File " << out_file << " has " << out_size << " HDU('s), not " << ref_size << " as in reference file " <<
+      ref_file << std::endl;
+  } else {
+    int num_extension = ref_size;
+
+    // Compare each extension.
+    for (int ext_number = 0; ext_number < num_extension; ++ext_number) {
+      // Open extensions by extension number.
+      std::ostringstream os;
+      os << ext_number;
+      std::string ext_name = os.str();
+      std::auto_ptr<tip::Extension> out_ext(tip::IFileSvc::instance().editExtension(out_file, ext_name));
+      tip::Header & out_header(out_ext->getHeader());
+      std::auto_ptr<tip::Extension> ref_ext(tip::IFileSvc::instance().editExtension(ref_file, ext_name));
+      tip::Header & ref_header(ref_ext->getHeader());
+
+      // Compare the sizes of header.
+      tip::Header::KeySeq_t::size_type out_num_key = out_header.getNumKeywords();
+      tip::Header::KeySeq_t::size_type ref_num_key = ref_header.getNumKeywords();
+      if (out_num_key != ref_num_key) {
+        ErrorMsg(method_name) << "HDU " << ext_name << " of file " << out_file << " has " << out_num_key <<
+          " header keyword(s), not " << ref_num_key << " as in reference file " << ref_file << std::endl;
+
+      } else {
+        // Compare each header keyword.
+        int card_number = 1;
+        tip::Header::Iterator out_itor = out_header.begin();
+        tip::Header::Iterator ref_itor = ref_header.begin();
+        for (; out_itor != out_header.end() && ref_itor != ref_header.end(); ++out_itor, ++ref_itor, ++card_number) {
+          // Compare keyword name.
+          std::string out_name = out_itor->getName();
+          std::string ref_name = ref_itor->getName();
+          if (out_name != ref_name) {
+            ErrorMsg(method_name) << "Card " << card_number << " of HDU " << ext_name << " in file " << out_file <<
+              " is header keyword " << out_name << ", not " << ref_name << " as in reference file " << ref_file << std::endl;
+          }
+
+          // Compare keyword value.
+          // Note: Do not compare CHECKSUM, CREATOR, DATE, HISTORY, COMMENT, a blank name.
+          if (!ref_name.empty() && "CHECKSUM" != ref_name && "CREATOR" != ref_name && "DATE" != ref_name && "HISTORY" != ref_name &&
+              "COMMENT" != ref_name) {
+            std::string out_value = out_itor->getValue();
+            std::string ref_value = ref_itor->getValue();
+            if (out_value != ref_value) {
+              ErrorMsg(method_name) << "Header keyword " << out_name << " on card " << card_number << " of HDU " << ext_name <<
+                " in file " << out_file << " has value " << out_value << ", not " << ref_value << " as in reference file " <<
+                ref_file << std::endl;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 st_app::StAppFactory<PulsarDbTest> g_factory("test_pulsarDb");
