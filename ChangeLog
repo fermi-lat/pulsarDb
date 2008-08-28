@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug 27 22:12:22 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Check output FITS files against reference files.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug 27 15:23:08 PDT 2008
 pulsarDb/src
 
