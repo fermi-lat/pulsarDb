@@ -30,6 +30,8 @@ namespace pulsarDb {
   template <typename EPHTYPE>
   class IEphFactory {
     public:
+      virtual ~IEphFactory() {}
+
       virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const = 0;
   };
 
