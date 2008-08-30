@@ -30,6 +30,8 @@ namespace pulsarDb {
 
   class OrbitalEph: public FormattedEph {
     public:
+      virtual ~OrbitalEph() {}
+
       void modulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
       void demodulateBinary(timeSystem::AbsoluteTime & ev_time) const;
