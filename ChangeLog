@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Aug 30 12:15:58 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	OrbitalEph.h PulsarDb.h 
+Log Message:
+Add virtual destructors.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug 27 22:12:22 PDT 2008
 pulsarDb/src/test
 
