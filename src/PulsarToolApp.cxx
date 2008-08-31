@@ -278,7 +278,7 @@ namespace pulsarDb {
 
           // Add the ephemeris the user provided.
           PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-          ephemerides.push_back(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2).clone());
+          ephemerides.push_back(new FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2));
         } else if (eph_style_uc == "PER") {
           double p0 = pars["p0"];
           double p1 = pars["p1"];
@@ -288,7 +288,7 @@ namespace pulsarDb {
 
           // Add the ephemeris the user provided.
           PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-          ephemerides.push_back(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2).clone());
+          ephemerides.push_back(new PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2));
         } else {
           throw std::runtime_error("Unknown ephemeris style \"" + eph_style + "\" was specified.");
         }
