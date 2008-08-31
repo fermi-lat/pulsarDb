@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Aug 30 17:36:43 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Remove unnecessary use of PulsarEph::clone method.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Aug 30 12:15:58 PDT 2008
 pulsarDb/pulsarDb
 
