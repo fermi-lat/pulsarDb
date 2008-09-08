@@ -1,5 +1,72 @@
 ------------------------------------------------------------
 TAG
+Tag name: pulsarDb-06-01-01, operation: add
+Package: pulsarDb
+User: glastrm  Mon Sep  8 12:30:47 2008
+Files:
+  pulsarDb/ChangeLog  1.656
+  pulsarDb/pulsarDbLib.py  1.2
+  pulsarDb/SConscript  1.7
+  pulsarDb/cmt/requirements  1.7
+  pulsarDb/data/psrdb_spin.txt  1.2
+  pulsarDb/data/groD4-dc2v3.fits  1.1.1.1
+  pulsarDb/data/test_pulsarDb_badspin.tpl  1.2
+  pulsarDb/data/psrdb_name.txt  1.1
+  pulsarDb/data/psrdb_binary.txt  1.2
+  pulsarDb/data/groD4-dc2v4r2.fits  1.2
+  pulsarDb/data/groD4-dc2v4.fits  1.1
+  pulsarDb/data/test_pulsarDb.tpl  1.2
+  pulsarDb/data/groD4-dc2v4r1.fits  1.1
+  pulsarDb/data/psrdb_obs.txt  1.1
+  pulsarDb/data/timeformat_glast.tpl  1.1
+  pulsarDb/data/test_pulsarDb_badorbital.tpl  1.2
+  pulsarDb/data/PulsarDb.tpl  1.2
+  pulsarDb/data/outref/chooser_db.fits  1.9
+  pulsarDb/data/outref/twice_db.fits  1.3
+  pulsarDb/data/outref/psrdb_append.fits  1.7
+  pulsarDb/data/outref/crab_db.fits  1.9
+  pulsarDb/data/outref/psrdb_all.fits  1.7
+  pulsarDb/data/outref/f2not0_db.fits  1.9
+  pulsarDb/doc/release.notes  1.38
+  pulsarDb/pfiles/gtephem.par  1.15
+  pulsarDb/pfiles/gtephcomp.par  1.11
+  pulsarDb/pfiles/gtpulsardb.par  1.7
+  pulsarDb/pulsarDb/PulsarDb.h  1.31
+  pulsarDb/pulsarDb/PeriodEph.h  1.1
+  pulsarDb/pulsarDb/TextPulsarDb.h  1.3
+  pulsarDb/pulsarDb/OrbitalEph.h  1.25
+  pulsarDb/pulsarDb/EphChooser.h  1.9
+  pulsarDb/pulsarDb/FrequencyEph.h  1.1
+  pulsarDb/pulsarDb/PulsarEph.h  1.42
+  pulsarDb/pulsarDb/PdotCanceler.h  1.2
+  pulsarDb/pulsarDb/PulsarToolApp.h  1.31
+  pulsarDb/pulsarDb/FormattedEph.h  1.6
+  pulsarDb/pulsarDb/EphComputer.h  1.17
+  pulsarDb/pulsarDb/PulsarDbApp.h  1.4
+  pulsarDb/pulsarDb/EphComputerApp.h  1.2
+  pulsarDb/pulsarDb/SimpleDdEph.h  1.1
+  pulsarDb/src/EphComputerApp.cxx  1.28
+  pulsarDb/src/EphComputer.cxx  1.17
+  pulsarDb/src/FrequencyEph.cxx  1.10
+  pulsarDb/src/SimpleDdEph.cxx  1.8
+  pulsarDb/src/PulsarDbApp.cxx  1.16
+  pulsarDb/src/OrbitalEph.cxx  1.28
+  pulsarDb/src/mainpage.h  1.10
+  pulsarDb/src/PulsarToolApp.cxx  1.66
+  pulsarDb/src/.mainpage.h.swp  1.1.1.1
+  pulsarDb/src/PdotCanceler.cxx  1.7
+  pulsarDb/src/PulsarEph.cxx  1.49
+  pulsarDb/src/PulsarDb.cxx  1.56
+  pulsarDb/src/PeriodEph.cxx  1.9
+  pulsarDb/src/EphChooser.cxx  1.20
+  pulsarDb/src/gtephcomp/README  1.1
+  pulsarDb/src/gtephem/gtephem.cxx  1.2
+  pulsarDb/src/gtpulsardb/gtpulsardb.cxx  1.1.1.1
+  pulsarDb/src/test/test_pulsarDb.cxx  1.83
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: v6r1p1, operation: mov
 Package: pulsarDb
 User: glastrm  Mon Sep  8 12:30:37 2008
