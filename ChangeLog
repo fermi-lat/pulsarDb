@@ -1,4 +1,12 @@
 ------------------------------------------------------------
+User: glastrm  Mon Sep  8 12:30:31 PDT 2008
+pulsarDb
+
+Modified Files:
+	SConscript 
+Log Message:
+    *
+------------------------------------------------------------
 TAG
 Tag name: v6r1p1, operation: add
 Package: pulsarDb
