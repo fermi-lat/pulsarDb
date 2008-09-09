@@ -2,9 +2,13 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.35 2008/01/29 20:53:00 peachey Exp $
+$Id: release.notes,v 1.38 2008/09/08 19:12:11 peachey Exp $
 
 \verbatim
+09-sep-2008    v6r1p2 JP  Add #include <algorithm> to PulsarDb.cxx.
+08-sep-2008    v6r1p1 JP  Add timeformat_glast.tpl file, which was
+                          omitted by mistake from the previous version.
+14-aug-2008      v6r1 MH  Changed to work with timeSystem v4r1. Fix bugs, including JIRA PULS-44.
 08-apr-2008        v6 JP  Add support for multiple ephemeris models. Improve output of gtephem.
 29-jan-2008    v5r0p3 JP  Rename gtephcomp to gtephem in SConscript. Add test code.
 13-nov-2007    v5r0p2 MH  Improve mainpage.h.
