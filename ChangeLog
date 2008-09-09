@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+TAG
+Tag name: v6r1p2, operation: mov
+Package: pulsarDb
+User: glastrm  Tue Sep  9 14:30:38 2008
+Files:
+  pulsarDb/SConscript  1.8
+
+    *
+------------------------------------------------------------
 User: glastrm  Tue Sep  9 14:30:32 PDT 2008
 pulsarDb
 
