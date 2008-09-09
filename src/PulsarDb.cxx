@@ -4,6 +4,7 @@
              James Peachey, HEASARC/GSSC
 */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <ctime>
