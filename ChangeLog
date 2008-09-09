@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Tue Sep  9 14:09:24 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Revert to content of version 1.56 (v6r1p1).
+Add #include <algorithm> for std::find.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-06-01-01, operation: add
 Package: pulsarDb
