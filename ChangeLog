@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: peachey  Tue Sep  9 14:12:38 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Revert to content of version 1.58 (the head version prior to 1.59).
+Add #include <algorithm> for std::find.
+
+    *
+------------------------------------------------------------
 User: peachey  Tue Sep  9 14:09:24 PDT 2008
 pulsarDb/src
 
