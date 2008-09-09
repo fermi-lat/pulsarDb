@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.37 2008/08/14 20:43:41 hirayama Exp $
+$Id: release.notes,v 1.38 2008/09/08 19:12:11 peachey Exp $
 
 \verbatim
+09-sep-2008    v6r1p2 JP  Add #include <algorithm> to PulsarDb.cxx.
 08-sep-2008    v6r1p1 JP  Add timeformat_glast.tpl file, which was
                           omitted by mistake from the previous version.
 14-aug-2008      v6r1 MH  Changed to work with timeSystem v4r1. Fix bugs, including JIRA PULS-44.
