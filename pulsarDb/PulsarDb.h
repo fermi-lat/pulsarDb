@@ -10,6 +10,7 @@
 #include <string>
 #include <set>
 
+#include "pulsarDb/EphStatus.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
@@ -83,8 +84,12 @@ namespace pulsarDb {
       /** \brief Filter the current database using the given row filtering expression. The filtering is
                  performed in place.
           \param expression The row filtering expression. Examples: f2 != 0., #row > 50 && #row < 100
+          \param filter_spin If true, spin parameters will be filtered by the given expression.
+          \param filter_orbital If true, orbital parameters will be filtered by the given expression.
+          \param filter_remark If true, ephemeris remarks will be filtered by the given expression.
       */
-      virtual void filter(const std::string & expression);
+      virtual void filterExpression(const std::string & expression, bool filter_spin = true, bool filter_orbital = false,
+        bool filter_remark = false);
 
       /** \brief Select ephemerides whose validation interval [VALID_SINCE, VALID_UNTIL] overlaps the given time range.
           \param t_start The start time of the interval.
@@ -120,13 +125,22 @@ namespace pulsarDb {
       */
       virtual void save(const std::string & out_file, const std::string & creator, bool clobber = false) const;
 
-      /// \brief Get the currently selected container of spin (pulsar) ephemerides.
+      /** \brief Get the currently selected spin (pulsar) ephemerides.
+          \param cont The container to fill the currently selected spin ephemerides in it. The previous contents of
+                 the container will be removed by this method.
+      */
       virtual void getEph(PulsarEphCont & cont) const { getEphBody(m_spin_par_table, m_spin_factory_cont, cont); }
 
-      /// \brief Get the currently selected container of orbital ephemerides.
+      /** \brief Get the currently selected orbital ephemerides.
+          \param cont The container to fill the currently selected orbital ephemerides in it. The spin ephemeris objects
+                 that are stored in this container before calling this method will be destroyed and removed from the container.
+      */
       virtual void getEph(OrbitalEphCont & cont) const { getEphBody(m_orbital_par_table, m_orbital_factory_cont, cont); }
 
-      /// \brief Get the number of currently selected ephemerides.
+      /** \brief Get the number of currently selected ephemerides.
+          \param cont The container to fill the currently selected orbital ephemerides in it. The orbital ephemeris objects
+                 that are stored in this container before calling this method will be destroyed and removed from the container.
+      */
       virtual int getNumEph(bool spin_table = true) const;
 
       /** \brief Associate a keyword with a PulsarEph class as a handler of a FITS extension.
@@ -146,6 +160,12 @@ namespace pulsarDb {
       void registerOrbitalEph(const std::string & eph_style) {
         m_orbital_factory_cont[eph_style] = &EphFactory<OrbitalEph, EPHSTYLE>::getFactory();
       }
+
+      /** \brief Get the remarks stored in this pulsar ephemerides database.
+          \param cont The container to fill the remarks in it. The EphStatus objects that are stored in this container
+                 before calling this method will be destroyed and removed from the container.
+      */
+      virtual void getRemark(EphStatusCont & cont) const;
 
     private:
       typedef std::vector<std::string> ParsedLine;

@@ -22,6 +22,8 @@
 
 #include "pulsarDb/PulsarDb.h"
 
+#include "timeSystem/MjdFormat.h"
+
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
@@ -152,10 +154,22 @@ namespace pulsarDb {
     for (TableCont::reverse_iterator itor = m_all_table.rbegin(); itor != m_all_table.rend(); ++itor) delete *itor;
   }
 
-  void PulsarDb::filter(const std::string & expression) {
-    for (TableCont::iterator itor = m_spin_par_table.begin(); itor != m_spin_par_table.end(); ++itor) {
-      (*itor)->filterRows(expression);
+  void PulsarDb::filterExpression(const std::string & expression, bool filter_spin, bool filter_orbital, bool filter_remark) {
+    // List tables to be filtered.
+    std::list<TableCont *> table_cont_list;
+    if (filter_spin) table_cont_list.push_back(&m_spin_par_table);
+    if (filter_orbital) table_cont_list.push_back(&m_orbital_par_table);
+    if (filter_remark) table_cont_list.push_back(&m_eph_remark_table);
+
+    // Filter the specified table(s).
+    for (std::list<TableCont *>::iterator cont_itor = table_cont_list.begin(); cont_itor != table_cont_list.end(); ++cont_itor) {
+      TableCont & table_cont = **cont_itor;
+      for (TableCont::iterator table_itor = table_cont.begin(); table_itor != table_cont.end(); ++table_itor) {
+        (*table_itor)->filterRows(expression);
+      }
     }
+
+    // Clean up the database.
     clean();
   }
 
@@ -236,6 +250,9 @@ namespace pulsarDb {
     for (TableCont::iterator itor = m_orbital_par_table.begin(); itor != m_orbital_par_table.end(); ++itor) {
       (*itor)->filterRows(expression);
     }
+    for (TableCont::iterator itor = m_eph_remark_table.begin(); itor != m_eph_remark_table.end(); ++itor) {
+      (*itor)->filterRows(expression);
+    }
     clean();
   }
 
@@ -299,44 +316,31 @@ namespace pulsarDb {
     std::set<std::string> pulsar_names;
     std::set<std::string> observer_codes;
 
-    // Compose a set of all pulsar names and observer codes in spin extension. This is used below
-    // to filter the other extensions in the file.
-    for (TableCont::iterator table_itor = m_spin_par_table.begin(); table_itor != m_spin_par_table.end(); ++table_itor) {
-      const Table & spin_table = **table_itor;
-      for (Table::ConstIterator in_itor = spin_table.begin(); in_itor != spin_table.end(); ++in_itor) {
-        std::string tmp;
 
-        (*in_itor)["PSRNAME"].get(tmp);
-        pulsar_names.insert(tmp);
+    // Compose a set of all pulsar names and observer codes in spin, orbital, and remark extension.
+    // This is used below to filter the other extensions in the file.
+    std::list<TableCont *> table_cont_list;
+    table_cont_list.push_back(&m_spin_par_table);
+    table_cont_list.push_back(&m_orbital_par_table);
+    table_cont_list.push_back(&m_eph_remark_table);
+    for (std::list<TableCont *>::const_iterator cont_itor = table_cont_list.begin(); cont_itor != table_cont_list.end(); ++cont_itor) {
+      const TableCont & table_cont = **cont_itor;
+      for (TableCont::const_iterator table_itor = table_cont.begin(); table_itor != table_cont.end(); ++table_itor) {
+        const Table & this_table = **table_itor;
+        for (Table::ConstIterator in_itor = this_table.begin(); in_itor != this_table.end(); ++in_itor) {
+          std::string tmp;
 
-        (*in_itor)["OBSERVER_CODE"].get(tmp);
-        observer_codes.insert(tmp);
+          (*in_itor)["PSRNAME"].get(tmp);
+          pulsar_names.insert(tmp);
+
+          (*in_itor)["OBSERVER_CODE"].get(tmp);
+          observer_codes.insert(tmp);
+        }
       }
-    }
-
-    // Compose a set of all pulsar names and observer codes in orbital extension. This is used below
-    // to filter the other extensions in the file.
-    for (TableCont::iterator table_itor = m_orbital_par_table.begin(); table_itor != m_orbital_par_table.end(); ++table_itor) {
-      const Table & orbital_table = **table_itor;
-      for (Table::ConstIterator in_itor = orbital_table.begin(); in_itor != orbital_table.end(); ++in_itor) {
-        std::string tmp;
-
-        (*in_itor)["PSRNAME"].get(tmp);
-        pulsar_names.insert(tmp);
-
-        (*in_itor)["OBSERVER_CODE"].get(tmp);
-        observer_codes.insert(tmp);
-      }
-    }
-
-    // Filter ephemeris remarks based on names found in the spin/orbital extensions.
-    std::string expression = createFilter("PSRNAME", pulsar_names);
-    for (TableCont::iterator itor = m_eph_remark_table.begin(); itor != m_eph_remark_table.end(); ++itor) {
-      (*itor)->filterRows(expression);
     }
 
     // Filter observer codes based on codes found in the spin/orbital extensions.
-    expression = createFilter("OBSERVER_CODE", observer_codes);
+    std::string expression = createFilter("OBSERVER_CODE", observer_codes);
     for (TableCont::iterator itor = m_obs_code_table.begin(); itor != m_obs_code_table.end(); ++itor) {
       (*itor)->filterRows(expression);
     }
@@ -371,6 +375,35 @@ namespace pulsarDb {
 
     // Return the number of entry in the requested table.
     return num_eph;
+  }
+
+  void PulsarDb::getRemark(EphStatusCont & cont) const {
+    // Empty container then refill it.
+    cont.clear();
+
+    // Collect all remarks in all REMARKS extensions.
+    for (TableCont::const_iterator table_itor = m_eph_remark_table.begin(); table_itor != m_eph_remark_table.end(); ++table_itor) {
+      const tip::Table & table = **table_itor;
+      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+        // For convenience, get record from iterator.
+        tip::Table::ConstRecord & record(*record_itor);
+
+        // Get the remark in this record.
+        double dbl_since = record["EFFECTIVE_SINCE"].get();
+        double dbl_until = record["EFFECTIVE_UNTIL"].get();
+        std::string description;
+        record["DESCRIPTION"].get(description);
+
+        // Create a remark object.
+        AbsoluteTime abs_since("TDB", Mjd1(dbl_since));
+        AbsoluteTime abs_until("TDB", Mjd1(dbl_until));
+        EphStatus eph_status(abs_since, abs_until, Remarked, description);
+
+        // Add the remark to the container.
+        cont.push_back(eph_status);
+      }
+
+    }
   }
 
   void PulsarDb::loadFits(const std::string & in_file) {
