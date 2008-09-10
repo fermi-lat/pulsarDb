@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:25:30 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx EphComputerApp.cxx 
+Log Message:
+Add ephemeris status reporting capability.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:25:30 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
