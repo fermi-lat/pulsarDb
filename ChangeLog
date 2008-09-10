@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:25:30 PDT 2008
+pulsarDb/pfiles
+
+Modified Files:
+	gtephem.par 
+Log Message:
+Add ephemeris status reporting capability.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:19:23 PDT 2008
 pulsarDb/data
 
