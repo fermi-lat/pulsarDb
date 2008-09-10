@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:31:15 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Add ephemeris status reporting capability. Rename filter method to filterExpression for clarity. Correct filtering and cleaning of ephemeris remarks. Improve Doxygen comments.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:28:27 PDT 2008
 pulsarDb/src
 
