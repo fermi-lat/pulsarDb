@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:19:23 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl 
+Log Message:
+Correct/improve comments for clarity (cosmetic).
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-06-01-02, operation: add
 Package: pulsarDb
