@@ -7,8 +7,11 @@
 #define pulsarDb_PulsarToolApp_h
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
+
+#include "EphStatus.h"
 
 #include "st_app/StApp.h"
 
@@ -19,6 +22,10 @@
 
 namespace st_app {
   class AppParGroupd;
+}
+
+namespace st_stream {
+  class OStream;
 }
 
 namespace timeSystem {
@@ -72,9 +79,9 @@ namespace pulsarDb {
       void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
         const timeSystem::AbsoluteTime & abs_origin);
 
-      double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time);
+      double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time) const;
 
-      timeSystem::AbsoluteTime computeAbsoluteTime(double elapsed_time);
+      timeSystem::AbsoluteTime computeAbsoluteTime(double elapsed_time) const;
 
       void setFirstEvent();
 
@@ -82,7 +89,7 @@ namespace pulsarDb {
 
       bool isEndOfEventList() const;
 
-      timeSystem::AbsoluteTime getEventTime();
+      timeSystem::AbsoluteTime getEventTime() const;
 
       template <typename DataType>
       void setFieldValue(const std::string & field_name, const DataType & field_value) {
@@ -90,11 +97,16 @@ namespace pulsarDb {
         record[field_name].set(field_value);
       }
 
-      timeSystem::AbsoluteTime getStartTime();
+      timeSystem::AbsoluteTime getStartTime() const;
 
-      timeSystem::AbsoluteTime getStopTime();
+      timeSystem::AbsoluteTime getStopTime() const;
 
       EphComputer & getEphComputer() const;
+
+      void reportEphStatus(st_stream::OStream & os, const std::set<EphStatusCodeType> & code_to_report) const;
+
+      void reportEphStatus(st_stream::OStream & os, const timeSystem::AbsoluteTime & start_time,
+        const timeSystem::AbsoluteTime & stop_time, const std::set<EphStatusCodeType> & code_to_report) const;
 
     protected:
       /** \brief Reset all members of application. This should be called from the subclass's run() method
@@ -124,13 +136,13 @@ namespace pulsarDb {
       bool m_vary_ra_dec;
       const timeSystem::TimeSystem * m_target_time_system;
       timeSystem::AbsoluteTime m_target_time_origin;
-
       handler_cont_type::iterator m_event_handler_itor;
+      bool m_report_eph_status;
 
       timeSystem::AbsoluteTime readTimeColumn(timeSystem::EventTimeHandler & handler, const std::string & column_name,
-        bool request_time_correction);
+        bool request_time_correction) const;
 
-      timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction);
+      timeSystem::AbsoluteTime computeTimeBoundary(bool request_start_time, bool request_time_correction) const;
 
       void setupCurrentEventTable();
   };
