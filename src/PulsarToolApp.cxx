@@ -3,8 +3,11 @@
     \author Masaharu Hirayama, GSSC
             James Peachey, HEASARC/GSSC
 */
+#include <algorithm>
 #include <cctype>
+#include <list>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -24,6 +27,8 @@
 #include "st_app/AppParGroup.h"
 
 #include "st_facilities/FileSys.h"
+
+#include "st_stream/Stream.h"
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/BaryTimeComputer.h"
@@ -50,7 +55,7 @@ namespace pulsarDb {
     m_tcmode_bary(ALLOWED), m_tcmode_bin(ALLOWED), m_tcmode_pdot(ALLOWED),
     m_request_bary(false), m_demod_bin(false), m_cancel_pdot(false), m_vary_ra_dec(true),
     m_target_time_system(0), m_target_time_origin("TDB", 0, 0.),
-    m_event_handler_itor(m_event_handler_cont.begin()) {}
+    m_event_handler_itor(m_event_handler_cont.begin()), m_report_eph_status(false) {}
 
   PulsarToolApp::~PulsarToolApp() throw() {
     resetApp();
@@ -295,7 +300,11 @@ namespace pulsarDb {
       }
     }
 
-    if (eph_style_uc == "DB" || m_tcmode_bin != SUPPRESSED) {
+    // Determine whether ephemeris status should be reported or not.
+    m_report_eph_status = pars["reportephstatus"];
+
+    // Open pulsar database if necessary.
+    if (eph_style_uc == "DB" || m_tcmode_bin != SUPPRESSED || m_report_eph_status) {
       // Create an empty pulsar ephemerides database, using template file.
       std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
       static const PulsarDb::TableCont::size_type default_spin_extension = 1;
@@ -351,16 +360,19 @@ namespace pulsarDb {
 
       // Load orbital parameters.
       if (m_tcmode_bin != SUPPRESSED) m_computer->loadOrbitalEph(database);
+
+      // Load ephemeris remarks.
+      if (m_report_eph_status) m_computer->loadEphRemark(database);
     }
   }
 
-  AbsoluteTime PulsarToolApp::computeTimeBoundary(bool request_start_time, bool request_time_correction) {
+  AbsoluteTime PulsarToolApp::computeTimeBoundary(bool request_start_time, bool request_time_correction) const {
     bool candidate_found = false;
     AbsoluteTime abs_candidate_time("TDB", 0, 0.);
 
     // First, look for requested time (start or stop) in the GTI.
     for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
-      EventTimeHandler & gti_handler = *(*itor);
+      EventTimeHandler & gti_handler = **itor;
 
       // If possible, get tstart (or tstop) from first (or last) interval in GTI extension.
       gti_handler.setFirstRecord();
@@ -493,7 +505,7 @@ namespace pulsarDb {
       // requiring all event files have same time system.
       std::string this_time_system;
       for (handler_cont_type::const_iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
-        const EventTimeHandler & event_handler = *(*itor);
+        const EventTimeHandler & event_handler = **itor;
         const tip::Header & header(event_handler.getHeader());
         header["TIMESYS"].get(this_time_system);
         if (!time_system_set) {
@@ -574,25 +586,25 @@ namespace pulsarDb {
 
       // Initialize event extensions for barycentric corrections.
       for (handler_cont_type::const_iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
-        EventTimeHandler & event_handler = *(*itor);
+        EventTimeHandler & event_handler = **itor;
         event_handler.initTimeCorrection(sc_file, sc_extension, solar_eph, request_match_solar_eph, ang_tolerance);
         if (!m_vary_ra_dec) event_handler.setSourcePosition(ra, dec);
       }
 
       // Initialize GTI extensions for barycentric corrections.
       for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
-        EventTimeHandler & gti_handler = *(*itor);
+        EventTimeHandler & gti_handler = **itor;
         gti_handler.initTimeCorrection(sc_file, sc_extension, solar_eph, request_match_solar_eph, ang_tolerance);
         if (!m_vary_ra_dec) gti_handler.setSourcePosition(ra, dec);
       }
     }
   }
 
-  double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) {
+  double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) const {
     return (abs_time - m_target_time_origin).computeDuration(m_target_time_system->getName(), "Sec");
   }
 
-  AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) {
+  AbsoluteTime PulsarToolApp::computeAbsoluteTime(double elapsed_time) const {
     return m_target_time_origin + ElapsedTime(m_target_time_system->getName(), Duration(elapsed_time, "Sec"));
   }
 
@@ -619,20 +631,28 @@ namespace pulsarDb {
 
   void PulsarToolApp::setFirstEvent() {
     // Set event table iterator.
-    m_event_handler_itor = m_event_handler_cont.begin();
+    for (m_event_handler_itor = m_event_handler_cont.begin(); m_event_handler_itor != m_event_handler_cont.end();
+         ++m_event_handler_itor) {
+      // Setup current event table.
+      setupCurrentEventTable();
 
-    // Setup current event table.
-    setupCurrentEventTable();
+      // Skip an empty event table.
+      EventTimeHandler & handler = **m_event_handler_itor;
+      if (!handler.isEndOfTable()) break;
+    }
   }
 
   void PulsarToolApp::setNextEvent() {
     // Increment event record iterator.
     (*m_event_handler_itor)->setNextRecord();
 
-    // Check whether it reaches to the end of table.
-    if ((*m_event_handler_itor)->isEndOfTable()) {
+    // Move on to the next file if it reaches to the end of table, until an event is found.
+    while ((*m_event_handler_itor)->isEndOfTable()) {
       // Increment event table iterator.
       ++m_event_handler_itor;
+
+      // Stop if the end of file list is reached.
+      if (m_event_handler_itor == m_event_handler_cont.end()) break;
 
       // Setup new event table.
       setupCurrentEventTable();
@@ -643,15 +663,15 @@ namespace pulsarDb {
     return (m_event_handler_itor == m_event_handler_cont.end());
   }
 
-  AbsoluteTime PulsarToolApp::getEventTime() {
+  AbsoluteTime PulsarToolApp::getEventTime() const {
     return readTimeColumn(**m_event_handler_itor, m_time_field, true);
   }
 
-  AbsoluteTime PulsarToolApp::getStartTime() {
+  AbsoluteTime PulsarToolApp::getStartTime() const {
     return computeTimeBoundary(true, true);
   }
 
-  AbsoluteTime PulsarToolApp::getStopTime() {
+  AbsoluteTime PulsarToolApp::getStopTime() const {
     return computeTimeBoundary(false, true);
   }
 
@@ -659,7 +679,135 @@ namespace pulsarDb {
     return *m_computer;
   }
 
+  void PulsarToolApp::reportEphStatus(st_stream::OStream & os, const std::set<EphStatusCodeType> & code_to_report) const {
+    // Return if reporting is not requested.
+    if (!m_report_eph_status) return;
+    if (code_to_report.empty()) return;
+
+    // Get time boundaries from GTI tables --- before time corrections applied.
+    AbsoluteTime start_time_uc = computeTimeBoundary(true, false);
+    AbsoluteTime stop_time_uc = computeTimeBoundary(false, false);
+
+    // Try to compute time-corrected time boundaries. If unsuccessful, apply no corrections.
+    AbsoluteTime start_time_tc = start_time_uc;
+    try {
+      start_time_tc = computeTimeBoundary(true, true);
+    } catch (const std::exception &) {
+      start_time_tc = start_time_uc;
+    }
+    AbsoluteTime stop_time_tc = start_time_uc;
+    try {
+      stop_time_tc = computeTimeBoundary(false, true);
+    } catch (const std::exception &) {
+      stop_time_tc = stop_time_uc;
+    }
+
+    // Find a time interval to investigate.
+    const AbsoluteTime & start_time = std::min(start_time_uc, start_time_tc);
+    const AbsoluteTime & stop_time = std::max(stop_time_uc, stop_time_tc);
+
+    // Report ephemeris status with the time boundaries obtained.
+    reportEphStatus(os, start_time, stop_time, code_to_report);
+  }
+
+  void PulsarToolApp::reportEphStatus(st_stream::OStream & os, const timeSystem::AbsoluteTime & start_time,
+    const timeSystem::AbsoluteTime & stop_time, const std::set<EphStatusCodeType> & code_to_report) const {
+    // Return if reporting is not requested.
+    if (!m_report_eph_status) return;
+    if (code_to_report.empty()) return;
+
+    // Create a container for ephemeris status to report.
+    typedef std::list<const EphStatus *> EphStatusList;
+    EphStatusList status_to_report;
+
+    // Collect ephemeris remark(s) that become effective during a Good Time Interval.
+    EphStatusCont eph_remark_cont;
+    if (code_to_report.find(Remarked) != code_to_report.end()) {
+      m_computer->getEphRemark(start_time, stop_time, eph_remark_cont);
+      for (EphStatusCont::const_iterator itor = eph_remark_cont.begin(); itor != eph_remark_cont.end(); ++itor) {
+        const EphStatus & eph_status = *itor;
+        const EphStatusCodeType & status_code = eph_status.getStatusCode();
+        if (code_to_report.find(status_code) != code_to_report.end()) status_to_report.push_back(&eph_status);
+      }
+    }
+
+    // Find ephemeris gaps.
+    EphStatusCont eph_status_cont;
+    if (code_to_report.find(Unavailable) != code_to_report.end() || code_to_report.find(Extrapolated) != code_to_report.end()) {
+      m_computer->examinePulsarEph(start_time, stop_time, eph_status_cont);
+
+      // Subselect ephemeris status by status code.
+      EphStatusList eph_status_list;
+      for (EphStatusCont::const_iterator itor = eph_status_cont.begin(); itor != eph_status_cont.end(); ++itor) {
+        const EphStatus & eph_status = *itor;
+        const EphStatusCodeType & status_code = eph_status.getStatusCode();
+        if (code_to_report.find(status_code) != code_to_report.end()) eph_status_list.push_back(&eph_status);
+      }
+
+      // Flag ephemeris gaps that overlap at least one of GTI's.
+      std::set<const EphStatus *> selected_eph_status;
+      for (handler_cont_type::const_iterator gti_itor = m_gti_handler_cont.begin(); gti_itor != m_gti_handler_cont.end(); ++gti_itor) {
+        EventTimeHandler & gti_handler = **gti_itor;
+        for (gti_handler.setFirstRecord(); !gti_handler.isEndOfTable(); gti_handler.setNextRecord()) {
+          // Read a GTI uncorrected.
+          AbsoluteTime gti_start_uc = readTimeColumn(gti_handler, m_gti_start_field, false);
+          AbsoluteTime gti_stop_uc = readTimeColumn(gti_handler, m_gti_stop_field, false);
+
+          // Try to read a GTI time-corrected.
+          AbsoluteTime gti_start_tc = gti_start_uc;
+          try {
+            gti_start_tc = readTimeColumn(gti_handler, m_gti_start_field, true);
+          } catch (const std::exception &) {
+            gti_start_tc = gti_start_uc;
+          }
+          AbsoluteTime gti_stop_tc = gti_stop_uc;
+          try {
+            gti_stop_tc = readTimeColumn(gti_handler, m_gti_stop_field, true);
+          } catch (const std::exception &) {
+            gti_stop_tc = gti_stop_uc;
+          }
+
+          // Take the widest time interval to examine ephemeris gaps.
+          const AbsoluteTime & gti_start = std::min(gti_start_uc, gti_start_tc);
+          const AbsoluteTime & gti_stop = std::max(gti_stop_uc, gti_stop_tc);
+
+          // Select ephemeris status that ovelaps with this GTI.
+          for (EphStatusList::const_iterator eph_itor = eph_status_list.begin(); eph_itor != eph_status_list.end(); ++eph_itor) {
+            const EphStatus & eph_status = **eph_itor;
+            if (eph_status.effectiveBetween(gti_start, gti_stop)) selected_eph_status.insert(&eph_status);
+          }
+        }
+      }
+
+      // Collect selected ephemeris gap(s) in the order of their original appearance.
+      for (EphStatusList::const_iterator itor = eph_status_list.begin(); itor != eph_status_list.end(); ++itor) {
+        const EphStatus & eph_status = **itor;
+        if (selected_eph_status.find(&eph_status) != selected_eph_status.end()) status_to_report.push_back(&eph_status);
+      }
+    }
+
+    // Return if nothing to report at this point.
+    if (status_to_report.empty()) return;
+
+    // Report collected ephemeris status following a header line.
+    os.prefix() << "The following pulsar ephemeris status are reported." << std::endl;
+    int status_number = 1;
+    for (EphStatusList::const_iterator itor = status_to_report.begin(); itor != status_to_report.end(); ++itor, ++status_number) {
+      const EphStatus & eph_status = **itor;
+      std::string eph_status_string;
+      try {
+        eph_status_string = eph_status.report("TDB", MjdFmt);
+      } catch (const std::exception &) {
+        eph_status_string = eph_status.report("TDB", CalendarFmt);
+      }
+      os << "[" << status_number << "] " << eph_status_string << std::endl;
+    }
+  }
+
   void PulsarToolApp::resetApp() {
+    // Reset ephemeris status reporting flag.
+    m_report_eph_status = false;
+
     // Reset target time settings.
     m_target_time_origin = AbsoluteTime("TDB", 0, 0.);
     m_target_time_system = 0;
@@ -704,7 +852,7 @@ namespace pulsarDb {
   }
 
   AbsoluteTime PulsarToolApp::readTimeColumn(EventTimeHandler & handler, const std::string & column_name,
-    bool request_time_correction) {
+    bool request_time_correction) const {
 
     // Read the original photon arrival time.
     AbsoluteTime abs_time = handler.readTime(column_name);
