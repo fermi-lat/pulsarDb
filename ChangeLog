@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:34:45 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add ephemeris status reporting capability. Add const qualifier to getters. Fix a bug in handling empty event files.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:33:08 PDT 2008
 pulsarDb/pulsarDb
 
