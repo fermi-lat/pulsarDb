@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:28:27 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx 
+Log Message:
+Add ephemeris status reporting capability. Add and organize loaders. Add container size getters.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:28:27 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
