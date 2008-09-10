@@ -3,6 +3,7 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <algorithm>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -114,6 +115,92 @@ namespace pulsarDb {
     return findClosest(ephemerides, abs_time);
   }
 
+  void StrictEphChooser::examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
+    const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const {
+    // Check the time order of the time interval arguments.
+    if (start_time > stop_time) {
+      std::ostringstream os;
+      os << "StrictEphChooser::examine is given a negative time interval: " << start_time << " - " << stop_time;
+      throw std::runtime_error(os.str());
+    }
+
+    // Clear the contents of the returning container.
+    eph_status.clear();
+
+    // Check ephemeris availability.
+    if (0 == ephemerides.size()) {
+      // Put an ephemeris status if no ephemeris is available.
+      eph_status.push_back(EphStatus(start_time, stop_time, Unavailable, ""));
+
+    } else {
+      // Prepare variables to count up the number of ephemerides that are valid at the edges of the given time interval.
+      int num_eph_start = 0;
+      int num_eph_stop = 0;
+      typedef std::multimap<AbsoluteTime, int> ValidityEdgeCont;
+      ValidityEdgeCont validity_edge;
+
+      // Collect edges of ephemeris validity windows.
+      for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
+        const PulsarEph & this_eph = **itor;
+        const AbsoluteTime & valid_since = this_eph.getValidSince();
+        const AbsoluteTime & valid_until = this_eph.getValidUntil();
+
+        // Select ephemerides whose validity window has a positive time duration and overlaps with the given time interval,
+        // assuming the end of a validity window is considered outside of the window.
+        if (valid_since < valid_until && valid_since <= stop_time && start_time < valid_until) {
+
+          // Check where the beginning of this validity window is.
+          if (valid_since <= start_time) {
+            // This ephemeris is valid at the start time of the given time interval.
+            ++num_eph_start;
+          } else {
+            // This ephemeris becomes valid during the given time interval.
+            validity_edge.insert(ValidityEdgeCont::value_type(valid_since, +1));
+          }
+
+          // Check where the end of this validity window is.
+          if (stop_time < valid_until) {
+            // This ephemeris is valid at the stop time of thegiven time interval.
+            ++num_eph_stop;
+          } else {
+            // This ephemeris becomes invalid during the given time interval.
+            validity_edge.insert(ValidityEdgeCont::value_type(valid_until, -1));
+          }
+        }
+      }
+
+      // Find ephemeris gaps in the given time interval, where the number of valid ephemerides becomes zero (0).
+      AbsoluteTime gap_start = start_time;
+      int num_eph_current = num_eph_start;
+      for (ValidityEdgeCont::const_iterator itor = validity_edge.begin(); itor != validity_edge.end(); ++itor) {
+        const AbsoluteTime & edge_time = itor->first;
+        const int & num_eph_change = itor->second;
+        if (1 == num_eph_current && -1 == num_eph_change) {
+          // The beginning of an ephemeris gap.
+          gap_start = edge_time;
+
+        } else if (0 == num_eph_current && +1 == num_eph_change) {
+          // The end of the current ephemeris gap.
+          eph_status.push_back(EphStatus(gap_start, edge_time, Unavailable, ""));
+        }
+
+        // Update the number of ephemerides that are currently valid.
+        num_eph_current += num_eph_change;
+      }
+
+      // Close an ephemeris gap that has not ended within the given time interval.
+      if (0 == num_eph_current) eph_status.push_back(EphStatus(gap_start, stop_time, Unavailable, ""));
+
+      // Sanity check on the number of valid ephemerides at the end of the given time interval.
+      if (num_eph_current != num_eph_stop) {
+        std::ostringstream os;
+        os << "StrictEphChooser::examine found " << num_eph_current << " ephemeri(de)s, not " << num_eph_stop <<
+          ", at the end of the given time interval " << stop_time;
+        throw std::runtime_error(os.str());
+      }
+    }
+  }
+
   EphChooser * StrictEphChooser::clone() const {
     return new StrictEphChooser(*this);
   }
@@ -136,6 +223,40 @@ namespace pulsarDb {
 
   const OrbitalEph & SloppyEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
     return findClosest(ephemerides, abs_time);
+  }
+
+  void SloppyEphChooser::examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
+    const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const {
+    // Check the time order of the time interval arguments.
+    if (start_time > stop_time) {
+      std::ostringstream os;
+      os << "StrictEphChooser::examine is given a negative time interval: " << start_time << " - " << stop_time;
+      throw std::runtime_error(os.str());
+    }
+
+    // Clear the contents of the returning container.
+    eph_status.clear();
+
+    // Check ephemeris availability.
+    if (0 == ephemerides.size()) {
+      // Put an ephemeris status if no ephemeris is available.
+      eph_status.push_back(EphStatus(start_time, stop_time, Unavailable, ""));
+
+    } else {
+      // Use StrictEphChooser to examine ephemerides.
+      m_strict_chooser.examine(ephemerides, start_time, stop_time, eph_status);
+
+      // Replace "Unavailable" status with "Extrapolated" status.
+      for (EphStatusCont::iterator itor = eph_status.begin(); itor != eph_status.end(); ++itor) {
+        const EphStatusCodeType & status_code = itor->getStatusCode();
+        if (Unavailable == status_code) {
+          const AbsoluteTime & since = itor->getEffectiveSince();
+          const AbsoluteTime & until = itor->getEffectiveUntil();
+          const std::string & description = itor->getDescription();
+          *itor = EphStatus(since, until, Extrapolated, description);
+        }
+      }
+    }
   }
 
   EphChooser * SloppyEphChooser::clone() const {

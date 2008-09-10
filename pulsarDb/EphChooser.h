@@ -6,6 +6,7 @@
 #ifndef pulsarDb_EphChooser_h
 #define pulsarDb_EphChooser_h
 
+#include "pulsarDb/EphStatus.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PulsarEph.h"
 
@@ -48,6 +49,19 @@ namespace pulsarDb {
           \param abs_time The time of interest.
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const = 0;
+
+      /** \brief Examine time coverage by a given set of pulsar ephemerides and ephemeris remarks in the given time interval,
+                 and return the result as a list of ephemeris remarks of various types, such as ephemeris gaps, glitches,
+                 timing noise, and informative notes. Interpretation of "time coverage" may depend on each subclass.
+                 One typical behavior is to define an ephemeris gap as a time interval during which its choose method will
+                 throw an exception.
+          \param ephemerides Container of pulsar ephemerides whose time coverage is to be examined.
+          \param start_time The start time of a time interval of interest.
+          \param stop_time The stop time of a time interval of interest.
+          \param eph_status Container of ephemeris status that stores the result of examination.
+      */
+      virtual void examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
+        const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const = 0;
 
       /// \brief Returns an object of the same type as this object.
       virtual EphChooser * clone() const = 0;
@@ -104,6 +118,16 @@ namespace pulsarDb {
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
 
+      /** \brief Return ephemeris gaps and ephemeris remarks overlapped with a given time interval.
+          \param ephemerides Container of pulsar ephemerides whose time coverage is to be examined.
+          \param start_time The start time of a time interval of interest.
+          \param stop_time The stop time of a time interval of interest.
+          \param eph_status Container of ephemeris status that stores the result of examination. The orginal contents
+                 of the container will be removed by this method.
+      */
+      virtual void examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
+        const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const;
+
       /// \brief Returns an object of the same type as this object.
       virtual EphChooser * clone() const;
 
@@ -145,6 +169,16 @@ namespace pulsarDb {
           \param abs_time The time of interest.
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
+
+      /** \brief Return ephemeris gaps and ephemeris remarks overlapped with a given time interval.
+          \param ephemerides Container of pulsar ephemerides whose time coverage is to be examined. Not used by this class.
+          \param start_time The start time of a time interval of interest.
+          \param stop_time The stop time of a time interval of interest.
+          \param eph_status Container of ephemeris status that stores the result of examination. The orginal contents
+                 of the container will be removed by this method.
+      */
+      virtual void examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
+        const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const;
 
       /// \brief Returns an object of the same type as this object.
       virtual EphChooser * clone() const;
