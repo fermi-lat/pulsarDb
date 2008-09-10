@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:36:22 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of ephemeris status reporting mechanism.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:34:45 PDT 2008
 pulsarDb/src
 
