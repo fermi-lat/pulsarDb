@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:38:26 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	crab_db.fits f2not0_db.fits j0323_db.fits psrdb_append.fits 
+	solar_db.fits time_db.fits 
+Log Message:
+Modified for corrected filtering/cleaning of pulsar database.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:37:21 PDT 2008
 pulsarDb/src
 
