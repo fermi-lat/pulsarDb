@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 01:37:21 PDT 2008
+pulsarDb/pulsarDb
+
+Added Files:
+	EphStatus.h 
+Log Message:
+Added for ephemeris status reporting capability of applications.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:36:22 PDT 2008
 pulsarDb/src/test
 
