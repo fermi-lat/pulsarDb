@@ -10,9 +10,10 @@
 
 namespace pulsarDb {
 
-  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_pdot_canceler(0), m_chooser(new StrictEphChooser) {}
+  EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_eph_remark_cont(), m_pdot_canceler(0),
+    m_chooser(new StrictEphChooser) {}
 
-  EphComputer::EphComputer(const EphChooser & chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(),
+  EphComputer::EphComputer(const EphChooser & chooser): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_eph_remark_cont(),
     m_pdot_canceler(0), m_chooser(chooser.clone()) {
   }
 
@@ -26,6 +27,7 @@ namespace pulsarDb {
   void EphComputer::load(const PulsarDb & database) {
     loadPulsarEph(database);
     loadOrbitalEph(database);
+    loadEphRemark(database);
   }
 
   void EphComputer::loadPulsarEph(const PulsarDb & database) {
@@ -34,6 +36,22 @@ namespace pulsarDb {
 
   void EphComputer::loadOrbitalEph(const PulsarDb & database) {
     database.getEph(m_orbital_eph_cont);
+  }
+
+  void EphComputer::loadEphRemark(const PulsarDb & database) {
+    database.getRemark(m_eph_remark_cont);
+  }
+
+  void EphComputer::loadPulsarEph(const PulsarEph & pulsar_eph) {
+    m_pulsar_eph_cont.push_back(pulsar_eph.clone());
+  }
+
+  void EphComputer::loadOrbitalEph(const OrbitalEph & orbital_eph) {
+    m_orbital_eph_cont.push_back(orbital_eph.clone());
+  }
+
+  void EphComputer::loadEphRemark(const EphStatus & eph_remark) {
+    if (Remarked == eph_remark.getStatusCode()) m_eph_remark_cont.push_back(eph_remark);
   }
 
   void EphComputer::setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
@@ -103,12 +121,40 @@ namespace pulsarDb {
     return m_orbital_eph_cont;
   }
 
+  PulsarEphCont::size_type EphComputer::getNumPulsarEph() const {
+    return m_pulsar_eph_cont.size();
+  }
+
+  OrbitalEphCont::size_type EphComputer::getNumOrbitalEph() const {
+    return m_orbital_eph_cont.size();
+  }
+
+  EphStatusCont::size_type EphComputer::getNumEphRemark() const {
+    return m_eph_remark_cont.size();
+  }
+
   const PulsarEph & EphComputer::choosePulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
     return m_chooser->choose(m_pulsar_eph_cont, ev_time);
   }
 
   const OrbitalEph & EphComputer::chooseOrbitalEph(const timeSystem::AbsoluteTime & ev_time) const {
     return m_chooser->choose(m_orbital_eph_cont, ev_time);
+  }
+
+  void EphComputer::examinePulsarEph(const timeSystem::AbsoluteTime & start_time, const timeSystem::AbsoluteTime & stop_time,
+    EphStatusCont & eph_status_cont) const {
+    m_chooser->examine(m_pulsar_eph_cont, start_time, stop_time, eph_status_cont);
+  }
+
+  void EphComputer::getEphRemark(const timeSystem::AbsoluteTime & start_time, const timeSystem::AbsoluteTime & stop_time,
+    EphStatusCont & eph_status_cont) const {
+    // Clear the output container.
+    eph_status_cont.clear();
+
+    // Subselect ephemeris remarks by the given time interval, and copy selected remarks to the output.
+    for (EphStatusCont::const_iterator itor = m_eph_remark_cont.begin(); itor != m_eph_remark_cont.end(); ++itor) {
+      if (itor->effectiveBetween(start_time, stop_time)) eph_status_cont.push_back(*itor);
+    }
   }
 
 }

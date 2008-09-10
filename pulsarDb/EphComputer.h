@@ -35,7 +35,15 @@ namespace pulsarDb {
 
       void loadPulsarEph(const PulsarDb & database);
 
+      void loadPulsarEph(const PulsarEph & pulsar_eph);
+
       void loadOrbitalEph(const PulsarDb & database);
+
+      void loadOrbitalEph(const OrbitalEph & orbital_eph);
+
+      void loadEphRemark(const PulsarDb & database);
+
+      void loadEphRemark(const EphStatus & eph_remark);
 
       void setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
         const std::vector<double> & fdot_ratio);
@@ -64,9 +72,21 @@ namespace pulsarDb {
 
       const OrbitalEphCont & getOrbitalEphCont() const;
 
+      PulsarEphCont::size_type getNumPulsarEph() const;
+
+      OrbitalEphCont::size_type getNumOrbitalEph() const;
+
+      EphStatusCont::size_type getNumEphRemark() const;
+
       const PulsarEph & choosePulsarEph(const timeSystem::AbsoluteTime & ev_time) const;
 
       const OrbitalEph & chooseOrbitalEph(const timeSystem::AbsoluteTime & ev_time) const;
+
+      void examinePulsarEph(const timeSystem::AbsoluteTime & start_time, const timeSystem::AbsoluteTime & stop_time,
+        EphStatusCont & eph_status_cont) const;
+
+      void getEphRemark(const timeSystem::AbsoluteTime & start_time, const timeSystem::AbsoluteTime & stop_time,
+        EphStatusCont & eph_status_cont) const;
 
     private:
       EphComputer(const EphComputer &);
@@ -74,6 +94,7 @@ namespace pulsarDb {
 
       PulsarEphCont m_pulsar_eph_cont;
       OrbitalEphCont m_orbital_eph_cont;
+      EphStatusCont m_eph_remark_cont;
       PdotCanceler * m_pdot_canceler;
       EphChooser * m_chooser;
   };
