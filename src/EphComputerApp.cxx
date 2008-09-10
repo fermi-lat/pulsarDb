@@ -3,9 +3,11 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include "pulsarDb/EphComputerApp.h"
+
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
-#include "pulsarDb/EphComputerApp.h"
+#include "pulsarDb/EphStatus.h"
 
 #include "st_app/AppParGroup.h"
 
@@ -19,6 +21,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -149,6 +152,11 @@ namespace pulsarDb {
         m_os.out().prefix().width(30); m_os.out() << "1st Derivative (Hz/s) : " << f1 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "2nd Derivative (Hz/s/s) : " << f2 << std::endl;
       }
+
+      // Report ephemeris status between reference time and reference epoch of chosen ephemeris.
+      std::set<EphStatusCodeType> code_to_report;
+      code_to_report.insert(Remarked);
+      reportEphStatus(m_os.warn(), abs_ref_time, chosen_eph.getEpoch(), code_to_report);
     }
   }
 }
