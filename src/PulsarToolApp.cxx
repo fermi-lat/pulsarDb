@@ -282,8 +282,7 @@ namespace pulsarDb {
           if (0. >= f0) throw std::runtime_error("Frequency must be positive.");
 
           // Add the ephemeris the user provided.
-          PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-          ephemerides.push_back(new FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2));
+          m_computer->loadPulsarEph(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2));
         } else if (eph_style_uc == "PER") {
           double p0 = pars["p0"];
           double p1 = pars["p1"];
@@ -292,8 +291,7 @@ namespace pulsarDb {
           if (0. >= p0) throw std::runtime_error("Period must be positive.");
 
           // Add the ephemeris the user provided.
-          PulsarEphCont & ephemerides(m_computer->getPulsarEphCont());
-          ephemerides.push_back(new PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2));
+          m_computer->loadPulsarEph(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2));
         } else {
           throw std::runtime_error("Unknown ephemeris style \"" + eph_style + "\" was specified.");
         }
@@ -473,7 +471,7 @@ namespace pulsarDb {
     m_demod_bin = false;
     if ((m_tcmode_bin == REQUIRED) || (m_tcmode_bin == ALLOWED)) {
       // Check whether orbital parameters are available for binary demodulation.
-      if (!m_computer->getOrbitalEphCont().empty()) {
+      if (0 != m_computer->getNumOrbitalEph()) {
         m_demod_bin = true;
       } else if (m_tcmode_bin == REQUIRED) {
         throw std::runtime_error("Binary demodulation was required by user, but no orbital ephemeris was found");
@@ -483,7 +481,7 @@ namespace pulsarDb {
     // Determine whether to cancel pdot.
     m_cancel_pdot = false;
     if ((m_tcmode_pdot == REQUIRED) || (m_tcmode_pdot == ALLOWED)) {
-      if (!guess_pdot || !m_computer->getPulsarEphCont().empty()) {
+      if (!guess_pdot || 0 != m_computer->getNumPulsarEph()) {
         m_cancel_pdot = true;
       } else if (m_tcmode_pdot == REQUIRED) {
         throw std::runtime_error("Pdot cancellation was required by user, but no spin ephemeris was found");
