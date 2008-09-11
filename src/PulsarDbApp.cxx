@@ -53,6 +53,7 @@ namespace pulsarDb {
     } else if (filter == "solareph") {
       pars.Prompt("solareph");
     }
+    pars.Prompt("author");
     pars.Prompt("chatter");
     pars.Prompt("clobber");
     pars.Prompt("debug");
@@ -61,7 +62,7 @@ namespace pulsarDb {
     pars.Save();
 
     // Interpret pars.
-    std::string in_file = pars["psrdbfile"].Value();
+    std::string in_file = pars["psrdbfile"];
     std::string out_file = pars["outfile"];
 
     // Find template file.
@@ -111,7 +112,8 @@ namespace pulsarDb {
     if (0 >= data_base.getNumEph()) m_os.warn(1).prefix() << "No matching ephemerides were found." << std::endl;
 
     // Write output.
-    data_base.save(out_file, getName() + " " + getVersion(), clobber);
+    std::string author = pars["author"];
+    data_base.save(out_file, getName() + " " + getVersion(), author, clobber);
   }
 
 }
