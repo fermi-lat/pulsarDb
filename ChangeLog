@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 18:36:03 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change for addition of author argument of PulsarDb::save method.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 18:35:28 PDT 2008
 pulsarDb/pfiles
 
