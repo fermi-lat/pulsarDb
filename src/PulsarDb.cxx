@@ -285,7 +285,7 @@ namespace pulsarDb {
     clean();
   }
 
-  void PulsarDb::save(const std::string & out_file, const std::string & creator, bool clobber) const {
+  void PulsarDb::save(const std::string & out_file, const std::string & creator, const std::string & author, bool clobber) const {
     // Copy the entire contents of the memory FITS file to an output file.
     m_tip_file.copyFile(out_file, clobber);
 
@@ -305,6 +305,7 @@ namespace pulsarDb {
       Header::KeyValCont_t keywords;
       keywords.push_back(Header::KeyValPair_t("DATE", header.formatTime(time(0))));
       keywords.push_back(Header::KeyValPair_t("CREATOR", creator));
+      keywords.push_back(Header::KeyValPair_t("AUTHOR", author));
       keywords.push_back(Header::KeyValPair_t("FILENAME", out_file));
       keywords.push_back(Header::KeyValPair_t("DATASUM", "-1")); // Force update of DATASUM keyword.
       header.update(keywords);
