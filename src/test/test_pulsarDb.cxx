@@ -141,6 +141,7 @@ class PulsarDbTest : public st_app::StApp {
     std::string m_in_file;
     std::string m_tpl_file;
     std::string m_creator;
+    std::string m_author;
 
     /// Helper method for testMultipleEphModel, to test loading ephemerides from FITS database files.
     void testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
@@ -158,7 +159,7 @@ class PulsarDbTest : public st_app::StApp {
     void checkOutputFits(const std::string & method_name, const std::string & file_name) const;
 };
 
-PulsarDbTest::PulsarDbTest(): m_data_dir(), m_outref_dir(), m_in_file(), m_tpl_file(), m_creator() {
+PulsarDbTest::PulsarDbTest(): m_data_dir(), m_outref_dir(), m_in_file(), m_tpl_file(), m_creator(), m_author() {
   setName("test_pulsarDb");
   setVersion(s_cvs_id);
 
@@ -176,6 +177,9 @@ PulsarDbTest::PulsarDbTest(): m_data_dir(), m_outref_dir(), m_in_file(), m_tpl_f
 
   // Set a default value for CREATOR header keyword.
   m_creator = getName() + " " + getVersion();
+
+  // Set a default value for AUTHOR header keyword.
+  m_author = "Anonymous Tester";
 }
 
 void PulsarDbTest::run() {
@@ -256,7 +260,7 @@ void PulsarDbTest::testNoOp() {
   // Save the result for basis of comparing future test output.
   std::string outfile("noop_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -280,7 +284,7 @@ void PulsarDbTest::testExplicitName() {
   // Save the result for basis of comparing future test output.
   std::string outfile("j0323_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -310,7 +314,7 @@ void PulsarDbTest::testAlternateName() {
   // Write this output to form basis for comparing future tests.
   std::string outfile("crab_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -334,7 +338,7 @@ void PulsarDbTest::testTime() {
   // Save the result for basis of comparing future test output.
   std::string outfile("time_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -380,7 +384,7 @@ void PulsarDbTest::testSolarEph() {
   // Save the result for basis of comparing future test output.
   std::string outfile("solar_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -404,7 +408,7 @@ void PulsarDbTest::testExpression() {
   // Test saving this for basis of comparing future test output.
   std::string outfile("f2not0_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -419,7 +423,7 @@ void PulsarDbTest::testAppend() {
   // Save the result for basis of comparing future test output.
   std::string outfile("twice_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
@@ -439,7 +443,7 @@ void PulsarDbTest::testTextPulsarDb() {
   // Save all tables into one FITS file.
   std::string filename1("psrdb_all.fits");
   remove(filename1.c_str());
-  database.save(filename1, m_creator);
+  database.save(filename1, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, filename1);
@@ -454,7 +458,7 @@ void PulsarDbTest::testTextPulsarDb() {
   // Save all tables into another FITS file.
   std::string filename2 = "psrdb_append.fits";
   remove(filename2.c_str());
-  fits_psrdb.save(filename2, m_creator);
+  fits_psrdb.save(filename2, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, filename2);
@@ -903,7 +907,7 @@ void PulsarDbTest::testChooser() {
   // Write this output to form basis for comparing future tests.
   std::string outfile("chooser_db.fits");
   remove(outfile.c_str());
-  database.save(outfile, m_creator);
+  database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, outfile);
