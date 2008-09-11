@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 18:32:33 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarDbApp.cxx 
+Log Message:
+Add author parameter and assign its value to AUTHOR header keyword.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 18:30:48 PDT 2008
 pulsarDb/data
 
