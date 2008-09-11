@@ -105,22 +105,6 @@ namespace pulsarDb {
     eph.demodulateBinary(arrival_time);
   }
 
-  PulsarEphCont & EphComputer::getPulsarEphCont() {
-    return m_pulsar_eph_cont;
-  }
-
-  const PulsarEphCont & EphComputer::getPulsarEphCont() const {
-    return m_pulsar_eph_cont;
-  }
-
-  OrbitalEphCont & EphComputer::getOrbitalEphCont() {
-    return m_orbital_eph_cont;
-  }
-
-  const OrbitalEphCont & EphComputer::getOrbitalEphCont() const {
-    return m_orbital_eph_cont;
-  }
-
   PulsarEphCont::size_type EphComputer::getNumPulsarEph() const {
     return m_pulsar_eph_cont.size();
   }

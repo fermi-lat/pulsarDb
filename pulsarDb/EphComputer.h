@@ -64,14 +64,6 @@ namespace pulsarDb {
 
       void demodulateBinary(timeSystem::AbsoluteTime & arrival_time) const;
 
-      PulsarEphCont & getPulsarEphCont();
-
-      const PulsarEphCont & getPulsarEphCont() const;
-
-      OrbitalEphCont & getOrbitalEphCont();
-
-      const OrbitalEphCont & getOrbitalEphCont() const;
-
       PulsarEphCont::size_type getNumPulsarEph() const;
 
       OrbitalEphCont::size_type getNumOrbitalEph() const;
