@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 18:35:28 PDT 2008
+pulsarDb/pfiles
+
+Modified Files:
+	gtpulsardb.par 
+Log Message:
+Add author parameter.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 18:35:02 PDT 2008
 pulsarDb/data/outref
 
