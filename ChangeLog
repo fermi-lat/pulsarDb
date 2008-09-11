@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 17:12:40 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h 
+Log Message:
+Remove getPulsar/OrbitalEphCont methods.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 01:38:26 PDT 2008
 pulsarDb/data/outref
 
