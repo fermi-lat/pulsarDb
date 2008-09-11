@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 17:13:12 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Stop using getPulsar/OrbitalEphCont methods.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 17:12:41 PDT 2008
 pulsarDb/src
 
