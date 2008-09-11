@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 10 18:30:48 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl 
+Log Message:
+Revive AUTHOR header keyword.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 10 17:13:12 PDT 2008
 pulsarDb/src
 
