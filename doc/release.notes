@@ -2,9 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.38 2008/09/08 19:12:11 peachey Exp $
+$Id: release.notes,v 1.39 2008/09/09 21:15:58 peachey Exp $
 
 \verbatim
+17-sep-2008        v7 MH  Add support for ephemeris-related warning messages, such ephemeris gaps
+                          and glitches. Rationalize output FITS header and fill appropriate values.
+                          Clean ups and bug fixes, including JIRA PULS-45.
 09-sep-2008    v6r1p2 JP  Add #include <algorithm> to PulsarDb.cxx.
 08-sep-2008    v6r1p1 JP  Add timeformat_glast.tpl file, which was
                           omitted by mistake from the previous version.
