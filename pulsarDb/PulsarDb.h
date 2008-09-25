@@ -16,6 +16,7 @@
 
 #include "tip/FileSummary.h"
 #include "tip/Table.h"
+#include "tip/TipException.h"
 #include "tip/TipFile.h"
 
 namespace tip {
