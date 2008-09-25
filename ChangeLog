@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep 25 14:37:29 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Include tip/TipException.h.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-07-00-00, operation: add
 Package: pulsarDb
