@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Thu Sep 25 14:37:29 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Include tip/TipException.h.
+    *
+------------------------------------------------------------
+User: hirayama  Thu Sep 25 14:37:29 PDT 2008
 pulsarDb/src
 
 Modified Files:
