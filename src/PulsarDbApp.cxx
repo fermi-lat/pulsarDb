@@ -19,7 +19,6 @@
 #include "st_facilities/FileSys.h"
 
 #include "tip/IFileSvc.h"
-#include "tip/TipException.h"
 
 static const std::string s_cvs_id("$Name:  $");
 

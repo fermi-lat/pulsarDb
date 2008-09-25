@@ -43,6 +43,7 @@
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
 #include "tip/Table.h"
+#include "tip/TipException.h"
 
 using namespace st_facilities;
 using namespace timeSystem;
