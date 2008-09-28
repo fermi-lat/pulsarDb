@@ -171,6 +171,13 @@ namespace pulsarDb {
       */
       virtual void getRemark(EphStatusCont & cont) const;
 
+      /** \brief Get the creation history of this pulsar ephemerides database.
+          \param command_history The container to fill the history of ephemeris loading and filtering.
+          \param ancestry_record The container to fill the history records of all ephemerides database that have been loaded
+                 to this ephemerides database.
+      */
+      virtual void getHistory(std::list<std::string> & command_history, std::list<std::string> & ancestry_record) const;
+
     private:
       typedef std::vector<std::string> ParsedLine;
 
