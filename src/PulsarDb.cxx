@@ -36,7 +36,7 @@ namespace pulsarDb {
   PulsarDb::PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext, TableCont::size_type default_orbital_ext):
     m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_eph_remark_table(),
     m_obs_code_table(), m_psr_name_table(), m_default_spin_par_table(0), m_default_orbital_par_table(0), m_spin_factory_cont(),
-    m_orbital_factory_cont() {
+    m_orbital_factory_cont(), m_command_history(), m_ancestry_record() {
     // Create a FITS file in memory that holds ephemeris data, using a unique name.
     std::ostringstream oss;
     oss << "pulsardb" << this << ".fits";
@@ -169,6 +169,19 @@ namespace pulsarDb {
       }
     }
 
+    // Append this filter to the command history.
+    if (filter_spin || filter_orbital || filter_remark) {
+      std::ostringstream os_history;
+      std::string legalized_expr(expression);
+      for (std::string::iterator str_itor = legalized_expr.begin(); str_itor != legalized_expr.end(); ++str_itor) {
+        if ('\t' == *str_itor) *str_itor = ' ';
+      }
+      os_history << "Filter by expression '" << legalized_expr << "'";
+      if (filter_spin) m_command_history.push_back(os_history.str() + " (SPIN_PARAMETERS)");
+      if (filter_orbital) m_command_history.push_back(os_history.str() + " (ORBITAL_PARAMETERS)");
+      if (filter_remark) m_command_history.push_back(os_history.str() + " (REMARKS)");
+    }
+
     // Clean up the database.
     clean();
   }
@@ -199,6 +212,12 @@ namespace pulsarDb {
       (*itor)->filterRows(os_remark.str());
     }
 
+    // Append this filter to the command history.
+    std::ostringstream os_history;
+    os_history << "Filter by time interval [" << t_start << ", " << t_stop << "]";
+    m_command_history.push_back(os_history.str());
+
+    // Clean up the database.
     clean();
   }
 
@@ -253,6 +272,13 @@ namespace pulsarDb {
     for (TableCont::iterator itor = m_eph_remark_table.begin(); itor != m_eph_remark_table.end(); ++itor) {
       (*itor)->filterRows(expression);
     }
+
+    // Append this filter to the command history.
+    std::ostringstream os_history;
+    os_history << "Filter by pulsar name '" << name << "'";
+    m_command_history.push_back(os_history.str());
+
+    // Clean up the database.
     clean();
   }
 
@@ -282,12 +308,26 @@ namespace pulsarDb {
     for (TableCont::iterator itor = m_orbital_par_table.begin(); itor != m_orbital_par_table.end(); ++itor) {
       (*itor)->filterRows(expression);
     }
+
+    // Append this filter to the command history.
+    std::ostringstream os_history;
+    os_history << "Filter by solar system ephemeris '" << solar_eph << "'";
+    m_command_history.push_back(os_history.str());
+
+    // Clean up the database.
     clean();
   }
 
   void PulsarDb::save(const std::string & out_file, const std::string & creator, const std::string & author, bool clobber) const {
     // Copy the entire contents of the memory FITS file to an output file.
     m_tip_file.copyFile(out_file, clobber);
+
+    // Prepare header keywords to update.
+    Header::KeyValCont_t keywords;
+    keywords.push_back(Header::KeyValPair_t("CREATOR", creator));
+    keywords.push_back(Header::KeyValPair_t("AUTHOR", author));
+    keywords.push_back(Header::KeyValPair_t("FILENAME", out_file));
+    keywords.push_back(Header::KeyValPair_t("DATASUM", "-1")); // Force update of DATASUM keyword.
 
     // Loop over all extensions in output file and update header keywords.
     FileSummary file_summary;
@@ -301,13 +341,23 @@ namespace pulsarDb {
       std::auto_ptr<Extension> ext(IFileSvc::instance().editExtension(out_file, oss.str()));
       Header & header(ext->getHeader());
 
+      // Write extra info in HISTORY keywords of the primary header.
+      if (0 == ext_number) {
+        // Add DATE keyword to update.
+        std::string date = header.formatTime(time(0));
+        keywords.push_back(Header::KeyValPair_t("DATE", date));
+
+        // Write command history.
+        header.addHistory("PULSARDB AUTHOR='" + author + "' DATE='" + date + "'");
+        for (std::list<std::string>::const_iterator hist_itor = m_command_history.begin(); hist_itor != m_command_history.end();
+          ++hist_itor) header.addHistory("* " + *hist_itor);
+
+        // Write database ancestry.
+        for (std::list<std::string>::const_iterator rec_itor = m_ancestry_record.begin(); rec_itor != m_ancestry_record.end();
+          ++rec_itor) header.addHistory(*rec_itor);
+      }
+
       // Update header keywords.
-      Header::KeyValCont_t keywords;
-      keywords.push_back(Header::KeyValPair_t("DATE", header.formatTime(time(0))));
-      keywords.push_back(Header::KeyValPair_t("CREATOR", creator));
-      keywords.push_back(Header::KeyValPair_t("AUTHOR", author));
-      keywords.push_back(Header::KeyValPair_t("FILENAME", out_file));
-      keywords.push_back(Header::KeyValPair_t("DATASUM", "-1")); // Force update of DATASUM keyword.
       header.update(keywords);
     }
   }
@@ -316,7 +366,6 @@ namespace pulsarDb {
     // Set of pulsar names and observer codes.
     std::set<std::string> pulsar_names;
     std::set<std::string> observer_codes;
-
 
     // Compose a set of all pulsar names and observer codes in spin, orbital, and remark extension.
     // This is used below to filter the other extensions in the file.
@@ -412,72 +461,94 @@ namespace pulsarDb {
     FileSummary in_summary;
     IFileSvc::instance().getFileSummary(in_file, in_summary);
 
-    // Get first extension in input file.
-    FileSummary::const_iterator ext_itor = in_summary.begin();
-
-    // If input file was empty, do nothing.
-    if (in_summary.end() == ext_itor) return;
-
     // Loop over all extensions in input file.
-    // Skip the primary by incrementing the iterator in the first clause of the for loop.
-    int ext_number = 1;
-    for (++ext_itor; ext_itor != in_summary.end(); ++ext_itor, ++ext_number) {
-      const std::string ext_name = ext_itor->getExtId();
-
-      // Open input table by extension number, in order to work with multiple extensions of the same extension name.
+    int ext_number = 0;
+    for (FileSummary::const_iterator ext_itor = in_summary.begin(); ext_itor != in_summary.end(); ++ext_itor, ++ext_number) {
+      // Prepare to open input table by extension number, in order to work with multiple extensions of the same extension name.
       std::ostringstream oss;
       oss << ext_number;
-      std::auto_ptr<const Table> in_table(IFileSvc::instance().readTable(in_file, oss.str()));
+      std::string ext_number_string = oss.str();
 
-      // Collect header keyword to require.
-      const Header & in_header(in_table->getHeader());
-      Header::KeySeq_t required_keyword;
-      bool ephstyle_found = false;
-      for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
-        // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2.
-        std::string keyword_name(key_itor->getName());
-        if (!keyword_name.empty()) {
-          for (std::string::iterator str_itor = keyword_name.begin(); str_itor != keyword_name.end(); ++str_itor) {
-            *str_itor = std::toupper(*str_itor);
-          }
-          if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM" && keyword_name != "DATASUM"
-            && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
+      if (0 == ext_number) {
+        // Collect database info from the primary header.
+        std::auto_ptr<const Extension> in_extension(IFileSvc::instance().readExtension(in_file, ext_number_string));
+        const Header & in_header(in_extension->getHeader());
 
-          // Use EPHSTYLE header keyword as an indicator of the current format.
-          if (keyword_name == "EPHSTYLE") ephstyle_found = true;
+        // Append this loading action to the command history.
+        std::string author;
+        in_header["AUTHOR"].get(author);
+        std::string date;
+        in_header["DATE"].get(date);
+        std::ostringstream os_history;
+        os_history << "Load FITSDB AUTHOR='" << author << "' DATE='" << date << "'";
+        m_command_history.push_back(os_history.str());
+
+        // Collect database trace-back info and append it to the ancestry record.
+        for (Header::ConstIterator hist_itor = in_header.find("HISTORY"); hist_itor != in_header.end(); ++hist_itor) {
+          // Skip if this is not a HISTORY keyword.
+          std::string keyword_name(hist_itor->getName());
+          if (keyword_name != "HISTORY") continue;
+
+          // Copy all HISTORY entries as database trace-back info.
+          std::string history_string(hist_itor->getComment());
+          m_ancestry_record.push_back(history_string);
         }
-      }
-
-      // Find the right tip::Table object.
-      Table * target_table(0);
-      if ("SPIN_PARAMETERS" == ext_name && !ephstyle_found) {
-        // Treat the input as a spin parameter table in the original format.
-        target_table = m_default_spin_par_table;
-
-      } else if ("ORBITAL_PARAMETERS" == ext_name && !ephstyle_found) {
-        // Treat the input as an orbital parameter table in the original format.
-        target_table = m_default_orbital_par_table;
 
       } else {
-        // Treat the input as any table in the current format.
-        target_table = updateMatchingHeader(required_keyword);
+        // Open this table to load the contents.
+        std::auto_ptr<const Table> in_table(IFileSvc::instance().readTable(in_file, ext_number_string));
+
+        // Collect header keyword to require.
+        const Header & in_header(in_table->getHeader());
+        Header::KeySeq_t required_keyword;
+        bool ephstyle_found = false;
+        for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
+          // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2.
+          std::string keyword_name(key_itor->getName());
+          if (!keyword_name.empty()) {
+            for (std::string::iterator str_itor = keyword_name.begin(); str_itor != keyword_name.end(); ++str_itor) {
+              *str_itor = std::toupper(*str_itor);
+            }
+            if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM" && keyword_name != "DATASUM"
+              && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
+
+            // Use EPHSTYLE header keyword as an indicator of the current format.
+            if (keyword_name == "EPHSTYLE") ephstyle_found = true;
+          }
+        }
+
+        // Find the right tip::Table object.
+        Table * target_table(0);
+        const std::string ext_name = ext_itor->getExtId();
+        if ("SPIN_PARAMETERS" == ext_name && !ephstyle_found) {
+          // Treat the input as a spin parameter table in the original format.
+          target_table = m_default_spin_par_table;
+
+        } else if ("ORBITAL_PARAMETERS" == ext_name && !ephstyle_found) {
+          // Treat the input as an orbital parameter table in the original format.
+          target_table = m_default_orbital_par_table;
+
+        } else {
+          // Treat the input as any table in the current format.
+          target_table = updateMatchingHeader(required_keyword);
+        }
+
+        if (target_table == 0) {
+          // Throw an exception if no extension is found to load to.
+          throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
+            + in_file + "\"");
+        }
+
+        // Copy all rows in the table if a matching extension is found, start at beginning of both tables.
+        Table::ConstIterator in_itor = in_table->begin();
+        Table::Iterator target_itor = target_table->end();
+
+        // Resize output to match input.
+        target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
+
+        // Copy all rows in table.
+        for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
       }
-
-      if (target_table == 0) {
-        // Throw an exception if no extension is found to load to.
-        throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
-          + in_file + "\"");
-      }
-
-      // Copy all rows in the table if a matching extension is found, start at beginning of both tables.
-      Table::ConstIterator in_itor = in_table->begin();
-      Table::Iterator target_itor = target_table->end();
-
-      // Resize output to match input.
-      target_table->setNumRecords(in_table->getNumRecords() + target_table->getNumRecords());
-
-      // Copy all rows in table.
-      for (; in_itor != in_table->end(); ++in_itor, ++target_itor) *target_itor = *in_itor;
     }
   }
 
@@ -751,6 +822,23 @@ namespace pulsarDb {
       }
       ++target_itor;
     }
+
+    // Append this loading action to the command history.
+    std::ostringstream os_history;
+    os_history << "Load TEXTDB " << ext_name;
+    if ("SPIN_PARAMETERS" == ext_name || "ORBITAL_PARAMETERS" == ext_name) {
+      std::string eph_style;
+      const Header & header(target_table->getHeader());
+      header["EPHSTYLE"].get(eph_style);
+      os_history << "(" << eph_style << ")";
+    }
+    static const std::string directory_delimiter = facilities::commonUtilities::joinPath("", "");
+    std::string::size_type last_delimiter = in_file.find_last_of(directory_delimiter);
+    os_history << " FILENAME='";
+    if (std::string::npos == last_delimiter) os_history << in_file;
+    else if (last_delimiter != in_file.size() - 1) os_history << in_file.substr(last_delimiter + 1);
+    os_history << "'";
+    m_command_history.push_back(os_history.str());
   }
 
   void PulsarDb::parseLine(const char * line, ParsedLine & parsed_line) {
