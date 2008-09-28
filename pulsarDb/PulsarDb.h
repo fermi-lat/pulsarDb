@@ -6,6 +6,7 @@
 #ifndef pulsarDb_PulsarDb_h
 #define pulsarDb_PulsarDb_h
 
+#include <list>
 #include <map>
 #include <string>
 #include <set>
@@ -241,6 +242,8 @@ namespace pulsarDb {
       tip::Table * m_default_orbital_par_table;
       std::map<std::string, IEphFactory<PulsarEph> *> m_spin_factory_cont;
       std::map<std::string, IEphFactory<OrbitalEph> *> m_orbital_factory_cont;
+      std::list<std::string> m_command_history;
+      std::list<std::string> m_ancestry_record;
   };
 
   template <typename FactoryCont, typename EphCont>
