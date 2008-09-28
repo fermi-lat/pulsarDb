@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Sun Sep 28 13:38:35 PDT 2008
+pulsarDb/data
+
+Modified Files:
+	test_pulsarDb.tpl test_pulsarDb_badspin.tpl 
+	test_pulsarDb_badorbital.tpl 
+Log Message:
+Add FILENAME, ORIGIN, AUTHOR, CREATOR, and VERSION keywords.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Sep 28 13:37:14 PDT 2008
 pulsarDb/src
 
