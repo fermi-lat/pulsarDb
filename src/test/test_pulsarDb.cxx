@@ -104,7 +104,7 @@ class PulsarDbTest : public st_app::StApp {
     /// Test appending ephemerides to an existing file.
     virtual void testAppend();
 
-    /// Test ephemerides database in text format.
+    /// Test ephemerides database in text format. Also test the getter for history records.
     virtual void testTextPulsarDb();
 
     /// Test FrequencyEph class (a subclass of PulsarEph class).
@@ -463,6 +463,59 @@ void PulsarDbTest::testTextPulsarDb() {
 
   // Check the result against its reference file in data/outref/ directory.
   checkOutputFits(method_name, filename2);
+
+  // Test the getter of history records.
+  std::list<std::string> expected_command;
+  expected_command.push_back("Load FITSDB AUTHOR='Anonymous Tester' DATE=");
+  expected_command.push_back("Load FITSDB AUTHOR='Anonymous Tester' DATE=");
+  std::list<std::string> expected_ancestry;
+  expected_ancestry.push_back("PULSARDB AUTHOR='Anonymous Tester' DATE=");
+  expected_ancestry.push_back("* Load FITSDB AUTHOR='' DATE=");
+  expected_ancestry.push_back("* Filter by pulsar name 'CRab'");
+  expected_ancestry.push_back("* Filter by pulsar name 'PsR b0531+21'");
+  expected_ancestry.push_back("PULSARDB AUTHOR='Anonymous Tester' DATE=");
+  expected_ancestry.push_back("* Load TEXTDB SPIN_PARAMETERS(FREQ) FILENAME='psrdb_spin.txt'");
+  expected_ancestry.push_back("* Load TEXTDB ORBITAL_PARAMETERS(DD) FILENAME='psrdb_binary.txt'");
+  expected_ancestry.push_back("* Load TEXTDB REMARKS FILENAME='psrdb_remark.txt'");
+  expected_ancestry.push_back("* Load TEXTDB OBSERVERS FILENAME='psrdb_obs.txt'");
+  expected_ancestry.push_back("* Load TEXTDB ALTERNATIVE_NAMES FILENAME='psrdb_name.txt'");
+  std::list<std::string> result_command;
+  std::list<std::string> result_ancestry;
+  fits_psrdb.getHistory(result_command, result_ancestry);
+
+  // Compare the command history.
+  if (result_command.size() != expected_command.size()) {
+    ErrorMsg(method_name) << "PulsarDb::getHistory returned " << result_command.size() << " commands, not " <<
+      expected_command.size() << " as expected." << std::endl;
+  } else {
+    std::list<std::string>::const_iterator exp_itor = expected_command.begin();
+    std::list<std::string>::const_iterator res_itor = result_command.begin();
+    int line_index = 0;
+    for (; exp_itor != expected_command.end() && res_itor != result_command.end(); ++exp_itor, ++res_itor, ++line_index) {
+      std::string res_string = res_itor->substr(0, exp_itor->size());
+      if (res_string != *exp_itor) {
+        ErrorMsg(method_name) << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
+          "' as expected for command No. " << line_index + 1 << "." << std::endl;
+      }
+    }
+  }
+
+  // Compare the ancestry records.
+  if (result_ancestry.size() != expected_ancestry.size()) {
+    ErrorMsg(method_name) << "PulsarDb::getHistory returned " << result_ancestry.size() << " ancestry records, not " <<
+      expected_ancestry.size() << " as expected." << std::endl;
+  } else {
+    std::list<std::string>::const_iterator exp_itor = expected_ancestry.begin();
+    std::list<std::string>::const_iterator res_itor = result_ancestry.begin();
+    int line_index = 0;
+    for (; exp_itor != expected_ancestry.end() && res_itor != result_ancestry.end(); ++exp_itor, ++res_itor, ++line_index) {
+      std::string res_string = res_itor->substr(0, exp_itor->size());
+      if (res_string != *exp_itor) {
+        ErrorMsg(method_name) << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
+          "' as expected for ancestry record No. " << line_index + 1 << "." << std::endl;
+      }
+    }
+  }
 }
 
 void PulsarDbTest::testFrequencyEph() {
