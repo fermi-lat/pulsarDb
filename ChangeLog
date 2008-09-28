@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Sun Sep 28 13:37:14 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits f2not0_db.fits j0323_db.fits 
+	noop_db.fits psrdb_all.fits psrdb_append.fits solar_db.fits 
+	time_db.fits twice_db.fits 
+Log Message:
+Add database creation history in HISTORY keywords.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Sep 25 14:37:29 PDT 2008
 pulsarDb/src/test
 
