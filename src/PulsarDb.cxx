@@ -456,6 +456,16 @@ namespace pulsarDb {
     }
   }
 
+  void PulsarDb::getHistory(std::list<std::string> & command_history, std::list<std::string> & ancestry_record) const {
+    // Empty containers then refill them.
+    command_history.clear();
+    ancestry_record.clear();
+
+    // Copy the history records.
+    command_history.insert(command_history.begin(), m_command_history.begin(), m_command_history.end());
+    ancestry_record.insert(ancestry_record.begin(), m_ancestry_record.begin(), m_ancestry_record.end());
+  }
+
   void PulsarDb::loadFits(const std::string & in_file) {
     // Get summary of extensions in input file.
     FileSummary in_summary;
