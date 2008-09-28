@@ -8,6 +8,11 @@ EXTEND      = T                                   / FITS dataset may contain ext
 CHECKSUM    =                                     / checksum for entire HDU
 DATASUM     =                                     / checksum for data table
 DATE        =                                     / file creation date (YYYY-MM-DDThh:mm:ss UT)
+FILENAME    =                                     / name of this file
+ORIGIN      = 'LISOC'                             / name of organization making file
+AUTHOR      =                                     / name of person responsible for file generation
+CREATOR     =                                     / software and version creating file
+VERSION     = 1                                   / release version of the file
 END
 
 XTENSION     = 'BINTABLE'                  / binary table extension
