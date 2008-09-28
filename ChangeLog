@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Sep 28 15:44:35 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add a test of PulsarDb::getHistory method.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Sep 28 15:44:12 PDT 2008
 pulsarDb/src
 
