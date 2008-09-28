@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Sep 28 15:44:12 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Add getHistory method.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Sep 28 13:38:35 PDT 2008
 pulsarDb/data
 
