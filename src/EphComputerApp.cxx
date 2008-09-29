@@ -48,6 +48,9 @@ namespace pulsarDb {
 
     m_os.setMethod("run()");
 
+    // Suppress 'INFO' in the prefix (cosmetic).
+    m_os.info().setPrefix(m_os.out().getPrefix());
+
     // Get parameters.
     AppParGroup & pars(getParGroup());
 
@@ -78,11 +81,8 @@ namespace pulsarDb {
     } else {
       chooser.reset(new SloppyEphChooser);
     }
-    initEphComputer(pars, *chooser, "DB");
+    initEphComputer(pars, *chooser, "DB", m_os.info(4));
     EphComputer & computer(getEphComputer());
-
-    // Cosmetic: suppress info.
-    m_os.info().setPrefix(m_os.out().getPrefix());
 
     // Set off the optional output.
     std::string dashes(26, '-');
