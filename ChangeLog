@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sun Sep 28 19:45:31 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add a new argument to initEphComputer method to report ephemeris loading summary.
+    *
+------------------------------------------------------------
+User: hirayama  Sun Sep 28 19:45:31 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
