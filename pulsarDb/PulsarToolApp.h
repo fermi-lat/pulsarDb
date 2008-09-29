@@ -68,9 +68,10 @@ namespace pulsarDb {
 
       void selectTimeCorrectionMode(const st_app::AppParGroup & pars);
 
-      void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, const std::string & eph_style);
+      void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, const std::string & eph_style,
+        st_stream::OStream & os);
 
-      void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser);
+      void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, st_stream::OStream & os);
 
       void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot);
 
