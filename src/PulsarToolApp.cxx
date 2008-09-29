@@ -231,15 +231,16 @@ namespace pulsarDb {
     selectTimeCorrectionMode(t_correct);
   }
 
-  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser) {
+  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, st_stream::OStream & os) {
     // Read ephstyle parameter.
     std::string eph_style = pars["ephstyle"];
 
     // Initialize EphComputer with given ephemeris style.
-    initEphComputer(pars, chooser, eph_style);
+    initEphComputer(pars, chooser, eph_style, os);
   }
 
-  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, const std::string & eph_style) {
+  void PulsarToolApp::initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, const std::string & eph_style,
+    st_stream::OStream & os) {
     // Make eph_style argument case-insensitive.
     std::string eph_style_uc = eph_style;
     for (std::string::iterator itor = eph_style_uc.begin(); itor != eph_style_uc.end(); ++itor) *itor = std::toupper(*itor);
@@ -334,6 +335,37 @@ namespace pulsarDb {
       bool solar_eph_must_match = (match_solar_eph == "PSRDB" || match_solar_eph == "ALL");
       if (solar_eph_must_match) database.filterSolarEph(solar_eph);
       int num_eph_solareph = database.getNumEph();
+
+      // Report ephemeris loading summary.
+      std::list<std::string> command_history;
+      std::list<std::string> ancestry_record;
+      std::string dashes(26, '=');
+      database.getHistory(command_history, ancestry_record);
+      if (command_history.size()) {
+        os.prefix() << dashes << std::endl;
+        os.prefix() << "Pulsar ephemerides are loaded and/or filtered as follows:" << std::endl;
+        for (std::list<std::string>::const_iterator itor = command_history.begin(); itor != command_history.end(); ++itor) {
+          os.prefix() << "   " << *itor << std::endl;
+        }
+        if (ancestry_record.size()) {
+          os.prefix() << dashes << std::endl;
+          os.prefix() << "Pulsar ephemerides FITS files loaded are:" << std::endl;
+          int psrdb_index = 0;
+          for (std::list<std::string>::const_iterator itor = ancestry_record.begin(); itor != ancestry_record.end(); ++itor) {
+            std::string list_prefix;
+            if (0 == itor->find("PULSARDB")) {
+              ++psrdb_index;
+              std::ostringstream oss;
+              oss << "[" << psrdb_index << "] ";
+              list_prefix = oss.str();
+            } else {
+              list_prefix = "   ";
+            }
+            os.prefix() << list_prefix << *itor << std::endl;
+          }
+        }
+        os.prefix() << dashes << std::endl;
+      }
 
       // Load the selected pulsar ephemerides.
       if (eph_style_uc == "DB") {
