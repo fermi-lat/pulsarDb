@@ -109,6 +109,8 @@ namespace pulsarDb {
       void reportEphStatus(st_stream::OStream & os, const timeSystem::AbsoluteTime & start_time,
         const timeSystem::AbsoluteTime & stop_time, const std::set<EphStatusCodeType> & code_to_report) const;
 
+      void writeParameter(const st_app::AppParGroup & pars);
+
     protected:
       /** \brief Reset all members of application. This should be called from the subclass's run() method
           to allow multiple runs to work without leaking memory or coupling consecutive runs of the tool
