@@ -5,6 +5,7 @@
 */
 #include <algorithm>
 #include <cctype>
+#include <ctime>
 #include <list>
 #include <memory>
 #include <set>
@@ -832,6 +833,28 @@ namespace pulsarDb {
         eph_status_string = eph_status.report("TDB", CalendarFmt);
       }
       os << "[" << status_number << "] " << eph_status_string << std::endl;
+    }
+  }
+
+  void PulsarToolApp::writeParameter(const st_app::AppParGroup & pars) {
+    // Prepare values for CREATOR and DATE keywords.
+    const std::string creator_value = getName() + " " + getVersion();
+    const time_t modification_time = time(0);
+
+    for (handler_cont_type::iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
+      EventTimeHandler & event_handler = **itor;
+      tip::Header & header(event_handler.getHeader());
+
+      // Format DATE keyword value.
+      const std::string date_value(header.formatTime(modification_time));
+
+      // Write out all the parameters into HISTORY keywords.
+      header.addHistory("File modified by " + creator_value + " on " + date_value);
+      for (hoops::ConstGenParItor par_itor = pars.begin(); par_itor != pars.end(); ++par_itor) {
+        std::ostringstream oss_par;
+        oss_par << getName() << ".par: " << **par_itor;
+        header.addHistory(oss_par.str());
+      }
     }
   }
 
