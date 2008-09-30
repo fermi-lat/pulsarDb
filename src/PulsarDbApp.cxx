@@ -24,7 +24,7 @@ static const std::string s_cvs_id("$Name:  $");
 
 namespace pulsarDb {
 
-  PulsarDbApp::PulsarDbApp(): m_os("PulsarDbApp", "PulsarDbApp()", 2), m_tpl_file() {
+  PulsarDbApp::PulsarDbApp(): m_os("PulsarDbApp", "PulsarDbApp()", 2) {
     setName("gtpulsardb");
     setVersion(s_cvs_id);
   }
@@ -65,7 +65,7 @@ namespace pulsarDb {
     std::string out_file = pars["outfile"];
 
     // Find template file.
-    m_tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
+    std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
 
     // Check whether the output file already exists, when clobber is set to no.
     bool clobber = pars["clobber"];
@@ -82,7 +82,7 @@ namespace pulsarDb {
     // Create an empty pulsar ephemerides database, using the template file.
     static const PulsarDb::TableCont::size_type default_spin_extension = 1;
     static const PulsarDb::TableCont::size_type default_orbital_extension = 2;
-    PulsarDb data_base(m_tpl_file, default_spin_extension, default_orbital_extension);
+    PulsarDb data_base(tpl_file, default_spin_extension, default_orbital_extension);
 
     // Load input ephemerides.
     for (st_facilities::FileSys::FileNameCont::const_iterator itor = file_names.begin(); itor != file_names.end(); ++itor) {
