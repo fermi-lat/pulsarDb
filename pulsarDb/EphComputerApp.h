@@ -10,7 +10,6 @@
 
 #include "st_app/StApp.h"
 
-#include "st_stream/Stream.h"
 #include "st_stream/StreamFormatter.h"
 
 namespace pulsarDb {
@@ -23,9 +22,7 @@ namespace pulsarDb {
   class EphComputerApp: public pulsarDb::PulsarToolApp {
     public:
       EphComputerApp();
-
       virtual ~EphComputerApp() throw();
-
       virtual void run();
 
     private:
