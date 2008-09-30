@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Sep 30 09:20:16 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputerApp.h PulsarDbApp.h 
+Log Message:
+Remove unnecessary items from the header files.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Sep 29 15:46:54 PDT 2008
 pulsarDb/src
 
