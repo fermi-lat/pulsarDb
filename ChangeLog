@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Oct  7 13:58:11 PDT 2008
+pulsarDb/pfiles
+
+Modified Files:
+	gtpulsardb.par 
+Log Message:
+Add leapsecfile parameter for future addition of UTC-related ephemeris computations.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-07-01-00, operation: add
 Package: pulsarDb
