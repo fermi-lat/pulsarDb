@@ -60,20 +60,22 @@ namespace pulsarDb {
     pars.Prompt("mode");
     pars.Save();
 
-    // Interpret pars.
-    std::string in_file = pars["psrdbfile"];
-    std::string out_file = pars["outfile"];
+    // Handle leap seconds.
+    std::string leap_sec_file = pars["leapsecfile"];
+    timeSystem::TimeSystem::setDefaultLeapSecFileName(leap_sec_file);
 
     // Find template file.
     std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
 
     // Check whether the output file already exists, when clobber is set to no.
+    std::string out_file = pars["outfile"];
     bool clobber = pars["clobber"];
     if (!clobber && tip::IFileSvc::instance().fileExists(out_file)) {
       throw std::runtime_error("Output file \"" + out_file + "\" already exists");
     }
 
     // Get contents of input file, which may be a list of files.
+    std::string in_file = pars["psrdbfile"];
     st_facilities::FileSys::FileNameCont file_names = st_facilities::FileSys::expandFileList(in_file);
 
     // Display an error message if no input files were found.
