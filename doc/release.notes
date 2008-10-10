@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.40 2008/09/18 00:29:05 hirayama Exp $
+$Id: release.notes,v 1.41 2008/09/30 21:25:42 peachey Exp $
 
 \verbatim
+09-oct-2008        v8 MH  Add leapsecfile parameter to gtpulsardb for potential use of UTC system.
 30-sep-2008      v7r1 JP  Write history keywords that outline the evolution of the output
                           ephemeris fits file. Print this output as well if chatter == 4.
 17-sep-2008        v7 MH  Add support for ephemeris-related warning messages, such ephemeris gaps
