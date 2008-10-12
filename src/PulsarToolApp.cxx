@@ -14,6 +14,7 @@
 
 #include "facilities/commonUtilities.h"
 
+#include "hoops/hoops.h"
 #include "hoops/hoops_exception.h"
 
 #include "pulsarDb/EphChooser.h"
