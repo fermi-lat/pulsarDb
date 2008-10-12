@@ -27,9 +27,11 @@
 #include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PeriodEph.h"
 #include "pulsarDb/PulsarDb.h"
+#include "pulsarDb/PulsarDbApp.h"
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/SimpleDdEph.h"
 
+#include "st_app/AppParGroup.h"
 #include "st_app/StApp.h"
 #include "st_app/StAppFactory.h"
 
@@ -37,11 +39,15 @@
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
+#include "timeSystem/PulsarTestApp.h"
 #include "timeSystem/TimeConstant.h"
 #include "timeSystem/TimeInterval.h"
 
+#include "tip/Extension.h"
+#include "tip/FileSummary.h"
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
+#include "tip/Table.h"
 #include "tip/TipException.h"
 
 static const std::string s_cvs_id("$Name:  $");
@@ -49,36 +55,16 @@ static const std::string s_cvs_id("$Name:  $");
 using namespace timeSystem;
 using namespace pulsarDb;
 
-/** \class ErrorMsg
-    \brief Trivial helper class for formatting output.
-*/
-class ErrorMsg {
-  public:
-    ErrorMsg(const std::string & method) { std::cerr << "PulsarDbTest::" << method << ": "; s_status = 1; }
-
-    static int getStatus() { return s_status; }
-
-  private:
-    static int s_status;
-};
-
-const ErrorMsg & operator <<(const ErrorMsg & msg, std::ostream & (*op)(std::ostream &)) { (*op)(std::cerr); return msg; }
-
-template <typename T>
-const ErrorMsg & operator <<(const ErrorMsg & msg, const T & t) { std::cerr << t; return msg; }
-
-int ErrorMsg::s_status = 0;
-
 class EphRoutingInfo;
 
-/** \class PulsarDbTest
+/** \class TestPulsarDbApp
     \brief Test application.
 */
-class PulsarDbTest : public st_app::StApp {
+class TestPulsarDbApp : public PulsarTestApp {
   public:
-    PulsarDbTest();
+    TestPulsarDbApp();
 
-    virtual ~PulsarDbTest() throw() {}
+    virtual ~TestPulsarDbApp() throw() {}
 
     /// Do all tests.
     virtual void run();
@@ -139,45 +125,33 @@ class PulsarDbTest : public st_app::StApp {
 
   private:
     typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
-
-    std::string m_data_dir;
-    std::string m_outref_dir;
     std::string m_in_file;
     std::string m_tpl_file;
     std::string m_creator;
     std::string m_author;
 
     /// Helper method for testMultipleEphModel, to test loading ephemerides from FITS database files.
-    void testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
-      bool load_original, bool expected_to_fail) const;
+    void testLoadingFits(const std::string & test_subject, PulsarDb & database, const std::string & tpl_file,
+      bool load_original, bool expected_to_fail);
 
     /// Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
-    void testLoadingText(const std::string & method_name, PulsarDb & database, const ExtInfoCont & ext_info_cont,
-      bool load_original, bool expected_to_fail) const;
+    void testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
+      bool load_original, bool expected_to_fail);
 
     /// Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
-    void checkEphRouting(const std::string & method_name, const PulsarDb & database,
-      const std::map<std::string, EphRoutingInfo> & expected_route_dict) const;
-
-    /// Helper method to compare an output FITS file with its reference file in data/outref/ directory.
-    void checkOutputFits(const std::string & method_name, const std::string & file_name) const;
+    void checkEphRouting(const std::string & test_subject, const PulsarDb & database,
+      const std::map<std::string, EphRoutingInfo> & expected_route_dict);
 };
 
-PulsarDbTest::PulsarDbTest(): m_data_dir(), m_outref_dir(), m_in_file(), m_tpl_file(), m_creator(), m_author() {
+TestPulsarDbApp::TestPulsarDbApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tpl_file(), m_creator(), m_author() {
   setName("test_pulsarDb");
   setVersion(s_cvs_id);
 
-  // Find data directory for this app.
-  m_data_dir = facilities::commonUtilities::getDataPath("pulsarDb");
-
-  // Set the directory name for output reference files.
-  m_outref_dir = facilities::commonUtilities::joinPath(m_data_dir, "outref");
-
   // Set test file name.
-  m_in_file = facilities::commonUtilities::joinPath(m_data_dir, "groD4-dc2v5.fits");
+  m_in_file = facilities::commonUtilities::joinPath(getDataPath(), "groD4-dc2v5.fits");
 
   // Set template file name.
-  m_tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "PulsarDb.tpl");
+  m_tpl_file = facilities::commonUtilities::joinPath(getDataPath(), "PulsarDb.tpl");
 
   // Set a default value for CREATOR header keyword.
   m_creator = getName() + " " + getVersion();
@@ -186,7 +160,7 @@ PulsarDbTest::PulsarDbTest(): m_data_dir(), m_outref_dir(), m_in_file(), m_tpl_f
   m_author = "Anonymous Tester";
 }
 
-void PulsarDbTest::run() {
+void TestPulsarDbApp::run() {
   // Test filtering of database entries.
   testNoOp();
   testExplicitName();
@@ -214,11 +188,11 @@ void PulsarDbTest::run() {
   testEphStatus();
 
   // Throw an exception when one or more errors occur.
-  if (0 != ErrorMsg::getStatus()) throw std::runtime_error("PulsarDbTest::run: test failed.");
+  reportStatus();
 }
 
-void PulsarDbTest::testNoOp() {
-  std::string method_name = "testNoOp";
+void TestPulsarDbApp::testNoOp() {
+  setMethod("testNoOp");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -227,7 +201,7 @@ void PulsarDbTest::testNoOp() {
   // Make sure the test data has expected size.
   int num_eph = database.getNumEph();
   if (1141 != num_eph)
-    ErrorMsg(method_name) << "there are initially " << num_eph << " ephemerides, not 1141" << std::endl;
+    err() << "there are initially " << num_eph << " ephemerides, not 1141" << std::endl;
 
   // Perform filtering which doesn't exclude any ephemerides.
   database.filterInterval(0., 1.e6);
@@ -235,7 +209,7 @@ void PulsarDbTest::testNoOp() {
   // Make sure the test data still has expected size.
   num_eph = database.getNumEph();
   if (1141 != num_eph)
-    ErrorMsg(method_name) << "PulsarDbTest::run, after no-op filterInterval there are " << num_eph << " ephemerides, not 1141" << std::endl;
+    err() << "After no-op filterInterval there are " << num_eph << " ephemerides, not 1141" << std::endl;
 
   // Another no-op is to use "any".
   database.filterName("aNy");
@@ -243,7 +217,7 @@ void PulsarDbTest::testNoOp() {
   // Make sure the test data still has expected size.
   num_eph = database.getNumEph();
   if (1141 != num_eph)
-    ErrorMsg(method_name) << "PulsarDbTest::run, after no-op filterName there are " << num_eph << " ephemerides, not 1141" << std::endl;
+    err() << "After no-op filterName there are " << num_eph << " ephemerides, not 1141" << std::endl;
 
   // Another no-op is to use a silly expression
   database.filterExpression("#row<1142");
@@ -251,7 +225,7 @@ void PulsarDbTest::testNoOp() {
   // Make sure the test data still has expected size.
   num_eph = database.getNumEph();
   if (1141 != num_eph)
-    ErrorMsg(method_name) << "PulsarDbTest::run, after no-op filter there are " << num_eph << " ephemerides, not 1141" << std::endl;
+    err() << "After no-op filter there are " << num_eph << " ephemerides, not 1141" << std::endl;
 
   // Another no-op is to use a blank string.
   database.filterExpression("\t  \t");
@@ -259,7 +233,7 @@ void PulsarDbTest::testNoOp() {
   // Make sure the test data still has expected size.
   num_eph = database.getNumEph();
   if (1141 != num_eph)
-    ErrorMsg(method_name) << "PulsarDbTest::run, after no-op filter there are " << num_eph << " ephemerides, not 1141" << std::endl;
+    err() << "After no-op filter there are " << num_eph << " ephemerides, not 1141" << std::endl;
 
   // Save the result for basis of comparing future test output.
   std::string outfile("noop_db.fits");
@@ -267,11 +241,11 @@ void PulsarDbTest::testNoOp() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testExplicitName() {
-  std::string method_name = "testExplicitName";
+void TestPulsarDbApp::testExplicitName() {
+  setMethod("testExplicitName");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -283,7 +257,7 @@ void PulsarDbTest::testExplicitName() {
   // Confirm that the correct number of ephemerides were found.
   int num_eph = database.getNumEph();
   if (2 != num_eph)
-    ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for PSR J0323+3944, not 2" << std::endl;
+    err() << "there are " << num_eph << " ephemerides for PSR J0323+3944, not 2" << std::endl;
 
   // Save the result for basis of comparing future test output.
   std::string outfile("j0323_db.fits");
@@ -291,11 +265,11 @@ void PulsarDbTest::testExplicitName() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testAlternateName() {
-  std::string method_name = "testAlternateName";
+void TestPulsarDbApp::testAlternateName() {
+  setMethod("testAlternateName");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -307,13 +281,13 @@ void PulsarDbTest::testAlternateName() {
   // Confirm that the correct number of ephemerides were found.
   int num_eph = database.getNumEph();
   if (36 != num_eph)
-    ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for the crab, not 36" << std::endl;
+    err() << "there are " << num_eph << " ephemerides for the crab, not 36" << std::endl;
 
   // Filter on the crab's PSR B name (no-op).
   database.filterName("PsR b0531+21");
   num_eph = database.getNumEph();
   if (36 != num_eph)
-    ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for the crab, not 36" << std::endl;
+    err() << "there are " << num_eph << " ephemerides for the crab, not 36" << std::endl;
 
   // Write this output to form basis for comparing future tests.
   std::string outfile("crab_db.fits");
@@ -321,11 +295,11 @@ void PulsarDbTest::testAlternateName() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testTime() {
-  std::string method_name = "testTime";
+void TestPulsarDbApp::testTime() {
+  setMethod("testTime");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -337,7 +311,7 @@ void PulsarDbTest::testTime() {
   // Make sure the test data has expected size.
   int num_eph = database.getNumEph();
   if (406 != num_eph)
-    ErrorMsg(method_name) << "after filterInterval(53400., 53800.) there are " << num_eph << " ephemerides, not 406" << std::endl;
+    err() << "after filterInterval(53400., 53800.) there are " << num_eph << " ephemerides, not 406" << std::endl;
 
   // Save the result for basis of comparing future test output.
   std::string outfile("time_db.fits");
@@ -345,11 +319,11 @@ void PulsarDbTest::testTime() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testBadInterval() {
-  std::string method_name = "testBadInterval";
+void TestPulsarDbApp::testBadInterval() {
+  setMethod("testBadInterval");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -358,15 +332,15 @@ void PulsarDbTest::testBadInterval() {
   try {
     // Invalid interval, with start time later than stop time.
     database.filterInterval(54500., 54499.);
-    ErrorMsg(method_name) << "filterInterval(" << 54500. << ", " <<
+    err() << "filterInterval(" << 54500. << ", " <<
       54499. << ") did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
 }
 
-void PulsarDbTest::testSolarEph() {
-  std::string method_name = "testSolarEph";
+void TestPulsarDbApp::testSolarEph() {
+  setMethod("testSolarEph");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -378,12 +352,12 @@ void PulsarDbTest::testSolarEph() {
   // Make sure the test data has expected size (SPIN_PARAMETERS extension).
   int num_eph = database.getNumEph();
   if (5 != num_eph)
-    ErrorMsg(method_name) << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " spin ephemerides, not 5" << std::endl;
+    err() << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " spin ephemerides, not 5" << std::endl;
 
   // Make sure the test data has expected size (ORBITAL_PARAMETERS extension).
   num_eph = database.getNumEph(false);
   if (4 != num_eph)
-    ErrorMsg(method_name) << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " orbital ephemerides, not 4" << std::endl;
+    err() << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " orbital ephemerides, not 4" << std::endl;
 
   // Save the result for basis of comparing future test output.
   std::string outfile("solar_db.fits");
@@ -391,11 +365,11 @@ void PulsarDbTest::testSolarEph() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testExpression() {
-  std::string method_name = "testExpression";
+void TestPulsarDbApp::testExpression() {
+  setMethod("testExpression");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -407,7 +381,7 @@ void PulsarDbTest::testExpression() {
   // Confirm that the correct number of ephemerides were found.
   int num_eph = database.getNumEph();
   if (837 != num_eph)
-    ErrorMsg(method_name) << "found " << num_eph << " ephemerides with F2 != 0., not 837" << std::endl;
+    err() << "found " << num_eph << " ephemerides with F2 != 0., not 837" << std::endl;
 
   // Test saving this for basis of comparing future test output.
   std::string outfile("f2not0_db.fits");
@@ -415,11 +389,11 @@ void PulsarDbTest::testExpression() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testAppend() {
-  std::string method_name = "testAppend";
+void TestPulsarDbApp::testAppend() {
+  setMethod("testAppend");
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
   database.load(m_in_file);
@@ -430,19 +404,20 @@ void PulsarDbTest::testAppend() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 }
 
-void PulsarDbTest::testTextPulsarDb() {
-  std::string method_name = "testTextPulsarDb";
+void TestPulsarDbApp::testTextPulsarDb() {
+  setMethod("testTextPulsarDb");
 
   // Ingest one of each type of table.
   PulsarDb database(m_tpl_file);
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_spin.txt"));
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_binary.txt"));
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_remark.txt"));
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_obs.txt"));
-  database.load(facilities::commonUtilities::joinPath(m_data_dir, "psrdb_name.txt"));
+  const std::string data_dir(getDataPath());
+  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_spin.txt"));
+  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_binary.txt"));
+  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_remark.txt"));
+  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_obs.txt"));
+  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_name.txt"));
 
   // Save all tables into one FITS file.
   std::string filename1("psrdb_all.fits");
@@ -450,7 +425,7 @@ void PulsarDbTest::testTextPulsarDb() {
   database.save(filename1, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, filename1);
+  checkOutputFits(filename1);
 
   // Copy an existing FITS database.
   PulsarDb fits_psrdb(m_tpl_file);
@@ -465,7 +440,7 @@ void PulsarDbTest::testTextPulsarDb() {
   fits_psrdb.save(filename2, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, filename2);
+  checkOutputFits(filename2);
 
   // Test the getter of history records.
   std::list<std::string> expected_command;
@@ -488,7 +463,7 @@ void PulsarDbTest::testTextPulsarDb() {
 
   // Compare the command history.
   if (result_command.size() != expected_command.size()) {
-    ErrorMsg(method_name) << "PulsarDb::getHistory returned " << result_command.size() << " commands, not " <<
+    err() << "PulsarDb::getHistory returned " << result_command.size() << " commands, not " <<
       expected_command.size() << " as expected." << std::endl;
   } else {
     std::list<std::string>::const_iterator exp_itor = expected_command.begin();
@@ -497,7 +472,7 @@ void PulsarDbTest::testTextPulsarDb() {
     for (; exp_itor != expected_command.end() && res_itor != result_command.end(); ++exp_itor, ++res_itor, ++line_index) {
       std::string res_string = res_itor->substr(0, exp_itor->size());
       if (res_string != *exp_itor) {
-        ErrorMsg(method_name) << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
+        err() << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
           "' as expected for command No. " << line_index + 1 << "." << std::endl;
       }
     }
@@ -505,7 +480,7 @@ void PulsarDbTest::testTextPulsarDb() {
 
   // Compare the ancestry records.
   if (result_ancestry.size() != expected_ancestry.size()) {
-    ErrorMsg(method_name) << "PulsarDb::getHistory returned " << result_ancestry.size() << " ancestry records, not " <<
+    err() << "PulsarDb::getHistory returned " << result_ancestry.size() << " ancestry records, not " <<
       expected_ancestry.size() << " as expected." << std::endl;
   } else {
     std::list<std::string>::const_iterator exp_itor = expected_ancestry.begin();
@@ -514,15 +489,15 @@ void PulsarDbTest::testTextPulsarDb() {
     for (; exp_itor != expected_ancestry.end() && res_itor != result_ancestry.end(); ++exp_itor, ++res_itor, ++line_index) {
       std::string res_string = res_itor->substr(0, exp_itor->size());
       if (res_string != *exp_itor) {
-        ErrorMsg(method_name) << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
+        err() << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
           "' as expected for ancestry record No. " << line_index + 1 << "." << std::endl;
       }
     }
   }
 }
 
-void PulsarDbTest::testFrequencyEph() {
-  std::string method_name = "testFrequencyEph";
+void TestPulsarDbApp::testFrequencyEph() {
+  setMethod("testFrequencyEph");
 
   AbsoluteTime since("TT", 51910, 0.);
   AbsoluteTime until("TT", 51910, 1.);
@@ -539,12 +514,12 @@ void PulsarDbTest::testFrequencyEph() {
   // Test pulse phase computations.
   double phase = f_eph.calcPulsePhase(pick_time);
   if (fabs(phase/.235 - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
+    err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
  
   // Test pulse phase computations, with a non-zero global phase offset.
   phase = f_eph.calcPulsePhase(pick_time, 0.1234);
   if (fabs(phase/.3584 - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
+    err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
  
   // Change ephemeris to produce a noticeable effect.
   epoch = AbsoluteTime("TT", 51910, 123.4567891234567);
@@ -556,37 +531,37 @@ void PulsarDbTest::testFrequencyEph() {
   double computed_ra = computed_ra_dec.first;
   double correct_ra = 22.;
   if (fabs(computed_ra - correct_ra) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcSkyPosition produced ra == " << computed_ra << " not " << correct_ra << std::endl;
+    err() << "FrequencyEph::calcSkyPosition produced ra == " << computed_ra << " not " << correct_ra << std::endl;
   }
   
   double computed_dec = computed_ra_dec.second;
   double correct_dec = 45.;
   if (fabs(computed_dec - correct_dec) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcSkyPosition produced dec == " << computed_dec << " not " << correct_dec << std::endl;
+    err() << "FrequencyEph::calcSkyPosition produced dec == " << computed_dec << " not " << correct_dec << std::endl;
   }
   
   // Test phase computation.
   double computed_phi0 = f_eph2.calcPulsePhase(ev_time);
   if (fabs(computed_phi0/.36 - 1.) > epsilon)
-    ErrorMsg(method_name) << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << " not .36" << std::endl;
+    err() << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << " not .36" << std::endl;
  
   // Test frequency computation.
   double computed_f0 = f_eph2.calcFrequency(ev_time, 0);
   double correct_f0 = 5.625e-2;
   if (fabs(computed_f0 - correct_f0) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << " not " << correct_f0 << std::endl;
+    err() << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << " not " << correct_f0 << std::endl;
   }
   
   double computed_f1 = f_eph2.calcFrequency(ev_time, 1);
   double correct_f1 = 11.25e-4;
   if (fabs(computed_f1 - correct_f1) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << " not " << correct_f1 << std::endl;
+    err() << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << " not " << correct_f1 << std::endl;
   }
   
   double computed_f2 = f_eph2.calcFrequency(ev_time, 2);
   double correct_f2 = 13.5e-6;
   if (fabs(computed_f2 - correct_f2) > epsilon) {
-    ErrorMsg(method_name) << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << " not " << correct_f2 << std::endl;
+    err() << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << " not " << correct_f2 << std::endl;
   }
 
   // The following test is no longer needed or possible because dt is private. It is implicitly
@@ -596,14 +571,14 @@ void PulsarDbTest::testFrequencyEph() {
   FrequencyEph f_eph4("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
   double delta_t = f_eph4.dt(ev_time);
   if (fabs(delta_t/20. - 1.) > epsilon)
-    ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+    err() << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 
   // Test PulsarEph::dt method with two arguments.
   glast_tdb.setValue(23.456789);
   AbsoluteTime time_origin(glast_tdb);
   delta_t = f_eph4.dt(ev_time, time_origin);
   if (fabs(delta_t/40. - 1.) > epsilon)
-    ErrorMsg(method_name) << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+    err() << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 #endif
 }
 
@@ -672,8 +647,8 @@ class SimplePeriodEph {
     double m_phi0, m_p0, m_p1, m_p2;
 };
 
-void PulsarDbTest::testPeriodEph() {
-  std::string method_name = "testPeriodEph";
+void TestPulsarDbApp::testPeriodEph() {
+  setMethod("testPeriodEph");
 
   AbsoluteTime since("TDB", 51910, 0.);
   AbsoluteTime until("TDB", 51910, 1.);
@@ -693,7 +668,7 @@ void PulsarDbTest::testPeriodEph() {
   ElapsedTime tolerance("TDB", Duration(0, nano_sec));
 
   if (!f_eph.getEpoch().equivalentTo(p_eph.getEpoch(), tolerance))
-    ErrorMsg(method_name) << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
+    err() << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
 
   char * field[] = { "ra", "dec", "phi0", "f0", "f1" , "f2" };
   std::pair<double, double> f_ra_dec = f_eph.calcSkyPosition(epoch);
@@ -705,10 +680,10 @@ void PulsarDbTest::testPeriodEph() {
   for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
     if (0. == value1[ii] || 0. == value2[ii]) {
       if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
-        ErrorMsg(method_name) << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] <<
+        err() << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] <<
           " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
     } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
-      ErrorMsg(method_name) << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] <<
+      err() << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] <<
         " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
     }
   }
@@ -736,7 +711,7 @@ void PulsarDbTest::testPeriodEph() {
     if (0. == result || 0. == expected) test_failed = fabs(result + expected) > std::numeric_limits<double>::epsilon();
     else test_failed = std::fabs(result / expected - 1.) > epsilon;
     if (test_failed) {
-      ErrorMsg(method_name) << "PeriodEph::calcFrequency(abs_time, " << order << ") returned " << result <<
+      err() << "PeriodEph::calcFrequency(abs_time, " << order << ") returned " << result <<
         ", not " << expected << " as expected" << std::endl;
     }
   }
@@ -751,7 +726,7 @@ void PulsarDbTest::testPeriodEph() {
   test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
     && fabs(result - expected - 1) > phase_tolerance);
   if (test_failed) {
-    ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
+    err() << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
       ", not close enough to " << expected << " as expected" << std::endl;
   }
 
@@ -761,7 +736,7 @@ void PulsarDbTest::testPeriodEph() {
   test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
     && fabs(result - expected - 1) > phase_tolerance);
   if (test_failed) {
-    ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
+    err() << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
       ", not close enough to " << expected << " as expected" << std::endl;
   }
 
@@ -785,7 +760,7 @@ void PulsarDbTest::testPeriodEph() {
     test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
       && fabs(result - expected - 1) > phase_tolerance);
     if (test_failed) {
-      ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time, 0.) returned " << result <<
+      err() << "PeriodEph::calcPulsePhase(abs_time, 0.) returned " << result <<
         ", not close enough to " << expected << " as expected" << std::endl;
     }
   }
@@ -804,7 +779,7 @@ void PulsarDbTest::testPeriodEph() {
     PeriodEph p_eph3("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
     try {
       p_eph3.calcPulsePhase(abs_time);
-      ErrorMsg(method_name) << "PeriodEph::calcPulsePhase(abs_time) did not throw an exception for p0=" << p0 <<
+      err() << "PeriodEph::calcPulsePhase(abs_time) did not throw an exception for p0=" << p0 <<
         ", p1=" << p1 << ", p2=" << p2 << std::endl;
     } catch (const std::exception & x) {
       // This is fine.
@@ -812,8 +787,8 @@ void PulsarDbTest::testPeriodEph() {
   }
 }
 
-void PulsarDbTest::testSimpleDdEph() {
-  std::string method_name = "testSimpleDdEph";
+void TestPulsarDbApp::testSimpleDdEph() {
+  setMethod("testSimpleDdEph");
 
   AbsoluteTime t0("TDB", 51910, 123.456789);
   SimpleDdEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
@@ -824,12 +799,12 @@ void PulsarDbTest::testSimpleDdEph() {
   // Test orbital phase computations.
   double phase = o_eph.calcOrbitalPhase(ev_time);
   if (fabs(phase/.099 - 1.) > epsilon)
-    ErrorMsg(method_name) << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
+    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = o_eph.calcOrbitalPhase(ev_time, 0.1234);
   if (fabs(phase/.2224 - 1.) > epsilon)
-    ErrorMsg(method_name) << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
+    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
 
   // The following test is no longer needed or possible because dt is private. It is implicitly
   // tested in phase (and other) calculations.
@@ -838,7 +813,7 @@ void PulsarDbTest::testSimpleDdEph() {
   SimpleDdEph o_eph2("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 5.);
   delta_t = o_eph2.dt(ev_time);
   if (fabs(delta_t/20. - 1.) > epsilon)
-    ErrorMsg(method_name) << "SimpleDdEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+    err() << "SimpleDdEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
 #endif
 
   // Test binary modulation and demodulation.
@@ -885,7 +860,7 @@ void PulsarDbTest::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph1.modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
@@ -896,14 +871,14 @@ void PulsarDbTest::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph1.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      ErrorMsg(method_name) << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
 } 
 
-void PulsarDbTest::testPdotCanceler() {
-  std::string method_name = "testPdotCanceler";
+void TestPulsarDbApp::testPdotCanceler() {
+  setMethod("testPdotCanceler");
 
   // Set test parameters.
   AbsoluteTime origin("TT", 51910, 123.4567891234567);
@@ -923,7 +898,7 @@ void PulsarDbTest::testPdotCanceler() {
 
   canceler1.cancelPdot(ev_time1);
   if (!correct_time.equivalentTo(ev_time1, tolerance)) {
-    ErrorMsg(method_name) << "After constructed from literal numbers, PdotCanceler::cancelPdot produced pdot-corrected time == "
+    err() << "After constructed from literal numbers, PdotCanceler::cancelPdot produced pdot-corrected time == "
       << ev_time1 << " not " << correct_time << std::endl;
   }
 
@@ -935,13 +910,13 @@ void PulsarDbTest::testPdotCanceler() {
 
   canceler2.cancelPdot(ev_time2);
   if (!correct_time.equivalentTo(ev_time2, tolerance)) {
-    ErrorMsg(method_name) << "After constructed from PulsarEph, PdotCanceler::cancelPdot produced pdot-corrected time == "
+    err() << "After constructed from PulsarEph, PdotCanceler::cancelPdot produced pdot-corrected time == "
       << ev_time2 << " not " << correct_time << std::endl;
   }
 }
 
-void PulsarDbTest::testChooser() {
-  std::string method_name = "testChooser";
+void TestPulsarDbApp::testChooser() {
+  setMethod("testChooser");
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -959,7 +934,7 @@ void PulsarDbTest::testChooser() {
   // Confirm that the correct number of ephemerides were found.
   int num_eph = database.getNumEph();
   if (8 != num_eph)
-    ErrorMsg(method_name) << "there are " << num_eph << " ephemerides for " << pulsar_name << ", not 8" << std::endl;
+    err() << "there are " << num_eph << " ephemerides for " << pulsar_name << ", not 8" << std::endl;
 
   // Write this output to form basis for comparing future tests.
   std::string outfile("chooser_db.fits");
@@ -967,7 +942,7 @@ void PulsarDbTest::testChooser() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(method_name, outfile);
+  checkOutputFits(outfile);
 
   AbsoluteTime pick_time("TDB", Mjd1(54012.5));
   AbsoluteTime expected_epoch("TDB", 0, 0.);
@@ -983,7 +958,7 @@ void PulsarDbTest::testChooser() {
   expected_epoch.set("TDB", Mjd1(54262.));
   ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
   if (!expected_epoch.equivalentTo(chosen->getEpoch(), tolerance))
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
+    err() << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
       ", not " << expected_epoch << " as expected." << std::endl;
 
   // Test one with tiebreaking.
@@ -991,14 +966,14 @@ void PulsarDbTest::testChooser() {
   chosen = &chooser.choose(eph_cont, pick_time);
   expected_epoch.set("TDB", Mjd1(53891.));
   if (!expected_epoch.equivalentTo(chosen->getEpoch(), tolerance))
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
+    err() << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
       ", not " << expected_epoch << " as expected." << std::endl;
 
   // Test one which is too early.
   pick_time.set("TDB", Mjd1(53544.5));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
+    err() << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
@@ -1007,7 +982,7 @@ void PulsarDbTest::testChooser() {
   pick_time.set("TDB", Mjd1(55579.5));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
+    err() << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
@@ -1017,14 +992,14 @@ void PulsarDbTest::testChooser() {
   try {
     chosen = &(SloppyEphChooser().choose(eph_cont, pick_time));
   } catch (const std::runtime_error &) {
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser did not find an ephemeris even with strict_validity == false" <<
+    err() << "for time " << pick_time << ", chooser did not find an ephemeris even with strict_validity == false" <<
       std::endl;
   }
 
   // Make a selection which will result in an empty container of ephemerides.
   database.filterName("Aunt Gertrude");
   if (0 != database.getNumEph()) {
-    ErrorMsg(method_name) << "What? Aunt Gertrude is a PULSAR???" << std::endl;
+    err() << "What? Aunt Gertrude is a PULSAR???" << std::endl;
   }
   
   database.getEph(eph_cont);
@@ -1033,7 +1008,7 @@ void PulsarDbTest::testChooser() {
   pick_time.set("TDB", Mjd1(55579.5));
   try {
     chosen = &chooser.choose(eph_cont, pick_time);
-    ErrorMsg(method_name) << "chooser chose ephemeris from an empty set of candidates." << std::endl;
+    err() << "chooser chose ephemeris from an empty set of candidates." << std::endl;
   } catch (const std::runtime_error &) {
     // This is to be expected.
   }
@@ -1056,11 +1031,11 @@ void PulsarDbTest::testChooser() {
     AbsoluteTime expected_t0("TDB", Mjd1(52060.84100795));
     ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
     if (!orbital_eph.t0().equivalentTo(expected_t0, tolerance)) {
-      ErrorMsg(method_name) << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
+      err() << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
         expected_t0 << std::endl;
     }
   } catch (const std::runtime_error & x) {
-    ErrorMsg(method_name) << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " <<
+    err() << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " <<
     x.what() << std::endl;
   }
 
@@ -1081,13 +1056,13 @@ void PulsarDbTest::testChooser() {
   pick_time = AbsoluteTime("TDB", origin, 120.);
   chosen = &strict_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time " << pick_time << " with tolerance .99, chooser chose eph with " <<
+    err() << "for time " << pick_time << " with tolerance .99, chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   strict_chooser = StrictEphChooser(ElapsedTime("TDB", Duration(0, 1.01)));
   chosen = &strict_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time " << pick_time << " with tolerance 1.01, chooser chose eph with " <<
+    err() << "for time " << pick_time << " with tolerance 1.01, chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   // Clean up.
@@ -1105,37 +1080,37 @@ void PulsarDbTest::testChooser() {
   pick_time.set("TDB", Mjd1(51905.));
   chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time before either ephemeris: " << pick_time << ", chooser chose eph with " <<
+    err() << "for time before either ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   pick_time.set("TDB", Mjd1(51915.));
   chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time during first ephemeris: " << pick_time << ", chooser chose eph with " <<
+    err() << "for time during first ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   pick_time.set("TDB", Mjd1(51921.));
   chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time shortly after first ephemeris: " << pick_time << ", chooser chose eph with " <<
+    err() << "for time shortly after first ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
   pick_time.set("TDB", Mjd1(51929.));
   chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time shortly before second ephemeris: " << pick_time << ", chooser chose eph with " <<
+    err() << "for time shortly before second ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   pick_time.set("TDB", Mjd1(51935.));
   chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time during second ephemeris: " << pick_time << ", chooser chose eph with " <<
+    err() << "for time during second ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   pick_time.set("TDB", Mjd1(51945.));
   chosen = &sloppy_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
-    ErrorMsg(method_name) << "for time after second ephemeris: " << pick_time << ", chooser chose eph with " <<
+    err() << "for time after second ephemeris: " << pick_time << ", chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
 
   // Test choice from prehistory, say 100000 years before origin of MJD.
@@ -1143,10 +1118,10 @@ void PulsarDbTest::testChooser() {
   try {
     chosen = &sloppy_chooser.choose(eph_cont, pick_time);
     if ("TT" != chosen->getSystem().getName())
-      ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << pick_time <<
+      err() << "for time a long time before the first ephemeris: " << pick_time <<
         ", chooser chose eph with " << chosen->getSystem().getName() << ", not TT as expected" << std::endl;
   } catch (const std::exception & x) {
-    ErrorMsg(method_name) << "for time a long time before the first ephemeris: " << pick_time <<
+    err() << "for time a long time before the first ephemeris: " << pick_time <<
       ", chooser threw exception: " << std::endl << x.what() << std::endl;
   }
 
@@ -1155,10 +1130,10 @@ void PulsarDbTest::testChooser() {
   try {
     chosen = &sloppy_chooser.choose(eph_cont, pick_time);
     if ("TDB" != chosen->getSystem().getName())
-      ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << pick_time <<
+      err() << "for time a long time after the second ephemeris: " << pick_time <<
         ", chooser chose eph with " << chosen->getSystem().getName() << ", not TDB as expected" << std::endl;
   } catch (const std::exception & x) {
-    ErrorMsg(method_name) << "for time a long time after the second ephemeris: " << pick_time <<
+    err() << "for time a long time after the second ephemeris: " << pick_time <<
       ", chooser threw exception: " << std::endl << x.what() << std::endl;
   }
 
@@ -1169,8 +1144,8 @@ void PulsarDbTest::testChooser() {
   orbital_cont.clear();
 }
 
-void PulsarDbTest::testEphComputer() {
-  std::string method_name = "testEphComputer";
+void TestPulsarDbApp::testEphComputer() {
+  setMethod("testEphComputer");
 
   // Set up pieces needed for computation.
   StrictEphChooser chooser;
@@ -1212,7 +1187,7 @@ void PulsarDbTest::testEphComputer() {
   computer.setPdotCancelParameter(eph.getSystem().getName(), eph.getEpoch(), fdot_ratio);
   computer.cancelPdot(gtdb);
   if (!expected_gtdb.equivalentTo(gtdb, tolerance))
-    ErrorMsg(method_name) << "Given time system name, time origin, and fdot ratios, " <<
+    err() << "Given time system name, time origin, and fdot ratios, " <<
       "EphComputer::cancelPdot returned absolute time " << gtdb << ", not " << expected_gtdb << ", as expected." << std::endl;
 
   // Test cancelPdot after setting pdot parameters in a different way, and compare result to previous result.
@@ -1220,7 +1195,7 @@ void PulsarDbTest::testEphComputer() {
   computer.setPdotCancelParameter(eph.getEpoch(), eph, 2);
   computer.cancelPdot(gtdb);
   if (!expected_gtdb.equivalentTo(gtdb, tolerance))
-    ErrorMsg(method_name) << "Given time origin, pulsar ephemeris, and maximum derivative order, " <<
+    err() << "Given time origin, pulsar ephemeris, and maximum derivative order, " <<
       "EphComputer::cancelPdot returned absolute time " << gtdb << ", not " << expected_gtdb << ", as expected." << std::endl;
 
   // Test cancelPdot after setting pdot parameters in yet another way, and compare result to previous result.
@@ -1228,28 +1203,28 @@ void PulsarDbTest::testEphComputer() {
   computer.setPdotCancelParameter(eph.getEpoch(), 2);
   computer.cancelPdot(gtdb);
   if (!expected_gtdb.equivalentTo(gtdb, tolerance))
-    ErrorMsg(method_name) << "Given time origin and maximum derivative order, " <<
+    err() << "Given time origin and maximum derivative order, " <<
       "EphComputer::cancelPdot returned absolute time " << gtdb << ", not " << expected_gtdb << ", as expected." << std::endl;
 
   // Test calcPulsePhase, by comparing it with PulsarEph::calcPulsePhase.
   double expected_pulse_phase = eph.calcPulsePhase(expected_gtdb);
   double pulse_phase = computer.calcPulsePhase(expected_gtdb);
   if (expected_pulse_phase != pulse_phase)
-    ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
+    err() << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
 
   // Test calcPulsePhase, by comparing it with PulsarEph::calcPulsePhase, with a non-zero global phase offset.
   expected_pulse_phase = eph.calcPulsePhase(expected_gtdb, 0.1234);
   pulse_phase = computer.calcPulsePhase(expected_gtdb, 0.1234);
   if (expected_pulse_phase != pulse_phase)
-    ErrorMsg(method_name) << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
+    err() << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
 
   // Test calcSkyPosition, by comparing it with FrequencyEph::calcSkyPosition.
   std::pair<double, double> expected_ra_dec = eph.calcSkyPosition(expected_gtdb);
   std::pair<double, double> ra_dec = computer.calcSkyPosition(expected_gtdb);
   if (expected_ra_dec != ra_dec)
-    ErrorMsg(method_name) << "EphComputer::calcSkyPosition returned (RA, Dec) = (" << ra_dec.first << ", " << ra_dec.second <<
+    err() << "EphComputer::calcSkyPosition returned (RA, Dec) = (" << ra_dec.first << ", " << ra_dec.second <<
       "), not (" << expected_ra_dec.first << ", " << expected_ra_dec.second << "), as expected." << std::endl;
 
   // Test binary modulation/demodulation.
@@ -1273,14 +1248,14 @@ void PulsarDbTest::testEphComputer() {
   double expected_orbital_phase = orbital_eph.calcOrbitalPhase(expected_gtdb);
   double orbital_phase = computer.calcOrbitalPhase(expected_gtdb);
   if (expected_orbital_phase != orbital_phase)
-    ErrorMsg(method_name) << "EphComputer::calcOrbitalPhase returned phase " << orbital_phase << ", not " <<
+    err() << "EphComputer::calcOrbitalPhase returned phase " << orbital_phase << ", not " <<
       expected_orbital_phase << ", as expected." << std::endl;
 
   // Test calcOrbitalPhase, by comparing it with OrbitalEph::calcOrbitalPhase, with a non-zero global phase offset.
   expected_orbital_phase = orbital_eph.calcOrbitalPhase(expected_gtdb, 0.1234);
   orbital_phase = computer.calcOrbitalPhase(expected_gtdb, 0.1234);
   if (expected_orbital_phase != orbital_phase)
-    ErrorMsg(method_name) << "EphComputer::calcOrbitalPhase returned phase " << orbital_phase << ", not " <<
+    err() << "EphComputer::calcOrbitalPhase returned phase " << orbital_phase << ", not " <<
       expected_orbital_phase << ", as expected." << std::endl;
 
   // Test binary modulation/demodulation.
@@ -1290,7 +1265,7 @@ void PulsarDbTest::testEphComputer() {
   // Then perform computations with the computer.
   computer.modulateBinary(gtdb);
   if (!expected_gtdb.equivalentTo(gtdb, tolerance))
-    ErrorMsg(method_name) << "After EphComputer::modulateBinary, absolute time was " << gtdb << ", not " <<
+    err() << "After EphComputer::modulateBinary, absolute time was " << gtdb << ", not " <<
       expected_gtdb << ", as expected." << std::endl;
 
   // First perform computations without the computer.
@@ -1300,7 +1275,7 @@ void PulsarDbTest::testEphComputer() {
   // Then perform computations with the computer.
   computer.demodulateBinary(gtdb);
   if (!expected_gtdb.equivalentTo(gtdb, tolerance))
-    ErrorMsg(method_name) << "After EphComputer::demodulateBinary, absolute time was " << gtdb << ", not " <<
+    err() << "After EphComputer::demodulateBinary, absolute time was " << gtdb << ", not " <<
       expected_gtdb << ", as expected." << std::endl;
 
   // Prepare for tests of loading methods.
@@ -1310,17 +1285,17 @@ void PulsarDbTest::testEphComputer() {
 
   // Test emptyness of the pulsar ephemeris container.
   if (0 != computer2.getNumPulsarEph())
-    ErrorMsg(method_name) << "After creating a new ephemeris computer, there were " << computer.getNumPulsarEph() <<
+    err() << "After creating a new ephemeris computer, there were " << computer.getNumPulsarEph() <<
       " pulsar ephemeri(de)s, not 0 as expected." << std::endl;
 
   // Test emptyness of the orbital ephemeris container.
   if (0 != computer2.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After creating a new ephemeris computer, there were " << computer.getNumOrbitalEph() <<
+    err() << "After creating a new ephemeris computer, there were " << computer.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 0 as expected." << std::endl;
 
   // Test emptyness of the ephemeris remark container.
   if (0 != computer2.getNumEphRemark())
-    ErrorMsg(method_name) << "After creating a new ephemeris computer, there were " << computer.getNumEphRemark() <<
+    err() << "After creating a new ephemeris computer, there were " << computer.getNumEphRemark() <<
       " ephemeris remark(s), not 0 as expected." << std::endl;
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
@@ -1331,15 +1306,15 @@ void PulsarDbTest::testEphComputer() {
   computer2.load(database3);
 
   if (1141 != computer2.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading all data from pulsar database, there were " << computer2.getNumPulsarEph() <<
+    err() << "After loading all data from pulsar database, there were " << computer2.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1141 as expected." << std::endl;
 
   if (19 != computer2.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading all data from pulsar database, there were " << computer2.getNumOrbitalEph() <<
+    err() << "After loading all data from pulsar database, there were " << computer2.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 19 as expected." << std::endl;
 
   if (12 != computer2.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading all data from pulsar database, there were " << computer2.getNumEphRemark() <<
+    err() << "After loading all data from pulsar database, there were " << computer2.getNumEphRemark() <<
       " ephemeris remark(s), not 12 as expected." << std::endl;
 
   // Create a new ephemeris computer for tests of type-specific loaders.
@@ -1349,45 +1324,45 @@ void PulsarDbTest::testEphComputer() {
   computer3.loadPulsarEph(database3);
 
   if (1141 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading spin pulsar ephemerides, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading spin pulsar ephemerides, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1141 as expected." << std::endl;
 
   if (0 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading spin pulsar ephemerides, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading spin pulsar ephemerides, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 0 as expected." << std::endl;
 
   if (0 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading spin pulsar ephemerides, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading spin pulsar ephemerides, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 0 as expected." << std::endl;
 
   // Load just the orbital parameters from this database.
   computer3.loadOrbitalEph(database3);
 
   if (1141 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading orbital ephemerides, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading orbital ephemerides, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1141 as expected." << std::endl;
 
   if (19 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading orbital ephemerides, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading orbital ephemerides, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 19 as expected." << std::endl;
 
   if (0 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading orbital ephemerides, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading orbital ephemerides, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 0 as expected." << std::endl;
 
   // Load just the ephemeris remarks from this database.
   computer3.loadEphRemark(database3);
 
   if (1141 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading ephemeris remarks, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading ephemeris remarks, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1141 as expected." << std::endl;
 
   if (19 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading ephemeris remarks, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading ephemeris remarks, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 19 as expected." << std::endl;
 
   if (12 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading ephemeris remarks, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading ephemeris remarks, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 12 as expected." << std::endl;
 
   // Prepare variables for loading single ephemeris entry.
@@ -1399,45 +1374,45 @@ void PulsarDbTest::testEphComputer() {
   computer3.loadPulsarEph(FrequencyEph("TDB", since, until, epoch, 0., 0., 0., 1., 0., 0.));
 
   if (1142 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading one spin pulsar ephemeris, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1142 as expected." << std::endl;
 
   if (19 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading one spin pulsar ephemeris, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 19 as expected." << std::endl;
 
   if (12 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading one spin pulsar ephemeris, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 12 as expected." << std::endl;
 
   // Load just one set of orbital parameters.
   computer3.loadOrbitalEph(SimpleDdEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., epoch, 0., 0., 0.));
 
   if (1142 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading one orbital ephemeris, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading one orbital ephemeris, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1142 as expected." << std::endl;
 
   if (20 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading one orbital ephemeris, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading one orbital ephemeris, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 20 as expected." << std::endl;
 
   if (12 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading one orbital ephemeris, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading one orbital ephemeris, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 12 as expected." << std::endl;
 
   // Load just one ephemeris remark.
   computer3.loadEphRemark(EphStatus(since, until, Remarked, "This is a remark."));
 
   if (1142 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading one ephemeris remark, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading one ephemeris remark, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1142 as expected." << std::endl;
 
   if (20 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading one ephemeris remark, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading one ephemeris remark, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 20 as expected." << std::endl;
 
   if (13 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading one ephemeris remark, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading one ephemeris remark, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 13 as expected." << std::endl;
 
   // Load non-remark ephemeris status, which should not be loaded.
@@ -1445,15 +1420,15 @@ void PulsarDbTest::testEphComputer() {
   computer3.loadEphRemark(EphStatus(since, until, Extrapolated, "Ephemeris gap"));
 
   if (1142 != computer3.getNumPulsarEph())
-    ErrorMsg(method_name) << "After loading non-remark ephemeris status, there were " << computer3.getNumPulsarEph() <<
+    err() << "After loading non-remark ephemeris status, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1142 as expected." << std::endl;
 
   if (20 != computer3.getNumOrbitalEph())
-    ErrorMsg(method_name) << "After loading non-remark ephemeris status, there were " << computer3.getNumOrbitalEph() <<
+    err() << "After loading non-remark ephemeris status, there were " << computer3.getNumOrbitalEph() <<
       " orbital ephemeri(de)s, not 20 as expected." << std::endl;
 
   if (13 != computer3.getNumEphRemark())
-    ErrorMsg(method_name) << "After loading non-remark ephemeris status, there were " << computer3.getNumEphRemark() <<
+    err() << "After loading non-remark ephemeris status, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 13 as expected." << std::endl;
 
   // Prepare variables for tests of examinePulsarEph method.
@@ -1473,28 +1448,28 @@ void PulsarDbTest::testEphComputer() {
   // Test of delegation of ephemeris gap detection.
   computer4.examinePulsarEph(abs_time_03, abs_time_05, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "EphComputer::examinePulsarEph method returned " << eph_status_cont.size() <<
+    err() << "EphComputer::examinePulsarEph method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when one ephemeris gap exists" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Unavailable;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "EphComputer::examinePulsarEph method returned an EphStatus object with status code " << result_code <<
+      err() << "EphComputer::examinePulsarEph method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when one ephemeris gap exists" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_03;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "EphComputer::examinePulsarEph method returned an EphStatus object effective since " << result_since <<
+      err() << "EphComputer::examinePulsarEph method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_04;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "EphComputer::examinePulsarEph method returned an EphStatus object effective until " << result_until <<
+      err() << "EphComputer::examinePulsarEph method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -1506,8 +1481,8 @@ void PulsarDbTest::testEphComputer() {
   orbital_eph_cont.clear();
 }
 
-void PulsarDbTest::testEphGetter() {
-  std::string method_name = "testEphGetter";
+void TestPulsarDbApp::testEphGetter() {
+  setMethod("testEphGetter");
 
   // Get access to database.
   PulsarDb database(m_tpl_file);
@@ -1520,21 +1495,21 @@ void PulsarDbTest::testEphGetter() {
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
   if (pulsar_eph_cont.size() != size_t(database.getNumEph()))
-    ErrorMsg(method_name) << "PulsarDb::getEph(PulsarEphCont &) got " << pulsar_eph_cont.size() << " ephemerides, not " <<
+    err() << "PulsarDb::getEph(PulsarEphCont &) got " << pulsar_eph_cont.size() << " ephemerides, not " <<
       database.getNumEph() << ", as expected." << std::endl;
 
   OrbitalEphCont orbital_eph_cont;
   database.getEph(orbital_eph_cont);
   size_t expected_orbital = 19;
   if (orbital_eph_cont.size() != expected_orbital) 
-    ErrorMsg(method_name) << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
+    err() << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
       expected_orbital << ", as expected." << std::endl;
 
   EphStatusCont eph_status_cont;
   database.getRemark(eph_status_cont);
   size_t expected_remark = 12;
   if (eph_status_cont.size() != expected_remark)
-    ErrorMsg(method_name) << "PulsarDb::getRemark(EphStatusCont &) got " << eph_status_cont.size() << " remarks, not " <<
+    err() << "PulsarDb::getRemark(EphStatusCont &) got " << eph_status_cont.size() << " remarks, not " <<
       expected_remark << ", as expected." << std::endl;
 
   // Clean up.
@@ -1673,42 +1648,43 @@ class BogusOrbitalEph: public BogusOrbitalEphBase {
     EphRoutingInfo m_routing_info;
 };
 
-void PulsarDbTest::testMultipleEphModel() {
-  std::string method_name = "testMultipleEphModel";
+void TestPulsarDbApp::testMultipleEphModel() {
+  setMethod("testMultipleEphModel");
 
   std::auto_ptr<PulsarDb> database(0);
+  const std::string data_dir(getDataPath());
 
   // Test rejection of a template file w/o EPHSTYLE in SPIN_PARAMETERS extension.
-  std::string tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "test_pulsarDb_badspin.tpl");
+  std::string tpl_file = facilities::commonUtilities::joinPath(data_dir, "test_pulsarDb_badspin.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
-    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
 
   // Test rejection of a template file w/o EPHSTYLE in ORBITAL_PARAMETERS extension.
-  tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "test_pulsarDb_badorbital.tpl");
+  tpl_file = facilities::commonUtilities::joinPath(data_dir, "test_pulsarDb_badorbital.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
-    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
 
   // Test successful creation of a PulsarDb object with a correct template.
-  tpl_file = facilities::commonUtilities::joinPath(m_data_dir, "test_pulsarDb.tpl");
+  tpl_file = facilities::commonUtilities::joinPath(data_dir, "test_pulsarDb.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
   } catch (const std::exception & x) {
-    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\") threw exception: " << std::endl <<
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") threw exception: " << std::endl <<
       x.what() << std::endl;
   }
 
   // Test rejection of a wrong target extension for spin ephemerides in the original format.
   try {
     database.reset(new PulsarDb(tpl_file, 3, 4));
-    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 3, 4) did not throw an exception" << std::endl;
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 3, 4) did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
@@ -1716,7 +1692,7 @@ void PulsarDbTest::testMultipleEphModel() {
   // Test rejection of a wrong target extension for orbital ephemerides in the original format.
   try {
     database.reset(new PulsarDb(tpl_file, 2, 1));
-    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 1) did not throw an exception" << std::endl;
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 1) did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
@@ -1726,7 +1702,7 @@ void PulsarDbTest::testMultipleEphModel() {
   try {
     database.reset(new PulsarDb(tpl_file, 2, 4));
   } catch (const std::exception & x) {
-    ErrorMsg(method_name) << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 4) threw exception: " << std::endl <<
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 4) threw exception: " << std::endl <<
       x.what() << std::endl;
   }
 
@@ -1734,7 +1710,7 @@ void PulsarDbTest::testMultipleEphModel() {
   database.reset(new PulsarDb(tpl_file));
   bool load_original = false;
   bool expected_to_fail = false;
-  testLoadingFits(method_name + " (loading current FITS)", *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits("current FITS", *database, tpl_file, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the current format.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -1746,19 +1722,19 @@ void PulsarDbTest::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
-  checkEphRouting(method_name + " (checking current FITS)", *database, expected_route_dict);
+  checkEphRouting("current FITS", *database, expected_route_dict);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
   database.reset(new PulsarDb(tpl_file));
   load_original = true;
   expected_to_fail = true;
-  testLoadingFits(method_name + " (loading original FITS)", *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits("original FITS", *database, tpl_file, load_original, expected_to_fail);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
   database.reset(new PulsarDb(tpl_file, 1, 3));
   load_original = true;
   expected_to_fail = false;
-  testLoadingFits(method_name + " (loading original FITS)", *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits("original FITS", *database, tpl_file, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the original format.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -1770,7 +1746,7 @@ void PulsarDbTest::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
-  checkEphRouting(method_name + " (checking original FITS)", *database, expected_route_dict);
+  checkEphRouting("original FITS", *database, expected_route_dict);
 
   // Prepare information of extensions for loading ephemerides from text database files.
   std::list<std::pair<std::string, std::string> > ext_info_cont;
@@ -1783,7 +1759,7 @@ void PulsarDbTest::testMultipleEphModel() {
   database.reset(new PulsarDb(tpl_file));
   load_original = false;
   expected_to_fail = false;
-  testLoadingText(method_name + " (loading current TEXT)", *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText("current TEXT", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from text database files.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -1795,19 +1771,19 @@ void PulsarDbTest::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
-  checkEphRouting(method_name + " (checking current TEXT)", *database, expected_route_dict);
+  checkEphRouting("current TEXT", *database, expected_route_dict);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
   database.reset(new PulsarDb(tpl_file));
   load_original = true;
   expected_to_fail = true;
-  testLoadingText(method_name + " (loading original TEXT)", *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText("original TEXT", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
   database.reset(new PulsarDb(tpl_file, 1, 3));
   load_original = true;
   expected_to_fail = false;
-  testLoadingText(method_name + " (loading original TEXT)", *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText("original TEXT", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the original format.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -1819,11 +1795,11 @@ void PulsarDbTest::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
-  checkEphRouting(method_name + " (checking original TEXT)", *database, expected_route_dict);
+  checkEphRouting("original TEXT", *database, expected_route_dict);
 }
 
-void PulsarDbTest::testEphStatus() {
-  std::string method_name = "testEphStatus";
+void TestPulsarDbApp::testEphStatus() {
+  setMethod("testEphStatus");
 
   // Prepare variables for tests of getters.
   AbsoluteTime expected_since("TDB", 51910, 0.);
@@ -1838,28 +1814,28 @@ void PulsarDbTest::testEphStatus() {
   ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nano-second.
   AbsoluteTime result_since = eph_status.getEffectiveSince();
   if (!result_since.equivalentTo(expected_since, tolerance)) {
-    ErrorMsg(method_name) << "EphStatus::getEffectiveSince() returned " << result_since << ", not " << expected_since <<
+    err() << "EphStatus::getEffectiveSince() returned " << result_since << ", not " << expected_since <<
       " as expected." << std::endl;
   }
 
   // Test getter for "effective until" time.
   AbsoluteTime result_until = eph_status.getEffectiveUntil();
   if (!result_until.equivalentTo(expected_until, tolerance)) {
-    ErrorMsg(method_name) << "EphStatus::getEffectiveUntil() returned " << result_until << ", not " << expected_until <<
+    err() << "EphStatus::getEffectiveUntil() returned " << result_until << ", not " << expected_until <<
       " as expected." << std::endl;
   }
 
   // Test getter for status code.
   EphStatusCodeType result_code = eph_status.getStatusCode();
   if (result_code != expected_code) {
-    ErrorMsg(method_name) << "EphStatus::getStatusCode() returned " << result_code << ", not " << expected_code <<
+    err() << "EphStatus::getStatusCode() returned " << result_code << ", not " << expected_code <<
       " as expected." << std::endl;
   }
 
   // Test getter for description.
   std::string result_description = eph_status.getDescription();
   if (result_description != expected_description) {
-    ErrorMsg(method_name) << "EphStatus::getDescription() returned \"" << result_description << "\", not \"" << expected_description <<
+    err() << "EphStatus::getDescription() returned \"" << result_description << "\", not \"" << expected_description <<
       "\" as expected." << std::endl;
   }
 
@@ -1873,25 +1849,25 @@ void PulsarDbTest::testEphStatus() {
   bool result_effective = eph_status.effectiveBetween(abs_time_earlier, abs_time_during);
   bool expected_effective = true;
   if (result_effective != expected_effective) {
-    ErrorMsg(method_name) << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_during << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_during << ") returned " <<
       result_effective << ", not " << expected_effective << " as expected." << std::endl;
   }
   result_effective = eph_status.effectiveBetween(abs_time_during, abs_time_later);
   expected_effective = true;
   if (result_effective != expected_effective) {
-    ErrorMsg(method_name) << "EphStatus::effectiveBetween(" << abs_time_during << ", " << abs_time_later << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_during << ", " << abs_time_later << ") returned " <<
       result_effective << ", not " << expected_effective << " as expected." << std::endl;
   }
   result_effective = eph_status.effectiveBetween(abs_time_later, abs_time_latest);
   expected_effective = false;
   if (result_effective != expected_effective) {
-    ErrorMsg(method_name) << "EphStatus::effectiveBetween(" << abs_time_later << ", " << abs_time_latest << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_later << ", " << abs_time_latest << ") returned " <<
       result_effective << ", not " << expected_effective << " as expected." << std::endl;
   }
   result_effective = eph_status.effectiveBetween(abs_time_earlier, abs_time_later);
   expected_effective = true;
   if (result_effective != expected_effective) {
-    ErrorMsg(method_name) << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_later << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_later << ") returned " <<
       result_effective << ", not " << expected_effective << " as expected." << std::endl;
   }
 
@@ -1900,7 +1876,7 @@ void PulsarDbTest::testEphStatus() {
   result_effective = eph_status_never.effectiveBetween(abs_time_earlier, abs_time_later);
   expected_effective = false;
   if (result_effective != expected_effective) {
-    ErrorMsg(method_name) << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_later << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_later << ") returned " <<
       result_effective << " for never-effective ephemeris status, not " << expected_effective << " as expected." << std::endl;
   }
 
@@ -1908,31 +1884,31 @@ void PulsarDbTest::testEphStatus() {
   std::string result_report = EphStatus(expected_since, expected_until, Unavailable, "").report("TDB", MjdFmt);
   std::string expected_report = "No ephemeris available since 51910 MJD (TDB) until 51911 MJD (TDB)";
   if (result_report != expected_report) {
-    ErrorMsg(method_name) << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
+    err() << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
       expected_report << "\", expected." << std::endl;
   }
   result_report = EphStatus(expected_since, expected_until, Unavailable, "No data").report("TDB", MjdFmt);
   expected_report = "No ephemeris available (No data) since 51910 MJD (TDB) until 51911 MJD (TDB)";
   if (result_report != expected_report) {
-    ErrorMsg(method_name) << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
+    err() << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
       expected_report << "\", expected." << std::endl;
   }
   result_report = EphStatus(expected_since, expected_until, Extrapolated, "").report("TDB", MjdFmt);
   expected_report = "Ephemeris to be extrapolated since 51910 MJD (TDB) until 51911 MJD (TDB)";
   if (result_report != expected_report) {
-    ErrorMsg(method_name) << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
+    err() << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
       expected_report << "\", expected." << std::endl;
   }
   result_report = EphStatus(expected_since, expected_until, Extrapolated, "Ephemeris gap").report("TDB", MjdFmt);
   expected_report = "Ephemeris to be extrapolated (Ephemeris gap) since 51910 MJD (TDB) until 51911 MJD (TDB)";
   if (result_report != expected_report) {
-    ErrorMsg(method_name) << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
+    err() << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
       expected_report << "\", expected." << std::endl;
   }
   result_report = EphStatus(expected_since, expected_until, Remarked, "Test remark entry").report("TDB", MjdFmt);
   expected_report = "Remarked \"Test remark entry\" since 51910 MJD (TDB) until 51911 MJD (TDB)";
   if (result_report != expected_report) {
-    ErrorMsg(method_name) << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
+    err() << "EphStatus::report(\"TDB\", MjdFmt) returned \"" << result_report << "\", not \"" <<
       expected_report << "\", expected." << std::endl;
   }
 
@@ -1955,13 +1931,13 @@ void PulsarDbTest::testEphStatus() {
   // Test for detection of ephemeris unavailability by a strict chooser.
   strict_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when no pulsar ephemeris is passed" << std::endl;
   } else {
     const EphStatusCodeType & result_code = eph_status_cont.begin()->getStatusCode();
     EphStatusCodeType expected_code = Unavailable;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when no pulsar ephemeris is passed" << std::endl;
     }
   }
@@ -1969,13 +1945,13 @@ void PulsarDbTest::testEphStatus() {
   // Test for detection of ephemeris unavailability by a sloppy chooser.
   sloppy_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when no pulsar ephemeris is passed" << std::endl;
   } else {
     const EphStatusCodeType & result_code = eph_status_cont.begin()->getStatusCode();
     EphStatusCodeType expected_code = Unavailable;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when no pulsar ephemeris is passed" << std::endl;
     }
   }
@@ -1991,28 +1967,28 @@ void PulsarDbTest::testEphStatus() {
   // Test detection of ephemeris gaps by a strict chooser.
   strict_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when one pulsar ephemeris gap exists" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Unavailable;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when one pulsar ephemeris gap exists" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_06;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object effective since " << result_since <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_07;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object effective until " << result_until <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -2020,28 +1996,28 @@ void PulsarDbTest::testEphStatus() {
   // Test detection of ephemeris gaps by a sloppy chooser.
   sloppy_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when one pulsar ephemeris gap exists" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Extrapolated;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when one pulsar ephemeris gap exists" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_06;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object effective since " << result_since <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_07;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object effective until " << result_until <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -2056,28 +2032,28 @@ void PulsarDbTest::testEphStatus() {
   // Test detection of ephemeris gaps at the beginning of the time interval of interest, by a strict chooser.
   strict_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when no pulsar ephemeris is available at the beginning of the given time interval" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Unavailable;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when no pulsar ephemeris is available at the beginning of the given time interval" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_04;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object effective since " << result_since <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_07;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object effective until " << result_until <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -2085,28 +2061,28 @@ void PulsarDbTest::testEphStatus() {
   // Test detection of ephemeris gaps at the beginning of the time interval of interest, by a sloppy chooser.
   sloppy_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when no pulsar ephemeris is available at the beginning of the given time interval" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Extrapolated;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when no pulsar ephemeris is available at the beginning of the given time interval" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_04;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object effective since " << result_since <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_07;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object effective until " << result_until <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -2121,28 +2097,28 @@ void PulsarDbTest::testEphStatus() {
   // Test detection of ephemeris gaps at the end of the time interval of interest, by a strict chooser.
   strict_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "StrictEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when no pulsar ephemeris is available at the end of the given time interval" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Unavailable;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when no pulsar ephemeris is available at the end of the given time interval" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_06;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object effective since " << result_since <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_08;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "StrictEphChooser::examine method returned an EphStatus object effective until " << result_until <<
+      err() << "StrictEphChooser::examine method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -2150,28 +2126,28 @@ void PulsarDbTest::testEphStatus() {
   // Test detection of ephemeris gaps at the end of the time interval of interest, by a sloppy chooser.
   sloppy_chooser.examine(pulsar_eph_cont, abs_time_04, abs_time_08, eph_status_cont);
   if (1 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
+    err() << "SloppyEphChooser::examine method returned " << eph_status_cont.size() <<
       " ephemeris status, not 1, when no pulsar ephemeris is available at the end of the given time interval" << std::endl;
   } else {
     const EphStatus & eph_status = *(eph_status_cont.begin());
     const EphStatusCodeType & result_code = eph_status.getStatusCode();
     EphStatusCodeType expected_code = Extrapolated;
     if (result_code != expected_code) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object with status code " << result_code <<
         ", not " << expected_code << ", when no pulsar ephemeris is available at the end of the given time interval" << std::endl;
     }
 
     const AbsoluteTime & result_since = eph_status.getEffectiveSince();
     const AbsoluteTime & expected_since = abs_time_06;
     if (!result_since.equivalentTo(expected_since, tolerance)) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object effective since " << result_since <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object effective since " << result_since <<
         ", not " << expected_since << " as expected" << std::endl;
     }
 
     const AbsoluteTime & result_until = eph_status.getEffectiveUntil();
     const AbsoluteTime & expected_until = abs_time_08;
     if (!result_until.equivalentTo(expected_until, tolerance)) {
-      ErrorMsg(method_name) << "SloppyEphChooser::examine method returned an EphStatus object effective until " << result_until <<
+      err() << "SloppyEphChooser::examine method returned an EphStatus object effective until " << result_until <<
         ", not " << expected_until << " as expected" << std::endl;
     }
   }
@@ -2190,7 +2166,7 @@ void PulsarDbTest::testEphStatus() {
   // Test selection of ephemeris remarks by an ephemeris computer.
   eph_computer.getEphRemark(abs_time_04, abs_time_08, eph_status_cont);
   if (3 != eph_status_cont.size()) {
-    ErrorMsg(method_name) << "EphComputer::getEphRemark method returned " << eph_status_cont.size() <<
+    err() << "EphComputer::getEphRemark method returned " << eph_status_cont.size() <<
       " ephemeris remark(s), not 3 as expected" << std::endl;
   } else {
     EphStatusCont::iterator status_itor = eph_status_cont.begin();
@@ -2205,7 +2181,7 @@ void PulsarDbTest::testEphStatus() {
     const EphStatusCodeType & result_code_3 = eph_status_3.getStatusCode();
     EphStatusCodeType expected_code = Remarked;
     if (result_code_1 != expected_code || result_code_2 != expected_code || result_code_3 != expected_code) {
-      ErrorMsg(method_name) << "EphComputer::getEphRemark method returned three EphStatus objects with status codes of " <<
+      err() << "EphComputer::getEphRemark method returned three EphStatus objects with status codes of " <<
         result_code_1 << ", " << result_code_2 << ", and " << result_code_3 << ", respectively, not all " << expected_code <<
         " as expected" << std::endl;
     }
@@ -2218,7 +2194,7 @@ void PulsarDbTest::testEphStatus() {
     const AbsoluteTime & expected_since_3 = abs_time_07;
     if (!result_since_1.equivalentTo(expected_since_1, tolerance) || !result_since_2.equivalentTo(expected_since_2, tolerance) ||
         !result_since_3.equivalentTo(expected_since_3, tolerance)) {
-      ErrorMsg(method_name) << "EphComputer::getEphRemark method returned three EphStatus objects effective since " <<
+      err() << "EphComputer::getEphRemark method returned three EphStatus objects effective since " <<
         result_since_1 << ", " << result_since_2 << ", and " << result_since_3 << ", respectively, not " << expected_since_1 <<
         ", " << expected_since_2 << ", and " << expected_since_3 << " as expected" << std::endl;
     }
@@ -2231,15 +2207,15 @@ void PulsarDbTest::testEphStatus() {
     const AbsoluteTime & expected_until_3 = abs_time_09;
     if (!result_until_1.equivalentTo(expected_until_1, tolerance) || !result_until_2.equivalentTo(expected_until_2, tolerance) ||
         !result_until_3.equivalentTo(expected_until_3, tolerance)) {
-      ErrorMsg(method_name) << "EphComputer::getEphRemark method returned three EphStatus objects effective until " <<
+      err() << "EphComputer::getEphRemark method returned three EphStatus objects effective until " <<
         result_until_1 << ", " << result_until_2 << ", and " << result_until_3 << ", respectively, not " << expected_until_1 <<
         ", " << expected_until_2 << ", and " << expected_until_3 << " as expected" << std::endl;
     }
   }
 }
 
-void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & database, const std::string & tpl_file,
-  bool load_original, bool expected_to_fail) const {
+void TestPulsarDbApp::testLoadingFits(const std::string & test_subject, PulsarDb & database, const std::string & tpl_file,
+  bool load_original, bool expected_to_fail) {
   std::string filename = "testdb.fits";
 
   // Create a FITS file to load ephemerides from.
@@ -2268,7 +2244,7 @@ void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & d
     // Load the text database.
     database.load(filename);
     if (expected_to_fail) {
-      ErrorMsg(method_name) << "PulsarDb::load method did not throw exception for FITS file \"" << filename <<
+      err() << "Loading " << test_subject << ": PulsarDb::load method did not throw exception for FITS file \"" << filename <<
         "\"" << std::endl;
     } else {
       // This is fine.
@@ -2277,14 +2253,14 @@ void PulsarDbTest::testLoadingFits(const std::string & method_name, PulsarDb & d
     if (expected_to_fail) {
       // This is fine.
     } else {
-      ErrorMsg(method_name) << "PulsarDb::load method threw exception for FITS file \"" << filename <<
+      err() << "Loading " << test_subject << ": PulsarDb::load method threw exception for FITS file \"" << filename <<
         "\": " << std::endl << x.what() << std::endl;
     }
   }
 }
 
-void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & database, const ExtInfoCont & ext_info_cont,
-  bool load_original, bool expected_to_fail) const {
+void TestPulsarDbApp::testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
+  bool load_original, bool expected_to_fail) {
   std::string filename("testdb.txt");
 
   int int_value = 1;
@@ -2308,7 +2284,7 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
     try {
       database.load(filename);
       if (expected_to_fail) {
-        ErrorMsg(method_name) << "PulsarDb::load method did not throw exception for text file \"" << filename <<
+        err() << "Loading " << test_subject << ": PulsarDb::load method did not throw exception for text file \"" << filename <<
           "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", STRING_VALUE=" << string_value <<
           ": " << std::endl;
       } else {
@@ -2318,7 +2294,7 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
       if (expected_to_fail) {
         // This is fine.
       } else {
-        ErrorMsg(method_name) << "PulsarDb::load method threw exception for text file \"" << filename <<
+        err() << "Loading " << test_subject << ": PulsarDb::load method threw exception for text file \"" << filename <<
           "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", STRING_VALUE=" << string_value <<
           ": " << std::endl << x.what() << std::endl;
       }
@@ -2329,8 +2305,8 @@ void PulsarDbTest::testLoadingText(const std::string & method_name, PulsarDb & d
   }
 }
 
-void PulsarDbTest::checkEphRouting(const std::string & method_name, const PulsarDb & database,
-  const std::map<std::string, EphRoutingInfo> & expected_route_dict) const {
+void TestPulsarDbApp::checkEphRouting(const std::string & test_subject, const PulsarDb & database,
+  const std::map<std::string, EphRoutingInfo> & expected_route_dict) {
   // Get pulsar and orbital ephemerides out of database.
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
@@ -2342,7 +2318,7 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
   for (PulsarEphCont::const_iterator itor = pulsar_eph_cont.begin(); itor != pulsar_eph_cont.end(); ++itor) {
     BogusPulsarEphBase * eph(dynamic_cast<BogusPulsarEphBase *>(*itor));
     if (eph == 0) {
-      ErrorMsg(method_name) << "PulsarDb::getEph(PulsarEphCont &) returned an object of an unregistered class" <<
+      err() << "Checking " << test_subject << ": PulsarDb::getEph(PulsarEphCont &) returned an object of an unregistered class" <<
         std::endl;
       continue;
     } else {
@@ -2352,7 +2328,7 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
   for (OrbitalEphCont::const_iterator itor = orbital_eph_cont.begin(); itor != orbital_eph_cont.end(); ++itor) {
     BogusOrbitalEphBase * eph(dynamic_cast<BogusOrbitalEphBase *>(*itor));
     if (eph == 0) {
-      ErrorMsg(method_name) << "PulsarDb::getEph(OrbitalEphCont &) returned an object of an unregistered class" <<
+      err() << "Checking " << test_subject << ": PulsarDb::getEph(OrbitalEphCont &) returned an object of an unregistered class" <<
         std::endl;
       continue;
     } else {
@@ -2370,10 +2346,10 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
       if (string_value == returned_itor->getStringValue()) ++num_eph_found;
     }
     if (num_eph_found == 0) {
-      ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+      err() << "Checking " << test_subject << ": Ephemeris with value \"" << string_value <<
         "\" was not returned by PulsarDb::getEph method" << std::endl;
     } else if (num_eph_found > 1) {
-      ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+      err() << "Checking " << test_subject << ": Ephemeris with value \"" << string_value <<
         "\" was returned more than once by PulsarDb::getEph method" << std::endl;
     }
   }
@@ -2389,14 +2365,14 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
     // Look for this entry in the expected routing information dictionary.
     std::map<std::string, EphRoutingInfo>::const_iterator expected_itor = expected_route_dict.find(string_value);
     if (expected_itor == expected_route_dict.end()) {
-      ErrorMsg(method_name) << "PulsarDb::getEph method returned an unexpected ephemeris data: " <<
+      err() << "Checking " << test_subject << ": PulsarDb::getEph method returned an unexpected ephemeris data: " <<
         string_value << std::endl;
 
     } else {
       // Check an extension value of this ephemeris entry.
       std::string expected_ext_name = expected_itor->second.getExtensionName();
       if (ext_name != expected_ext_name) {
-      ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+      err() << "Checking " << test_subject << ": Ephemeris with value \"" << string_value <<
         "\" was loaded into an extension with EXTNAME=" << ext_name << ", not " << expected_ext_name <<
         " as expected" << std::endl;
       }
@@ -2404,7 +2380,7 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
       // Check EPHSTYLE keyword value of an extension that this ephemeris entry was coming through.
       std::string expected_model_name = expected_itor->second.getModelName();
       if (model_name != expected_model_name) {
-        ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+        err() << "Checking " << test_subject << ": Ephemeris with value \"" << string_value <<
           "\" was loaded into an extension with EPHSTYLE=" << model_name << ", not " << expected_model_name <<
           " as expected" << std::endl;
       }
@@ -2412,7 +2388,7 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
       // Check a class name that this ephemeris entry was passed to.
       std::string expected_class_name = expected_itor->second.getClassName();
       if (class_name != expected_class_name) {
-        ErrorMsg(method_name) << "Ephemeris with value \"" << string_value <<
+        err() << "Checking " << test_subject << ": Ephemeris with value \"" << string_value <<
           "\" was passed to " << class_name << " class, not " << expected_class_name <<
           " as expected" << std::endl;
       }
@@ -2426,82 +2402,4 @@ void PulsarDbTest::checkEphRouting(const std::string & method_name, const Pulsar
   orbital_eph_cont.clear();
 }
 
-void PulsarDbTest::checkOutputFits(const std::string & method_name, const std::string & file_name) const {
-  // Set reference file name.
-  std::string out_file(file_name);
-  std::string ref_file = facilities::commonUtilities::joinPath(m_outref_dir, out_file);
-
-  // Check file existence.
-  if (!tip::IFileSvc::instance().fileExists(out_file)) {
-    ErrorMsg(method_name) << "File to check does not exist: " << out_file << std::endl;
-  }
-  if (!tip::IFileSvc::instance().fileExists(ref_file)) {
-    ErrorMsg(method_name) << "Reference file for " << out_file << " does not exist: " << ref_file << std::endl;
-  }
-
-  // Get fille summaries for FITS files to compare.
-  tip::FileSummary out_summary;
-  tip::IFileSvc::instance().getFileSummary(out_file, out_summary);
-  tip::FileSummary ref_summary;
-  tip::IFileSvc::instance().getFileSummary(ref_file, ref_summary);
-
-  // Compare the number of extensions.
-  tip::FileSummary::size_type out_size = out_summary.size();
-  tip::FileSummary::size_type ref_size = ref_summary.size();
-  if (out_size != ref_summary.size()) {
-    ErrorMsg(method_name) << "File " << out_file << " has " << out_size << " HDU('s), not " << ref_size << " as in reference file " <<
-      ref_file << std::endl;
-  } else {
-    int num_extension = ref_size;
-
-    // Compare each extension.
-    for (int ext_number = 0; ext_number < num_extension; ++ext_number) {
-      // Open extensions by extension number.
-      std::ostringstream os;
-      os << ext_number;
-      std::string ext_name = os.str();
-      std::auto_ptr<tip::Extension> out_ext(tip::IFileSvc::instance().editExtension(out_file, ext_name));
-      tip::Header & out_header(out_ext->getHeader());
-      std::auto_ptr<tip::Extension> ref_ext(tip::IFileSvc::instance().editExtension(ref_file, ext_name));
-      tip::Header & ref_header(ref_ext->getHeader());
-
-      // Compare the sizes of header.
-      tip::Header::KeySeq_t::size_type out_num_key = out_header.getNumKeywords();
-      tip::Header::KeySeq_t::size_type ref_num_key = ref_header.getNumKeywords();
-      if (out_num_key != ref_num_key) {
-        ErrorMsg(method_name) << "HDU " << ext_name << " of file " << out_file << " has " << out_num_key <<
-          " header keyword(s), not " << ref_num_key << " as in reference file " << ref_file << std::endl;
-
-      } else {
-        // Compare each header keyword.
-        int card_number = 1;
-        tip::Header::Iterator out_itor = out_header.begin();
-        tip::Header::Iterator ref_itor = ref_header.begin();
-        for (; out_itor != out_header.end() && ref_itor != ref_header.end(); ++out_itor, ++ref_itor, ++card_number) {
-          // Compare keyword name.
-          std::string out_name = out_itor->getName();
-          std::string ref_name = ref_itor->getName();
-          if (out_name != ref_name) {
-            ErrorMsg(method_name) << "Card " << card_number << " of HDU " << ext_name << " in file " << out_file <<
-              " is header keyword " << out_name << ", not " << ref_name << " as in reference file " << ref_file << std::endl;
-          }
-
-          // Compare keyword value.
-          // Note: Do not compare CHECKSUM, CREATOR, DATE, HISTORY, COMMENT, a blank name.
-          if (!ref_name.empty() && "CHECKSUM" != ref_name && "CREATOR" != ref_name && "DATE" != ref_name && "HISTORY" != ref_name &&
-              "COMMENT" != ref_name) {
-            std::string out_value = out_itor->getValue();
-            std::string ref_value = ref_itor->getValue();
-            if (out_value != ref_value) {
-              ErrorMsg(method_name) << "Header keyword " << out_name << " on card " << card_number << " of HDU " << ext_name <<
-                " in file " << out_file << " has value " << out_value << ", not " << ref_value << " as in reference file " <<
-                ref_file << std::endl;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-st_app::StAppFactory<PulsarDbTest> g_factory("test_pulsarDb");
+st_app::StAppFactory<TestPulsarDbApp> g_factory("test_pulsarDb");
