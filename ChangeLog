@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Oct 12 16:08:50 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Introduce a common base class for a unit test of a pulsar tool package.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Oct 11 19:20:06 PDT 2008
 pulsarDb/src/test
 
