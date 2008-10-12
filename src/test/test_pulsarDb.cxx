@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -15,6 +16,8 @@
 #include <vector>
 
 #include "facilities/commonUtilities.h"
+
+#include "hoops/hoops.h"
 
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
