@@ -1,0 +1,33 @@
+gtephem: --------------------------
+gtephem: Spin ephemeris chosen from database is:
+gtephem:      Valid Since : 51671 MJD (TDB)
+gtephem:      Valid Until : 52532 MJD (TDB)
+gtephem:            Epoch = 52101 MJD (TDB)
+gtephem:               RA = 278.571942
+gtephem:              Dec = -0.180347
+gtephem:             Phi0 = 0.122490413504243
+gtephem:               F0 = 1.9195541400136
+gtephem:               F1 = -5.27493e-17
+gtephem:               F2 = 0
+gtephem: Orbital ephemeris chosen from database is:
+gtephem:               PB = 156479.326538
+gtephem:            PBDOT = 0
+gtephem:               A1 = 0.7233272
+gtephem:             XDOT = 0
+gtephem:              ECC = 0.0001612
+gtephem:           ECCDOT = 0
+gtephem:               OM = 0
+gtephem:            OMDOT = 0
+gtephem:               T0 = 52060.84100795
+gtephem:            GAMMA = 0
+gtephem:        SHAPIRO_R = 0
+gtephem:        SHAPIRO_S = 0
+gtephem: --------------------------
+gtephem: Spin ephemeris estimated is:
+gtephem:              Reference Time : 54369.519261388888889 MJD (TDB)
+gtephem:    Right Ascension (degree) : 278.571942
+gtephem:        Declination (degree) : -0.180347
+gtephem:                 Pulse Phase : 0.756609678268433
+gtephem:        Pulse Frequency (Hz) : 1.91955412967473
+gtephem:       1st Derivative (Hz/s) : -5.27493e-17
+gtephem:     2nd Derivative (Hz/s/s) : 0

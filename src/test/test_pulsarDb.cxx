@@ -21,6 +21,7 @@
 
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
+#include "pulsarDb/EphComputerApp.h"
 #include "pulsarDb/EphStatus.h"
 #include "pulsarDb/FrequencyEph.h"
 #include "pulsarDb/OrbitalEph.h"
@@ -34,6 +35,8 @@
 #include "st_app/AppParGroup.h"
 #include "st_app/StApp.h"
 #include "st_app/StAppFactory.h"
+
+#include "st_stream/Stream.h"
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/ElapsedTime.h"
@@ -57,14 +60,14 @@ using namespace pulsarDb;
 
 class EphRoutingInfo;
 
-/** \class TestPulsarDbApp
+/** \class PulsarDbTestApp
     \brief Test application.
 */
-class TestPulsarDbApp : public PulsarTestApp {
+class PulsarDbTestApp : public PulsarTestApp {
   public:
-    TestPulsarDbApp();
+    PulsarDbTestApp();
 
-    virtual ~TestPulsarDbApp() throw() {}
+    virtual ~PulsarDbTestApp() throw() {}
 
     /// Do all tests.
     virtual void run();
@@ -123,6 +126,12 @@ class TestPulsarDbApp : public PulsarTestApp {
     /// Test EphStatus class.
     virtual void testEphStatus();
 
+    /// Test PulsarDbApp class.
+    virtual void testPulsarDbApp();
+
+    /// Test EphComputerApp class.
+    virtual void testEphComputerApp();
+
   private:
     typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
     std::string m_in_file;
@@ -143,7 +152,7 @@ class TestPulsarDbApp : public PulsarTestApp {
       const std::map<std::string, EphRoutingInfo> & expected_route_dict);
 };
 
-TestPulsarDbApp::TestPulsarDbApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tpl_file(), m_creator(), m_author() {
+PulsarDbTestApp::PulsarDbTestApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tpl_file(), m_creator(), m_author() {
   setName("test_pulsarDb");
   setVersion(s_cvs_id);
 
@@ -160,7 +169,7 @@ TestPulsarDbApp::TestPulsarDbApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tp
   m_author = "Anonymous Tester";
 }
 
-void TestPulsarDbApp::run() {
+void PulsarDbTestApp::run() {
   // Test filtering of database entries.
   testNoOp();
   testExplicitName();
@@ -187,11 +196,15 @@ void TestPulsarDbApp::run() {
   testMultipleEphModel();
   testEphStatus();
 
+  // Test applications.
+  testPulsarDbApp();
+  testEphComputerApp();
+
   // Throw an exception when one or more errors occur.
   reportStatus();
 }
 
-void TestPulsarDbApp::testNoOp() {
+void PulsarDbTestApp::testNoOp() {
   setMethod("testNoOp");
 
   // Create pulsar database object.
@@ -244,7 +257,7 @@ void TestPulsarDbApp::testNoOp() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testExplicitName() {
+void PulsarDbTestApp::testExplicitName() {
   setMethod("testExplicitName");
 
   // Create pulsar database object.
@@ -268,7 +281,7 @@ void TestPulsarDbApp::testExplicitName() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testAlternateName() {
+void PulsarDbTestApp::testAlternateName() {
   setMethod("testAlternateName");
 
   // Create pulsar database object.
@@ -298,7 +311,7 @@ void TestPulsarDbApp::testAlternateName() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testTime() {
+void PulsarDbTestApp::testTime() {
   setMethod("testTime");
 
   // Create pulsar database object.
@@ -322,7 +335,7 @@ void TestPulsarDbApp::testTime() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testBadInterval() {
+void PulsarDbTestApp::testBadInterval() {
   setMethod("testBadInterval");
 
   // Create pulsar database object.
@@ -339,7 +352,7 @@ void TestPulsarDbApp::testBadInterval() {
   }
 }
 
-void TestPulsarDbApp::testSolarEph() {
+void PulsarDbTestApp::testSolarEph() {
   setMethod("testSolarEph");
 
   // Create pulsar database object.
@@ -368,7 +381,7 @@ void TestPulsarDbApp::testSolarEph() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testExpression() {
+void PulsarDbTestApp::testExpression() {
   setMethod("testExpression");
 
   // Create pulsar database object.
@@ -392,7 +405,7 @@ void TestPulsarDbApp::testExpression() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testAppend() {
+void PulsarDbTestApp::testAppend() {
   setMethod("testAppend");
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
@@ -407,7 +420,7 @@ void TestPulsarDbApp::testAppend() {
   checkOutputFits(outfile);
 }
 
-void TestPulsarDbApp::testTextPulsarDb() {
+void PulsarDbTestApp::testTextPulsarDb() {
   setMethod("testTextPulsarDb");
 
   // Ingest one of each type of table.
@@ -496,7 +509,7 @@ void TestPulsarDbApp::testTextPulsarDb() {
   }
 }
 
-void TestPulsarDbApp::testFrequencyEph() {
+void PulsarDbTestApp::testFrequencyEph() {
   setMethod("testFrequencyEph");
 
   AbsoluteTime since("TT", 51910, 0.);
@@ -647,7 +660,7 @@ class SimplePeriodEph {
     double m_phi0, m_p0, m_p1, m_p2;
 };
 
-void TestPulsarDbApp::testPeriodEph() {
+void PulsarDbTestApp::testPeriodEph() {
   setMethod("testPeriodEph");
 
   AbsoluteTime since("TDB", 51910, 0.);
@@ -787,7 +800,7 @@ void TestPulsarDbApp::testPeriodEph() {
   }
 }
 
-void TestPulsarDbApp::testSimpleDdEph() {
+void PulsarDbTestApp::testSimpleDdEph() {
   setMethod("testSimpleDdEph");
 
   AbsoluteTime t0("TDB", 51910, 123.456789);
@@ -877,7 +890,7 @@ void TestPulsarDbApp::testSimpleDdEph() {
   }
 } 
 
-void TestPulsarDbApp::testPdotCanceler() {
+void PulsarDbTestApp::testPdotCanceler() {
   setMethod("testPdotCanceler");
 
   // Set test parameters.
@@ -915,7 +928,7 @@ void TestPulsarDbApp::testPdotCanceler() {
   }
 }
 
-void TestPulsarDbApp::testChooser() {
+void PulsarDbTestApp::testChooser() {
   setMethod("testChooser");
 
   // Create pulsar database object.
@@ -1144,7 +1157,7 @@ void TestPulsarDbApp::testChooser() {
   orbital_cont.clear();
 }
 
-void TestPulsarDbApp::testEphComputer() {
+void PulsarDbTestApp::testEphComputer() {
   setMethod("testEphComputer");
 
   // Set up pieces needed for computation.
@@ -1481,7 +1494,7 @@ void TestPulsarDbApp::testEphComputer() {
   orbital_eph_cont.clear();
 }
 
-void TestPulsarDbApp::testEphGetter() {
+void PulsarDbTestApp::testEphGetter() {
   setMethod("testEphGetter");
 
   // Get access to database.
@@ -1648,7 +1661,7 @@ class BogusOrbitalEph: public BogusOrbitalEphBase {
     EphRoutingInfo m_routing_info;
 };
 
-void TestPulsarDbApp::testMultipleEphModel() {
+void PulsarDbTestApp::testMultipleEphModel() {
   setMethod("testMultipleEphModel");
 
   std::auto_ptr<PulsarDb> database(0);
@@ -1798,7 +1811,7 @@ void TestPulsarDbApp::testMultipleEphModel() {
   checkEphRouting("original TEXT", *database, expected_route_dict);
 }
 
-void TestPulsarDbApp::testEphStatus() {
+void PulsarDbTestApp::testEphStatus() {
   setMethod("testEphStatus");
 
   // Prepare variables for tests of getters.
@@ -2214,7 +2227,319 @@ void TestPulsarDbApp::testEphStatus() {
   }
 }
 
-void TestPulsarDbApp::testLoadingFits(const std::string & test_subject, PulsarDb & database, const std::string & tpl_file,
+void PulsarDbTestApp::testPulsarDbApp() {
+  setMethod("testPulsarDbApp");
+
+  // Prepare variables to create application objects.
+  std::auto_ptr<st_app::StApp> app_ptr(0);
+  std::list<std::string> test_name_cont;
+  test_name_cont.push_back("par1");
+  test_name_cont.push_back("par2");
+  test_name_cont.push_back("par3");
+  test_name_cont.push_back("par4");
+  test_name_cont.push_back("par5");
+
+  // Loop over parameter sets.
+  for (std::list<std::string>::const_iterator test_itor = test_name_cont.begin(); test_itor != test_name_cont.end(); ++test_itor) {
+    const std::string & test_name = *test_itor;
+    std::string out_file(getMethod() + "_" + test_name + ".fits");
+
+    // Create and setup an application object.
+    app_ptr.reset(new PulsarDbApp());
+    app_ptr->setName("gtpulsardb");
+    st_app::AppParGroup & pars(app_ptr->getParGroup());
+    pars.setPromptMode(false);
+
+    // Set default parameters.
+    pars["psrdbfile"] = "";
+    pars["outfile"] = "";
+    pars["filter"] = "NONE";
+    pars["psrname"] = "ANY";
+    pars["tstart"] = 0.;
+    pars["tstop"] = 1.e5;
+    pars["solareph"] = "JPL DE405";
+    pars["author"] = "Anonymous User";
+    pars["leapsecfile"] = "DEFAULT";
+    pars["chatter"] = 2;
+    pars["clobber"] = "yes";
+    pars["debug"] = "no";
+    pars["gui"] = "no";
+    pars["mode"] = "ql";
+
+    // Set test-specific parameters.
+    if ("par1" == test_name) {
+      // Test filtering by official pulsar name.
+      pars["psrdbfile"] = m_in_file;
+      pars["outfile"] = out_file;
+      pars["filter"] = "NAME";
+      pars["psrname"] = "PSR J0323+3944";
+      pars["author"] = "Anonymous Tester";
+
+    } else if ("par2" == test_name) {
+      // Test filtering by pulsar's alternative name.
+      pars["psrdbfile"] = m_in_file;
+      pars["outfile"] = out_file;
+      pars["filter"] = "NAME";
+      pars["psrname"] = "Crab";
+      pars["author"] = "Anonymous Tester";
+
+    } else if ("par3" == test_name) {
+      // Test filtering by time interval.
+      pars["psrdbfile"] = m_in_file;
+      pars["outfile"] = out_file;
+      pars["filter"] = "TIME";
+      pars["tstart"] = 53400.;
+      pars["tstop"] = 53800.;
+      pars["author"] = "Anonymous Tester";
+
+    } else if ("par4" == test_name) {
+      // Test filtering by time interval.
+      pars["psrdbfile"] = m_in_file;
+      pars["outfile"] = out_file;
+      pars["filter"] = "SOLAREPH";
+      pars["solareph"] = "JPL DE405";
+      pars["author"] = "Anonymous Tester";
+
+    } else if ("par5" == test_name) {
+      // Test creation of pulsar database file.
+      std::string file_name("psrdb_all.txt");
+      remove(file_name.c_str());
+      std::ofstream ofs(file_name.c_str());
+      const std::string data_dir(getDataPath());
+      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_spin.txt") << std::endl;
+      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_binary.txt") << std::endl;
+      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_remark.txt") << std::endl;
+      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_obs.txt") << std::endl;
+      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_name.txt") << std::endl;
+      ofs.close();
+      pars["psrdbfile"] = "@" + file_name;
+      pars["outfile"] = out_file;
+      pars["filter"] = "NONE";
+      pars["author"] = "Anonymous Tester";
+
+    } else {
+      // Skip this iteration.
+      continue;
+    }
+
+    // Test the application.
+    testApplication(*app_ptr, "", out_file);
+  }
+}
+
+void PulsarDbTestApp::testEphComputerApp() {
+  setMethod("testEphComputerApp");
+
+  // Prepare variables to create application objects.
+  std::auto_ptr<st_app::StApp> app_ptr(0);
+  const std::string app_name("gtephem");
+  std::list<std::string> test_name_cont;
+  test_name_cont.push_back("par1");
+  test_name_cont.push_back("par2");
+  test_name_cont.push_back("par3");
+  test_name_cont.push_back("par4");
+  test_name_cont.push_back("par5");
+  test_name_cont.push_back("par6");
+  test_name_cont.push_back("par7");
+  test_name_cont.push_back("par8");
+  test_name_cont.push_back("par9");
+  test_name_cont.push_back("par10");
+  test_name_cont.push_back("par11");
+  test_name_cont.push_back("par12");
+  test_name_cont.push_back("par13");
+  test_name_cont.push_back("par14");
+  test_name_cont.push_back("par15");
+
+  // Prepare files to be used in the tests.
+  std::string master_pulsardb = facilities::commonUtilities::joinPath(getDataPath(), "master_pulsardb_v2.fits");
+  std::string leap_file = facilities::commonUtilities::joinPath(getDataPath(), "gtephem_leapsec.fits");
+  std::string remark_file = getMethod() + "_remark.txt";
+  std::ofstream ofs_remark(remark_file.c_str());
+  ofs_remark << "REMARKS" << std::endl;
+  ofs_remark << "PSRNAME EFFECTIVE_SINCE EFFECTIVE_UNTIL DESCRIPTION OBSERVER_CODE" << std::endl;
+  ofs_remark << "\"PSR J0540-6919\" 54356 54357 \"Test remark entry No. 1\" P" << std::endl;
+  ofs_remark << "\"PSR J0540-6919\" 54368 54369 \"Test remark entry No. 2\" P" << std::endl;
+  ofs_remark << "\"PSR J0540-6919\" 54369 54370 \"Test remark entry No. 3\" P" << std::endl;
+  ofs_remark << "\"PSR J0540-6919\" 54357 54370 \"Test remark entry No. 4\" P" << std::endl;
+  ofs_remark.close();
+  std::string summary_file = getMethod() + "_summary.txt";
+  std::ofstream ofs_summary(summary_file.c_str());
+  ofs_summary << master_pulsardb << std::endl;
+  ofs_summary << remark_file << std::endl;
+  ofs_summary << facilities::commonUtilities::joinPath(getDataPath(), "psrdb_user.fits") << std::endl;
+
+  // Loop over parameter sets.
+  for (std::list<std::string>::const_iterator test_itor = test_name_cont.begin(); test_itor != test_name_cont.end(); ++test_itor) {
+    const std::string & test_name = *test_itor;
+
+    // Create and setup an application object.
+    app_ptr.reset(new EphComputerApp());
+    st_app::AppParGroup & pars(app_ptr->getParGroup(app_name));
+    pars.setPromptMode(false);
+
+    // Set default parameters.
+    pars["psrdbfile"] = "";
+    pars["psrname"] = "ANY";
+    pars["reftime"] = 0.;
+    pars["timeformat"] = "MJD";
+    pars["timesys"] = "TDB";
+    pars["strict"] = "no";
+    pars["solareph"] = "JPL DE405";
+    pars["matchsolareph"] = "NONE";
+    pars["leapsecfile"] = "DEFAULT";
+    pars["reportephstatus"] = "yes";
+    pars["chatter"] = 2;
+    pars["clobber"] = "yes";
+    pars["debug"] = "no";
+    pars["gui"] = "no";
+    pars["mode"] = "ql";
+
+    // Set test-specific parameters.
+    if ("par1" == test_name) {
+      // Test standard computation.
+      pars["psrdbfile"] = master_pulsardb;
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212380785.922;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+
+    } else if ("par2" == test_name) {
+      // Test strict=yes.
+      pars["psrdbfile"] = master_pulsardb;
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212502400.0;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+      pars["strict"] = "yes";
+
+    } else if ("par3" == test_name) {
+      // Test chatter=3.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212502400.0;
+      pars["psrdbfile"] = master_pulsardb;
+      pars["chatter"] = 3;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+
+    } else if ("par4" == test_name) {
+      // Test an orbital ephemeris.
+      pars["psrname"] = "PSR J1834-0010";
+      pars["reftime"] = 212502400.0;
+      pars["psrdbfile"] = master_pulsardb;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+
+    } else if ("par5" == test_name) {
+      // Test chatter=3 with an orbital ephemeris.
+      pars["psrname"] = "PSR J1834-0010";
+      pars["reftime"] = 212502400.0;
+      pars["psrdbfile"] = master_pulsardb;
+      pars["chatter"] = 3;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+
+    } else if ("par6" == test_name) {
+      // Test a reference time during a leap second.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 157766336.0;
+      pars["psrdbfile"] = master_pulsardb;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "UTC";
+      pars["leapsecfile"] = leap_file;
+
+    } else if ("par7" == test_name) {
+      // Create a reference output for testing ISO 8601 format.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = "54368.11169104166666666666"; // Need to be a string to preserve precision.
+      pars["psrdbfile"] = master_pulsardb;
+      pars["strict"] = "yes";
+      pars["timeformat"] = "MJD";
+      pars["timesys"] = "TDB";
+ 
+    } else if ("par8" == test_name) {
+      // Test ISO 8601 calendar format.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = "2007-09-25T02:40:50.106";
+      pars["psrdbfile"] = master_pulsardb;
+      pars["strict"] = "yes";
+      pars["timeformat"] = "ISO";
+      pars["timesys"] = "TDB";
+ 
+    } else if ("par9" == test_name) {
+      // Test ISO 8601 week-day format.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = "2007-W39-2T02:40:50.106";
+      pars["psrdbfile"] = master_pulsardb;
+      pars["strict"] = "yes";
+      pars["timeformat"] = "ISO";
+      pars["timesys"] = "TDB";
+ 
+    } else if ("par10" == test_name) {
+      // Test ISO 8601 ordinal-day format.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = "2007-268T02:40:50.106";
+      pars["psrdbfile"] = master_pulsardb;
+      pars["strict"] = "yes";
+      pars["timeformat"] = "ISO";
+      pars["timesys"] = "TDB";
+ 
+    } else if ("par11" == test_name) {
+      // Test detection of unknown pulsar name.
+      pars["psrname"] = "No Such Pulsar";
+      pars["reftime"] = 212380785.922;
+      pars["psrdbfile"] = master_pulsardb;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+
+    } else if ("par12" == test_name) {
+      // Test reporting no ephemeris available.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212380785.922;
+      pars["psrdbfile"] = master_pulsardb;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+      pars["solareph"] = "JPL DE405";
+      pars["matchsolareph"] = "ALL";
+
+    } else if ("par13" == test_name) {
+      // Test reporting of ephemeris remarks.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212380785.922;
+      pars["psrdbfile"] = "@" + summary_file;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+
+    } else if ("par14" == test_name) {
+      // Test no reporting of ephemeris remarks with reportephstatus=no.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212380785.922;
+      pars["psrdbfile"] = "@" + summary_file;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+      pars["reportephstatus"] = "no";
+
+    } else if ("par15" == test_name) {
+      // Test reporting of ephemeris database creation history.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212380785.922;
+      pars["chatter"] = 4;
+      pars["psrdbfile"] = "@" + summary_file;
+      pars["timeformat"] = "GLAST";
+      pars["timesys"] = "TDB";
+      pars["reportephstatus"] = "no";
+
+    } else {
+      // Skip this iteration.
+      continue;
+    }
+
+    // Test the application.
+    std::string log_file(getMethod() + "_" + test_name + ".log");
+    testApplication(*app_ptr, log_file, "", true);
+  }
+}
+
+void PulsarDbTestApp::testLoadingFits(const std::string & test_subject, PulsarDb & database, const std::string & tpl_file,
   bool load_original, bool expected_to_fail) {
   std::string filename = "testdb.fits";
 
@@ -2259,7 +2584,7 @@ void TestPulsarDbApp::testLoadingFits(const std::string & test_subject, PulsarDb
   }
 }
 
-void TestPulsarDbApp::testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
+void PulsarDbTestApp::testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
   bool load_original, bool expected_to_fail) {
   std::string filename("testdb.txt");
 
@@ -2305,7 +2630,7 @@ void TestPulsarDbApp::testLoadingText(const std::string & test_subject, PulsarDb
   }
 }
 
-void TestPulsarDbApp::checkEphRouting(const std::string & test_subject, const PulsarDb & database,
+void PulsarDbTestApp::checkEphRouting(const std::string & test_subject, const PulsarDb & database,
   const std::map<std::string, EphRoutingInfo> & expected_route_dict) {
   // Get pulsar and orbital ephemerides out of database.
   PulsarEphCont pulsar_eph_cont;
@@ -2402,4 +2727,4 @@ void TestPulsarDbApp::checkEphRouting(const std::string & test_subject, const Pu
   orbital_eph_cont.clear();
 }
 
-st_app::StAppFactory<TestPulsarDbApp> g_factory("test_pulsarDb");
+st_app::StAppFactory<PulsarDbTestApp> g_factory("test_pulsarDb");
