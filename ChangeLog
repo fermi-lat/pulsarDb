@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Oct 13 18:15:42 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of application classes. Change unit test application class name.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Oct 12 16:08:50 PDT 2008
 pulsarDb/src/test
 
