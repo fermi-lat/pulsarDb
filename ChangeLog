@@ -1,5 +1,23 @@
 ------------------------------------------------------------
 User: hirayama  Mon Oct 13 18:15:42 PDT 2008
+pulsarDb/data/outref
+
+Added Files:
+	testEphComputerApp_par10.log testEphComputerApp_par11.log 
+	testEphComputerApp_par12.log testEphComputerApp_par13.log 
+	testEphComputerApp_par14.log testEphComputerApp_par15.log 
+	testEphComputerApp_par1.log testEphComputerApp_par2.log 
+	testEphComputerApp_par3.log testEphComputerApp_par4.log 
+	testEphComputerApp_par5.log testEphComputerApp_par6.log 
+	testEphComputerApp_par7.log testEphComputerApp_par8.log 
+	testEphComputerApp_par9.log testPulsarDbApp_par1.fits 
+	testPulsarDbApp_par2.fits testPulsarDbApp_par3.fits 
+	testPulsarDbApp_par4.fits testPulsarDbApp_par5.fits 
+Log Message:
+Add tests of application classes. Change unit test application class name.
+    *
+------------------------------------------------------------
+User: hirayama  Mon Oct 13 18:15:42 PDT 2008
 pulsarDb/data
 
 Added Files:
