@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Mon Oct 13 18:15:42 PDT 2008
+pulsarDb/data
+
+Added Files:
+	gtephem_leapsec.fits master_pulsardb_v2.fits psrdb_user.fits 
+Log Message:
+Add tests of application classes. Change unit test application class name.
+    *
+------------------------------------------------------------
+User: hirayama  Mon Oct 13 18:15:42 PDT 2008
 pulsarDb/src/test
 
 Modified Files:
