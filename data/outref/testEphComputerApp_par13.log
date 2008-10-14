@@ -1,0 +1,11 @@
+gtephem: Spin ephemeris estimated is:
+gtephem:              Reference Time : 54368.111691041666562 MJD (TDB)
+gtephem:    Right Ascension (degree) : 85.0482
+gtephem:        Declination (degree) : -69.3319
+gtephem:                 Pulse Phase : 0.0265340469777584
+gtephem:        Pulse Frequency (Hz) : 19.8340168715569
+gtephem:       1st Derivative (Hz/s) : -1.88699458167048e-10
+gtephem:     2nd Derivative (Hz/s/s) : 0
+gtephem: WARNING: The following pulsar ephemeris status are reported.
+[1] Remarked "Test remark entry No. 2" since 54368 MJD (TDB) until 54369 MJD (TDB)
+[2] Remarked "Test remark entry No. 4" since 54357 MJD (TDB) until 54370 MJD (TDB)

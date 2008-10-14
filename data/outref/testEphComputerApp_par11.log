@@ -1,0 +1,4 @@
+Caught St13runtime_error at the top level: No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.
+1143 spin ephemeri(de)s in the database.
+0 spin ephemeri(de)s for pulsar "No Such Pulsar" in the database.
+(Solar system ephemeris in spin parameters was not requested to match "JPL DE405" given by user.)

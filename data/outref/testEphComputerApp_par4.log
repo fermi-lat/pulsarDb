@@ -1,0 +1,8 @@
+gtephem: Spin ephemeris estimated is:
+gtephem:              Reference Time : 54369.519261388888889 MJD (TDB)
+gtephem:    Right Ascension (degree) : 278.571942
+gtephem:        Declination (degree) : -0.180347
+gtephem:                 Pulse Phase : 0.756609678268433
+gtephem:        Pulse Frequency (Hz) : 1.91955412967473
+gtephem:       1st Derivative (Hz/s) : -5.27493e-17
+gtephem:     2nd Derivative (Hz/s/s) : 0
