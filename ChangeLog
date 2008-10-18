@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 17 19:00:08 PDT 2008
+pulsarDb/data
+
+Added Files:
+	gtephem_remark.txt 
+Log Message:
+Create a permanent copy of a text pulsar database for REMARS extension.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct 17 18:59:25 PDT 2008
 pulsarDb/data/outref
 
