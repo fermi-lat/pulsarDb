@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 17 18:59:25 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par15.log 
+Log Message:
+Create a permanent copy of a text pulsar database for REMARS extension.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct 17 18:58:45 PDT 2008
 pulsarDb/src/test
 
