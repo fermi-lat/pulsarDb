@@ -1,7 +1,7 @@
 gtephem: ==========================
 gtephem: Pulsar ephemerides are loaded and/or filtered as follows:
 gtephem:    Load FITSDB AUTHOR='Masaharu Hirayama' DATE='2006-03-24T15:40:16'
-gtephem:    Load TEXTDB REMARKS FILENAME='testEphComputerApp_remark.txt'
+gtephem:    Load TEXTDB REMARKS FILENAME='gtephem_remark.txt'
 gtephem:    Load FITSDB AUTHOR='Anonymous Tester' DATE='2008-09-28T16:00:56'
 gtephem:    Filter by pulsar name 'PSR B0540-69'
 gtephem: ==========================
