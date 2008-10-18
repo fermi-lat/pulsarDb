@@ -130,6 +130,9 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// Test EphComputerApp class.
     virtual void testEphComputerApp();
 
+  protected:
+    virtual st_app::StApp * createApplication(const std::string & app_name) const;
+
   private:
     typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
     std::string m_in_file;
@@ -2229,7 +2232,6 @@ void PulsarDbTestApp::testPulsarDbApp() {
   setMethod("testPulsarDbApp");
 
   // Prepare variables to create application objects.
-  std::auto_ptr<st_app::StApp> app_ptr(0);
   std::list<std::string> test_name_cont;
   test_name_cont.push_back("par1");
   test_name_cont.push_back("par2");
@@ -2242,13 +2244,9 @@ void PulsarDbTestApp::testPulsarDbApp() {
     const std::string & test_name = *test_itor;
     std::string out_file(getMethod() + "_" + test_name + ".fits");
 
-    // Create and setup an application object.
-    app_ptr.reset(new PulsarDbApp());
-    app_ptr->setName("gtpulsardb");
-    st_app::AppParGroup & pars(app_ptr->getParGroup());
-    pars.setPromptMode(false);
-
     // Set default parameters.
+    std::string app_name("gtpulsardb");
+    st_app::AppParGroup pars(app_name);
     pars["psrdbfile"] = "";
     pars["outfile"] = "";
     pars["filter"] = "NONE";
@@ -2300,9 +2298,9 @@ void PulsarDbTestApp::testPulsarDbApp() {
 
     } else if ("par5" == test_name) {
       // Test creation of pulsar database file.
-      std::string file_name("psrdb_all.txt");
-      remove(file_name.c_str());
-      std::ofstream ofs(file_name.c_str());
+      std::string summary_file("psrdb_all.txt");
+      remove(summary_file.c_str());
+      std::ofstream ofs(summary_file.c_str());
       const std::string data_dir(getDataPath());
       ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_spin.txt") << std::endl;
       ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_binary.txt") << std::endl;
@@ -2310,7 +2308,7 @@ void PulsarDbTestApp::testPulsarDbApp() {
       ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_obs.txt") << std::endl;
       ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_name.txt") << std::endl;
       ofs.close();
-      pars["psrdbfile"] = "@" + file_name;
+      pars["psrdbfile"] = "@" + summary_file;
       pars["outfile"] = out_file;
       pars["filter"] = "NONE";
       pars["author"] = "Anonymous Tester";
@@ -2320,8 +2318,11 @@ void PulsarDbTestApp::testPulsarDbApp() {
       continue;
     }
 
+    // Remove output FITS file.
+    remove(out_file.c_str());
+
     // Test the application.
-    testApplication(*app_ptr, "", out_file);
+    testApplication(app_name, pars, "", out_file);
   }
 }
 
@@ -2329,8 +2330,6 @@ void PulsarDbTestApp::testEphComputerApp() {
   setMethod("testEphComputerApp");
 
   // Prepare variables to create application objects.
-  std::auto_ptr<st_app::StApp> app_ptr(0);
-  const std::string app_name("gtephem");
   std::list<std::string> test_name_cont;
   test_name_cont.push_back("par1");
   test_name_cont.push_back("par2");
@@ -2351,31 +2350,21 @@ void PulsarDbTestApp::testEphComputerApp() {
   // Prepare files to be used in the tests.
   std::string master_pulsardb = facilities::commonUtilities::joinPath(getDataPath(), "master_pulsardb_v2.fits");
   std::string leap_file = facilities::commonUtilities::joinPath(getDataPath(), "gtephem_leapsec.fits");
-  std::string remark_file = getMethod() + "_remark.txt";
-  std::ofstream ofs_remark(remark_file.c_str());
-  ofs_remark << "REMARKS" << std::endl;
-  ofs_remark << "PSRNAME EFFECTIVE_SINCE EFFECTIVE_UNTIL DESCRIPTION OBSERVER_CODE" << std::endl;
-  ofs_remark << "\"PSR J0540-6919\" 54356 54357 \"Test remark entry No. 1\" P" << std::endl;
-  ofs_remark << "\"PSR J0540-6919\" 54368 54369 \"Test remark entry No. 2\" P" << std::endl;
-  ofs_remark << "\"PSR J0540-6919\" 54369 54370 \"Test remark entry No. 3\" P" << std::endl;
-  ofs_remark << "\"PSR J0540-6919\" 54357 54370 \"Test remark entry No. 4\" P" << std::endl;
-  ofs_remark.close();
+  std::string remark_file = facilities::commonUtilities::joinPath(getDataPath(), "gtephem_remark.txt");
   std::string summary_file = getMethod() + "_summary.txt";
   std::ofstream ofs_summary(summary_file.c_str());
   ofs_summary << master_pulsardb << std::endl;
   ofs_summary << remark_file << std::endl;
   ofs_summary << facilities::commonUtilities::joinPath(getDataPath(), "psrdb_user.fits") << std::endl;
+  ofs_summary.close();
 
   // Loop over parameter sets.
   for (std::list<std::string>::const_iterator test_itor = test_name_cont.begin(); test_itor != test_name_cont.end(); ++test_itor) {
     const std::string & test_name = *test_itor;
 
-    // Create and setup an application object.
-    app_ptr.reset(new EphComputerApp());
-    st_app::AppParGroup & pars(app_ptr->getParGroup(app_name));
-    pars.setPromptMode(false);
-
     // Set default parameters.
+    std::string app_name("gtephem");
+    st_app::AppParGroup pars(app_name);
     pars["psrdbfile"] = "";
     pars["psrname"] = "ANY";
     pars["reftime"] = 0.;
@@ -2533,7 +2522,17 @@ void PulsarDbTestApp::testEphComputerApp() {
 
     // Test the application.
     std::string log_file(getMethod() + "_" + test_name + ".log");
-    testApplication(*app_ptr, log_file, "", true);
+    testApplication(app_name, pars, log_file, "", true);
+  }
+}
+
+st_app::StApp * PulsarDbTestApp::createApplication(const std::string & app_name) const {
+  if ("gtpulsardb" == app_name) {
+    return new PulsarDbApp();
+  } else if ("gtephem" == app_name) {
+    return new EphComputerApp();
+  } else {
+    return 0;
   }
 }
 
