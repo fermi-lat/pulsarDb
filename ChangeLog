@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Oct 19 13:51:22 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Add runApp method and hide resetApp method for a better fix of the bug reported as JIRA PULS-48.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct 17 19:00:08 PDT 2008
 pulsarDb/data
 
