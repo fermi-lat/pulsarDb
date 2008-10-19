@@ -23,7 +23,7 @@ namespace pulsarDb {
     public:
       EphComputerApp();
       virtual ~EphComputerApp() throw();
-      virtual void run();
+      virtual void runApp();
 
     private:
       st_stream::StreamFormatter m_os;
