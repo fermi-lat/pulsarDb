@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sun Oct 19 13:52:32 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Rename run method to runApp and remove a call of resetApp method (unnecessary with new PulsarToolApp class).
+    *
+------------------------------------------------------------
+User: hirayama  Sun Oct 19 13:52:32 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
