@@ -39,14 +39,11 @@ namespace pulsarDb {
 
   EphComputerApp::~EphComputerApp() throw() {}
 
-  void EphComputerApp::run() {
-    // Clean up from any previous runs.
-    resetApp();
+  void EphComputerApp::runApp() {
+    m_os.setMethod("runApp()");
 
     using namespace st_app;
     using namespace st_stream;
-
-    m_os.setMethod("run()");
 
     // Suppress 'INFO' in the prefix (cosmetic).
     m_os.info().setPrefix(m_os.out().getPrefix());
