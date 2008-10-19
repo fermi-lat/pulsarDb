@@ -51,7 +51,8 @@ namespace pulsarDb {
 
       PulsarToolApp();
       virtual ~PulsarToolApp() throw();
-      virtual void run() = 0;
+      virtual void run();
+      virtual void runApp() = 0;
 
       virtual timeSystem::AbsoluteTime parseTime(const std::string & time_format, const std::string & time_system,
         const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
@@ -111,13 +112,6 @@ namespace pulsarDb {
 
       void writeParameter(const st_app::AppParGroup & pars);
 
-    protected:
-      /** \brief Reset all members of application. This should be called from the subclass's run() method
-          to allow multiple runs to work without leaking memory or coupling consecutive runs of the tool
-          accidentally.
-      */
-      virtual void resetApp();
-
     private:
       handler_cont_type m_event_handler_cont;
       handler_cont_type m_gti_handler_cont;
@@ -141,6 +135,12 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_target_time_origin;
       handler_cont_type::iterator m_event_handler_itor;
       bool m_report_eph_status;
+
+      /** \brief Reset all members of application. This should be called from the subclass's run() method
+          to allow multiple runs to work without leaking memory or coupling consecutive runs of the tool
+          accidentally.
+      */
+      virtual void resetApp();
 
       timeSystem::AbsoluteTime readTimeColumn(timeSystem::EventTimeHandler & handler, const std::string & column_name,
         bool request_time_correction) const;

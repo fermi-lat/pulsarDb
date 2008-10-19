@@ -64,6 +64,17 @@ namespace pulsarDb {
     resetApp();
   }
 
+  void PulsarToolApp::run() {
+    // Clean up from any previous runs.
+    resetApp();
+
+    // Run the application.
+    runApp();
+
+    // Clean up (close files, reset variables, etc.).
+    resetApp();
+  }
+
   AbsoluteTime PulsarToolApp::parseTime(const std::string & time_format, const std::string & time_system,
     const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
     const tip::Header * header) const {
