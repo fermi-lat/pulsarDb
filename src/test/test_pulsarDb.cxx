@@ -68,7 +68,7 @@ class PulsarDbTestApp : public PulsarTestApp {
     virtual ~PulsarDbTestApp() throw() {}
 
     /// Do all tests.
-    virtual void run();
+    virtual void runTest();
 
     /// Test filtering which doesn't actually narrow the selection.
     virtual void testNoOp();
@@ -170,7 +170,7 @@ PulsarDbTestApp::PulsarDbTestApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tp
   m_author = "Anonymous Tester";
 }
 
-void PulsarDbTestApp::run() {
+void PulsarDbTestApp::runTest() {
   // Test filtering of database entries.
   testNoOp();
   testExplicitName();
@@ -200,9 +200,6 @@ void PulsarDbTestApp::run() {
   // Test applications.
   testPulsarDbApp();
   testEphComputerApp();
-
-  // Throw an exception when one or more errors occur.
-  reportStatus();
 }
 
 void PulsarDbTestApp::testNoOp() {
