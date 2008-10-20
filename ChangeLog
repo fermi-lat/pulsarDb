@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Sun Oct 19 22:35:08 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphChooser.cxx FrequencyEph.cxx OrbitalEph.cxx PeriodEph.cxx 
+	PulsarDb.cxx PulsarToolApp.cxx SimpleDdEph.cxx 
+Log Message:
+Improve error messages.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Oct 19 22:35:07 PDT 2008
 pulsarDb/pulsarDb
 
