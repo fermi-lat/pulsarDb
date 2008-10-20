@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Sun Oct 19 22:35:07 PDT 2008
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par2.log testEphComputerApp_par3.log 
+	testEphComputerApp_par15.log 
+Log Message:
+Improve error messages.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Oct 19 17:18:40 PDT 2008
 pulsarDb/src
 
