@@ -129,6 +129,11 @@ namespace pulsarDb {
  }
 
   void PulsarDb::load(const std::string & in_file) {
+    // Check existence of the input file.
+    if (!IFileSvc::instance().fileExists(in_file)) {
+      throw std::runtime_error("File not found: " + in_file);
+    }
+
     // Determine a type of the input file, FITS or TEXT.
     bool is_fits = true;
     try {
