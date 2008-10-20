@@ -11,6 +11,9 @@
 #include <cctype>
 #include <cstddef>
 #include <fstream>
+#include <iostream>
+#include <sstream>
+#include <limits>
 #include <list>
 #include <memory>
 #include <sstream>
@@ -195,7 +198,9 @@ namespace pulsarDb {
     // Check arguments.
     if (t_start > t_stop) {
       std::ostringstream os;
-      os << "PulsarDb::filterInterval was passed interval with start > stop: [" << t_start << ", " << t_stop << "]" << std::endl;
+      os.precision(std::numeric_limits<double>::digits10);
+      os << "Requested to filter by time interval with start time being later than stop time: [" << t_start << ", " <<
+        t_stop << "]" << std::endl;
       throw std::runtime_error(os.str());
     }
 
@@ -660,7 +665,7 @@ namespace pulsarDb {
 
       // Judge completeness of matchup.
       if (required_key_taken.size() == num_required_keyword) {
-        if (matched_table) throw std::runtime_error("More than one extension contain the given list of header keywords.");
+        if (matched_table) throw std::runtime_error("More than one extension contain the given list of header keywords");
         else matched_table = &table;
       }
     }

@@ -232,7 +232,7 @@ namespace pulsarDb {
       m_tcmode_bin = m_tcmode_dict_bin[mode_name_uc];
       m_tcmode_pdot = m_tcmode_dict_pdot[mode_name_uc];
     } else {
-      throw std::runtime_error("Unknown time correction mode requested.");
+      throw std::runtime_error("Unknown time correction mode requested");
     }
   }
 
@@ -294,7 +294,7 @@ namespace pulsarDb {
           double f1 = pars["f1"];
           double f2 = pars["f2"];
 
-          if (0. >= f0) throw std::runtime_error("Frequency must be positive.");
+          if (0. >= f0) throw std::runtime_error("Non-positive frequency is given to f0 parameter (must be positive)");
 
           // Add the ephemeris the user provided.
           m_computer->loadPulsarEph(FrequencyEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, f0, f1, f2));
@@ -303,12 +303,12 @@ namespace pulsarDb {
           double p1 = pars["p1"];
           double p2 = pars["p2"];
 
-          if (0. >= p0) throw std::runtime_error("Period must be positive.");
+          if (0. >= p0) throw std::runtime_error("Non-positive period is given to p0 parameter (must be positive)");
 
           // Add the ephemeris the user provided.
           m_computer->loadPulsarEph(PeriodEph(epoch_time_sys, abs_epoch, abs_epoch, abs_epoch, ra, dec, phi0, p0, p1, p2));
         } else {
-          throw std::runtime_error("Unknown ephemeris style \"" + eph_style + "\" was specified.");
+          throw std::runtime_error("Unknown ephemeris style \"" + eph_style + "\" was specified");
         }
       }
     }
@@ -446,7 +446,7 @@ namespace pulsarDb {
 
     // In the unlikely event that there were no GTI files, no intervals in the GTI, and no event files, this is a
     // serious problem.
-    if (!candidate_found) throw std::runtime_error("computeTimeBoundary: cannot determine start/stop of the observation interval");
+    if (!candidate_found) throw std::runtime_error("Could not determine start/stop of the observation interval");
 
     // Return the candidate.
     return abs_candidate_time;
@@ -504,7 +504,7 @@ namespace pulsarDb {
       abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys, &header);
 
     } else {
-      throw std::runtime_error("Unsupported time origin " + str_origin_uc);
+      throw std::runtime_error("Unsupported time origin " + str_origin);
     }
 
     // Initialize time correction with the time origin just computed.
@@ -536,7 +536,7 @@ namespace pulsarDb {
 
     // Determine whether to request barycentric correction.
     if (m_tcmode_bary == SUPPRESSED && (m_demod_bin || m_cancel_pdot)) {
-      throw std::runtime_error("Barycentric correction is suppressed when binary demodulation or pdot cancellation is requested.");
+      throw std::runtime_error("Barycentric correction is suppressed when binary demodulation or pdot cancellation is requested");
     }
     m_request_bary = (m_tcmode_bary == REQUIRED || m_tcmode_bary == ALLOWED);
 
@@ -598,7 +598,7 @@ namespace pulsarDb {
             PeriodEph(m_target_time_system->getName(), m_target_time_origin, m_target_time_origin, m_target_time_origin,
               ra, dec, phi0, p0, p1, p2), max_derivative);
         } else {
-          throw std::runtime_error("Ephemeris style must be either FREQ or PER.");
+          throw std::runtime_error("Unknown ephemeris style given to ephstyle parameter (must be either FREQ or PER)");
         }
       }
     }

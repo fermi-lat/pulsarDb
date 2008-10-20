@@ -5,6 +5,7 @@
 */
 #include <algorithm>
 #include <limits>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -18,7 +19,11 @@ using namespace timeSystem;
 namespace pulsarDb {
 
   const PulsarEph & EphChooser::findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
-    if (ephemerides.empty()) throw std::runtime_error("EphChooser::findClosest was passed empty container of ephemerides");
+    if (ephemerides.empty()) {
+      std::ostringstream os;
+      os << "No spin ephemeris is available to choose the closest ephemeris to " << abs_time;
+      throw std::runtime_error(os.str());
+    }
     PulsarEphCont::const_iterator candidate = ephemerides.begin();
 
     // Seed the current difference with a value which will be larger than any other.
@@ -38,7 +43,7 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "EphChooser::findClosest could not find an ephemeris for time " << abs_time;
+      os << "Could not find the closest spin ephemeris for " << abs_time;
       throw std::runtime_error(os.str());
     }
 
@@ -46,7 +51,11 @@ namespace pulsarDb {
   }
 
   const OrbitalEph & EphChooser::findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
-    if (ephemerides.empty()) throw std::runtime_error("EphChooser::findClosest was passed empty container of ephemerides");
+    if (ephemerides.empty()) {
+      std::ostringstream os;
+      os << "No orbital ephemeris is available to choose the closest ephemeris to " << abs_time;
+      throw std::runtime_error(os.str());
+    }
     // Start with minimum = maximum value.
     double min_time_diff = std::numeric_limits<double>::max();
 
@@ -64,7 +73,7 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "EphChooser::findClosest could not find an orbital ephemeris for time " << abs_time;
+      os << "Could not find the closest orbital ephemeris for " << abs_time;
       throw std::runtime_error(os.str());
     }
 
@@ -104,7 +113,7 @@ namespace pulsarDb {
     // If no candidate was found, throw an exception.
     if (ephemerides.end() == candidate) {
       std::ostringstream os;
-      os << "StrictEphChooser::choose could not find a spin ephemeris for time " << abs_time;
+      os << "StrictEphChooser::choose: Could not find a spin ephemeris for " << abs_time;
       throw std::runtime_error(os.str());
     }
 
@@ -120,7 +129,8 @@ namespace pulsarDb {
     // Check the time order of the time interval arguments.
     if (start_time > stop_time) {
       std::ostringstream os;
-      os << "StrictEphChooser::examine is given a negative time interval: " << start_time << " - " << stop_time;
+      os << "StrictEphChooser::examine: Bad time interval for examining ephemeris coverage: [" << start_time << ", " << stop_time <<
+        "] (start time is later than stop time)";
       throw std::runtime_error(os.str());
     }
 
@@ -194,9 +204,9 @@ namespace pulsarDb {
       // Sanity check on the number of valid ephemerides at the end of the given time interval.
       if (num_eph_current != num_eph_stop) {
         std::ostringstream os;
-        os << "StrictEphChooser::examine found " << num_eph_current << " ephemeri(de)s, not " << num_eph_stop <<
-          ", at the end of the given time interval " << stop_time;
-        throw std::runtime_error(os.str());
+        os << "Error while examining ephemeris coverage: " << num_eph_current <<
+          " ephemeri(de)s cover the end of the given time interval, " << stop_time << ", not " << num_eph_stop << " as expected";
+        throw std::logic_error(os.str());
       }
     }
   }
@@ -210,7 +220,11 @@ namespace pulsarDb {
   SloppyEphChooser::SloppyEphChooser(const timeSystem::ElapsedTime & tolerance): m_strict_chooser(tolerance) {}
 
   const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
-    if (ephemerides.empty()) throw std::runtime_error("SloppyEphChooser::choose was passed empty container of ephemerides");
+    if (ephemerides.empty()) {
+      std::ostringstream os;
+      os << "No spin ephemeris is available to choose the best ephemeris for " << abs_time;
+      throw std::runtime_error(os.str());
+    }
     // First try to get a strictly correct choice.
     try {
       return m_strict_chooser.choose(ephemerides, abs_time);
@@ -230,7 +244,8 @@ namespace pulsarDb {
     // Check the time order of the time interval arguments.
     if (start_time > stop_time) {
       std::ostringstream os;
-      os << "StrictEphChooser::examine is given a negative time interval: " << start_time << " - " << stop_time;
+      os << "SloppyEphChooser::examine: Bad time interval for examining ephemeris coverage: [" << start_time << ", " << stop_time <<
+        "] (start time is later than stop time)";
       throw std::runtime_error(os.str());
     }
 

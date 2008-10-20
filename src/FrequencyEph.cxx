@@ -4,6 +4,7 @@
              James Peachey, HEASARC/GSSC
 */
 #include <iostream>
+#include <sstream>
 #include <utility>
 
 #include "pulsarDb/PulsarEph.h"
@@ -103,7 +104,9 @@ namespace pulsarDb {
   double FrequencyEph::calcFrequency(const AbsoluteTime & ev_time, int derivative_order) const {
     double return_value = 0.;
     if (0 > derivative_order) {
-      throw std::runtime_error("FrequencyEph is given a negative order of derivative");
+      std::ostringstream os;
+      os << "Negative order of frequency derivative is given: " << derivative_order;
+      throw std::runtime_error(os.str());
     } else if (0 == derivative_order) {
       double dt = calcElapsedSecond(ev_time);
       return_value = m_f0 + m_f1 * dt + 0.5 * m_f2 * dt * dt;
