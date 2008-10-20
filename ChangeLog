@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sun Oct 19 22:35:07 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Improve error messages.
+    *
+------------------------------------------------------------
+User: hirayama  Sun Oct 19 22:35:07 PDT 2008
 pulsarDb/data/outref
 
 Modified Files:
