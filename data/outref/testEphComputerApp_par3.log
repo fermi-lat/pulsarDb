@@ -10,7 +10,7 @@ gtephem:               F0 = 19.8341817288585
 gtephem:               F1 = -1.88699458167048e-10
 gtephem:               F2 = 0
 gtephem: No orbital ephemeris was found in database:
-No orbital ephemeris is available to choose the closest ephemeris to 2459 days 44864.184 seconds after 51910.0 MJD (TDB)
+No orbital ephemeris is available to choose the closest ephemeris to 44864.184 seconds after 54369.0 MJD (TDB)
 gtephem: --------------------------
 gtephem: Spin ephemeris estimated is:
 gtephem:              Reference Time : 54369.519261388888889 MJD (TDB)
