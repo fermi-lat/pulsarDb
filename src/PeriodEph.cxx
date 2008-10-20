@@ -4,6 +4,7 @@
              James Peachey, HEASARC/GSSC
 */
 #include <iostream>
+#include <sstream>
 
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/PeriodEph.h"
@@ -61,7 +62,7 @@ namespace pulsarDb {
     bool p2_is_zero = (0. == m_p2);
     if (p0_is_zero && p1_is_zero && p2_is_zero) {
       // Throw an exception for p0 == p1 == p2 == 0.
-      throw std::runtime_error("PeriodEph: all coefficients are zeros (p0 = p1 = p2 = 0.)");
+      throw std::runtime_error("Unphysical ephemeris is given: all coefficients are zeros (p0 = p1 = p2 = 0.)");
 
     } else if (p1_is_zero && p2_is_zero) {
       // Compute pulse phase for p0 != 0 and p1 == p2 == 0.
@@ -168,7 +169,9 @@ namespace pulsarDb {
       }
 
     } else {
-      throw std::runtime_error("PeriodEph is given a negative order of derivative");
+      std::ostringstream os;
+      os << "Negative order of period derivative is given: " << derivative_order;
+      throw std::runtime_error(os.str());
     }
 
     // Return the computed value.

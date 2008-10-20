@@ -32,7 +32,7 @@ gtephem:               F0 = 19.8341817288585
 gtephem:               F1 = -1.88699458167048e-10
 gtephem:               F2 = 0
 gtephem: No orbital ephemeris was found in database:
-EphChooser::findClosest was passed empty container of ephemerides
+No orbital ephemeris is available to choose the closest ephemeris to 2458 days 9650.10599999094 seconds after 51910.0 MJD (TDB)
 gtephem: --------------------------
 gtephem: Spin ephemeris estimated is:
 gtephem:              Reference Time : 54368.111691041666562 MJD (TDB)

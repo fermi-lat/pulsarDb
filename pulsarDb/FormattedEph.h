@@ -71,13 +71,13 @@ namespace pulsarDb {
         const tip::TableCell & cell = record[field_name];
 
         // Check whether this cell has a defined value.
-        if (cell.isNull()) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" is undefined");
+        if (cell.isNull()) throw std::runtime_error("Field \"" + field_name + "\" is undefined");
 
         // Try to get the cell content.
         cell.get(data_value);
 
         // Throw an exception if the cell content is INDEF or not.
-        if (isNan(data_value)) throw std::runtime_error("tip::TableCell for field \"" + field_name + "\" is not a number");
+        if (isNan(data_value)) throw std::runtime_error("Value of field \"" + field_name + "\" is not a number");
       }
 
       /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the

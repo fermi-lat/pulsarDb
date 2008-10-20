@@ -47,7 +47,7 @@ namespace pulsarDb {
     }
 
     // Check for non-convergence.
-    if (ii == m_max_iteration) throw std::runtime_error("Binary demodulation did not converge.");
+    if (ii == m_max_iteration) throw std::runtime_error("Binary demodulation did not converge");
 
   }
 

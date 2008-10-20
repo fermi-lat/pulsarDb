@@ -166,7 +166,7 @@ namespace pulsarDb {
 
     // atKepler not converged
     if (0 != status) {
-      throw std::runtime_error("atKepler did not converge.");
+      throw std::runtime_error("Could not solve Kepler equation numerically (atKepler did not converge)");
     }
 
     // convert eccentric anomaly to true anomaly
