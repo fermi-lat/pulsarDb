@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 22 18:10:59 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputerApp.h 
+Log Message:
+Remove unnecessary header file to include. Add/improve Doxygen comments.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Oct 20 11:21:11 PDT 2008
 pulsarDb/data/outref
 
