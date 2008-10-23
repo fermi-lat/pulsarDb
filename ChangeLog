@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 22 18:11:51 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDbApp.h 
+Log Message:
+Add/improve Doxygen comments.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 22 18:10:59 PDT 2008
 pulsarDb/pulsarDb
 
