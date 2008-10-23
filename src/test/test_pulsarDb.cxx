@@ -60,78 +60,83 @@ using namespace pulsarDb;
 class EphRoutingInfo;
 
 /** \class PulsarDbTestApp
-    \brief Test application.
+    \brief Test pulsarDb package and applications in it.
 */
 class PulsarDbTestApp : public PulsarTestApp {
   public:
+    /// \brief Construct a PulsarDbTestApp object.
     PulsarDbTestApp();
 
+    /// \brief Destruct this PulsarDbTestApp object.
     virtual ~PulsarDbTestApp() throw() {}
 
-    /// Do all tests.
+    /// \brief Do all tests.
     virtual void runTest();
 
-    /// Test filtering which doesn't actually narrow the selection.
+    /// \brief Test filtering which doesn't actually narrow the selection.
     virtual void testNoOp();
 
-    /// Test finding pulsars using their PSR J name.
+    /// \brief Test finding pulsars using their PSR J name.
     virtual void testExplicitName();
 
-    /// Test recognition of pulsars by alternate names given in the ALTERNATIVE_NAMES extension.
+    /// \brief Test recognition of pulsars by alternate names given in the ALTERNATIVE_NAMES extension.
     virtual void testAlternateName();
 
-    /// Test filtering based on a time range (finding ephemerides which overlaps the range.)
+    /// \brief Test filtering based on a time range (finding ephemerides which overlaps the range.)
     virtual void testTime();
 
-    /// Test error cases to make sure errors are detected properly.
+    /// \brief Test error cases to make sure errors are detected properly.
     virtual void testBadInterval();
 
-    /// Test filtering based on a solar system ephemeris name.
+    /// \brief Test filtering based on a solar system ephemeris name.
     virtual void testSolarEph();
 
-    /// Test filtering expressions.
+    /// \brief Test filtering expressions.
     virtual void testExpression();
 
-    /// Test appending ephemerides to an existing file.
+    /// \brief Test appending ephemerides to an existing file.
     virtual void testAppend();
 
-    /// Test ephemerides database in text format. Also test the getter for history records.
+    /// \brief Test ephemerides database in text format. Also test the getter for history records.
     virtual void testTextPulsarDb();
 
-    /// Test FrequencyEph class (a subclass of PulsarEph class).
+    /// \brief Test FrequencyEph class (a subclass of PulsarEph class).
     virtual void testFrequencyEph();
 
-    /// Test PeriodEph classes (a subclass of PulsarEph class).
+    /// \brief Test PeriodEph classes (a subclass of PulsarEph class).
     virtual void testPeriodEph();
 
-    /// Test SimpleDdEph class (a subclass of OrbitalEph class).
+    /// \brief Test SimpleDdEph class (a subclass of OrbitalEph class).
     virtual void testSimpleDdEph();
 
-    /// Test PdotCanceler class.
+    /// \brief Test PdotCanceler class.
     virtual void testPdotCanceler();
 
-    /// Test method which chooses the best ephemeris from several which could be used.
+    /// \brief Test method which chooses the best ephemeris from several which could be used.
     virtual void testChooser();
 
-    /// Test EphComputer class.
+    /// \brief Test EphComputer class.
     virtual void testEphComputer();
 
-    /// Test Eph getter in pulsarDb class. Also test the getter for ephemeris remarks.
+    /// \brief Test Eph getter in pulsarDb class. Also test the getter for ephemeris remarks.
     virtual void testEphGetter();
 
-    /// Test support for multiple ephemeris models.
+    /// \brief Test support for multiple ephemeris models.
     virtual void testMultipleEphModel();
 
-    /// Test EphStatus class.
+    /// \brief Test EphStatus class.
     virtual void testEphStatus();
 
-    /// Test PulsarDbApp class.
+    /// \brief Test PulsarDbApp class.
     virtual void testPulsarDbApp();
 
-    /// Test EphComputerApp class.
+    /// \brief Test EphComputerApp class.
     virtual void testEphComputerApp();
 
   protected:
+    /** \brief Create an application object to be tested.
+        \param app_name Name of application to be tested.
+    */
     virtual st_app::StApp * createApplication(const std::string & app_name) const;
 
   private:
@@ -141,15 +146,33 @@ class PulsarDbTestApp : public PulsarTestApp {
     std::string m_creator;
     std::string m_author;
 
-    /// Helper method for testMultipleEphModel, to test loading ephemerides from FITS database files.
+    /** \brief Helper method for testMultipleEphModel, to test loading ephemerides from FITS database files.
+        \param test_subject Character string to identify a subject to be tested.
+        \param database Pulsar ephemeris database object to load ephemeris to.
+        \param tpl_file Name of the FITS template file to be used to create a FITS file to load ephemerides from.
+        \param load_original Set to true to test loading ephemerides from a FITS file in the original format (w/o EPHSTYLE
+               keyword). Set to false to test loading from a FITS file in the current format.
+        \param expected_to_fail Set to true if this test is expected to fail. Set to false otherwise.
+    */
     void testLoadingFits(const std::string & test_subject, PulsarDb & database, const std::string & tpl_file,
       bool load_original, bool expected_to_fail);
 
-    /// Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
+    /** \brief Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
+        \param test_subject Character string to identify a subject to be tested.
+        \param database Pulsar ephemeris database object to load ephemeris to.
+        \param ext_info_cont List of extension names and EPHSTYLE values to load ephemerides from.
+        \param load_original Set to true to test loading ephemerides from a FITS file in the original format (w/o EPHSTYLE
+               keyword). Set to false to test loading from a FITS file in the current format.
+        \param expected_to_fail Set to true if this test is expected to fail. Set to false otherwise.
+    */
     void testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
       bool load_original, bool expected_to_fail);
 
-    /// Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
+    /** \brief Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
+        \param test_subject Character string to identify a subject to be tested.
+        \param database Pulsar ephemeris database object to load ephemeris to.
+        \param expected_route_dict Dictionary of reference routing information for test results to be compared with.
+    */
     void checkEphRouting(const std::string & test_subject, const PulsarDb & database,
       const std::map<std::string, EphRoutingInfo> & expected_route_dict);
 };
@@ -1761,7 +1784,7 @@ void PulsarDbTestApp::testMultipleEphModel() {
   checkEphRouting("original FITS", *database, expected_route_dict);
 
   // Prepare information of extensions for loading ephemerides from text database files.
-  std::list<std::pair<std::string, std::string> > ext_info_cont;
+  ExtInfoCont ext_info_cont;
   ext_info_cont.push_back(std::make_pair("SPIN_PARAMETERS", "MODEL1"));
   ext_info_cont.push_back(std::make_pair("SPIN_PARAMETERS", "MODEL2"));
   ext_info_cont.push_back(std::make_pair("ORBITAL_PARAMETERS", "MODEL1"));
