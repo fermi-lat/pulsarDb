@@ -129,7 +129,7 @@ namespace pulsarDb {
     }
  
     return return_table;
- }
+  }
 
   void PulsarDb::load(const std::string & in_file) {
     // Check existence of the input file.
