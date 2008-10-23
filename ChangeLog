@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 22 18:12:52 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use ExtInfoCont typedef instead of explicit type. Add/improve Doxygen comments.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 22 18:11:51 PDT 2008
 pulsarDb/pulsarDb
 
