@@ -15,12 +15,17 @@ namespace pulsarDb {
   class PulsarDb;
 
   /** \class PulsarDbApp
-      \brief Main application class for pulsar database access.
+      \brief Main application class for pulsar database manipulation (creation, filtration, merger, etc.)
   */
   class PulsarDbApp: public st_app::StApp {
     public:
+      /// \brief Construct a PulsarDbApp object.
       PulsarDbApp();
+
+      /// \brief Destruct this PulsarDbApp object.
       virtual ~PulsarDbApp() throw();
+
+      /// \brief Run the application.
       virtual void run();
 
     private:
