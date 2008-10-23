@@ -17,6 +17,11 @@
 using namespace timeSystem;
 
 namespace {
+  /** \brief Helper function to compute coefficients to compute a frequency derivative of an arbitrary degree
+             of a frequency trend expressed by a polinomial of period derivatives.
+      \param em Parameter for a coefficient to compute, which corresponds to the degree of frequency derivative to compute.
+      \param el Parameter for a coefficient to compute, which corresponds to the degree of period derivative to compute from.
+  */
   int computeCoeff(unsigned int em, unsigned int el) {
     if (el == 0) return 1;
     else if (em == 2*el - 1) return 0;
