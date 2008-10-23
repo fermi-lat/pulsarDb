@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 22 21:48:49 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PeriodEph.cxx 
+Log Message:
+Add a Doxygen comment.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 22 18:13:27 PDT 2008
 pulsarDb/src
 
