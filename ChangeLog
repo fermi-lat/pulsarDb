@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Oct 23 18:20:12 PDT 2008
+pulsarDb/pulsarDb
+
+Removed Files:
+	TextPulsarDb.h 
+Log Message:
+Remove an unnecessary header file.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Oct 23 18:19:42 PDT 2008
 pulsarDb/src
 
