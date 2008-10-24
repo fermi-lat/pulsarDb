@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Oct 24 15:02:44 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Improve handling of FILE option (both for time format and time system) for clarity in logic.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Oct 24 15:02:44 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
