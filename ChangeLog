@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Thu Oct 23 18:19:10 PDT 2008
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphChooser.h EphComputer.h FormattedEph.h FrequencyEph.h 
+	OrbitalEph.h PeriodEph.h PulsarDb.h PulsarEph.h 
+	PulsarToolApp.h SimpleDdEph.h 
+Log Message:
+Add/improve Doxygen comments.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 22 21:48:49 PDT 2008
 pulsarDb/src
 
