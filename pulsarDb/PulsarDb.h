@@ -33,8 +33,13 @@ namespace pulsarDb {
   template <typename EPHTYPE>
   class IEphFactory {
     public:
+      /// \brief Destruct this IEphFactory object.
       virtual ~IEphFactory() {}
 
+      /** \brief Create an object of a subclass of PulsarEph or OrbitalEph from a FITS row.
+          \param record FITS row from which ephemeris parameters are to be read.
+          \param header FITS header to read other information if necessary.
+      */
       virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const = 0;
   };
 
@@ -45,16 +50,22 @@ namespace pulsarDb {
   template <typename EPHTYPE, typename EPHSTYLE>
   class EphFactory: public IEphFactory<EPHTYPE> {
     public:
+      /** \brief Create an object of a subclass of PulsarEph or OrbitalEph from a FITS row.
+          \param record FITS row from which ephemeris parameters are to be read.
+          \param header FITS header to read other information if necessary.
+      */
       virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const {
         return new EPHSTYLE(record, header);
       }
 
+      /// \brief Return a singleton factory for a PulsarEph object or a OrbitalEph object.
       static EphFactory & getFactory() {
         static EphFactory s_factory;
         return s_factory;
       }
 
     private:
+      /// \brief Construct a EphFactory object.
       EphFactory() {};
   };
 
@@ -75,6 +86,7 @@ namespace pulsarDb {
       */
       PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext = 0, TableCont::size_type default_orbital_ext = 0);
 
+      /// \brief Destruct this PulsarDb object.
       virtual ~PulsarDb();
 
       /** \brief Load ephemerides and related information from the given ephemerides database file.

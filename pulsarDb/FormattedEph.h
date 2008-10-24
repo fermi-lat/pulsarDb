@@ -25,9 +25,17 @@ namespace pulsarDb {
   */
   template <typename DataType>
   struct ParameterFormatter {
+    /** \brief Construct a ParameterFormatter object.
+        \param param_name Name of parameter to be printed in a formatted text.
+        \param param_obj Object to be printed in a formatted text.
+        \param separator Character string to be used as a separator between a parameter name and a parameter value in a formatted text.
+    */
     ParameterFormatter(const std::string & param_name, const DataType & param_obj, const std::string & separator):
       m_name(param_name), m_obj(&param_obj), m_separator(separator) {}
 
+    /** \brief Write a formatted text to an output stream.
+        \param os Output stream to write a formatted text to.
+    */
     inline st_stream::OStream & write(st_stream::OStream & os) const {
       os.prefix().width(16); os << m_name << m_separator << *m_obj;
       return os;

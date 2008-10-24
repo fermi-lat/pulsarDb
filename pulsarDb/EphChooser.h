@@ -24,6 +24,7 @@ namespace pulsarDb {
   */
   class EphChooser {
     public:
+      /// \brief Destruct this EphChooser object.
       virtual ~EphChooser() {}
 
       /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
@@ -50,11 +51,9 @@ namespace pulsarDb {
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const = 0;
 
-      /** \brief Examine time coverage by a given set of pulsar ephemerides and ephemeris remarks in the given time interval,
-                 and return the result as a list of ephemeris remarks of various types, such as ephemeris gaps, glitches,
-                 timing noise, and informative notes. Interpretation of "time coverage" may depend on each subclass.
-                 One typical behavior is to define an ephemeris gap as a time interval during which its choose method will
-                 throw an exception.
+      /** \brief Examine time coverage by a given set of pulsar ephemerides in the given time interval, and return the result
+                 as a list of ephemeris remarks of various types, such as ephemeris gaps and informative notes.
+                 Interpretation of "time coverage" may depend on each subclass.
           \param ephemerides Container of pulsar ephemerides whose time coverage is to be examined.
           \param start_time The start time of a time interval of interest.
           \param stop_time The stop time of a time interval of interest.
@@ -92,6 +91,10 @@ namespace pulsarDb {
   */
   class StrictEphChooser : public EphChooser {
     public:
+      /** \brief Construct a StrictEphChooser object.
+          \param tolerance Maximum time difference allowed for two absolute times to be considered the same moment.
+                 The value is used in a tie-breaking procedure to determine the best ephemeris for a given time.
+      */
       StrictEphChooser(const timeSystem::ElapsedTime & tolerance = timeSystem::ElapsedTime("TDB", timeSystem::Duration(1.e-6, "Sec")));
 
       /** \brief Choose the best ephemeris for the given absolute time. Throws an exception if no ephemeris is found.
@@ -118,11 +121,11 @@ namespace pulsarDb {
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
 
-      /** \brief Return ephemeris gaps and ephemeris remarks overlapped with a given time interval.
+      /** \brief Return ephemeris gaps overlapped with a given time interval.
           \param ephemerides Container of pulsar ephemerides whose time coverage is to be examined.
           \param start_time The start time of a time interval of interest.
           \param stop_time The stop time of a time interval of interest.
-          \param eph_status Container of ephemeris status that stores the result of examination. The orginal contents
+          \param eph_status Container of ephemeris status that stores the result of examination. The original contents
                  of the container will be removed by this method.
       */
       virtual void examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
@@ -141,8 +144,14 @@ namespace pulsarDb {
   */
   class SloppyEphChooser : public EphChooser {
     public:
+      /// \brief Construcat a SloppyEphChooser object.
       SloppyEphChooser();
 
+      /** \brief Construcat a SloppyEphChooser object.
+          \param tolerance Maximum time difference allowed for two absolute times to be considered the same moment.
+                 The value is passed to the StrictEphChooser object that this object internally coreates and uses,
+                 and not directly used in this class.
+      */
       SloppyEphChooser(const timeSystem::ElapsedTime & tolerance);
 
       /** \brief Choose the ephemeris closest to the given time even if the time is outside its interval of validity.
@@ -170,11 +179,11 @@ namespace pulsarDb {
       */
       virtual const OrbitalEph & choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const;
 
-      /** \brief Return ephemeris gaps and ephemeris remarks overlapped with a given time interval.
+      /** \brief Return ephemeris gaps overlapped with a given time interval.
           \param ephemerides Container of pulsar ephemerides whose time coverage is to be examined. Not used by this class.
           \param start_time The start time of a time interval of interest.
           \param stop_time The stop time of a time interval of interest.
-          \param eph_status Container of ephemeris status that stores the result of examination. The orginal contents
+          \param eph_status Container of ephemeris status that stores the result of examination. The original contents
                  of the container will be removed by this method.
       */
       virtual void examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,

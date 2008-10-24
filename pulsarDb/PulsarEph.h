@@ -31,6 +31,7 @@ namespace pulsarDb {
   */
   class PulsarEph: public FormattedEph {
     public:
+      /// \brief Destruct this PulsarEph object.
       virtual ~PulsarEph() {}
 
       /// \brief Return a time system to be used to interpret return values of calcFrequency method.
@@ -51,8 +52,9 @@ namespace pulsarDb {
 
       /** \brief Compute the spin phase of the given time.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.
-          \param ev_time Time of the event.
-          \param phase_offset Phase value to be added to the computed pulse phase.
+          \param ev_time Absolute time for which a pulse phase is to be compted.
+          \param phase_offset Value to be added to a pulse phase. This value is added to the computed pulse phase
+                 before truncated to a value in range [0, 1).
       */
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
 
@@ -67,22 +69,24 @@ namespace pulsarDb {
       */
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const = 0;
 
-      /** \brief Compute the Right Ascension and Declination at a given time.
+      /** \brief Compute a sky position at a given time, and return it. The returned value is a pair of Right Ascension
+                 and Declination of the position.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.
-          \param ev_time Time of the event.
+          \param ev_time Absolute time at which a sky position is to be computed.
       */
       virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const = 0;
 
-      /// \brief Create a copy of this object.
+      /// \brief Create a copy of this object, and return a pointer to it.
       virtual PulsarEph * clone() const = 0;
 
       /// \brief Output text expression of this PulsarEph to a given output stream.
       virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     protected:
+      /// \brief Construct a PulsarEph object.
       PulsarEph() {};
 
-      /// \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
+      /// \brief Output text expression of subclass-specific parameters of this object to a given output stream.
       virtual void writeModelParameter(st_stream::OStream & os) const = 0;
   };
 
