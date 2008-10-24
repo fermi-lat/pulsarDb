@@ -77,13 +77,13 @@ namespace pulsarDb {
 
   AbsoluteTime PulsarToolApp::parseTime(const std::string & time_format, const std::string & time_system,
     const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
-    const tip::Header * header) const {
+    const timeSystem::EventTimeHandler * event_time_handler) const {
     // Make upper case copies of input for case insensitive comparisons.
     std::string time_format_rat(time_format);
     for (std::string::iterator itor = time_format_rat.begin(); itor != time_format_rat.end(); ++itor) *itor = std::toupper(*itor);
 
-    // Check whether the header is given or not when time format is specified as FILE.
-    if (("FILE" == time_format_rat) && (0 == header)) {
+    // Check whether the event time handler is given or not when time format is specified as FILE.
+    if (("FILE" == time_format_rat) && (0 == event_time_handler)) {
       throw std::runtime_error("File was not given when time format is specified as FILE");
     }
 
@@ -94,8 +94,9 @@ namespace pulsarDb {
     // First check whether time system should be read from the tip::Header.
     if ("FILE" == time_system_rat) {
       // Then check whether the header is given or not.
-      if (header) {
-        (*header)["TIMESYS"].get(time_system_rat);
+      if (event_time_handler) {
+        const tip::Header & header(event_time_handler->getHeader());
+        header["TIMESYS"].get(time_system_rat);
         for (std::string::iterator itor = time_system_rat.begin(); itor != time_system_rat.end(); ++itor) *itor = std::toupper(*itor);
       } else {
         throw std::runtime_error("File was not given when time system is specified as FILE");
@@ -109,7 +110,7 @@ namespace pulsarDb {
     // Parse a time string and convert it to an absolute time.
     AbsoluteTime abs_time("TDB", 0, 0.);
     if ("FILE" == time_format_rat) {
-      abs_time = m_reference_handler->parseTimeString(time_value, time_system_rat);
+      abs_time = event_time_handler->parseTimeString(time_value, time_system_rat);
 
     } else {
       if ("GLAST" == time_format_rat) {
@@ -119,9 +120,9 @@ namespace pulsarDb {
         std::ostringstream oss;
         oss << "eventfile" << this << ".fits";
         tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(oss.str(), tpl_file);
-        std::auto_ptr<EventTimeHandler> handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS"));
-        if (handler.get()) {
-          abs_time = handler->parseTimeString(time_value, time_system_rat);
+        std::auto_ptr<EventTimeHandler> glast_time_handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS"));
+        if (glast_time_handler.get()) {
+          abs_time = glast_time_handler->parseTimeString(time_value, time_system_rat);
         } else {
           throw std::runtime_error("Error occurred in parsing a time string \"" + time_value + "\"");
         }
@@ -271,8 +272,8 @@ namespace pulsarDb {
         std::string epoch_time_format = pars["timeformat"];
         std::string epoch_time_sys = pars["timesys"];
         std::string epoch = pars["ephepoch"];
-        tip::Header & header = m_reference_handler->getHeader();
-        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format, epoch_time_sys, &header);
+        AbsoluteTime abs_epoch = parseTime(epoch_time_format, epoch_time_sys, epoch, epoch_time_format, epoch_time_sys,
+          m_reference_handler);
 
         // Read phi0 parameter.  If it doesn't exist in the parameter file, let phi0 = 0.
         double phi0 = 0.;
@@ -500,8 +501,7 @@ namespace pulsarDb {
       // Convert user-specified time into AbsoluteTime.
       std::string parsed_time_format;
       std::string parsed_time_sys;
-      tip::Header & header = m_reference_handler->getHeader();
-      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys, &header);
+      abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys, m_reference_handler);
 
     } else {
       throw std::runtime_error("Unsupported time origin " + str_origin);
