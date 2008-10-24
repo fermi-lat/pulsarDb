@@ -75,12 +75,12 @@ namespace pulsarDb {
           \param time_value Character string that represents a time of interest.
           \param parsed_time_format Name of time format that this method determines to use is to be set as a return value.
           \param parsed_time_system Name of time system that this method determines to use is to be set as a return value.
-          \param header FITS header to be used in case of time_system is "FILE". Also, when set to zero (0), it throws
-                 an exception for either one of time_format or time_system being "FILE".
+          \param event_time_handler Pointer to an EventTimeHandler object that is used in case that time_format and/or time_system
+                 is "FILE". If set to zero (0), this method throws an exception if time_format or time_system is "FILE".
       */
       virtual timeSystem::AbsoluteTime parseTime(const std::string & time_format, const std::string & time_system,
         const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
-        const tip::Header * header = 0) const;
+        const timeSystem::EventTimeHandler * event_time_handler = 0) const;
 
       /** \brief Open event file(s).
           \param pars Set of parameters from which event file names, etc., are to be read.
