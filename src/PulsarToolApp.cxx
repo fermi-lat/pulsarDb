@@ -368,9 +368,9 @@ namespace pulsarDb {
             std::string list_prefix;
             if (0 == itor->find("PULSARDB")) {
               ++psrdb_index;
-              std::ostringstream oss;
-              oss << "[" << psrdb_index << "] ";
-              list_prefix = oss.str();
+              std::ostringstream os_str;
+              os_str << "[" << psrdb_index << "] ";
+              list_prefix = os_str.str();
             } else {
               list_prefix = "   ";
             }
@@ -384,18 +384,18 @@ namespace pulsarDb {
       if (eph_style_uc == "DB") {
         // Thrown an exception if no ephemeris is left in the database.
         if (0 == database.getNumEph()) {
-          std::ostringstream os;
-          os << "No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following." <<
+          std::ostringstream os_err;
+          os_err << "No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following." <<
             std::endl;
-          os << num_eph_total << " spin ephemeri(de)s in the database." << std::endl;
-          os << num_eph_psrname << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" in the database." << std::endl;
+          os_err << num_eph_total << " spin ephemeri(de)s in the database." << std::endl;
+          os_err << num_eph_psrname << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" in the database." << std::endl;
           if (solar_eph_must_match) {
-            os << num_eph_solareph << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" with solar system ephemeris \"" <<
+            os_err << num_eph_solareph << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" with solar system ephemeris \"" <<
               solar_eph << "\" in the database.";
           } else {
-            os << "(Solar system ephemeris in spin parameters was not requested to match \"" << solar_eph << "\" given by user.)";
+            os_err << "(Solar system ephemeris in spin parameters was not requested to match \"" << solar_eph << "\" given by user.)";
           }
-          throw std::runtime_error(os.str());
+          throw std::runtime_error(os_err.str());
         }
 
         // Load spin parameters.
