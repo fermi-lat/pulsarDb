@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Oct 23 18:19:42 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Change variable names for clarity (cosmetic).
+    *
+------------------------------------------------------------
 User: hirayama  Thu Oct 23 18:19:10 PDT 2008
 pulsarDb/pulsarDb
 
