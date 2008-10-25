@@ -53,6 +53,23 @@ solareph = JPL DE405 [enumerated string (JPL DE200|JPL DE405)]
     Solar system ephemeris used to filter the ephemerides.
     This only has effect when the filter parameter is SOLAREPH.
 
+author = Anonymous User [string]
+    Name of person responsible for generation of the database being
+    compiled.  The name will be recorded in AUTHOR header keyword of
+    the primary extension of the output ephemeris database file.  The
+    value is intended to help identify the created file, together with
+    DATE header keyword value, which is the file creation time of the
+    output ephemeris database file which the application automatically
+    computes.  Also, it appears in the creation history recorded in
+    HISTORY header keywords of the primary extension of the output
+    ephemeris database file, in order to help trace back originating
+    ephemeris data.
+
+(leapsecfile = DEFAULT) [file name]
+    Name of the file containing the name of the leap second table, in
+    OGIP-compliant leap second table format. If leapsecfile is the
+    string DEFAULT, the default leap-second file (leapsec.fits), which
+    is distributed with the extFiles package, will be used.
 \endverbatim
 
     \subsection gtephem_prerequisites gtephem Prerequisites
@@ -105,6 +122,11 @@ timesys = TDB [enumerated string (TAI|TDB|TT|UTC)]
     string DEFAULT, the default leap-second file (leapsec.fits), which
     is distributed with the extFiles package, will be used.
 
+(reportephstatus = yes) [bool]
+    If reportephstatus is yes, the application will examine the input
+    pulsar ephemeris database, and report findings which may affect
+    the requested ephemeris computations. If reportephstatus is no, it
+    will not report any ephemeris status.
 \endverbatim
 
     \section known-issues Known Issues
