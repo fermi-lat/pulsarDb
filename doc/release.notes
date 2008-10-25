@@ -2,9 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.41 2008/09/30 21:25:42 peachey Exp $
+$Id: release.notes,v 1.42 2008/10/10 01:31:21 hirayama Exp $
 
 \verbatim
+24-oct-2008      v8r1 MH  Add tests of the application class to the unit test.
+                          Fix a bug reported as JIRA PULS-48. Revise mainpage.h.
+                          Improve application output messages and Doxygen comments.
 09-oct-2008        v8 MH  Add leapsecfile parameter to gtpulsardb for potential use of UTC system.
 30-sep-2008      v7r1 JP  Write history keywords that outline the evolution of the output
                           ephemeris fits file. Print this output as well if chatter == 4.
