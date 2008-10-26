@@ -2343,7 +2343,7 @@ void PulsarDbTestApp::testPulsarDbApp() {
     remove(out_file.c_str());
 
     // Test the application.
-    testApplication(app_name, pars, "", out_file);
+    testApplication(app_name, pars, "", "", out_file);
   }
 }
 
@@ -2543,7 +2543,7 @@ void PulsarDbTestApp::testEphComputerApp() {
 
     // Test the application.
     std::string log_file(getMethod() + "_" + test_name + ".log");
-    testApplication(app_name, pars, log_file, "", true);
+    testApplication(app_name, pars, log_file, "", "", true);
   }
 }
 
