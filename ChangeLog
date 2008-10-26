@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Oct 26 16:39:31 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Adopt to changes in timeSystem package.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-01-00, operation: add
 Package: pulsarDb
