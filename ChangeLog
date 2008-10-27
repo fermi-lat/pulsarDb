@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Oct 27 16:55:16 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Changes for detailed comparison of FITS outputs.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Oct 26 16:39:31 PDT 2008
 pulsarDb/src/test
 
