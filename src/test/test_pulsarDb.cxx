@@ -10,6 +10,7 @@
 #include <limits>
 #include <list>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -2343,7 +2344,8 @@ void PulsarDbTestApp::testPulsarDbApp() {
     remove(out_file.c_str());
 
     // Test the application.
-    testApplication(app_name, pars, "", "", out_file);
+    std::set<std::string> col_name;
+    testApplication(app_name, pars, "", "", out_file, col_name);
   }
 }
 
@@ -2543,7 +2545,8 @@ void PulsarDbTestApp::testEphComputerApp() {
 
     // Test the application.
     std::string log_file(getMethod() + "_" + test_name + ".log");
-    testApplication(app_name, pars, log_file, "", "", true);
+    std::set<std::string> col_name;
+    testApplication(app_name, pars, log_file, "", "", col_name, true);
   }
 }
 
