@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Oct 28 16:50:04 PDT 2008
+pulsarDb/data/outref
+
+Removed Files:
+	testEphComputerApp_par11.log testEphComputerApp_par12.log 
+Log Message:
+Use writeException method to create a reference text output files.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Oct 28 16:50:04 PDT 2008
 pulsarDb/src/test
 
 Modified Files:
