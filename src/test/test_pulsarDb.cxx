@@ -817,7 +817,7 @@ void PulsarDbTestApp::testPeriodEph() {
       p_eph3.calcPulsePhase(abs_time);
       err() << "PeriodEph::calcPulsePhase(abs_time) did not throw an exception for p0=" << p0 <<
         ", p1=" << p1 << ", p2=" << p2 << std::endl;
-    } catch (const std::exception & x) {
+    } catch (const std::exception &) {
       // This is fine.
     }
   }
