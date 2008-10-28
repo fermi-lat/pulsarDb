@@ -226,9 +226,9 @@ namespace pulsarDb {
     for (std::string::iterator itor = mode_name_uc.begin(); itor != mode_name_uc.end(); ++itor) *itor = std::toupper(*itor);
 
     // Select time correction mode.
-    std::map<const std::string, TimeCorrectionMode_e>::iterator itor;
-    itor = m_tcmode_dict_bary.find(mode_name_uc);
-    if (itor != m_tcmode_dict_bary.end()) {
+    std::map<const std::string, TimeCorrectionMode_e>::iterator map_itor;
+    map_itor = m_tcmode_dict_bary.find(mode_name_uc);
+    if (map_itor != m_tcmode_dict_bary.end()) {
       m_tcmode_bary = m_tcmode_dict_bary[mode_name_uc];
       m_tcmode_bin = m_tcmode_dict_bin[mode_name_uc];
       m_tcmode_pdot = m_tcmode_dict_pdot[mode_name_uc];
