@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: peachey  Tue Oct 28 13:07:18 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Rename a local iterator to silence warning on Windows.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-01-01, operation: add
 Package: pulsarDb
