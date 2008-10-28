@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Oct 28 16:50:04 PDT 2008
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use writeException method to create a reference text output files.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-01-02, operation: add
 Package: pulsarDb
