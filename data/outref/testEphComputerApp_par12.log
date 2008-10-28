@@ -1,4 +1,0 @@
-Caught St13runtime_error at the top level: No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.
-1143 spin ephemeri(de)s in the database.
-2 spin ephemeri(de)s for pulsar "PSR B0540-69" in the database.
-0 spin ephemeri(de)s for pulsar "PSR B0540-69" with solar system ephemeris "JPL DE405" in the database.

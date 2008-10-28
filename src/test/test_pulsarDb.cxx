@@ -2384,6 +2384,7 @@ void PulsarDbTestApp::testEphComputerApp() {
   // Loop over parameter sets.
   for (std::list<std::string>::const_iterator test_itor = test_name_cont.begin(); test_itor != test_name_cont.end(); ++test_itor) {
     const std::string & test_name = *test_itor;
+    std::string ref_file(getMethod() + "_" + test_name + ".ref");
 
     // Set default parameters.
     std::string app_name("gtephem");
@@ -2405,6 +2406,7 @@ void PulsarDbTestApp::testEphComputerApp() {
     pars["mode"] = "ql";
 
     // Set test-specific parameters.
+    bool expected_to_fail = false;
     if ("par1" == test_name) {
       // Test standard computation.
       pars["psrdbfile"] = master_pulsardb;
@@ -2500,6 +2502,16 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrdbfile"] = master_pulsardb;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
+      expected_to_fail = true;
+
+      remove(ref_file.c_str());
+      std::ofstream ofs(ref_file.c_str());
+      std::runtime_error error("No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.");
+      writeException(ofs, error);
+      ofs << "1143 spin ephemeri(de)s in the database." << std::endl;
+      ofs << "0 spin ephemeri(de)s for pulsar \"No Such Pulsar\" in the database." << std::endl;
+      ofs << "(Solar system ephemeris in spin parameters was not requested to match \"JPL DE405\" given by user.)" << std::endl;
+      ofs.close();
 
     } else if ("par12" == test_name) {
       // Test reporting no ephemeris available.
@@ -2510,6 +2522,16 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timesys"] = "TDB";
       pars["solareph"] = "JPL DE405";
       pars["matchsolareph"] = "ALL";
+      expected_to_fail = true;
+
+      remove(ref_file.c_str());
+      std::ofstream ofs(ref_file.c_str());
+      std::runtime_error error("No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.");
+      writeException(ofs, error);
+      ofs << "1143 spin ephemeri(de)s in the database." << std::endl;
+      ofs << "2 spin ephemeri(de)s for pulsar \"PSR B0540-69\" in the database." << std::endl;
+      ofs << "0 spin ephemeri(de)s for pulsar \"PSR B0540-69\" with solar system ephemeris \"JPL DE405\" in the database." << std::endl;
+      ofs.close();
 
     } else if ("par13" == test_name) {
       // Test reporting of ephemeris remarks.
@@ -2544,9 +2566,13 @@ void PulsarDbTestApp::testEphComputerApp() {
     }
 
     // Test the application.
-    std::string log_file(getMethod() + "_" + test_name + ".log");
     std::set<std::string> col_name;
-    testApplication(app_name, pars, log_file, "", "", col_name, true);
+    std::string log_file(getMethod() + "_" + test_name + ".log");
+    if (expected_to_fail) {
+      testApplication(app_name, pars, log_file, ref_file, "", col_name, true);
+    } else {
+      testApplication(app_name, pars, log_file, "", "", col_name);
+    }
   }
 }
 
