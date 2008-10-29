@@ -2,9 +2,11 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.44 2008/10/28 00:25:00 hirayama Exp $
+$Id: release.notes,v 1.45 2008/10/28 20:33:25 peachey Exp $
 
 \verbatim
+29-oct-2008    v8r1p3 MH  Modify unit test to be tolerate platform-dependent error messages.
+                          Silence more compiler warnings.
 28-oct-2008    v8r1p2 JP  Silence compiler warnings.
 27-oct-2008    v8r1p1 MH  Improve the unit test for robustness.
 24-oct-2008      v8r1 MH  Add tests of the application class to the unit test.
