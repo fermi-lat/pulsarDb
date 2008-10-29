@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Oct 28 20:05:48 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Remove unnecessary lines of code to silence warnings.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Oct 28 16:50:04 PDT 2008
 pulsarDb/data/outref
 
