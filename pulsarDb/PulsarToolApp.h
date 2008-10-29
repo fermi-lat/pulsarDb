@@ -133,30 +133,34 @@ namespace pulsarDb {
           \param pars Set of parameters from which initialization information is to be read.
           \param vary_ra_dec If true, the sky position of a celestial source is to be read from the stored spin ephemerides
                  for each event. Otherwise, one position is to be used for all events.
+          \param os Output stream to write the chosen time correction mode to.
           \param guess_pdot If true, parameters for p-dot cancellation is to be computed from the stored spin ephemerides.
                  Otherwise, the method reads them from the given set of parameters.
       */
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os);
 
       /** \brief Initializa arrival time corrections, with the time origin specified by a character string.
           \param pars Set of parameters from which initialization information is to be read.
           \param vary_ra_dec If true, the sky position of a celestial source is to be read from the stored spin ephemerides
                  for each event. Otherwise, one position is to be used for all events.
+          \param os Output stream to write the chosen time correction mode to.
           \param guess_pdot If true, parameters for p-dot cancellation is to be computed from the stored spin ephemerides.
                  Otherwise, the method reads them from the given set of parameters.
           \param str_origin Character string representing the time origin.
       */
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, const std::string & str_origin);
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os,
+        const std::string & str_origin);
 
       /** \brief Initializa arrival time corrections, with the time origin explicitly given.
           \param pars Set of parameters from which initialization information is to be read.
           \param vary_ra_dec If true, the sky position of a celestial source is to be read from the stored spin ephemerides
                  for each event. Otherwise, one position is to be used for all events.
+          \param os Output stream to write the chosen time correction mode to.
           \param guess_pdot If true, parameters for p-dot cancellation is to be computed from the stored spin ephemerides.
                  Otherwise, the method reads them from the given set of parameters.
           \param abs_origin AbsoluteTime object representing the time origin.
       */
-      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
+      void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os,
         const timeSystem::AbsoluteTime & abs_origin);
 
       /** \brief Compute the number of elepased seconds since the time origin.

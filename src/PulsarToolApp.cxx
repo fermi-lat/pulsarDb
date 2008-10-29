@@ -453,15 +453,15 @@ namespace pulsarDb {
     return abs_candidate_time;
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot) {
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os) {
     // Read timeorigin parameter.
     std::string str_origin = pars["timeorigin"];
 
     // Initialize time correction with the given time origin.
-    initTimeCorrection(pars, vary_ra_dec, guess_pdot, str_origin);
+    initTimeCorrection(pars, vary_ra_dec, guess_pdot, os, str_origin);
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os,
     const std::string & str_origin) {
     AbsoluteTime abs_origin("TDB", 0, 0.);
 
@@ -508,10 +508,10 @@ namespace pulsarDb {
     }
 
     // Initialize time correction with the time origin just computed.
-    initTimeCorrection(pars, vary_ra_dec, guess_pdot, abs_origin);
+    initTimeCorrection(pars, vary_ra_dec, guess_pdot, os, abs_origin);
   }
 
-  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot,
+  void PulsarToolApp::initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os,
     const AbsoluteTime & abs_origin) {
     // Determine whether to perform binary demodulation.
     m_demod_bin = false;
@@ -639,6 +639,33 @@ namespace pulsarDb {
         if (!m_vary_ra_dec) gti_handler.setSourcePosition(ra, dec);
       }
     }
+
+    // Draw a separator line, and write a section title.
+    std::string dashes(26, '-');
+    std::string indent(3, ' ');
+    os.prefix() << dashes << std::endl;
+    os.prefix() << "Arrival time corrections are applied as follows:" << std::endl;
+
+    // Report whether barycentric correction will be applied or not.
+    os.prefix() << indent << "Barycentric correction: ";
+    if (m_request_bary) os << "Applied if necessary";
+    else os << "Not applied";
+    os << std::endl;
+
+    // Report whether binary demodulation will be applied or not.
+    os.prefix() << indent << "Binary demodulation: ";
+    if (m_demod_bin) os << "Applied";
+    else os << "Not applied";
+    os << std::endl;
+
+    // Report whether pdot cancelation will be applied or not.
+    os.prefix() << indent << "Pdot cancellation: ";
+    if (m_cancel_pdot) os << "Applied";
+    else os << "Not applied";
+    os << std::endl;
+
+    // Draw a separator line.
+    os.prefix() << dashes << std::endl;
   }
 
   double PulsarToolApp::computeElapsedSecond(const AbsoluteTime & abs_time) const {
