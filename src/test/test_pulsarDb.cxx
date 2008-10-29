@@ -1471,7 +1471,7 @@ void PulsarDbTestApp::testEphComputer() {
   EphComputer computer4;
   EphStatusCont eph_status_cont;
   AbsoluteTime abs_time_01("TDB", 51910, 100.);
-  AbsoluteTime abs_time_02("TDB", 51910, 200.);
+  // AbsoluteTime abs_time_02("TDB", 51910, 200.);
   AbsoluteTime abs_time_03("TDB", 51910, 300.);
   AbsoluteTime abs_time_04("TDB", 51910, 400.);
   AbsoluteTime abs_time_05("TDB", 51910, 500.);

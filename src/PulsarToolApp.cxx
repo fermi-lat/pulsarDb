@@ -612,9 +612,6 @@ namespace pulsarDb {
       std::string solar_eph = pars["solareph"];
       double ang_tolerance = pars["angtol"];
 
-      // Get the uncorrected start time of event list as a reference time for initial RA and Dec for barycentric corrections.
-      AbsoluteTime abs_start = computeTimeBoundary(true, false);
-
       // Determine whether to check solar system ephemeris used for barycentered event files.
       std::string match_solar_eph = pars["matchsolareph"];
       for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
