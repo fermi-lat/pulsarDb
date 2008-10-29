@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Oct 29 15:09:16 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add report of chosen time correction modes.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Oct 29 15:09:16 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
