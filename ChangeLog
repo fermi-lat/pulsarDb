@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 29 17:37:28 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx 
+Log Message:
+Add summarizeTimeSystem method.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 29 17:37:27 PDT 2008
 pulsarDb/pulsarDb
 
