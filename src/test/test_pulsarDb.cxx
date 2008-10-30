@@ -832,6 +832,12 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   double epsilon = 1.e-8;
 
+  // Test time system getter.
+  std::string sys_name = o_eph.getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "SimpleDdEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
   // Test orbital phase computations.
   double phase = o_eph.calcOrbitalPhase(ev_time);
   if (fabs(phase/.099 - 1.) > epsilon)
@@ -948,6 +954,15 @@ void PulsarDbTestApp::testPdotCanceler() {
   if (!correct_time.equivalentTo(ev_time2, tolerance)) {
     err() << "After constructed from PulsarEph, PdotCanceler::cancelPdot produced pdot-corrected time == "
       << ev_time2 << " not " << correct_time << std::endl;
+  }
+
+  // Test time system getter.
+  PdotCanceler canceler3("tdB", origin, fdot_ratio);
+  std::string result = canceler3.getSystem().getName();
+  std::string expected = "TDB";
+  if (result != expected) {
+    err() << "After constructed from literal numbers, PdotCanceler::getSystem returned \"" << result << "\", not \""
+      << expected << "\"" << std::endl;
   }
 }
 
@@ -1510,6 +1525,57 @@ void PulsarDbTestApp::testEphComputer() {
     }
   }
 
+  // Prepare for tests of summarizeTimeSystem method.
+  EphComputer computer5;
+
+  // Test time system summary with empty computer.
+  std::string result_spin;
+  std::string result_orbital;
+  std::string result_pdot;
+  std::string expected_spin("None");
+  std::string expected_orbital("None");
+  std::string expected_pdot("None");
+  computer5.summarizeTimeSystem(result_spin, result_orbital, result_pdot);
+  if (result_spin != expected_spin) {
+    err () << "EphComputer::summarizeTimeSystem returned \"" << result_spin << "\" for spin ephemerides, not \"" << expected_spin <<
+      "\", as expected" << std::endl;
+  }
+  if (result_orbital != expected_orbital) {
+    err () << "EphComputer::summarizeTimeSystem returned \"" << result_orbital << "\" for orbital ephemerides, not \"" <<
+      expected_orbital << "\", as expected" << std::endl;
+  }
+  if (result_pdot != expected_pdot) {
+    err () << "EphComputer::summarizeTimeSystem returned \"" << result_pdot << "\" for pdot cancellation, not \"" << expected_pdot <<
+      "\", as expected" << std::endl;
+  }
+
+  // Load lots of ephemeris data with various time systems.
+  computer5.load(database3);
+  computer5.loadPulsarEph(FrequencyEph("TT", abs_time_01, abs_time_03, epoch, 0., 0., 0., 1., 0., 0.));
+  computer5.loadPulsarEph(PeriodEph("TDB", abs_time_04, abs_time_06, epoch, 0., 0., 0., 1., 0., 0.));
+  computer5.loadOrbitalEph(SimpleDdEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., epoch, 0., 0., 0.));
+  computer5.loadOrbitalEph(SimpleDdEph("TAI", 1000., .2, 0., 0., 0., 0., 0., 0., epoch, 0., 0., 0.));
+  computer5.loadOrbitalEph(SimpleDdEph("TT", 1000., .2, 0., 0., 0., 0., 0., 0., epoch, 0., 0., 0.));
+  computer5.setPdotCancelParameter("TAI", abs_time_01, fdot_ratio);
+
+  // Test time system summary with filled ephemeris computer.
+  expected_spin = "TDB(1142) TT(1)";
+  expected_orbital = "TAI(1) TDB(20) TT(1)";
+  expected_pdot = "TAI";
+  computer5.summarizeTimeSystem(result_spin, result_orbital, result_pdot);
+  if (result_spin != expected_spin) {
+    err () << "EphComputer::summarizeTimeSystem returned \"" << result_spin << "\" for spin ephemerides, not \"" << expected_spin <<
+      "\", as expected" << std::endl;
+  }
+  if (result_orbital != expected_orbital) {
+    err () << "EphComputer::summarizeTimeSystem returned \"" << result_orbital << "\" for orbital ephemerides, not \"" <<
+      expected_orbital << "\", as expected" << std::endl;
+  }
+  if (result_pdot != expected_pdot) {
+    err () << "EphComputer::summarizeTimeSystem returned \"" << result_pdot << "\" for pdot cancellation, not \"" << expected_pdot <<
+      "\", as expected" << std::endl;
+  }
+
   // Clean up.
   for (PulsarEphCont::reverse_iterator itor = eph_cont.rbegin(); itor != eph_cont.rend(); ++itor) delete *itor;
   eph_cont.clear();
@@ -1649,6 +1715,8 @@ class BogusPulsarEph: public BogusPulsarEphBase {
 class BogusOrbitalEphBase: public OrbitalEph {
   public:
     BogusOrbitalEphBase(): OrbitalEph(timeSystem::ElapsedTime("TDB", Duration(0, 10.e-9)), 100) {}
+
+    virtual const timeSystem::TimeSystem & getSystem() const { return TimeSystem::getSystem("TDB"); }
 
     virtual const EphRoutingInfo & getRoutingInfo() const {
       static const EphRoutingInfo s_bogus_info;
