@@ -658,11 +658,22 @@ namespace pulsarDb {
     else os << "Not applied";
     os << std::endl;
 
-    // Report whether pdot cancelation will be applied or not.
+    // Report whether pdot cancellation will be applied or not.
     os.prefix() << indent << "Pdot cancellation: ";
     if (m_cancel_pdot) os << "Applied";
     else os << "Not applied";
     os << std::endl;
+
+    // Report time systems to be used in the current task.
+    os.prefix() << "Following time system(s) are listed for this task:" << std::endl;
+    std::string spin_summary;
+    std::string orbital_summary;
+    std::string pdot_summary;
+    m_computer->summarizeTimeSystem(spin_summary, orbital_summary, pdot_summary);
+    os.prefix() << indent << "Spin ephemeri(de)s are defined in: " << spin_summary << std::endl;
+    os.prefix() << indent << "Orbital ephemeri(de)s are defined in: " << orbital_summary << std::endl;
+    os.prefix() << indent << "Pdot cancellation will be performed in: " << pdot_summary << std::endl;
+    os.prefix() << indent << "Time series analysis will be performed in: " << m_target_time_system->getName() << std::endl;
 
     // Draw a separator line.
     os.prefix() << dashes << std::endl;
