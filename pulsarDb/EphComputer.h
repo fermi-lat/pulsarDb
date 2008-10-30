@@ -6,6 +6,7 @@
 #ifndef pulsarDb_EphComputer_h
 #define pulsarDb_EphComputer_h
 
+#include <string>
 #include <utility>
 
 #include "pulsarDb/OrbitalEph.h"
@@ -175,6 +176,17 @@ namespace pulsarDb {
       */
       void getEphRemark(const timeSystem::AbsoluteTime & start_time, const timeSystem::AbsoluteTime & stop_time,
         EphStatusCont & eph_status_cont) const;
+
+      /** \brief Summarize time systems of pulsar's spin ephemerides, orbital ephemerides, and pdot cancellation,
+                 and return character strings summarizing them for human reading through arguments of this method.
+          \param spin_summary Character string to receive a summary of time systems for spin ephemerides. The original contents
+                 of the string will be replaced with the summary.
+          \param orbital_summary Character string to receive a summary of time systems for orbital ephemerides. The original contents
+                 of the string will be replaced with the summary.
+          \param pdot_summary Character string to receive a summary of time system for pdot cancellation. The original contents
+                 of the string will be replaced with the summary.
+      */
+      void summarizeTimeSystem(std::string & spin_summary, std::string & orbital_summary, std::string & pdot_summary) const;
 
     private:
       /// \brief Copy constructors.
