@@ -2,9 +2,10 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.45 2008/10/28 20:33:25 peachey Exp $
+$Id: release.notes,v 1.46 2008/10/29 18:19:44 hirayama Exp $
 
 \verbatim
+29-oct-2008      v8r2 MH  Print time correction modes and time system usage if chatter is 3 or higher.
 29-oct-2008    v8r1p3 MH  Modify unit test to be tolerate platform-dependent error messages.
                           Silence more compiler warnings.
 28-oct-2008    v8r1p2 JP  Silence compiler warnings.
