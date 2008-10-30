@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Oct 29 17:37:57 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Add report on time system usage in initTimeCorrection method.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Oct 29 17:37:28 PDT 2008
 pulsarDb/src
 
