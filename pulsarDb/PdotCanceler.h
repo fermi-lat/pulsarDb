@@ -47,6 +47,9 @@ namespace pulsarDb {
 
       virtual ~PdotCanceler() {}
 
+      /// \brief Return a time system in which pdot cancellation is to be performed.
+      virtual const timeSystem::TimeSystem & getSystem() const;
+
       /** \brief Correct an absolute time to account for pdot cancellation.
           \param abs_time Time to correct.
       */

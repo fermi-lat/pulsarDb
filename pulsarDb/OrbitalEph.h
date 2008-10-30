@@ -33,6 +33,9 @@ namespace pulsarDb {
       /// \brief Destruct this OrbitalEph object.
       virtual ~OrbitalEph() {}
 
+      /// \brief Return a time system in which binary demodulation is performed.
+      virtual const timeSystem::TimeSystem & getSystem() const = 0;
+
       /** \brief Compute an orbital delay for a photon emission time, add it to the time, and set the result to the time.
           \param ev_time Time at which a photo leaves a star in a binary system. This argument is to be updated with
                  the result of the computation.
