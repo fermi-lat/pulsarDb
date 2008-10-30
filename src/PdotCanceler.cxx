@@ -28,6 +28,10 @@ namespace pulsarDb {
     }
   }
 
+  const timeSystem::TimeSystem & PdotCanceler::getSystem() const {
+    return *m_time_system;
+  }
+
   void PdotCanceler::cancelPdot(timeSystem::AbsoluteTime & abs_time) const {
     // Compute elapsed seconds from time origin.
     const std::string time_system_name = m_time_system->getName();

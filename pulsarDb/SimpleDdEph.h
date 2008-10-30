@@ -70,6 +70,9 @@ namespace pulsarDb {
       /// \brief Destruct this SimpleDdEph object.
       virtual ~SimpleDdEph();
 
+      /// \brief Return a time system in which binary demodulation is performed.
+      virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
+
       /// \brief Return the T0 parameter value, which is the barycentric time of periastron.
       virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
 
