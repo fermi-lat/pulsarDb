@@ -3,6 +3,10 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <iostream>
+#include <map>
+#include <sstream>
+
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/PdotCanceler.h"
@@ -139,6 +143,50 @@ namespace pulsarDb {
     for (EphStatusCont::const_iterator itor = m_eph_remark_cont.begin(); itor != m_eph_remark_cont.end(); ++itor) {
       if (itor->effectiveBetween(start_time, stop_time)) eph_status_cont.push_back(*itor);
     }
+  }
+
+  void EphComputer::summarizeTimeSystem(std::string & spin_summary, std::string & orbital_summary, std::string & pdot_summary) const {
+    typedef std::map<std::string, long> map_type;
+
+    // Collect time system names of spin ephemerides.
+    map_type num_system_spin;
+    for (PulsarEphCont::const_iterator spin_itor = m_pulsar_eph_cont.begin(); spin_itor != m_pulsar_eph_cont.end(); ++spin_itor) {
+      std::string time_system_name = (*spin_itor)->getSystem().getName();
+      if (num_system_spin.find(time_system_name) == num_system_spin.end()) num_system_spin[time_system_name] = 1;
+      else num_system_spin[time_system_name] += 1;
+    }
+
+    // Summarize the time systems of spin ephemerides.
+    spin_summary = "";
+    for (map_type::const_iterator map_itor = num_system_spin.begin(); map_itor != num_system_spin.end(); ++map_itor) {
+      std::ostringstream os_str;
+      os_str << map_itor->first << "(" << map_itor->second << ") ";
+      spin_summary += os_str.str();
+    }
+    if (spin_summary.empty()) spin_summary = "None";
+    else spin_summary.erase(spin_summary.size() - 1);
+
+    // Collect time system names of orbital ephemerides.
+    map_type num_system_orbital;
+    for (OrbitalEphCont::const_iterator orb_itor = m_orbital_eph_cont.begin(); orb_itor != m_orbital_eph_cont.end(); ++orb_itor) {
+      std::string time_system_name = (*orb_itor)->getSystem().getName();
+      if (num_system_orbital.find(time_system_name) == num_system_orbital.end()) num_system_orbital[time_system_name] = 1;
+      else num_system_orbital[time_system_name] += 1;
+    }
+
+    // Summarize the time systems of orbital ephemerides.
+    orbital_summary = "";
+    for (map_type::const_iterator map_itor = num_system_orbital.begin(); map_itor != num_system_orbital.end(); ++map_itor) {
+      std::ostringstream os_str;
+      os_str << map_itor->first << "(" << map_itor->second << ") ";
+      orbital_summary += os_str.str();
+    }
+    if (orbital_summary.empty()) orbital_summary = "None";
+    else orbital_summary.erase(orbital_summary.size() - 1);
+
+    // Summarize the time system for pdot cancellation.
+    if (m_pdot_canceler) pdot_summary = m_pdot_canceler->getSystem().getName();
+    else pdot_summary = "None";
   }
 
 }
