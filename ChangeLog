@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Oct 29 17:36:13 PDT 2008
+pulsarDb/src
+
+Modified Files:
+	PdotCanceler.cxx 
+Log Message:
+Add getSystem method.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Oct 29 17:36:13 PDT 2008
 pulsarDb/pulsarDb
 
 Modified Files:
