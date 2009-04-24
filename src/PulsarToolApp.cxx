@@ -569,7 +569,7 @@ namespace pulsarDb {
     // Check whether time system is successfully set.
     if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
 
-    // Compute spin ephemeris to be used in pdot cancellation, and replace PulsarEph in EphComputer with it.
+    // Compute spin ephemeris to be used in pdot cancellation, and set it to EphComputer.
     if (m_cancel_pdot) {
       const int max_derivative = 2;
       if (guess_pdot) {
@@ -581,16 +581,20 @@ namespace pulsarDb {
         std::string eph_style = pars["ephstyle"];
         for (std::string::iterator itor = eph_style.begin(); itor != eph_style.end(); ++itor) *itor = std::toupper(*itor);
 
-        // Set dummy ra, dec, and phi0 (those are not used in pdot cancellation).
-        double ra = 0.;
-        double dec = 0.;
-        double phi0 = 0.;
         if (eph_style == "FREQ") {
+          // Read frequency parameters from pfile, and set them for pdot cancellation.
           std::vector<double> fdot_ratio(max_derivative, 0.);
           if (max_derivative > 0) fdot_ratio[0] = pars["f1f0ratio"];
           if (max_derivative > 1) fdot_ratio[1] = pars["f2f0ratio"];
           m_computer->setPdotCancelParameter(m_target_time_system->getName(), m_target_time_origin, fdot_ratio);
+
         } else if (eph_style == "PER") {
+          // Set dummy ra, dec, and phi0 (those are not used in pdot cancellation).
+          double ra = 0.;
+          double dec = 0.;
+          double phi0 = 0.;
+
+          // Read period parameters from pfile, and compute frequency parameters for pdot cancellation.
           double p0 = 1.;
           double p1 = pars["p1p0ratio"];
           double p2 = pars["p2p0ratio"];
