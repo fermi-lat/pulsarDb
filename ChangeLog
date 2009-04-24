@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Apr 24 16:13:59 PDT 2009
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Correct comments. Move variable declarations to the place they are used.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-11-00, operation: add
 Package: pulsarDb
