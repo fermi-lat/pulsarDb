@@ -332,11 +332,17 @@ namespace pulsarDb {
     // Copy the entire contents of the memory FITS file to an output file.
     m_tip_file.copyFile(out_file, clobber);
 
+    // Find a base name of the output file name.
+    std::string out_file_base = out_file;
+    std::string path_delimiter = facilities::commonUtilities::joinPath("", "");
+    std::string::size_type end_of_path = out_file_base.find_last_of(path_delimiter);
+    if (end_of_path != std::string::npos) out_file_base.erase(0, end_of_path+1);
+
     // Prepare header keywords to update.
     Header::KeyValCont_t keywords;
     keywords.push_back(Header::KeyValPair_t("CREATOR", creator));
     keywords.push_back(Header::KeyValPair_t("AUTHOR", author));
-    keywords.push_back(Header::KeyValPair_t("FILENAME", out_file));
+    keywords.push_back(Header::KeyValPair_t("FILENAME", out_file_base));
     keywords.push_back(Header::KeyValPair_t("DATASUM", "-1")); // Force update of DATASUM keyword.
 
     // Loop over all extensions in output file and update header keywords.
