@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Apr 26 20:21:33 PDT 2009
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Use UTC time for DATE keyword value, instead of local time.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Apr 24 19:16:10 PDT 2009
 pulsarDb/data
 
