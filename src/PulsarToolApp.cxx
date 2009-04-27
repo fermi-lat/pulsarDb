@@ -887,26 +887,42 @@ namespace pulsarDb {
     }
   }
 
-  void PulsarToolApp::writeParameter(const st_app::AppParGroup & pars) {
-    // Prepare values for CREATOR and DATE keywords.
-    const std::string creator_value = getName() + " " + getVersion();
-    const time_t modification_time = time(0);
+  void PulsarToolApp::writeParameter(const st_app::AppParGroup & pars, const std::string & header_line, tip::Header & header) {
+    // Write the given header line on a HISTORY keyword.
+    header.addHistory(header_line);
 
+    // Write out all the parameters into HISTORY keywords.
+    for (hoops::ConstGenParItor par_itor = pars.begin(); par_itor != pars.end(); ++par_itor) {
+      std::ostringstream oss_par;
+      oss_par << getName() << ".par: " << **par_itor;
+      header.addHistory(oss_par.str());
+    }
+  }
+
+  void PulsarToolApp::writeParameter(const st_app::AppParGroup & pars, const std::string & header_line) {
+    // Loop over all extensions.
     for (handler_cont_type::iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
       EventTimeHandler & event_handler = **itor;
       tip::Header & header(event_handler.getHeader());
 
-      // Format DATE keyword value.
-      const std::string date_value(header.formatTime(modification_time));
-
-      // Write out all the parameters into HISTORY keywords.
-      header.addHistory("File modified by " + creator_value + " on " + date_value);
-      for (hoops::ConstGenParItor par_itor = pars.begin(); par_itor != pars.end(); ++par_itor) {
-        std::ostringstream oss_par;
-        oss_par << getName() << ".par: " << **par_itor;
-        header.addHistory(oss_par.str());
-      }
+      // Write the given header line and all the parameters into HISTORY keywords.
+      writeParameter(pars, header_line, header);
     }
+  }
+
+  std::string PulsarToolApp::createUtcTimeString() const {
+    // Get the current time.
+    std::time_t current_time = std::time(0);
+
+    // Express the current time in UTC.
+    struct std::tm * gm_time_struct = std::gmtime(&current_time);
+
+    // Format the current time in UTC into a character string.
+    char gm_time_char[] = "YYYY-MM-DDThh:mm:ss";
+    std::strftime(gm_time_char, sizeof(gm_time_char), "%Y-%m-%dT%H:%M:%S", gm_time_struct);
+
+    // Return the character string.
+    return gm_time_char;
   }
 
   void PulsarToolApp::resetApp() {
