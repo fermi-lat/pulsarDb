@@ -223,8 +223,19 @@ namespace pulsarDb {
 
       /** \brief Write a list of parameters to the header(s) of the event file(s).
           \param pars Set of parameters to be written to the event file(s).
+          \param header_line Character string to be written in the header(s) immediately before the parameters.
       */
-      void writeParameter(const st_app::AppParGroup & pars);
+      void writeParameter(const st_app::AppParGroup & pars, const std::string & header_line);
+
+      /** \brief Write a list of parameters to the header(s) of the event file(s).
+          \param pars Set of parameters to be written to the event file(s).
+          \param header_line Character string to be written in the header(s) immediately before the parameters.
+          \param header The FITS header to write the parameters into.
+      */
+      void writeParameter(const st_app::AppParGroup & pars, const std::string & header_line, tip::Header & header);
+
+      /// \brief Return a character string representing the current time in UTC.
+      std::string createUtcTimeString() const;
 
     private:
       handler_cont_type m_event_handler_cont;
