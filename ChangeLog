@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun Apr 26 20:22:20 PDT 2009
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarToolApp.h 
+Log Message:
+Improve writeParameter method for flexibility.
+    *
+------------------------------------------------------------
 User: hirayama  Sun Apr 26 20:21:33 PDT 2009
 pulsarDb/src
 
