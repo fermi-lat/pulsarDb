@@ -332,6 +332,14 @@ namespace pulsarDb {
     // Copy the entire contents of the memory FITS file to an output file.
     m_tip_file.copyFile(out_file, clobber);
 
+    // Construct a character string representing file creation time in UTC.
+    // Note: UTC is the default time system for DATE header keyword in the FITS standard.
+    std::time_t current_time = std::time(0);
+    struct std::tm * gm_time_struct = std::gmtime(&current_time);
+    char gm_time_char[] = "YYYY-MM-DDThh:mm:ss";
+    std::strftime(gm_time_char, sizeof(gm_time_char), "%Y-%m-%dT%H:%M:%S", gm_time_struct);
+    std::string date_keyword_value(gm_time_char);
+
     // Find a base name of the output file name.
     std::string out_file_base = out_file;
     std::string path_delimiter = facilities::commonUtilities::joinPath("", "");
@@ -360,11 +368,10 @@ namespace pulsarDb {
       // Write extra info in HISTORY keywords of the primary header.
       if (0 == ext_number) {
         // Add DATE keyword to update.
-        std::string date = header.formatTime(time(0));
-        keywords.push_back(Header::KeyValPair_t("DATE", date));
+        keywords.push_back(Header::KeyValPair_t("DATE", date_keyword_value));
 
         // Write command history.
-        header.addHistory("PULSARDB AUTHOR='" + author + "' DATE='" + date + "'");
+        header.addHistory("PULSARDB AUTHOR='" + author + "' DATE='" + date_keyword_value + "'");
         for (std::list<std::string>::const_iterator hist_itor = m_command_history.begin(); hist_itor != m_command_history.end();
           ++hist_itor) header.addHistory("* " + *hist_itor);
 
