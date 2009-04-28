@@ -2,9 +2,11 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.46 2008/10/29 18:19:44 hirayama Exp $
+$Id: release.notes,v 1.47 2008/10/30 01:02:36 hirayama Exp $
 
 \verbatim
+28-apr-2009      v8r3 MH  Report file creation time in UT (JIRA PULS-52). Improve comments
+                          and clean up source codes.
 29-oct-2008      v8r2 MH  Print time correction modes and time system usage if chatter is 3 or higher.
 29-oct-2008    v8r1p3 MH  Modify unit test to be tolerate platform-dependent error messages.
                           Silence more compiler warnings.
