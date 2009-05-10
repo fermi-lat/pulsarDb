@@ -17,8 +17,6 @@
 #include <utility>
 #include <vector>
 
-#include "facilities/commonUtilities.h"
-
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/EphComputerApp.h"
@@ -59,6 +57,52 @@ using namespace timeSystem;
 using namespace pulsarDb;
 
 class EphRoutingInfo;
+
+/** \class PulsarDbAppTester
+    \brief Test PulsarDbApp application (gtpulsardb).
+*/
+class PulsarDbAppTester: public PulsarApplicationTester {
+  public:
+  /** \brief Construct a PulsarDbAppTester object.
+      \param test_app Unit test appliction of pulsar tool package, under which this application tester is to run.
+  */
+  PulsarDbAppTester(PulsarTestApp & test_app);
+
+  /// \brief Destruct this PulsarDbAppTester object.
+  virtual ~PulsarDbAppTester() throw() {}
+
+  /// \brief Returns an application object to be tested.
+  virtual st_app::StApp * createApplication() const;
+};
+
+PulsarDbAppTester::PulsarDbAppTester(PulsarTestApp & test_app): PulsarApplicationTester("gtpulsardb", test_app) {}
+
+st_app::StApp * PulsarDbAppTester::createApplication() const {
+  return new PulsarDbApp();
+}
+
+/** \class EphComputerAppTester
+    \brief Test EphComputerApp application (gtephem).
+*/
+class EphComputerAppTester: public PulsarApplicationTester {
+  public:
+  /** \brief Construct a EphComputerAppTester object.
+      \param test_app Unit test appliction of pulsar tool package, under which this application tester is to run.
+  */
+  EphComputerAppTester(PulsarTestApp & test_app);
+
+  /// \brief Destruct this EphComputerAppTester object.
+  virtual ~EphComputerAppTester() throw() {}
+
+  /// \brief Returns an application object to be tested.
+  virtual st_app::StApp * createApplication() const;
+};
+
+EphComputerAppTester::EphComputerAppTester(PulsarTestApp & test_app): PulsarApplicationTester("gtephem", test_app) {}
+
+st_app::StApp * EphComputerAppTester::createApplication() const {
+  return new EphComputerApp();
+}
 
 /** \class PulsarDbTestApp
     \brief Test pulsarDb package and applications in it.
@@ -134,12 +178,6 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test EphComputerApp class.
     virtual void testEphComputerApp();
 
-  protected:
-    /** \brief Create an application object to be tested.
-        \param app_name Name of application to be tested.
-    */
-    virtual st_app::StApp * createApplication(const std::string & app_name) const;
-
   private:
     typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
     std::string m_in_file;
@@ -183,10 +221,10 @@ PulsarDbTestApp::PulsarDbTestApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tp
   setVersion(s_cvs_id);
 
   // Set test file name.
-  m_in_file = facilities::commonUtilities::joinPath(getDataPath(), "groD4-dc2v5.fits");
+  m_in_file = prependDataPath("groD4-dc2v5.fits");
 
   // Set template file name.
-  m_tpl_file = facilities::commonUtilities::joinPath(getDataPath(), "PulsarDb.tpl");
+  m_tpl_file = prependDataPath("PulsarDb.tpl");
 
   // Set a default value for CREATOR header keyword.
   m_creator = getName() + " " + getVersion();
@@ -229,6 +267,7 @@ void PulsarDbTestApp::runTest() {
 
 void PulsarDbTestApp::testNoOp() {
   setMethod("testNoOp");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -277,11 +316,12 @@ void PulsarDbTestApp::testNoOp() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testExplicitName() {
   setMethod("testExplicitName");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -301,11 +341,12 @@ void PulsarDbTestApp::testExplicitName() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testAlternateName() {
   setMethod("testAlternateName");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -331,11 +372,12 @@ void PulsarDbTestApp::testAlternateName() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testTime() {
   setMethod("testTime");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -355,7 +397,7 @@ void PulsarDbTestApp::testTime() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testBadInterval() {
@@ -377,6 +419,7 @@ void PulsarDbTestApp::testBadInterval() {
 
 void PulsarDbTestApp::testSolarEph() {
   setMethod("testSolarEph");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -401,11 +444,12 @@ void PulsarDbTestApp::testSolarEph() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testExpression() {
   setMethod("testExpression");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -425,11 +469,14 @@ void PulsarDbTestApp::testExpression() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testAppend() {
   setMethod("testAppend");
+  PulsarDbAppTester tester(*this);
+
+  // Load the same data base twice.
   PulsarDb database(m_tpl_file);
   database.load(m_in_file);
   database.load(m_in_file);
@@ -440,20 +487,20 @@ void PulsarDbTestApp::testAppend() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 }
 
 void PulsarDbTestApp::testTextPulsarDb() {
   setMethod("testTextPulsarDb");
+  PulsarDbAppTester tester(*this);
 
   // Ingest one of each type of table.
   PulsarDb database(m_tpl_file);
-  const std::string data_dir(getDataPath());
-  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_spin.txt"));
-  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_binary.txt"));
-  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_remark.txt"));
-  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_obs.txt"));
-  database.load(facilities::commonUtilities::joinPath(data_dir, "psrdb_name.txt"));
+  database.load(prependDataPath("psrdb_spin.txt"));
+  database.load(prependDataPath("psrdb_binary.txt"));
+  database.load(prependDataPath("psrdb_remark.txt"));
+  database.load(prependDataPath("psrdb_obs.txt"));
+  database.load(prependDataPath("psrdb_name.txt"));
 
   // Save all tables into one FITS file.
   std::string filename1("psrdb_all.fits");
@@ -461,7 +508,7 @@ void PulsarDbTestApp::testTextPulsarDb() {
   database.save(filename1, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(filename1);
+  tester.checkOutputFits(filename1, prependOutrefPath(filename1));
 
   // Copy an existing FITS database.
   PulsarDb fits_psrdb(m_tpl_file);
@@ -476,7 +523,7 @@ void PulsarDbTestApp::testTextPulsarDb() {
   fits_psrdb.save(filename2, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(filename2);
+  tester.checkOutputFits(filename2, prependOutrefPath(filename2));
 
   // Test the getter of history records.
   std::list<std::string> expected_command;
@@ -968,6 +1015,7 @@ void PulsarDbTestApp::testPdotCanceler() {
 
 void PulsarDbTestApp::testChooser() {
   setMethod("testChooser");
+  PulsarDbAppTester tester(*this);
 
   // Create pulsar database object.
   PulsarDb database(m_tpl_file);
@@ -993,7 +1041,7 @@ void PulsarDbTestApp::testChooser() {
   database.save(outfile, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  checkOutputFits(outfile);
+  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
 
   AbsoluteTime pick_time("TDB", Mjd1(54012.5));
   AbsoluteTime expected_epoch("TDB", 0, 0.);
@@ -1756,10 +1804,9 @@ void PulsarDbTestApp::testMultipleEphModel() {
   setMethod("testMultipleEphModel");
 
   std::auto_ptr<PulsarDb> database(0);
-  const std::string data_dir(getDataPath());
 
   // Test rejection of a template file w/o EPHSTYLE in SPIN_PARAMETERS extension.
-  std::string tpl_file = facilities::commonUtilities::joinPath(data_dir, "test_pulsarDb_badspin.tpl");
+  std::string tpl_file = prependDataPath("test_pulsarDb_badspin.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
     err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
@@ -1768,7 +1815,7 @@ void PulsarDbTestApp::testMultipleEphModel() {
   }
 
   // Test rejection of a template file w/o EPHSTYLE in ORBITAL_PARAMETERS extension.
-  tpl_file = facilities::commonUtilities::joinPath(data_dir, "test_pulsarDb_badorbital.tpl");
+  tpl_file = prependDataPath("test_pulsarDb_badorbital.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
     err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") did not throw an exception" << std::endl;
@@ -1777,7 +1824,7 @@ void PulsarDbTestApp::testMultipleEphModel() {
   }
 
   // Test successful creation of a PulsarDb object with a correct template.
-  tpl_file = facilities::commonUtilities::joinPath(data_dir, "test_pulsarDb.tpl");
+  tpl_file = prependDataPath("test_pulsarDb.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
   } catch (const std::exception & x) {
@@ -2321,6 +2368,9 @@ void PulsarDbTestApp::testEphStatus() {
 void PulsarDbTestApp::testPulsarDbApp() {
   setMethod("testPulsarDbApp");
 
+  // Create an application tester object.
+  PulsarDbAppTester app_tester(*this);
+
   // Prepare variables to create application objects.
   std::list<std::string> test_name_cont;
   test_name_cont.push_back("par1");
@@ -2333,10 +2383,11 @@ void PulsarDbTestApp::testPulsarDbApp() {
   for (std::list<std::string>::const_iterator test_itor = test_name_cont.begin(); test_itor != test_name_cont.end(); ++test_itor) {
     const std::string & test_name = *test_itor;
     std::string out_file(getMethod() + "_" + test_name + ".fits");
+    std::string out_file_ref(prependOutrefPath(out_file));
+    std::set<std::string> col_name;
 
     // Set default parameters.
-    std::string app_name("gtpulsardb");
-    st_app::AppParGroup pars(app_name);
+    st_app::AppParGroup pars(app_tester.getName());
     pars["psrdbfile"] = "";
     pars["outfile"] = "";
     pars["filter"] = "NONE";
@@ -2391,12 +2442,11 @@ void PulsarDbTestApp::testPulsarDbApp() {
       std::string summary_file("psrdb_all.txt");
       remove(summary_file.c_str());
       std::ofstream ofs(summary_file.c_str());
-      const std::string data_dir(getDataPath());
-      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_spin.txt") << std::endl;
-      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_binary.txt") << std::endl;
-      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_remark.txt") << std::endl;
-      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_obs.txt") << std::endl;
-      ofs << facilities::commonUtilities::joinPath(data_dir, "psrdb_name.txt") << std::endl;
+      ofs << prependDataPath("psrdb_spin.txt") << std::endl;
+      ofs << prependDataPath("psrdb_binary.txt") << std::endl;
+      ofs << prependDataPath("psrdb_remark.txt") << std::endl;
+      ofs << prependDataPath("psrdb_obs.txt") << std::endl;
+      ofs << prependDataPath("psrdb_name.txt") << std::endl;
       ofs.close();
       pars["psrdbfile"] = "@" + summary_file;
       pars["outfile"] = out_file;
@@ -2412,13 +2462,15 @@ void PulsarDbTestApp::testPulsarDbApp() {
     remove(out_file.c_str());
 
     // Test the application.
-    std::set<std::string> col_name;
-    testApplication(app_name, pars, "", "", out_file, col_name);
+    app_tester.test(pars, "", "", out_file, out_file_ref, col_name);
   }
 }
 
 void PulsarDbTestApp::testEphComputerApp() {
   setMethod("testEphComputerApp");
+
+  // Create an application tester object.
+  EphComputerAppTester app_tester(*this);
 
   // Prepare variables to create application objects.
   std::list<std::string> test_name_cont;
@@ -2439,24 +2491,26 @@ void PulsarDbTestApp::testEphComputerApp() {
   test_name_cont.push_back("par15");
 
   // Prepare files to be used in the tests.
-  std::string master_pulsardb = facilities::commonUtilities::joinPath(getDataPath(), "master_pulsardb_v2.fits");
-  std::string leap_file = facilities::commonUtilities::joinPath(getDataPath(), "gtephem_leapsec.fits");
-  std::string remark_file = facilities::commonUtilities::joinPath(getDataPath(), "gtephem_remark.txt");
+  std::string master_pulsardb = prependDataPath("master_pulsardb_v2.fits");
+  std::string leap_file = prependDataPath("gtephem_leapsec.fits");
+  std::string remark_file = prependDataPath("gtephem_remark.txt");
   std::string summary_file = getMethod() + "_summary.txt";
   std::ofstream ofs_summary(summary_file.c_str());
   ofs_summary << master_pulsardb << std::endl;
   ofs_summary << remark_file << std::endl;
-  ofs_summary << facilities::commonUtilities::joinPath(getDataPath(), "psrdb_user.fits") << std::endl;
+  ofs_summary << prependDataPath("psrdb_user.fits") << std::endl;
   ofs_summary.close();
 
   // Loop over parameter sets.
   for (std::list<std::string>::const_iterator test_itor = test_name_cont.begin(); test_itor != test_name_cont.end(); ++test_itor) {
     const std::string & test_name = *test_itor;
-    std::string ref_file(getMethod() + "_" + test_name + ".ref");
+    std::string log_file(getMethod() + "_" + test_name + ".log");
+    std::string log_file_ref(getMethod() + "_" + test_name + ".ref");
+    std::set<std::string> col_name;
+    bool ignore_exception(false);
 
     // Set default parameters.
-    std::string app_name("gtephem");
-    st_app::AppParGroup pars(app_name);
+    st_app::AppParGroup pars(app_tester.getName());
     pars["psrdbfile"] = "";
     pars["psrname"] = "ANY";
     pars["reftime"] = 0.;
@@ -2474,7 +2528,6 @@ void PulsarDbTestApp::testEphComputerApp() {
     pars["mode"] = "ql";
 
     // Set test-specific parameters.
-    bool expected_to_fail = false;
     if ("par1" == test_name) {
       // Test standard computation.
       pars["psrdbfile"] = master_pulsardb;
@@ -2482,6 +2535,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["reftime"] = 212380785.922;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par2" == test_name) {
       // Test strict=yes.
@@ -2491,6 +2545,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
       pars["strict"] = "yes";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par3" == test_name) {
       // Test chatter=3.
@@ -2500,6 +2555,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["chatter"] = 3;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par4" == test_name) {
       // Test an orbital ephemeris.
@@ -2508,6 +2564,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrdbfile"] = master_pulsardb;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par5" == test_name) {
       // Test chatter=3 with an orbital ephemeris.
@@ -2517,6 +2574,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["chatter"] = 3;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par6" == test_name) {
       // Test a reference time during a leap second.
@@ -2526,6 +2584,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "UTC";
       pars["leapsecfile"] = leap_file;
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par7" == test_name) {
       // Create a reference output for testing ISO 8601 format.
@@ -2535,7 +2594,8 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["strict"] = "yes";
       pars["timeformat"] = "MJD";
       pars["timesys"] = "TDB";
- 
+      log_file_ref = prependOutrefPath(log_file);
+
     } else if ("par8" == test_name) {
       // Test ISO 8601 calendar format.
       pars["psrname"] = "PSR B0540-69";
@@ -2544,7 +2604,8 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["strict"] = "yes";
       pars["timeformat"] = "ISO";
       pars["timesys"] = "TDB";
- 
+      log_file_ref = prependOutrefPath(log_file);
+
     } else if ("par9" == test_name) {
       // Test ISO 8601 week-day format.
       pars["psrname"] = "PSR B0540-69";
@@ -2553,7 +2614,8 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["strict"] = "yes";
       pars["timeformat"] = "ISO";
       pars["timesys"] = "TDB";
- 
+      log_file_ref = prependOutrefPath(log_file);
+
     } else if ("par10" == test_name) {
       // Test ISO 8601 ordinal-day format.
       pars["psrname"] = "PSR B0540-69";
@@ -2562,7 +2624,8 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["strict"] = "yes";
       pars["timeformat"] = "ISO";
       pars["timesys"] = "TDB";
- 
+      log_file_ref = prependOutrefPath(log_file);
+
     } else if ("par11" == test_name) {
       // Test detection of unknown pulsar name.
       pars["psrname"] = "No Such Pulsar";
@@ -2570,16 +2633,17 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrdbfile"] = master_pulsardb;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
-      expected_to_fail = true;
 
-      remove(ref_file.c_str());
-      std::ofstream ofs(ref_file.c_str());
+      remove(log_file_ref.c_str());
+      std::ofstream ofs(log_file_ref.c_str());
       std::runtime_error error("No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.");
-      writeException(ofs, error);
+      app_tester.writeException(ofs, error);
       ofs << "1143 spin ephemeri(de)s in the database." << std::endl;
       ofs << "0 spin ephemeri(de)s for pulsar \"No Such Pulsar\" in the database." << std::endl;
       ofs << "(Solar system ephemeris in spin parameters was not requested to match \"JPL DE405\" given by user.)" << std::endl;
       ofs.close();
+
+      ignore_exception = true;
 
     } else if ("par12" == test_name) {
       // Test reporting no ephemeris available.
@@ -2590,16 +2654,17 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timesys"] = "TDB";
       pars["solareph"] = "JPL DE405";
       pars["matchsolareph"] = "ALL";
-      expected_to_fail = true;
 
-      remove(ref_file.c_str());
-      std::ofstream ofs(ref_file.c_str());
+      remove(log_file_ref.c_str());
+      std::ofstream ofs(log_file_ref.c_str());
       std::runtime_error error("No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.");
-      writeException(ofs, error);
+      app_tester.writeException(ofs, error);
       ofs << "1143 spin ephemeri(de)s in the database." << std::endl;
       ofs << "2 spin ephemeri(de)s for pulsar \"PSR B0540-69\" in the database." << std::endl;
       ofs << "0 spin ephemeri(de)s for pulsar \"PSR B0540-69\" with solar system ephemeris \"JPL DE405\" in the database." << std::endl;
       ofs.close();
+
+      ignore_exception = true;
 
     } else if ("par13" == test_name) {
       // Test reporting of ephemeris remarks.
@@ -2608,6 +2673,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrdbfile"] = "@" + summary_file;
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par14" == test_name) {
       // Test no reporting of ephemeris remarks with reportephstatus=no.
@@ -2617,6 +2683,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
       pars["reportephstatus"] = "no";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par15" == test_name) {
       // Test reporting of ephemeris database creation history.
@@ -2627,6 +2694,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timeformat"] = "GLAST";
       pars["timesys"] = "TDB";
       pars["reportephstatus"] = "no";
+      log_file_ref = prependOutrefPath(log_file);
 
     } else {
       // Skip this iteration.
@@ -2634,23 +2702,7 @@ void PulsarDbTestApp::testEphComputerApp() {
     }
 
     // Test the application.
-    std::set<std::string> col_name;
-    std::string log_file(getMethod() + "_" + test_name + ".log");
-    if (expected_to_fail) {
-      testApplication(app_name, pars, log_file, ref_file, "", col_name, true);
-    } else {
-      testApplication(app_name, pars, log_file, "", "", col_name);
-    }
-  }
-}
-
-st_app::StApp * PulsarDbTestApp::createApplication(const std::string & app_name) const {
-  if ("gtpulsardb" == app_name) {
-    return new PulsarDbApp();
-  } else if ("gtephem" == app_name) {
-    return new EphComputerApp();
-  } else {
-    return 0;
+    app_tester.test(pars, log_file, log_file_ref, "", "", col_name, ignore_exception);
   }
 }
 
