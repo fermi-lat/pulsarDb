@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat May  9 20:51:44 PDT 2009
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Changes for improved PulsarTestApp and PulsarApplicationTester classes.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-12-00, operation: add
 Package: pulsarDb
