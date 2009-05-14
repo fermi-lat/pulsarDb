@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 14 15:57:04 PDT 2009
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add PulsarApplicationTester::testEquivalence methods (overloaded).
+    *
+------------------------------------------------------------
 User: hirayama  Sat May  9 20:51:44 PDT 2009
 pulsarDb/src/test
 
