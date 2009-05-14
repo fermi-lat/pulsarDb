@@ -2384,7 +2384,6 @@ void PulsarDbTestApp::testPulsarDbApp() {
     const std::string & test_name = *test_itor;
     std::string out_file(getMethod() + "_" + test_name + ".fits");
     std::string out_file_ref(prependOutrefPath(out_file));
-    std::set<std::string> col_name;
 
     // Set default parameters.
     st_app::AppParGroup pars(app_tester.getName());
@@ -2462,7 +2461,7 @@ void PulsarDbTestApp::testPulsarDbApp() {
     remove(out_file.c_str());
 
     // Test the application.
-    app_tester.test(pars, "", "", out_file, out_file_ref, col_name);
+    app_tester.test(pars, "", "", out_file, out_file_ref);
   }
 }
 
@@ -2506,7 +2505,6 @@ void PulsarDbTestApp::testEphComputerApp() {
     const std::string & test_name = *test_itor;
     std::string log_file(getMethod() + "_" + test_name + ".log");
     std::string log_file_ref(getMethod() + "_" + test_name + ".ref");
-    std::set<std::string> col_name;
     bool ignore_exception(false);
 
     // Set default parameters.
@@ -2702,7 +2700,7 @@ void PulsarDbTestApp::testEphComputerApp() {
     }
 
     // Test the application.
-    app_tester.test(pars, log_file, log_file_ref, "", "", col_name, ignore_exception);
+    app_tester.test(pars, log_file, log_file_ref, "", "", ignore_exception);
   }
 }
 
