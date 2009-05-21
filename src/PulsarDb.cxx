@@ -29,6 +29,7 @@
 
 #include "tip/Header.h"
 #include "tip/IFileSvc.h"
+#include "tip/KeyRecord.h"
 #include "tip/Table.h"
 
 using namespace timeSystem;
