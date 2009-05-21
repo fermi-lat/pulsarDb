@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 21 16:51:47 PDT 2009
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Include tip/KeyRecord.h explicitly.
+    *
+------------------------------------------------------------
 User: hirayama  Thu May 21 16:51:18 PDT 2009
 pulsarDb/pulsarDb
 
