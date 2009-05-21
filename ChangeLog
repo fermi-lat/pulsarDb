@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 21 16:52:04 PDT 2009
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Implement tool-specific verify method. Correct spellings.
+    *
+------------------------------------------------------------
 User: hirayama  Thu May 21 16:51:47 PDT 2009
 pulsarDb/src
 
