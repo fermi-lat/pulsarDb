@@ -55,7 +55,7 @@ namespace pulsarDb {
           \param om_dot First Time derivative of periastron longitude in degrees per year.
           \param t0 Barycentric time of periastron.
           \param gamma Time-dilation and gravitational redshift parameter (dimension-less)
-          \param shapiro_r Range parameter of Shapiro delay in binary system in micro-seconds.
+          \param shapiro_r Range parameter of Shapiro delay in binary system in microseconds.
           \param shapiro_s Shape parameter of Shapiro delay in binary system (dimension-less)
       */
       SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot,
