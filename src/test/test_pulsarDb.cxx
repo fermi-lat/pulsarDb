@@ -3,6 +3,7 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
@@ -73,12 +74,110 @@ class PulsarDbAppTester: public PulsarApplicationTester {
 
   /// \brief Returns an application object to be tested.
   virtual st_app::StApp * createApplication() const;
+
+  /** \brief Return a logical true if the given header keyword is determined correct, and a logical false otherwise.
+      \param keyword_name Name of the header keyword to be verified.
+      \param out_keyword Header keyword taken from the output file to be verified.
+      \param ref_keyword Header keyword taken from the reference file which out_keyword is checked against.
+      \param error_stream Output stream for this method to put an error messages when verification fails.
+  */
+  virtual bool verify(const std::string & keyword_name, const tip::KeyRecord & out_keyword,
+    const tip::KeyRecord & ref_keyword, std::ostream & error_stream) const;
+
+  /** \brief Return a logical true if the given table cell is considered correct, and a logical false otherwise.
+      \param column_name Name of the FITS column that the given table cell belongs to.
+      \param out_cell Table cell taken from the output file to be verified.
+      \param ref_cell Table cell taken from the reference file which out_cell is checked against.
+      \param error_stream Output stream for this method to put an error message when verification fails.
+  */
+  virtual bool verify(const std::string & column_name, const tip::TableCell & out_cell, const tip::TableCell & ref_cell,
+    std::ostream & error_stream) const;
 };
 
 PulsarDbAppTester::PulsarDbAppTester(PulsarTestApp & test_app): PulsarApplicationTester("gtpulsardb", test_app) {}
 
 st_app::StApp * PulsarDbAppTester::createApplication() const {
   return new PulsarDbApp();
+}
+
+bool PulsarDbAppTester::verify(const std::string & /*keyword_name*/, const tip::KeyRecord & out_keyword,
+  const tip::KeyRecord & ref_keyword, std::ostream & error_stream) const {
+  // Extract keyword values as character strings.
+  std::string out_value = out_keyword.getValue();
+  std::string ref_value = ref_keyword.getValue();
+
+  // Require an exact match as character strings.
+  bool verified = (out_value == ref_value);
+  if (!verified) error_stream << "Character string \"" << out_value << "\" not identical to \"" << ref_value << "\"";
+
+  // Return the result.
+  return verified;
+}
+
+bool PulsarDbAppTester::verify(const std::string & column_name, const tip::TableCell & out_cell,
+  const tip::TableCell & ref_cell, std::ostream & error_stream) const {
+  // Initialize return value.
+  bool verified = false;
+
+  // Compare columns.
+  if ("PSRNAME" == column_name || "VALID_SINCE" == column_name || "VALID_UNTIL" == column_name || "EPOCH_INT" == column_name ||
+    "TOAGEO_INT" == column_name || "TOABARY_INT" == column_name || "OBSERVER_CODE" == column_name || "BINARY_FLAG" == column_name ||
+    "SOLAR_SYSTEM_EPHEMERIS" == column_name || "DESCRIPTION" == column_name || "OBSERVATORY" == column_name ||
+    "CONTACT_PERSON" == column_name || "REFERENCE" == column_name || "ALTNAME" == column_name) {
+    // Require an exact match as character strings.
+    std::string out_value;
+    std::string ref_value;
+    out_cell.get(out_value);
+    ref_cell.get(ref_value);
+    verified = (out_value == ref_value);
+    if (!verified) error_stream << "Character string \"" << out_value << "\" not identical to \"" << ref_value << "\"";
+
+  } else {
+    // Extract cell values as floating-point numbers.
+    double out_value;
+    double ref_value;
+    out_cell.get(out_value);
+    ref_cell.get(ref_value);
+    error_stream.precision(std::numeric_limits<double>::digits10);
+
+    if ("RA" == column_name || "DEC" == column_name) {
+      // Require a match down to the 10th decimal point.
+      verified = (std::fabs(out_value - ref_value) <= 1.e-10);
+      if (!verified) {
+        error_stream << "Coordinate " << out_value << " not equivalent to reference " << ref_value <<
+          " with absolute tolerance of 1e-10 degrees.";
+      }
+
+    } else if ("EPOCH_FRAC" == column_name || "TOAGEO_FRAC" == column_name || "TOABARY_FRAC" == column_name) {
+      // Require a match down to the 10th decimal point, which is approx. 10 microseconds.
+      verified = (std::fabs(out_value - ref_value) <= 1.e-10);
+      if (!verified) {
+        error_stream << out_value << " days not equivalent to reference " << ref_value <<
+          " days with absolute tolerance of 1e-10 days (8.64 microseconds).";
+      }
+
+    } else if ("EFFECTIVE_SINCE" == column_name || "EFFECTIVE_UNTIL" == column_name) {
+      // Require a match down to the 8th decimal point, which is approx. 1 milliseconds.
+      verified = (std::fabs(out_value - ref_value) <= 1.e-8);
+      if (!verified) {
+        error_stream << "MJD number " << out_value << " not equivalent to reference " << ref_value <<
+          " with absolute tolerance of 1e-8 days (0.864 milliseconds).";
+      }
+
+    } else {
+      // Compare as floating-point numbers.
+      // NOTE: This requires out_value be exactly zero when ref_value is zero.
+      double rel_tol = std::numeric_limits<double>::epsilon() * 1000.;
+      verified = (std::fabs(out_value - ref_value) <= std::fabs(ref_value) * rel_tol);
+      if (!verified) {
+        error_stream << "Value " << out_value << " not equivalent to reference " << ref_value <<
+          " with relative tolerance of " << rel_tol;
+      }
+    }
+  }
+
+  // Return the result.
+  return verified;
 }
 
 /** \class EphComputerAppTester
@@ -96,12 +195,79 @@ class EphComputerAppTester: public PulsarApplicationTester {
 
   /// \brief Returns an application object to be tested.
   virtual st_app::StApp * createApplication() const;
+
+  /** \brief Return a logical true if the given character string is considered correct, and a logical false otherwise.
+      \param out_string Character string taken from the output file to be verified.
+      \param ref_string Character string taken from the reference file which out_string is checked against.
+      \param error_stream Output stream for this method to put an error message when verification fails.
+  */
+  virtual bool verify(const std::string & out_string, const std::string & ref_string, std::ostream & error_stream) const;
 };
 
 EphComputerAppTester::EphComputerAppTester(PulsarTestApp & test_app): PulsarApplicationTester("gtephem", test_app) {}
 
 st_app::StApp * EphComputerAppTester::createApplication() const {
   return new EphComputerApp();
+}
+
+bool EphComputerAppTester::verify(const std::string & out_string, const std::string & ref_string, std::ostream & error_stream) const {
+  // Initialize return value.
+  bool verified = false;
+
+  if (ref_string.find("seconds after") != std::string::npos) {
+    // Require a match down to the 5th decimal point (10 microseconds for elapsed-time part).
+    // NOTE: This block must come before "MJD"-block, because an absolute time string contains character string "MJD".
+    verified = equivalent(out_string, ref_string, 1.e-5, 0.);
+    if (!verified) {
+      error_stream << "Absolute time not equivalent to reference with absolute tolerance of 1e-5 seconds." <<
+        std::endl << "[OUT] " << out_string << std::endl << "[REF] " << ref_string;
+    }
+
+  } else if (ref_string.find("MJD") != std::string::npos) {
+    // Require a match down to the 10th decimal point, which is approx. 10 microseconds.
+    verified = equivalent(out_string, ref_string, 1.e-10, 0.);
+    if (!verified) {
+      error_stream << "MJD number not equivalent to reference with absolute tolerance of 1e-10 days (8.64 microseconds)." <<
+        std::endl << "[OUT] " << out_string << std::endl << "[REF] " << ref_string;
+    }
+
+  } else if (ref_string.find("Reference Time") != std::string::npos) {
+    // Require a match down to the 5th decimal point (10 microseconds for elapsed second part in ISO8601 format).
+    // NOTE: This block must come after "MJD"-block to avoid checking Reference Time in MJD representation.
+    verified = equivalent(out_string, ref_string, 1.e-5, 0.);
+    if (!verified) {
+      error_stream << "Absolute time not equivalent to reference with absolute tolerance of 1e-5 seconds." <<
+        std::endl << "[OUT] " << out_string << std::endl << "[REF] " << ref_string;
+    }
+
+  } else if (ref_string.find("Right Ascension") != std::string::npos || ref_string.find("Declination") != std::string::npos ||
+    ref_string.find("RA") != std::string::npos || ref_string.find("Dec") != std::string::npos) {
+    // Require a match down to the 10th decimal point.
+    verified = equivalent(out_string, ref_string, 1.e-10, 0.);
+    if (!verified) {
+      error_stream << "Coordinate not equivalent to reference with absolute tolerance of 1e-10 degrees." <<
+        std::endl << "[OUT] " << out_string << std::endl << "[REF] " << ref_string;
+    }
+
+  } else if (ref_string.find("Pulse Phase") != std::string::npos || ref_string.find("Phi0") != std::string::npos) {
+    // Require a match down to the 3rd decimal point.
+    verified = equivalent(out_string, ref_string, 1.e-3, 0.);
+    if (!verified) {
+      error_stream << "Pulse phase not equivalent to reference with absolute tolerance of 1e-3." <<
+        std::endl << "[OUT] " << out_string << std::endl << "[REF] " << ref_string;
+    }
+
+  } else {
+    // Compare others as floating-point numbers with default tolerances.
+    verified = equivalent(out_string, ref_string);
+    if (!verified) {
+      error_stream << "Line not equivalent to reference." <<
+        std::endl << "[OUT] " << out_string << std::endl << "[REF] " << ref_string;
+    }
+  }
+
+  // Return the result.
+  return verified;
 }
 
 /** \class PulsarDbTestApp
@@ -977,7 +1143,7 @@ void PulsarDbTestApp::testPdotCanceler() {
   double f1 = -2.25e-4;
   double f2 = 13.5e-6;
   AbsoluteTime correct_time("TT", 51910, 323.4567891234567);
-  ElapsedTime tolerance("TT", Duration(0, 1.e-6)); // 1 micro-second.
+  ElapsedTime tolerance("TT", Duration(0, 1.e-6)); // 1 microsecond.
 
   // Test PdotCanceler created from literal numbers.
   std::vector<double> fdot_ratio(2);
@@ -1265,7 +1431,7 @@ void PulsarDbTestApp::testEphComputer() {
   database.getEph(eph_cont);
 
   AbsoluteTime expected_gtdb("TDB", 54101, 100.);
-  ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nano-second.
+  ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
   PdotCanceler canceler(eph.getEpoch(), eph, 2);
   canceler.cancelPdot(expected_gtdb);
@@ -1962,7 +2128,7 @@ void PulsarDbTestApp::testEphStatus() {
   EphStatus eph_status(expected_since, expected_until, expected_code, expected_description);
 
   // Test getter for "effective since" time.
-  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nano-second.
+  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nanosecond.
   AbsoluteTime result_since = eph_status.getEffectiveSince();
   if (!result_since.equivalentTo(expected_since, tolerance)) {
     err() << "EphStatus::getEffectiveSince() returned " << result_since << ", not " << expected_since <<
