@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Sun May 31 19:53:28 PDT 2009
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Accept timeformat=FERMI in addition to GLAST.
+    *
+------------------------------------------------------------
+User: hirayama  Sun May 31 19:53:28 PDT 2009
 pulsarDb/pfiles
 
 Modified Files:
