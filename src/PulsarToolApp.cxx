@@ -113,7 +113,7 @@ namespace pulsarDb {
       abs_time = event_time_handler->parseTimeString(time_value, time_system_rat);
 
     } else {
-      if ("GLAST" == time_format_rat) {
+      if ("FERMI" == time_format_rat || "GLAST" == time_format_rat) {
         // TODO: Should we use fitsGen/*/data/ft1.tpl instead?
         std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"),
           "timeformat_glast.tpl"); // Copied from fitsGen/*/data/ft1.tpl on May 25th, 2008.
