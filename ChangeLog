@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun May 31 19:53:43 PDT 2009
+pulsarDb/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+Change GLAST to Fermi in Doxygen comments.
+    *
+------------------------------------------------------------
 User: hirayama  Sun May 31 19:53:28 PDT 2009
 pulsarDb/src
 
