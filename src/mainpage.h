@@ -12,8 +12,8 @@
     database for a given pulsar and instant of time.
 
     \subsection gtpulsardb_prerequisites gtpulsardb Prerequisites
-    One or more pulsar ephemerides database files in either GLAST D4 FITS format, and/or
-    a text format which will be described below.
+    One or more pulsar ephemerides database files in either Fermi (formerly GLAST) D4 FITS format,
+    and/or a text format which will be described below.
 
     \subsection gtpulsardb_parameters gtpulsardb Parameters
  
@@ -24,7 +24,7 @@ psrdbfile [file name]
     and supplying the list file name preceded by an @ sign.
 
 outfile [file name]
-    Name of output file, which will be in GLAST D4 FITS format.
+    Name of output file, which will be in Fermi (formerly GLAST) D4 FITS format.
 
 filter = NONE [enumerated string (NAME|TIME|SOLAREPH|NONE)]
     Type of filtering to be performed. If filter is NAME, the pulsar name
@@ -73,13 +73,13 @@ author = Anonymous User [string]
 \endverbatim
 
     \subsection gtephem_prerequisites gtephem Prerequisites
-    A single pulsar ephemerides database file in GLAST D4 FITS format.
+    A single pulsar ephemerides database file in Fermi (formerly GLAST) D4 FITS format.
 
     \subsection gtephem_parameters gtephem Parameters
  
 \verbatim
 psrdbfile [file name]
-    Name of pulsar ephemerides database file, in GLAST D4
+    Name of pulsar ephemerides database file, in Fermi (formerly GLAST) D4
     FITS format.
 
 psrname = ANY [string]
@@ -91,7 +91,7 @@ reftime = 0. [string]
     available in the input file. The interpretation of this number is
     determined by the timeformat and timesys parameters.
 
-timeformat = MJD [enumerated string (MJD|GLAST)]
+timeformat = MJD [enumerated string (MJD|FERMI|GLAST)]
     String describing the representation used for the reference time.
 
 timesys = TDB [enumerated string (TAI|TDB|TT|UTC)]
