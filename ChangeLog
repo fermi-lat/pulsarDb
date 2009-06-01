@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun May 31 19:53:28 PDT 2009
+pulsarDb/pfiles
+
+Modified Files:
+	gtephem.par 
+Log Message:
+Accept timeformat=FERMI in addition to GLAST.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-13-00, operation: add
 Package: pulsarDb
