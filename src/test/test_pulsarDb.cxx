@@ -2697,7 +2697,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrdbfile"] = master_pulsardb;
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
 
@@ -2706,7 +2706,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrdbfile"] = master_pulsardb;
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212502400.0;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       pars["strict"] = "yes";
       log_file_ref = prependOutrefPath(log_file);
@@ -2717,7 +2717,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["reftime"] = 212502400.0;
       pars["psrdbfile"] = master_pulsardb;
       pars["chatter"] = 3;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
 
@@ -2726,7 +2726,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrname"] = "PSR J1834-0010";
       pars["reftime"] = 212502400.0;
       pars["psrdbfile"] = master_pulsardb;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
 
@@ -2736,7 +2736,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["reftime"] = 212502400.0;
       pars["psrdbfile"] = master_pulsardb;
       pars["chatter"] = 3;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
 
@@ -2745,7 +2745,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 157766336.0;
       pars["psrdbfile"] = master_pulsardb;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "UTC";
       pars["leapsecfile"] = leap_file;
       log_file_ref = prependOutrefPath(log_file);
@@ -2795,7 +2795,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrname"] = "No Such Pulsar";
       pars["reftime"] = 212380785.922;
       pars["psrdbfile"] = master_pulsardb;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
 
       remove(log_file_ref.c_str());
@@ -2814,7 +2814,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
       pars["psrdbfile"] = master_pulsardb;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       pars["solareph"] = "JPL DE405";
       pars["matchsolareph"] = "ALL";
@@ -2835,7 +2835,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
       pars["psrdbfile"] = "@" + summary_file;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
 
@@ -2844,7 +2844,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
       pars["psrdbfile"] = "@" + summary_file;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       pars["reportephstatus"] = "no";
       log_file_ref = prependOutrefPath(log_file);
@@ -2855,7 +2855,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["reftime"] = 212380785.922;
       pars["chatter"] = 4;
       pars["psrdbfile"] = "@" + summary_file;
-      pars["timeformat"] = "GLAST";
+      pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       pars["reportephstatus"] = "no";
       log_file_ref = prependOutrefPath(log_file);
