@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sun May 31 19:54:31 PDT 2009
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use timeformat=FERMI instead of GLAST in the application tests.
+    *
+------------------------------------------------------------
 User: hirayama  Sun May 31 19:53:43 PDT 2009
 pulsarDb/src
 
