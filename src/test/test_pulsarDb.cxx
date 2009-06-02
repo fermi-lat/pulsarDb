@@ -654,6 +654,23 @@ void PulsarDbTestApp::testAppend() {
 
   // Check the result against its reference file in data/outref/ directory.
   tester.checkOutputFits(outfile, prependOutrefPath(outfile));
+
+
+  // Load a FITS database with TELESCOP=FERMI.
+  std::string filename(prependDataPath("groD4-dc2v6.fits"));
+  try {
+    database.load(filename);
+  } catch (const std::exception & x) {
+    err() << "PulsarDb::load method threw an exception for FITS file \"" << filename << ": " << std::endl << x.what() << std::endl;
+  }
+
+  // Load a TEXT database with TELESCOP=FERMI.
+  filename = prependDataPath("psrdb_spin_fermi.txt");
+  try {
+    database.load(filename);
+  } catch (const std::exception & x) {
+    err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << ": " << std::endl << x.what() << std::endl;
+  }
 }
 
 void PulsarDbTestApp::testTextPulsarDb() {
