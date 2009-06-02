@@ -639,6 +639,12 @@ namespace pulsarDb {
               bool value_identical = false;
               if (string_value_header == string_value_required) {
                 value_identical = true;
+
+              } else if ("TELESCOP" == name_required && ("FERMI" == string_value_header || "GLAST" == string_value_header) &&
+                ("FERMI" == string_value_required || "GLAST" == string_value_required)) {
+                // Treat this case as an exact match.
+                value_identical = true;
+
               } else {
                 // Get keyword values as double.
                 double double_nan = std::numeric_limits<double>::quiet_NaN();
