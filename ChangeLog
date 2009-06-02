@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jun  2 15:22:15 PDT 2009
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add loading tests for database files with TELESCOP=FERMI.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Jun  2 14:59:06 PDT 2009
 pulsarDb/src
 
