@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Jun  2 15:22:15 PDT 2009
+pulsarDb/data
+
+Added Files:
+	groD4-dc2v6.fits psrdb_spin_fermi.txt 
+Log Message:
+Add loading tests for database files with TELESCOP=FERMI.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Jun  2 15:22:15 PDT 2009
 pulsarDb/src/test
 
 Modified Files:
