@@ -1,5 +1,103 @@
 ------------------------------------------------------------
 TAG
+Tag name: ScienceTools-09-15-04, operation: add
+Package: pulsarDb
+User: glastrm  Thu Jul 30 15:51:42 2009
+Files:
+  pulsarDb/ChangeLog  1.876
+  pulsarDb/pulsarDbLib.py  1.2
+  pulsarDb/SConscript  1.20
+  pulsarDb/cmt/requirements  1.7
+  pulsarDb/data/groD4-dc2v6.fits  1.1
+  pulsarDb/data/test_pulsarDb_badspin.tpl  1.3
+  pulsarDb/data/psrdb_name.txt  1.1
+  pulsarDb/data/groD4-dc2v4r2.fits  1.2
+  pulsarDb/data/test_pulsarDb.tpl  1.3
+  pulsarDb/data/gtephem_leapsec.fits  1.1
+  pulsarDb/data/psrdb_user.fits  1.1
+  pulsarDb/data/groD4-dc2v4r1.fits  1.1
+  pulsarDb/data/psrdb_obs.txt  1.1
+  pulsarDb/data/timeformat_glast.tpl  1.2
+  pulsarDb/data/test_pulsarDb_badorbital.tpl  1.3
+  pulsarDb/data/psrdb_spin.txt  1.2
+  pulsarDb/data/groD4-dc2v3.fits  1.1.1.1
+  pulsarDb/data/groD4-dc2v4.fits  1.1
+  pulsarDb/data/psrdb_binary.txt  1.2
+  pulsarDb/data/psrdb_remark.txt  1.1
+  pulsarDb/data/gtephem_remark.txt  1.1
+  pulsarDb/data/psrdb_spin_fermi.txt  1.1
+  pulsarDb/data/groD4-dc2v5.fits  1.1
+  pulsarDb/data/PulsarDb.tpl  1.6
+  pulsarDb/data/master_pulsardb_v2.fits  1.1
+  pulsarDb/data/outref/testEphComputerApp_par4.log  1.1
+  pulsarDb/data/outref/psrdb_append.fits  1.12
+  pulsarDb/data/outref/testEphComputerApp_par9.log  1.1
+  pulsarDb/data/outref/testEphComputerApp_par6.log  1.1
+  pulsarDb/data/outref/psrdb_all.fits  1.11
+  pulsarDb/data/outref/f2not0_db.fits  1.14
+  pulsarDb/data/outref/testPulsarDbApp_par5.fits  1.1
+  pulsarDb/data/outref/solar_db.fits  1.5
+  pulsarDb/data/outref/testPulsarDbApp_par4.fits  1.1
+  pulsarDb/data/outref/testEphComputerApp_par7.log  1.1
+  pulsarDb/data/outref/twice_db.fits  1.7
+  pulsarDb/data/outref/crab_db.fits  1.14
+  pulsarDb/data/outref/testEphComputerApp_par3.log  1.3
+  pulsarDb/data/outref/testEphComputerApp_par5.log  1.1
+  pulsarDb/data/outref/testPulsarDbApp_par1.fits  1.1
+  pulsarDb/data/outref/testEphComputerApp_par14.log  1.1
+  pulsarDb/data/outref/testEphComputerApp_par2.log  1.3
+  pulsarDb/data/outref/testPulsarDbApp_par3.fits  1.1
+  pulsarDb/data/outref/testEphComputerApp_par1.log  1.1
+  pulsarDb/data/outref/testEphComputerApp_par13.log  1.1
+  pulsarDb/data/outref/time_db.fits  1.5
+  pulsarDb/data/outref/testEphComputerApp_par8.log  1.1
+  pulsarDb/data/outref/testEphComputerApp_par15.log  1.4
+  pulsarDb/data/outref/testEphComputerApp_par10.log  1.1
+  pulsarDb/data/outref/testPulsarDbApp_par2.fits  1.1
+  pulsarDb/data/outref/noop_db.fits  1.4
+  pulsarDb/data/outref/chooser_db.fits  1.13
+  pulsarDb/data/outref/j0323_db.fits  1.5
+  pulsarDb/doc/release.notes  1.52
+  pulsarDb/pfiles/gtephem.par  1.18
+  pulsarDb/pfiles/gtephcomp.par  1.11
+  pulsarDb/pfiles/gtpulsardb.par  1.9
+  pulsarDb/pulsarDb/PulsarDb.h  1.40
+  pulsarDb/pulsarDb/PeriodEph.h  1.2
+  pulsarDb/pulsarDb/OrbitalEph.h  1.28
+  pulsarDb/pulsarDb/EphChooser.h  1.12
+  pulsarDb/pulsarDb/FrequencyEph.h  1.2
+  pulsarDb/pulsarDb/EphStatus.h  1.1
+  pulsarDb/pulsarDb/PulsarEph.h  1.43
+  pulsarDb/pulsarDb/PdotCanceler.h  1.3
+  pulsarDb/pulsarDb/PulsarToolApp.h  1.40
+  pulsarDb/pulsarDb/FormattedEph.h  1.8
+  pulsarDb/pulsarDb/EphComputer.h  1.21
+  pulsarDb/pulsarDb/PulsarDbApp.h  1.6
+  pulsarDb/pulsarDb/EphComputerApp.h  1.5
+  pulsarDb/pulsarDb/SimpleDdEph.h  1.4
+  pulsarDb/src/EphStatus.cxx  1.1
+  pulsarDb/src/EphComputerApp.cxx  1.31
+  pulsarDb/src/EphComputer.cxx  1.21
+  pulsarDb/src/FrequencyEph.cxx  1.11
+  pulsarDb/src/SimpleDdEph.cxx  1.9
+  pulsarDb/src/PulsarDbApp.cxx  1.22
+  pulsarDb/src/OrbitalEph.cxx  1.29
+  pulsarDb/src/mainpage.h  1.12
+  pulsarDb/src/PulsarToolApp.cxx  1.85
+  pulsarDb/src/.mainpage.h.swp  1.1.1.1
+  pulsarDb/src/PdotCanceler.cxx  1.8
+  pulsarDb/src/PulsarEph.cxx  1.49
+  pulsarDb/src/PulsarDb.cxx  1.71
+  pulsarDb/src/PeriodEph.cxx  1.11
+  pulsarDb/src/EphChooser.cxx  1.23
+  pulsarDb/src/gtephcomp/README  1.1
+  pulsarDb/src/gtephem/gtephem.cxx  1.2
+  pulsarDb/src/gtpulsardb/gtpulsardb.cxx  1.1.1.1
+  pulsarDb/src/test/test_pulsarDb.cxx  1.110
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: pulsarDb-08-04-01, operation: add
 Package: pulsarDb
 User: glastrm  Wed Jul 15 11:34:23 2009
