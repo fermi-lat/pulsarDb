@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep  9 22:57:56 PDT 2009
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use static_cast instead of the old-style cast such as long(value). Use human-friendly constructor of Duration.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-15-01-02, operation: del
 Package: pulsarDb
