@@ -871,7 +871,7 @@ class SimplePeriodEph {
         t1 = 0.;
       }
       std::list<double> tx;
-      for (int ii=0; ii < int(std::ceil(dt/step)) - 1; ++ii) tx.push_back(step*ii);
+      for (int ii=0; ii < static_cast<int>(std::ceil(dt/step)) - 1; ++ii) tx.push_back(step*ii);
       tx.push_back(t1);
 
       // Perform integration.
@@ -931,7 +931,7 @@ void PulsarDbTestApp::testPeriodEph() {
   // Compare frequency & period.
   double epsilon = 1.e-8;
   const double nano_sec = 1.e-9;
-  ElapsedTime tolerance("TDB", Duration(0, nano_sec));
+  ElapsedTime tolerance("TDB", Duration(nano_sec, "Sec"));
 
   if (!f_eph.getEpoch().equivalentTo(p_eph.getEpoch(), tolerance))
     err() << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
@@ -957,7 +957,7 @@ void PulsarDbTestApp::testPeriodEph() {
   // Test frequency computation away from the reference epoch.
   double time_since_epoch = 1000.;
   double step_size = 100.;
-  AbsoluteTime abs_time = epoch + ElapsedTime("TDB", Duration(0, time_since_epoch));
+  AbsoluteTime abs_time = epoch + ElapsedTime("TDB", Duration(time_since_epoch, "Sec"));
   double ra = 22.;
   double dec = 45.;
   double phi0 = 0.875;
@@ -1123,7 +1123,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // Permitted difference is 100 ns.
   double delta = 100. * 1.e-9;
-  ElapsedTime tolerance("TDB", Duration(0, delta));
+  ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
 
   std::cerr.precision(24);
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
@@ -1160,7 +1160,7 @@ void PulsarDbTestApp::testPdotCanceler() {
   double f1 = -2.25e-4;
   double f2 = 13.5e-6;
   AbsoluteTime correct_time("TT", 51910, 323.4567891234567);
-  ElapsedTime tolerance("TT", Duration(0, 1.e-6)); // 1 microsecond.
+  ElapsedTime tolerance("TT", Duration(1.e-6, "Sec")); // 1 microsecond.
 
   // Test PdotCanceler created from literal numbers.
   std::vector<double> fdot_ratio(2);
@@ -1238,7 +1238,7 @@ void PulsarDbTestApp::testChooser() {
   // Test one with no tiebreaking needed.
   const PulsarEph * chosen = &chooser.choose(eph_cont, pick_time);
   expected_epoch.set("TDB", Mjd1(54262.));
-  ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
+  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nanosecond.
   if (!expected_epoch.equivalentTo(chosen->getEpoch(), tolerance))
     err() << "for time " << pick_time << ", chooser chose ephemeris with EPOCH == " << chosen->getEpoch() <<
       ", not " << expected_epoch << " as expected." << std::endl;
@@ -1311,7 +1311,7 @@ void PulsarDbTestApp::testChooser() {
   try {
     const OrbitalEph & orbital_eph = chooser.choose(orbital_cont, pick_time);
     AbsoluteTime expected_t0("TDB", Mjd1(52060.84100795));
-    ElapsedTime tolerance("TT", Duration(0, 1.e-9)); // 1 nanosecond.
+    ElapsedTime tolerance("TT", Duration(1.e-9, "Sec")); // 1 nanosecond.
     if (!orbital_eph.t0().equivalentTo(expected_t0, tolerance)) {
       err() << "chooser chose orbital ephemeris with time " << orbital_eph.t0() << ", not " <<
         expected_t0 << std::endl;
@@ -1334,14 +1334,14 @@ void PulsarDbTestApp::testChooser() {
   valid_since = AbsoluteTime("TDB", origin, 100.);
   eph_cont.push_back(new FrequencyEph("TDB", valid_since, valid_until, epoch, 22., 45., 0., 1., 0., 0.));
 
-  StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(0, .99)));
+  StrictEphChooser strict_chooser(ElapsedTime("TDB", Duration(.99, "Sec")));
   pick_time = AbsoluteTime("TDB", origin, 120.);
   chosen = &strict_chooser.choose(eph_cont, pick_time);
   if ("TT" != chosen->getSystem().getName())
     err() << "for time " << pick_time << " with tolerance .99, chooser chose eph with " <<
       chosen->getSystem().getName() << ", not TT as expected" << std::endl;
 
-  strict_chooser = StrictEphChooser(ElapsedTime("TDB", Duration(0, 1.01)));
+  strict_chooser = StrictEphChooser(ElapsedTime("TDB", Duration(1.01, "Sec")));
   chosen = &strict_chooser.choose(eph_cont, pick_time);
   if ("TDB" != chosen->getSystem().getName())
     err() << "for time " << pick_time << " with tolerance 1.01, chooser chose eph with " <<
@@ -1448,7 +1448,7 @@ void PulsarDbTestApp::testEphComputer() {
   database.getEph(eph_cont);
 
   AbsoluteTime expected_gtdb("TDB", 54101, 100.);
-  ElapsedTime tolerance("TDB", Duration(0, 1.e-9)); // 1 nanosecond.
+  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nanosecond.
   const PulsarEph & eph(chooser.choose(eph_cont, expected_gtdb));
   PdotCanceler canceler(eph.getEpoch(), eph, 2);
   canceler.cancelPdot(expected_gtdb);
@@ -1945,7 +1945,7 @@ class BogusPulsarEph: public BogusPulsarEphBase {
 
 class BogusOrbitalEphBase: public OrbitalEph {
   public:
-    BogusOrbitalEphBase(): OrbitalEph(timeSystem::ElapsedTime("TDB", Duration(0, 10.e-9)), 100) {}
+    BogusOrbitalEphBase(): OrbitalEph(timeSystem::ElapsedTime("TDB", Duration(10.e-9, "Sec")), 100) {}
 
     virtual const timeSystem::TimeSystem & getSystem() const { return TimeSystem::getSystem("TDB"); }
 
@@ -1962,7 +1962,7 @@ class BogusOrbitalEphBase: public OrbitalEph {
       return 0.;
     }
     virtual ElapsedTime calcOrbitalDelay(const timeSystem::AbsoluteTime & /* ev_time */) const {
-      static const ElapsedTime s_bogus_elapsed_time("TDB", Duration(0, 0.));
+      static const ElapsedTime s_bogus_elapsed_time("TDB", Duration::zero());
       return s_bogus_elapsed_time;
     }
     virtual OrbitalEph * clone() const { return new BogusOrbitalEphBase(*this); }
