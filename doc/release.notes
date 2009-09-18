@@ -2,12 +2,13 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.51 2009/07/01 17:04:49 heather Exp $
+$Id: release.notes,v 1.52 2009/07/15 17:46:06 jrb Exp $
 
 \verbatim
 * EOH *
 
 15-Jul-2009    v8r4p1 jrb Update SConscript
+02-jun-2009      v8r4 MH  Adopt to the mission name change (GLAST -> FERMI).
 21-may-2009    v8r3p1 MH  Improve the unit test for application classes.
 28-apr-2009      v8r3 MH  Report file creation time in UT (JIRA PULS-52). Improve comments
                           and clean up source codes.
