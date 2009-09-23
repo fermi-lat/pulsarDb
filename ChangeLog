@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 23 16:20:09 PDT 2009
+pulsarDb/data/outref
+
+Removed Files:
+	testEphComputerApp_par13.log testEphComputerApp_par14.log 
+Log Message:
+Improve errors and warnings in ephemeris sub-selection. Introduce psrdbfile=NONE.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 23 16:19:39 PDT 2009
 pulsarDb/src/test
 
