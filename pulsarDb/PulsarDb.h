@@ -75,6 +75,7 @@ namespace pulsarDb {
   class PulsarDb {
     public:
       typedef std::vector<tip::Table *> TableCont;
+      typedef std::set<std::string> NameCont;
 
       /** \brief Create a data base object for the given FITS template file.
           \param tpl_file The name of the FITS template file used to create the file in memory.
@@ -116,9 +117,9 @@ namespace pulsarDb {
                  The name will be looked up two ways. It will be directly compared to the PSRNAME field in
                  the SPIN_PARAMETERS table. In addition, synonyms will be found in the ALTERNATIVE_NAMES table
                  and these will then be used to look up ephemerides from the SPIN_PARAMETERS table.
-          \param name The name of the pulsar. Examples: Crab, PSR B0531+21, PSR J0534+2200
+          \param pulsar_name The character string that contains the name of the pulsar. Examples: Crab, PSR B0531+21, PSR J0534+2200
       */
-      virtual void filterName(const std::string & name);
+      virtual void filterName(const std::string & pulsar_name);
 
       /** \brief Select ephemerides whose SOLAR_SYSTEM_EPHEMERIS value matches the input solar_eph. Matching is case insensitive.
           \param solar_eph The name of the solar system ephemeris. Examples: JPL DE405, JPL DE200
@@ -154,8 +155,8 @@ namespace pulsarDb {
       virtual void getEph(OrbitalEphCont & cont) const { getEphBody(m_orbital_par_table, m_orbital_factory_cont, cont); }
 
       /** \brief Get the number of currently selected ephemerides.
-          \param cont The container to fill the currently selected orbital ephemerides in it. The orbital ephemeris objects
-                 that are stored in this container before calling this method will be destroyed and removed from the container.
+          \param spin_table If true (default), the number of spin ephemerides is returned. If false, the number of orbital
+                 ephemerides is returned.
       */
       virtual int getNumEph(bool spin_table = true) const;
 
@@ -189,6 +190,25 @@ namespace pulsarDb {
                  to this ephemerides database.
       */
       virtual void getHistory(std::list<std::string> & command_history, std::list<std::string> & ancestry_record) const;
+
+      /** \brief Examine the database to determine whether the named pulsar is in a binary system, and return the result.
+
+                 This method determines that the database indicates the named pulsar is a binary pulsar if:
+                 1) BINARY_FLAG column in SPIN_PARAMETERS extension for the named pulsar contains a logical true for
+                    at least one entry for the named pulsar, or
+                 2) an orbital ephemeris for the named pulsar is in ORBITAL_PARAMETERS extension.
+
+                 The method determines that the database indicates the named pulsar is not a binary pulsar if:
+                 3) BINARY_FLAG column in SPIN_PARAMETERS extension for the named pulsar contains a logical false for
+                    at least one entry for the named pulsar.
+
+                 The method returns true if either of conditions 1 or 2 is met AND condition 3 is not met. The method returns
+                 false if none of conditions 1 and 2 is met AND condition 3 is met. The method returns false if none of the
+                 above conditions is met. The method throws an exception if the above determinations conflict, i.e., if either
+                 of conditions 1 and 2 is met at the same time as condition 3 is met.
+          \param pulsar_name The character string that contains the name of the pulsar. Examples: Crab, PSR B0531+21, PSR J0534+2200
+      */
+      virtual bool isBinary(const std::string & pulsar_name) const;
 
     private:
       typedef std::vector<std::string> ParsedLine;
@@ -238,7 +258,7 @@ namespace pulsarDb {
           \param field_name The name of the field on which to filter.
           \param values The set of allowed values.
       */
-      virtual std::string createFilter(const std::string & field_name, const std::set<std::string> & values) const;
+      virtual std::string createFilter(const std::string & field_name, const NameCont & values) const;
 
       /** \brief Helper method for getEph methods for PulsarEphCont and OrbitalEphCont.
           \param table_cont The container of tip tables, from which ephemerides are extracted.
@@ -248,6 +268,12 @@ namespace pulsarDb {
       */
       template <typename FactoryCont, typename EphCont>
       void getEphBody(const TableCont & table_cont, const FactoryCont & factory_cont, EphCont & eph_cont) const;
+
+      /** \brief Helper method to collect all alternative names for the named pulsar.
+          \param pulsar_name The character string that contains the name of the pulsar. Examples: Crab, PSR B0531+21, PSR J0534+2200
+          \param alt_name_cont Container of alternative names for the named pulsar.
+      */
+      virtual void getAltName(const std::string & pulsar_name, NameCont & alt_name_cont) const;
 
       std::string m_tpl_file;
       tip::TipFile m_tip_file;

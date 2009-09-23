@@ -232,8 +232,8 @@ namespace pulsarDb {
     clean();
   }
 
-  void PulsarDb::filterName(const std::string & name) {
-    std::string up_name = name;
+  void PulsarDb::filterName(const std::string & pulsar_name) {
+    std::string up_name = pulsar_name;
 
     // Convert to uppercase.
     for (std::string::iterator s_itor = up_name.begin(); s_itor != up_name.end(); ++s_itor) *s_itor = toupper(*s_itor);
@@ -241,37 +241,12 @@ namespace pulsarDb {
     // Check for the (limited) wildcard.
     if (up_name == "ALL" || up_name == "ANY") return;
 
-    std::set<std::string> name_matches;
-    // Look up the given name in the extension containing alternate names.
-    for (TableCont::iterator table_itor = m_psr_name_table.begin(); table_itor != m_psr_name_table.end(); ++table_itor) {
-      const Table & name_table = **table_itor;
-      for (Table::ConstIterator record_itor = name_table.begin(); record_itor != name_table.end(); ++record_itor) {
-        Table::ConstRecord & record(*record_itor);
-        // See if there is an alternate name.
-        std::string alt_name;
-        record["ALTNAME"].get(alt_name);
+    // Collect alternative names.
+    NameCont alt_name_cont;
+    getAltName(pulsar_name, alt_name_cont);
 
-        // Convert to uppercase.
-        for (std::string::iterator s_itor = alt_name.begin(); s_itor != alt_name.end(); ++s_itor) *s_itor = toupper(*s_itor);
-
-        if (alt_name == up_name) {
-          // Found a match.
-          std::string real_name;
-          record["PSRNAME"].get(real_name);
-          name_matches.insert(real_name);
-        }
-      }
-    }
-
-    // If the all-upper case name is different from the original name, add it.
-    if (up_name != name) {
-      name_matches.insert(up_name);
-    }
-
-    // Finally (just to be sure) add the original name given.
-    name_matches.insert(name);
-
-    std::string expression = createFilter("PSRNAME", name_matches);
+    // Create filtering condition statement.
+    std::string expression = createFilter("PSRNAME", alt_name_cont);
 
     // OK, do the filter for real on the spin parameters and orbital parameters tables.
     for (TableCont::iterator itor = m_spin_par_table.begin(); itor != m_spin_par_table.end(); ++itor) {
@@ -286,11 +261,47 @@ namespace pulsarDb {
 
     // Append this filter to the command history.
     std::ostringstream os_history;
-    os_history << "Filter by pulsar name '" << name << "'";
+    os_history << "Filter by pulsar name '" << pulsar_name << "'";
     m_command_history.push_back(os_history.str());
 
     // Clean up the database.
     clean();
+  }
+
+  void PulsarDb::getAltName(const std::string & pulsar_name, NameCont & alt_name_cont) const {
+    // Convert to uppercase.
+    std::string pulsar_name_uc(pulsar_name);
+    for (std::string::iterator psr_itor = pulsar_name_uc.begin(); psr_itor != pulsar_name_uc.end(); ++psr_itor)
+      *psr_itor = toupper(*psr_itor);
+
+    // Look up the given name in the extension containing alternate names.
+    for (TableCont::iterator table_itor = m_psr_name_table.begin(); table_itor != m_psr_name_table.end(); ++table_itor) {
+      const Table & name_table = **table_itor;
+      for (Table::ConstIterator record_itor = name_table.begin(); record_itor != name_table.end(); ++record_itor) {
+        Table::ConstRecord & record(*record_itor);
+        // See if there is an alternate name.
+        std::string alt_name;
+        record["ALTNAME"].get(alt_name);
+
+        // Convert to uppercase.
+        for (std::string::iterator alt_itor = alt_name.begin(); alt_itor != alt_name.end(); ++alt_itor) *alt_itor = toupper(*alt_itor);
+
+        if (alt_name == pulsar_name_uc) {
+          // Found a match.
+          std::string real_name;
+          record["PSRNAME"].get(real_name);
+          alt_name_cont.insert(real_name);
+        }
+      }
+    }
+
+    // If the all-upper case name is different from the original name, add it.
+    if (pulsar_name_uc != pulsar_name) {
+      alt_name_cont.insert(pulsar_name_uc);
+    }
+
+    // Finally (just to be sure) add the original name given.
+    alt_name_cont.insert(pulsar_name);
   }
 
   void PulsarDb::filterSolarEph(const std::string & solar_eph) {
@@ -299,7 +310,7 @@ namespace pulsarDb {
     for (std::string::iterator itor = solar_eph_uc.begin(); itor != solar_eph_uc.end(); ++itor) *itor = toupper(*itor);
 
     // Create a list of solar ephemeris names to match.
-    std::set<std::string> name_matches;
+    NameCont name_matches;
     name_matches.insert(solar_eph_uc);
 
     // If the all-upper case name is different from the original name, add it.
@@ -310,6 +321,7 @@ namespace pulsarDb {
     // Finally (just to be sure) add the original name given.
     name_matches.insert(solar_eph);
 
+    // Create filtering condition statement.
     std::string expression = createFilter("SOLAR_SYSTEM_EPHEMERIS", name_matches);
 
     // OK, do the filter for real on the spin parameters and orbital parameters tables.
@@ -388,8 +400,8 @@ namespace pulsarDb {
 
   void PulsarDb::clean() {
     // Set of pulsar names and observer codes.
-    std::set<std::string> pulsar_names;
-    std::set<std::string> observer_codes;
+    NameCont pulsar_names;
+    NameCont observer_codes;
 
     // Compose a set of all pulsar names and observer codes in spin, orbital, and remark extension.
     // This is used below to filter the other extensions in the file.
@@ -426,9 +438,9 @@ namespace pulsarDb {
     }
   }
 
-  std::string PulsarDb::createFilter(const std::string & field_name, const std::set<std::string> & values) const {
+  std::string PulsarDb::createFilter(const std::string & field_name, const NameCont & values) const {
     std::string expression;
-    for (std::set<std::string>::const_iterator itor = values.begin(); itor != values.end(); ++itor) {
+    for (NameCont::const_iterator itor = values.begin(); itor != values.end(); ++itor) {
       expression += "(" + field_name + "==\"" + *itor + "\")||";
     }
 
@@ -488,6 +500,75 @@ namespace pulsarDb {
     // Copy the history records.
     command_history.insert(command_history.begin(), m_command_history.begin(), m_command_history.end());
     ancestry_record.insert(ancestry_record.begin(), m_ancestry_record.begin(), m_ancestry_record.end());
+  }
+
+  bool PulsarDb::isBinary(const std::string & pulsar_name) const {
+    // Prepare boolean flag to determine binary-ness of the pulsar.
+    bool binary_indicated = false;
+    bool solitary_indicated = false;
+
+    // Collect alternative names.
+    NameCont alt_name_cont;
+    getAltName(pulsar_name, alt_name_cont);
+
+    // Examine BINARY_FLAG column in SPIN_PARAMETERS extensions.
+    for (TableCont::const_iterator table_itor = m_spin_par_table.begin(); table_itor != m_spin_par_table.end(); ++table_itor) {
+      const tip::Table & table = **table_itor;
+      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+        // For convenience, get record from iterator.
+        tip::Table::ConstRecord & record(*record_itor);
+
+        // Get pulsar name in this record.
+        std::string psr_name;
+        record["PSRNAME"].get(psr_name);
+
+        // Convert to uppercase.
+        for (std::string::iterator str_itor = psr_name.begin(); str_itor != psr_name.end(); ++str_itor) *str_itor = toupper(*str_itor);
+
+        // Check binary flag if this record is for the named pulsar.
+        if (alt_name_cont.find(psr_name) != alt_name_cont.end()) {
+          // Get binary flag in this record.
+          bool binary_flag = false;
+          const tip::TableCell & cell = record["BINARY_FLAG"];
+          if (!cell.isNull()) {
+            cell.get(binary_flag);
+
+            // Set the flags.
+            if (binary_flag) binary_indicated = true;
+            else solitary_indicated = true;
+          }
+        }
+      }
+    }
+
+    // Look for orbital ephemerides for the pulsar.
+    for (TableCont::const_iterator table_itor = m_orbital_par_table.begin(); table_itor != m_orbital_par_table.end(); ++table_itor) {
+      const tip::Table & table = **table_itor;
+      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+        // For convenience, get record from iterator.
+        tip::Table::ConstRecord & record(*record_itor);
+
+        // Get pulsar name in this record.
+        std::string psr_name;
+        record["PSRNAME"].get(psr_name);
+
+        // Convert to uppercase.
+        for (std::string::iterator str_itor = psr_name.begin(); str_itor != psr_name.end(); ++str_itor) *str_itor = toupper(*str_itor);
+
+        // Set the flag if this record is for the named pulsar.
+        if (alt_name_cont.find(psr_name) != alt_name_cont.end()) binary_indicated = true;
+      }
+    }
+
+    // Check the results for a conflict in determining binary-ness.
+    if (binary_indicated && solitary_indicated) {
+      std::ostringstream oss;
+      oss << "Database contents inconsistent on pulsar \"" << pulsar_name << "\" being in a binary system or not";
+      throw std::runtime_error(oss.str());
+    }
+
+    // Return the result.
+    return binary_indicated;
   }
 
   void PulsarDb::loadFits(const std::string & in_file) {

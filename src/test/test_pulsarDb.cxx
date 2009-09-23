@@ -329,7 +329,7 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test EphComputer class.
     virtual void testEphComputer();
 
-    /// \brief Test Eph getter in pulsarDb class. Also test the getter for ephemeris remarks.
+    /// \brief Test Eph getter in PulsarDb class. Also test the getter for ephemeris remarks.
     virtual void testEphGetter();
 
     /// \brief Test support for multiple ephemeris models.
@@ -337,6 +337,9 @@ class PulsarDbTestApp : public PulsarTestApp {
 
     /// \brief Test EphStatus class.
     virtual void testEphStatus();
+
+    /// \brief Test binary-ness determination by PulsarDb class.
+    virtual void testBinary();
 
     /// \brief Test PulsarDbApp class.
     virtual void testPulsarDbApp();
@@ -425,6 +428,7 @@ void PulsarDbTestApp::runTest() {
   testEphGetter();
   testMultipleEphModel();
   testEphStatus();
+  testBinary();
 
   // Test applications.
   testPulsarDbApp();
@@ -2548,6 +2552,48 @@ void PulsarDbTestApp::testEphStatus() {
   }
 }
 
+void PulsarDbTestApp::testBinary() {
+  setMethod("testBinary");
+
+  // Create pulsar database object.
+  PulsarDb database(m_tpl_file);
+  database.load(m_in_file);
+
+  // Test a non-binary pulsar case.
+  if (database.isBinary("cRAb"))
+    err() << "PulsarDb::isBinary method determined pulsar \"cRAb\" is a binary pulsar." << std::endl;
+
+  // Test a binary pulsar case.
+  if (!database.isBinary("PSR J1834-0010"))
+    err() << "PulsarDb::isBinary method determined pulsar \"PSR J1834-0010\" is not a binary pulsar." << std::endl;
+
+  // Test no ephemeris case.
+  if (database.isBinary("No_such_pulsar"))
+    err() << "PulsarDb::isBinary method determined non-existing pulsar \"No_such_pulsar\" is a binary pulsar." << std::endl;
+
+  // Load the wrong spin ephemeris for the Crab.
+  database.load(prependDataPath("wrongdb_spin.txt"));
+  try {
+    database.isBinary("cRAb");
+    err() << "PulsarDb::isBinary method did not throw an exception for the Crab pulsar with a wrong binary flag" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  // Refresh the database contents.
+  database.filterName("No_such_pulsar");
+  database.load(m_in_file);
+
+  // Load the wrong orbital ephemeris for the Crab.
+  database.load(prependDataPath("wrongdb_binary.txt"));
+  try {
+    database.isBinary("cRAb");
+    err() << "PulsarDb::isBinary method did not throw an exception for the Crab pulsar with a wrong orbital ephemeris" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+}
+
 void PulsarDbTestApp::testPulsarDbApp() {
   setMethod("testPulsarDbApp");
 
@@ -2808,6 +2854,22 @@ void PulsarDbTestApp::testEphComputerApp() {
       log_file_ref = prependOutrefPath(log_file);
 
     } else if ("par11" == test_name) {
+      // Test detection of empty ephemeris database.
+      pars["psrname"] = "PSR B0540-69";
+      pars["reftime"] = 212380785.922;
+      pars["psrdbfile"] = "NONE";
+      pars["timeformat"] = "FERMI";
+      pars["timesys"] = "TDB";
+
+      remove(log_file_ref.c_str());
+      std::ofstream ofs(log_file_ref.c_str());
+      std::runtime_error error("No spin ephemeris is in the database");
+      app_tester.writeException(ofs, error);
+      ofs.close();
+
+      ignore_exception = true;
+
+    } else if ("par12" == test_name) {
       // Test detection of unknown pulsar name.
       pars["psrname"] = "No Such Pulsar";
       pars["reftime"] = 212380785.922;
@@ -2817,17 +2879,14 @@ void PulsarDbTestApp::testEphComputerApp() {
 
       remove(log_file_ref.c_str());
       std::ofstream ofs(log_file_ref.c_str());
-      std::runtime_error error("No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.");
+      std::runtime_error error("No spin ephemeris is available for pulsar \"No Such Pulsar\" in the database");
       app_tester.writeException(ofs, error);
-      ofs << "1143 spin ephemeri(de)s in the database." << std::endl;
-      ofs << "0 spin ephemeri(de)s for pulsar \"No Such Pulsar\" in the database." << std::endl;
-      ofs << "(Solar system ephemeris in spin parameters was not requested to match \"JPL DE405\" given by user.)" << std::endl;
       ofs.close();
 
       ignore_exception = true;
 
-    } else if ("par12" == test_name) {
-      // Test reporting no ephemeris available.
+    } else if ("par13" == test_name) {
+      // Test reporting no spin ephemeris available for a given solar system ephemeris.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
       pars["psrdbfile"] = master_pulsardb;
@@ -2838,16 +2897,32 @@ void PulsarDbTestApp::testEphComputerApp() {
 
       remove(log_file_ref.c_str());
       std::ofstream ofs(log_file_ref.c_str());
-      std::runtime_error error("No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following.");
+      std::runtime_error error("No spin ephemeris is available for solar system ephemeris \"JPL DE405\" for pulsar \"PSR B0540-69\" in the database");
       app_tester.writeException(ofs, error);
-      ofs << "1143 spin ephemeri(de)s in the database." << std::endl;
-      ofs << "2 spin ephemeri(de)s for pulsar \"PSR B0540-69\" in the database." << std::endl;
-      ofs << "0 spin ephemeri(de)s for pulsar \"PSR B0540-69\" with solar system ephemeris \"JPL DE405\" in the database." << std::endl;
       ofs.close();
 
       ignore_exception = true;
 
-    } else if ("par13" == test_name) {
+    } else if ("par14" == test_name) {
+      // Test reporting no orbital ephemeris available for a given solar system ephemeris.
+      // Note: This test requires a spin ephemeris with DE200 and an orbital ephemeris with DE405.
+      pars["psrname"] = "PSR J0700+6418";
+      pars["reftime"] = 212502400.0;
+      pars["psrdbfile"] = m_in_file;
+      pars["timeformat"] = "FERMI";
+      pars["timesys"] = "TDB";
+      pars["solareph"] = "JPL DE200";
+      pars["matchsolareph"] = "ALL";
+
+      remove(log_file_ref.c_str());
+      std::ofstream ofs(log_file_ref.c_str());
+      std::runtime_error error("No orbital ephemeris is available for solar system ephemeris \"JPL DE200\" for pulsar \"PSR J0700+6418\" in the database");
+      app_tester.writeException(ofs, error);
+      ofs.close();
+
+      ignore_exception = true;
+
+    } else if ("par15" == test_name) {
       // Test reporting of ephemeris remarks.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
@@ -2856,7 +2931,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
 
-    } else if ("par14" == test_name) {
+    } else if ("par16" == test_name) {
       // Test no reporting of ephemeris remarks with reportephstatus=no.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
@@ -2866,7 +2941,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       pars["reportephstatus"] = "no";
       log_file_ref = prependOutrefPath(log_file);
 
-    } else if ("par15" == test_name) {
+    } else if ("par17" == test_name) {
       // Test reporting of ephemeris database creation history.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
