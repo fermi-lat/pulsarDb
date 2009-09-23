@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 23 16:19:38 PDT 2009
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Improve errors and warnings in ephemeris sub-selection. Introduce psrdbfile=NONE.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 23 16:19:37 PDT 2009
 pulsarDb/data/outref
 
