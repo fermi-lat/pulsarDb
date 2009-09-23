@@ -26,7 +26,7 @@
 #include <string>
 #include <utility>
 
-static const std::string s_cvs_id("$Name:  $");
+static const std::string s_cvs_id("$Name: v8r4 $");
 
 using namespace timeSystem;
 
@@ -87,27 +87,43 @@ namespace pulsarDb {
 
     // Report the best spin ephemeris.
     bool found_pulsar_eph = false;
+    m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl;
     try {
       const PulsarEph & eph(computer.choosePulsarEph(abs_ref_time));
-      m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl << eph << std::endl;
+      m_os.info(3) << eph << std::endl;
       found_pulsar_eph = true;
-    } catch (const std::exception & x) {
-      m_os.out() << prefix << "No spin ephemeris was found in database:" << std::endl << x.what() << std::endl;
+    } catch (const std::exception &) {
+      m_os.info(3) << prefix << "   None" << std::endl;
     }
 
     // Report the best binary ephemeris.
+    m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl;
     try {
       const OrbitalEph & eph(computer.chooseOrbitalEph(abs_ref_time));
-      m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl << eph << std::endl;
-    } catch (const std::exception & x) {
-      m_os.info(3) << prefix << "No orbital ephemeris was found in database:" << std::endl << x.what() << std::endl;
+      m_os.info(3) << eph << std::endl;
+    } catch (const std::exception &) {
+      m_os.info(3) << prefix << "   None" << std::endl;
     }
 
     // Set off the optional output.
     m_os.info(3) << prefix << dashes << std::endl;
 
-    // Report the calculated spin ephemeris, provided at least a spin ephemeris was found above.
-    if (found_pulsar_eph) {
+    // Compose a string expression of the given time.
+    std::string time_string;
+    try {
+      time_string = abs_ref_time.represent(time_sys_parsed, MjdFmt);
+    } catch (const std::exception &) {
+      time_string = abs_ref_time.represent(time_sys_parsed, CalendarFmt);
+    }
+
+    // Calculate spin ephemeris for the given reference time, if at least a spin ephemeris was found above, and report the result.
+    m_os.out() << prefix << "Spin ephemeris estimated is:" << std::endl;
+    m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << time_string << std::endl;
+    if (!found_pulsar_eph) {
+      // Report no spin ephemeris is found.
+      m_os.out().prefix().width(30); m_os.out() << "Ephemeris Data : " << "Not Available" << std::endl;
+
+    } else {
       // Choose the best ephemeris for the given time.
       const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
 
@@ -129,19 +145,9 @@ namespace pulsarDb {
         m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
       }
 
-      // Compose a string expression of the given time.
-      std::string time_string;
-      try {
-        time_string = abs_ref_time.represent(time_sys_parsed, MjdFmt);
-      } catch (const std::exception &) {
-        time_string = abs_ref_time.represent(time_sys_parsed, CalendarFmt);
-      }
-
       // Print computed ephemeris.
       if (computed_ok) {
-        m_os.out() << prefix << "Spin ephemeris estimated is:" << std::endl;
         m_os.out().precision(std::numeric_limits<double>::digits10);
-        m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << time_string << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra_dec.first << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << ra_dec.second << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Pulse Phase : " << phi0 << std::endl;

@@ -331,16 +331,26 @@ namespace pulsarDb {
 
       // Load the given ephemerides database(s).
       std::string psrdb_file = pars["psrdbfile"];
-      FileSys::FileNameCont file_name_cont = FileSys::expandFileList(psrdb_file);
-      for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
-        database.load(*itor);
+      std::string psrdb_file_uc(psrdb_file);
+      for (std::string::iterator itor = psrdb_file_uc.begin(); itor != psrdb_file_uc.end(); ++itor) *itor = std::toupper(*itor);
+      if (psrdb_file_uc != "NONE") {
+        FileSys::FileNameCont file_name_cont = FileSys::expandFileList(psrdb_file);
+        for (FileSys::FileNameCont::const_iterator itor = file_name_cont.begin(); itor != file_name_cont.end(); ++itor) {
+          database.load(*itor);
+        }
       }
-      int num_eph_total = database.getNumEph();
+      int num_pulsar_eph_total = database.getNumEph();
+      int num_orbital_eph_total = database.getNumEph(false);
+
+      // Check if this pulsar is a binary pulsar or not, unless binary demodulation is suppressed.
+      std::string psr_name = pars["psrname"];
+      bool binary_indicated = false;
+      if (m_tcmode_bin != SUPPRESSED) binary_indicated = database.isBinary(psr_name);
 
       // Select only ephemerides for this pulsar.
-      std::string psr_name = pars["psrname"];
       database.filterName(psr_name);
-      int num_eph_psrname = database.getNumEph();
+      int num_pulsar_eph_psrname = database.getNumEph();
+      int num_orbital_eph_psrname = database.getNumEph(false);
 
       // Select only ephemerides with the solar system ephemeris used for barycentering.
       std::string solar_eph = pars["solareph"];
@@ -348,18 +358,20 @@ namespace pulsarDb {
       for (std::string::iterator itor = match_solar_eph.begin(); itor != match_solar_eph.end(); ++itor) *itor = std::toupper(*itor);
       bool solar_eph_must_match = (match_solar_eph == "PSRDB" || match_solar_eph == "ALL");
       if (solar_eph_must_match) database.filterSolarEph(solar_eph);
-      int num_eph_solareph = database.getNumEph();
+      int num_pulsar_eph_solareph = database.getNumEph();
+      int num_orbital_eph_solareph = database.getNumEph(false);
 
       // Report ephemeris loading summary.
       std::list<std::string> command_history;
       std::list<std::string> ancestry_record;
       std::string dashes(26, '=');
+      std::string indent(3, ' ');
       database.getHistory(command_history, ancestry_record);
       if (command_history.size()) {
         os.prefix() << dashes << std::endl;
         os.prefix() << "Pulsar ephemerides are loaded and/or filtered as follows:" << std::endl;
         for (std::list<std::string>::const_iterator itor = command_history.begin(); itor != command_history.end(); ++itor) {
-          os.prefix() << "   " << *itor << std::endl;
+          os.prefix() << indent << *itor << std::endl;
         }
         if (ancestry_record.size()) {
           os.prefix() << dashes << std::endl;
@@ -373,7 +385,7 @@ namespace pulsarDb {
               os_str << "[" << psrdb_index << "] ";
               list_prefix = os_str.str();
             } else {
-              list_prefix = "   ";
+              list_prefix = indent;
             }
             os.prefix() << list_prefix << *itor << std::endl;
           }
@@ -383,28 +395,75 @@ namespace pulsarDb {
 
       // Load the selected pulsar ephemerides.
       if (eph_style_uc == "DB") {
-        // Thrown an exception if no ephemeris is left in the database.
-        if (0 == database.getNumEph()) {
+        // Load spin parameters.
+        m_computer->loadPulsarEph(database);
+        int num_pulsar_eph_loaded = m_computer->getNumPulsarEph();
+
+        // Report summary of spin ephemeris filtering.
+        os.prefix() << "Spin ephemerides in the database are summarized as follows:" << std::endl;
+        os.prefix() << indent << num_pulsar_eph_total << " spin ephemeri(de)s in total" << std::endl;
+        os.prefix() << indent << num_pulsar_eph_psrname << " spin ephemeri(de)s for pulsar \"" << psr_name << "\"" << std::endl;
+        if (solar_eph_must_match) {
+          os.prefix() << indent << num_pulsar_eph_solareph << " spin ephemeri(de)s with solar system ephemeris \"" << solar_eph <<
+            "\" for pulsar \"" << psr_name << "\"" << std::endl;
+        } else {
+          os.prefix() << indent << "(Sub-selection by solar system ephemeris not requested)" << std::endl;
+        }
+        os.prefix() << indent << num_pulsar_eph_loaded << " spin ephemeri(de)s loaded into memory" << std::endl;
+        os.prefix() << dashes << std::endl;
+
+        // Thrown an exception if no ephemeris is loaded into the ephemeris computer.
+        if (0 == num_pulsar_eph_loaded) {
           std::ostringstream os_err;
-          os_err << "No spin ephemeris is available for a requested condition. Brief summary of ephemeris selection is following." <<
-            std::endl;
-          os_err << num_eph_total << " spin ephemeri(de)s in the database." << std::endl;
-          os_err << num_eph_psrname << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" in the database." << std::endl;
-          if (solar_eph_must_match) {
-            os_err << num_eph_solareph << " spin ephemeri(de)s for pulsar \"" << psr_name << "\" with solar system ephemeris \"" <<
-              solar_eph << "\" in the database.";
+          if (0 == num_pulsar_eph_total) {
+            os_err << "No spin ephemeris is in the database";
+          } else if (0 == num_pulsar_eph_psrname) {
+            os_err << "No spin ephemeris is available for pulsar \"" << psr_name << "\" in the database";
+          } else if (0 == num_pulsar_eph_solareph) {
+            os_err << "No spin ephemeris is available for solar system ephemeris \"" << solar_eph << "\" for pulsar \"" <<
+              psr_name << "\" in the database";
           } else {
-            os_err << "(Solar system ephemeris in spin parameters was not requested to match \"" << solar_eph << "\" given by user.)";
+            os_err << "No spin ephemeris is loaded into memory for unknown reasons";
           }
           throw std::runtime_error(os_err.str());
         }
-
-        // Load spin parameters.
-        m_computer->loadPulsarEph(database);
       }
 
-      // Load orbital parameters.
-      if (m_tcmode_bin != SUPPRESSED) m_computer->loadOrbitalEph(database);
+      // Load the selected orbital ephemerides.
+      if (m_tcmode_bin != SUPPRESSED) {
+        // Load orbital parameters.
+        m_computer->loadOrbitalEph(database);
+        int num_orbital_eph_loaded = m_computer->getNumOrbitalEph();
+
+        // Report summary of orbital ephemeris filtering.
+        os.prefix() << "Orbital ephemerides in the database are summarized as follows:" << std::endl;
+        os.prefix() << indent << num_orbital_eph_total << " orbital ephemeri(de)s in total" << std::endl;
+        os.prefix() << indent << num_orbital_eph_psrname << " orbital ephemeri(de)s for pulsar \"" << psr_name << "\"" << std::endl;
+        if (solar_eph_must_match) {
+          os.prefix() << indent << num_orbital_eph_solareph << " orbital ephemeri(de)s with solar system ephemeris \"" << solar_eph <<
+            "\" for pulsar \"" << psr_name << "\"" << std::endl;
+        } else {
+          os.prefix() << indent << "(Sub-selection by solar system ephemeris not requested)" << std::endl;
+        }
+        os.prefix() << indent << num_orbital_eph_loaded << " orbital ephemeri(de)s loaded into memory" << std::endl;
+        os.prefix() << dashes << std::endl;
+
+        // Throw an exception if this is a binary pulsar and if no ephemeris is loaded into the ephemeris computer.
+        if (0 == num_orbital_eph_loaded && (m_tcmode_bin == REQUIRED || binary_indicated)) {
+          std::ostringstream os_err;
+          if (0 == num_orbital_eph_total) {
+            os_err << "No orbital ephemeris is in the database";
+          } else if (0 == num_orbital_eph_psrname) {
+            os_err << "No orbital ephemeris is available for pulsar \"" << psr_name << "\" in the database";
+          } else if (0 == num_orbital_eph_solareph) {
+            os_err << "No orbital ephemeris is available for solar system ephemeris \"" << solar_eph << "\" for pulsar \"" <<
+              psr_name << "\" in the database";
+          } else {
+            os_err << "No orbital ephemeris is loaded into memory for unknown reasons";
+          }
+          throw std::runtime_error(os_err.str());
+        }
+      }
 
       // Load ephemeris remarks.
       if (m_report_eph_status) m_computer->loadEphRemark(database);

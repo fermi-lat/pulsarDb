@@ -1,2 +1,3 @@
-gtephem: No spin ephemeris was found in database:
-StrictEphChooser::choose: Could not find a spin ephemeris for 44864.184 seconds after 54369.0 MJD (TDB)
+gtephem: Spin ephemeris estimated is:
+gtephem:              Reference Time : 54369.519261388888889 MJD (TDB)
+gtephem:              Ephemeris Data : Not Available
