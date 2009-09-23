@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 23 16:19:37 PDT 2009
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par15.log testEphComputerApp_par2.log 
+	testEphComputerApp_par3.log 
+Log Message:
+Improve errors and warnings in ephemeris sub-selection. Introduce psrdbfile=NONE.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-04-02, operation: add
 Package: pulsarDb
