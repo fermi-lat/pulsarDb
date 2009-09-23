@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Sep 23 16:19:38 PDT 2009
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx PulsarDb.cxx PulsarToolApp.cxx 
+Log Message:
+Improve errors and warnings in ephemeris sub-selection. Introduce psrdbfile=NONE.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Sep 23 16:19:38 PDT 2009
 pulsarDb/pulsarDb
 
 Modified Files:
