@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 23 15:45:23 PDT 2009
+pulsarDb
+
+Modified Files:
+	SConscript 
+Log Message:
+GoGui_auto-tag
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-15-05, operation: add
 Package: pulsarDb
