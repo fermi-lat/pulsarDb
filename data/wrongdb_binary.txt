@@ -1,0 +1,12 @@
+#
+# Orbital ephemeris file with wrong contents for unit test
+#
+ORBITAL_PARAMETERS
+EPHSTYLE = DD / simplified DD model
+PSRNAME PB PBDOT A1 ECC OM T0 GAMMA OBSERVER_CODE SOLAR_SYSTEM_EPHEMERIS
+
+"PSR J0534+2200" 1.0 0.0 1.0 0.0 0.0 55000.0 0.0 P "JPL DE405"
+
+#
+# end of file
+#
