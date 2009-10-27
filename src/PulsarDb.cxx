@@ -275,7 +275,7 @@ namespace pulsarDb {
       *psr_itor = toupper(*psr_itor);
 
     // Look up the given name in the extension containing alternate names.
-    for (TableCont::iterator table_itor = m_psr_name_table.begin(); table_itor != m_psr_name_table.end(); ++table_itor) {
+    for (TableCont::const_iterator table_itor = m_psr_name_table.begin(); table_itor != m_psr_name_table.end(); ++table_itor) {
       const Table & name_table = **table_itor;
       for (Table::ConstIterator record_itor = name_table.begin(); record_itor != name_table.end(); ++record_itor) {
         Table::ConstRecord & record(*record_itor);
