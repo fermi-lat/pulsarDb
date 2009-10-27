@@ -19,9 +19,12 @@
  
 \verbatim
 psrdbfile [file name]
-    Name of input file containing ephemerides. Multiple files
-    may be combined by listing them in a text file, one per line,
-    and supplying the list file name preceded by an @ sign.
+    Name of input file containing ephemerides. Multiple files may be
+    combined by listing them in a text file, one per line, and
+    supplying the list file name preceded by an @ sign. If psrdbfile
+    is NONE (case-insensitive), no ephemeris is loaded from a file.
+
+no ephemeris is loaded
 
 outfile [file name]
     Name of output file, which will be in Fermi (formerly GLAST) D4 FITS format.
@@ -79,8 +82,11 @@ author = Anonymous User [string]
  
 \verbatim
 psrdbfile [file name]
-    Name of pulsar ephemerides database file, in Fermi (formerly GLAST) D4
-    FITS format.
+    Name of pulsar ephemerides database file, in Fermi (formerly
+    GLAST) D4 FITS format. Multiple files may be combined by listing
+    them in a text file, one per line, and supplying the list file
+    name preceded by an @ sign. If psrdbfile is NONE
+    (case-insensitive), no ephemeris is loaded from a file.
 
 psrname = ANY [string]
     Name of the pulsar, used to select only ephemerides valid for a
