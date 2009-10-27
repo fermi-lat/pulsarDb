@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Oct 27 13:34:35 PDT 2009
+pulsarDb/data
+
+Added Files:
+	wrongdb_spin.txt wrongdb_binary.txt 
+Log Message:
+Add text pulsar database files for unit test.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-00, operation: add
 Package: pulsarDb
