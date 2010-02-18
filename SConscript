@@ -1,5 +1,5 @@
 # -*- python -*-
-# $Id: SConscript,v 1.22 2009/10/23 22:45:23 hirayama Exp $
+# $Id: SConscript,v 1.23 2009/10/27 21:17:53 hirayama Exp $
 # Authors: James Peachey <James.Peachey-1@nasa.gov>
 # Version: pulsarDb-08-05-01
 Import('baseEnv')
@@ -7,7 +7,6 @@ Import('listFiles')
 progEnv = baseEnv.Clone()
 libEnv = baseEnv.Clone()
 
-libEnv.Tool('pulsarDbLib', depsOnly = 1)
 pulsarDbLib = libEnv.StaticLibrary('pulsarDb', listFiles(['src/*.cxx']))
 
 progEnv.Tool('pulsarDbLib')
