@@ -2,11 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.55 2009/10/23 22:45:23 hirayama Exp $
+$Id: release.notes,v 1.56 2009/10/27 21:17:53 hirayama Exp $
 
 \verbatim
 * EOH *
 
+ pulsarDb-08-05-02 22-Feb-2010    jrb correct use of xxLib for libEnv
  pulsarDb-08-05-01 27-Oct-2009 hirayama Fix a compilation error on const-ness of an iterator. Add an explanation of psrdbfile=NONE to mainpage.h.
  pulsarDb-08-05-00 23-Oct-2009 hirayama Improve errors and warnings in ephemeris sub-selection. Introduce psrdbfile=NONE.
  pulsarDb-08-04-02 18-Sep-2009 hirayama Use static_cast instead of old-style cast. Use human-friendly Duration class constructor.
