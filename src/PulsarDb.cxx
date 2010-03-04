@@ -789,7 +789,7 @@ namespace pulsarDb {
     std::ifstream in_table(in_file.c_str());
 
     // Make sure it worked.
-    if (!in_table) throw std::runtime_error("Could not open file " + in_file);
+    if (!in_table) throw std::runtime_error("Could not open file \"" + in_file + "\"");
 
     // Create a text buffer.
     static const size_t s_line_size = 2048;
@@ -809,7 +809,7 @@ namespace pulsarDb {
       // Parse it into fields.
       parseLine(buf, parsed_line);
 
-      if (parsed_line.size() > 1) throw std::runtime_error(std::string("Expected name of an extension on line ") + buf);
+      if (parsed_line.size() > 1) throw std::runtime_error("Could not find an extension name in file \"" + in_file + "\"");
       else if (parsed_line.size() == 1) {
         ext_name = *parsed_line.begin();
         header_keyword.push_back(KeyRecord("EXTNAME", ext_name, "name of this binary table extension"));
@@ -882,24 +882,32 @@ namespace pulsarDb {
         Table::FieldCont field = target_table->getValidFields();
         field_name.assign(field.begin(), field.end());
 
-        // Convert to lowercase, because field names are all lowercase.
-        for (ParsedLine::iterator itor = parsed_line.begin(); itor != parsed_line.end(); ++itor) {
-          for (std::string::iterator s_itor = itor->begin(); s_itor != itor->end(); ++s_itor) *s_itor = tolower(*s_itor);
+        // Populate input_column number as a function of output column name.
+        for (ParsedLine::const_iterator itor = parsed_line.begin(); itor != parsed_line.end(); ++itor) {
+
+          // Convert to lowercase, because field names are all lowercase.
+          std::string token_lc(*itor);
+          for (std::string::iterator s_itor = token_lc.begin(); s_itor != token_lc.end(); ++s_itor) *s_itor = tolower(*s_itor);
+
+          // Find a field with the same name as the current token.
+          ParsedLine::const_iterator found_itor = std::find(field_name.begin(), field_name.end(), token_lc);
+          if (field_name.end() == found_itor) {
+            throw std::runtime_error("Could not find column \"" + *itor + "\" in target extension \"" + ext_name +
+               "\" in file \"" + in_file + "\"");
+          }
+
+          // Store the location of the current token.
+          found_map[*found_itor] = itor - parsed_line.begin();
         }
 
-        // Populate input_column number as a function of output column name.
-        for (ParsedLine::iterator itor = field_name.begin(); itor != field_name.end(); ++itor) {
-          std::vector<std::string>::iterator found_itor = std::find(parsed_line.begin(), parsed_line.end(), *itor);
-          if (parsed_line.end() != found_itor) {
-            found_map[*itor] = found_itor - parsed_line.begin();
-          }
-        }
+        // Finish reading header information, and move on to reading data entries.
         break;
       }
     }
   
     if (found_map.empty())
-      throw std::runtime_error("File " + in_file + " does not have any columns in common with output extension " + ext_name);
+      throw std::runtime_error("File \"" + in_file + "\" does not have any columns in common with target extension \"" +
+        ext_name + "\"");
 
     // Add new ephemerides at the end of table.
     Table::Iterator target_itor = target_table->end();
@@ -921,7 +929,7 @@ namespace pulsarDb {
       // Make sure the correct number of fields are found.
       if (parsed_line.size() != found_map.size()) {
         std::ostringstream os;
-        os << "Line " << buf << " has " << parsed_line.size() << " token(s), not " << found_map.size() << ", as expected";
+        os << "Line \"" << buf << "\" has " << parsed_line.size() << " token(s), not " << found_map.size() << ", as expected";
         throw std::runtime_error(os.str());
       }
   
@@ -965,69 +973,58 @@ namespace pulsarDb {
   void PulsarDb::parseLine(const char * line, ParsedLine & parsed_line) {
     parsed_line.clear();
 
-    const char * begin = line;
+    const char * current = line;
 
     // Skip leading whitespace.
-    while(isspace(*begin)) ++begin;
-
-    // Handle the case of a completely blank line.
-    if ('\0' == *begin) return;
+    while(isspace(*current)) ++current;
 
     // Check for comment and return if it is one.
-    if ('#' == *begin) return;
+    if ('#' == *current) return;
 
-    // At this point there is at least one character, hence one field.
-    parsed_line.resize(1);
-
-    // Start with the first field.
-    std::vector<std::string>::iterator current_field = parsed_line.begin();
-
-    // Start with no quotes.
+    // Loop over characters, starting with no quotes, and outside of field.
     bool in_quote = false;
-    const char * current = begin;
-    while ('\0' != *current) {
-      // Check for quote, skip them but toggle the flag.
+    bool in_field = false;
+    for (; '\0' != *current; ++current) {
+      // Check the character at the current position.
       if ('"' == *current) {
+        // Quote is skipped, but toggle the flag.
         in_quote = !in_quote;
-        ++current;
-        continue;
+
+      } else if (!in_quote && isspace(*current)) {
+        // Unquoted space is taken as the end of this field.
+        in_field = false;
+
+      } else if (!in_field) {
+        // Add a new field at the end of the container, and add the character to it.
+        const std::string new_field(1, *current);
+        parsed_line.insert(parsed_line.end(), new_field);
+
+        // Set the flag.
+        in_field = true;
+
+      } else {
+        // Add the character to the current field.
+        parsed_line.back().push_back(*current);
       }
-
-      // Unquoted space is taken as the end of this field.
-      if (!in_quote && isspace(*current)) {
-        // Add a new field at the end of the container.
-        current_field = parsed_line.insert(parsed_line.end(), "");
-
-        // Skip spaces after this field.
-        while (isspace(*current)) ++current;
-
-        // Start the next field.
-        begin = current;
-        continue;
-      }
-
-      // Add the character to the current field.
-      current_field->push_back(*current);
-
-      // Continue to next character.
-      ++current;
     }
 
-    if (in_quote) throw std::runtime_error(std::string("Line ") + line + " contains an unbalanced quote");
+    // Check the quote flag at exit.
+    if (in_quote) throw std::runtime_error(std::string("Line \"") + line + "\" contains an unbalanced quote");
   }
 
   void PulsarDb::stripWhiteSpace(std::string & string_value) {
     // Remove leading white spaces.
-    for (std::string::iterator itor = string_value.begin(); itor != string_value.end() && std::isspace(*itor); ++itor) {
-      string_value.erase(itor);
-    }
+    std::string::iterator itor;
+    for (itor = string_value.begin(); itor != string_value.end() && std::isspace(*itor); ++itor) {}
+    string_value.erase(string_value.begin(), itor);
 
     // Remove trailing white spaces.
+    itor = string_value.end();
     for (std::string::reverse_iterator r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor);
       ++r_itor) {
-      std::string::iterator itor = r_itor.base();
+      itor = r_itor.base();
       --itor;
-      string_value.erase(itor);
     }
+    string_value.erase(itor, string_value.end());
   }
 }
