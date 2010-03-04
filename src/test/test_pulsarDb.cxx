@@ -665,7 +665,7 @@ void PulsarDbTestApp::testAppend() {
   try {
     database.load(filename);
   } catch (const std::exception & x) {
-    err() << "PulsarDb::load method threw an exception for FITS file \"" << filename << ": " << std::endl << x.what() << std::endl;
+    err() << "PulsarDb::load method threw an exception for FITS file \"" << filename << "\": " << std::endl << x.what() << std::endl;
   }
 
   // Load a TEXT database with TELESCOP=FERMI.
@@ -673,7 +673,7 @@ void PulsarDbTestApp::testAppend() {
   try {
     database.load(filename);
   } catch (const std::exception & x) {
-    err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << ": " << std::endl << x.what() << std::endl;
+    err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << std::endl << x.what() << std::endl;
   }
 }
 
@@ -762,6 +762,40 @@ void PulsarDbTestApp::testTextPulsarDb() {
         err() << "PulsarDb::getHistory returned '" << *res_itor << "', not '" << *exp_itor <<
           "' as expected for ancestry record No. " << line_index + 1 << "." << std::endl;
       }
+    }
+  }
+
+  // Test detection of badly-formatted tables.
+  std::list<std::string> filename_list;
+  filename_list.push_back("no_such_file.txt");
+  filename_list.push_back("baddb_noextname.txt");
+  filename_list.push_back("baddb_nosuchextname.txt");
+  filename_list.push_back("baddb_nosuchephstyle.txt");
+  filename_list.push_back("baddb_noheader.txt");
+  filename_list.push_back("baddb_nosuchfield.txt");
+  filename_list.push_back("baddb_toolittlefield.txt");
+  filename_list.push_back("baddb_toomanyfield.txt");
+  filename_list.push_back("baddb_unbalancedquote.txt");
+  for (std::list<std::string>::const_iterator itor = filename_list.begin(); itor != filename_list.end(); ++itor) {
+    const std::string & filename(*itor);
+    try {
+      database.load(prependDataPath(filename));
+      err() << "PulsarDb::load method did not throw an exception for TEXT file \"" << filename << "\"" << std::endl;
+    } catch (const std::exception &) {
+      // This is fine.
+    }
+  }
+
+  // Test no detection of poorly-formatted, but legal tables.
+  filename_list.clear();
+  filename_list.push_back("okdb_extraspace.txt");
+  filename_list.push_back("okdb_extraquote.txt");
+  for (std::list<std::string>::const_iterator itor = filename_list.begin(); itor != filename_list.end(); ++itor) {
+    const std::string & filename(*itor);
+    try {
+      database.load(prependDataPath(filename));
+    } catch (const std::exception & x) {
+      err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << x.what() << std::endl;
     }
   }
 }
