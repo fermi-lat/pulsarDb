@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Mar  3 21:17:15 PST 2010
+pulsarDb/data
+
+Added Files:
+	okdb_extraquote.txt okdb_extraspace.txt 
+Log Message:
+Add tests to reveal bugs in parsing text D4 input (intolerance for extra white spaces).
+    *
+------------------------------------------------------------
 User: hirayama  Wed Mar  3 21:16:49 PST 2010
 pulsarDb/data
 
