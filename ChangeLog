@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Mar  3 18:27:19 PST 2010
+pulsarDb/src
+
+Modified Files:
+	EphStatus.cxx SimpleDdEph.cxx 
+Log Message:
+Improve comments (cosmetic).
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-16-00, operation: add
 Package: pulsarDb
