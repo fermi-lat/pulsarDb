@@ -1,0 +1,13 @@
+#
+# Spin ephemeris file without a column header line
+#
+SPIN_PARAMETERS
+EPHSTYLE = FREQ / frequency history model with a second-order polynomial
+
+J "PSR J0534+2200" 0.0 0.0 55000 55000 55000 0.0 55000 0.0 0.0 0.0 0.0 0.0 T "JPL DE405" 55000 0.0
+J "PSR J0534+2201" 0.0 0.0 55000 55000 55000 0.0 55000 0.0 0.0 0.0 0.0 0.0 T "JPL DE405" 55000 0.0
+J "PSR J0534+2202" 0.0 0.0 55000 55000 55000 0.0 55000 0.0 0.0 0.0 0.0 0.0 T "JPL DE405" 55000 0.0
+
+#
+# end of file
+#
