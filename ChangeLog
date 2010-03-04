@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Mar  3 20:57:33 PST 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Fix bugs in parsing text D4 input (intolerance for extra white spaces).
+    *
+------------------------------------------------------------
 User: hirayama  Wed Mar  3 20:57:16 PST 2010
 pulsarDb/src/test
 
