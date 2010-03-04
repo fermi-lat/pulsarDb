@@ -25,12 +25,12 @@ namespace tip {
 namespace {
 
 //======================================================================
-// copied from atErrors.h
+// Copied from atErrors.h.
 //----------------------------------------------------------------------
 /* Error Code of atFunctions. */
 #define NOT_CONVERGED 10        /*equation was not solved*/
 //----------------------------------------------------------------------
-// copied from atKepler.c (& modified)
+// Copied from atKepler.c (& modified).
 //----------------------------------------------------------------------
 //#include "atFunctions.h"
 //#include "atError.h"
@@ -137,7 +137,7 @@ namespace pulsarDb {
   OrbitalEph * SimpleDdEph::clone() const { return new SimpleDdEph(*this); }
 
   double SimpleDdEph::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
-    // compute elapsed time from epoch of periastron in seconds
+    // Compute elapsed time from epoch of periastron in seconds.
     double delta_second = calcElapsedSecond(ev_time);
 
     // Compute the time difference as a fraction of the period.
@@ -151,39 +151,39 @@ namespace pulsarDb {
   }
 
   timeSystem::ElapsedTime SimpleDdEph::calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const {
-    // compute elapsed time from epoch of periastron in seconds
+    // Compute elapsed time from epoch of periastron in seconds.
     double delta_second = calcElapsedSecond(ev_time);
 
-    // calculate mean anomaly
+    // Calculate mean anomaly.
     double delta_period = delta_second / m_pb;
     double mean_anomaly = SimpleDdEph::s_two_pi * delta_period
       * (1. - delta_period * m_pb_dot / 2.0);
 
-    // solve Kepler's equasion
+    // Solve Kepler's equasion.
     double eccen = m_ecc + m_ecc_dot * delta_second; // eccentricity
     double eccen_anomaly = 0.0; // eccentric anomaly
     int status = atKepler(mean_anomaly, eccen, &eccen_anomaly);
 
-    // atKepler not converged
+    // atKepler not converged.
     if (0 != status) {
       throw std::runtime_error("Could not solve Kepler equation numerically (atKepler did not converge)");
     }
 
-    // convert eccentric anomaly to true anomaly
+    // Convert eccentric anomaly to true anomaly.
     double true_anomaly = 2.0 * std::atan(std::sqrt((1.0+eccen)/(1.0-eccen))
         * std::tan(eccen_anomaly/2.0));
     true_anomaly += SimpleDdEph::s_two_pi * floor((eccen_anomaly - true_anomaly)/ SimpleDdEph::s_two_pi);
     while ((true_anomaly - eccen_anomaly) > SimpleDdEph::s_one_pi) true_anomaly -= SimpleDdEph::s_two_pi;
     while ((eccen_anomaly - true_anomaly) > SimpleDdEph::s_one_pi) true_anomaly += SimpleDdEph::s_two_pi;
 
-    // compute periastron longitude
+    // Compute periastron longitude.
     double omega = m_om
       + m_om_dot * true_anomaly * m_pb / SimpleDdEph::s_two_pi;
 
-    // compute projected semimajor axis
+    // Compute projected semimajor axis.
     double semiax = m_a1 + m_x_dot * delta_second;
 
-    // compute time delays due to orbital motion
+    // Compute time delays due to orbital motion.
     double roemer_frac = std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
       + std::sqrt(1.0 - eccen*eccen) * std::cos(omega) * std::sin(eccen_anomaly);
     double roemer = semiax * roemer_frac;
@@ -191,7 +191,7 @@ namespace pulsarDb {
     double shapiro = - 2.0 * m_shapiro_r
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - m_shapiro_s*roemer_frac);
 
-    // return total delay
+    // Return total delay.
     return ElapsedTime(m_system->getName(), Duration(roemer + einstein + shapiro, "Sec"));
   }
 

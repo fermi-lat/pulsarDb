@@ -36,7 +36,7 @@ namespace pulsarDb {
     const timeSystem::AbsoluteTime & start_time = (in_order ? at1 : at2);
     const timeSystem::AbsoluteTime & stop_time  = (in_order ? at2 : at1);
 
-    // Return 
+    // Return whether this ephemeris status is effective in a certain part of a time interval between given times.
     return (start_time <= m_until && stop_time >= m_since);
   }
 
