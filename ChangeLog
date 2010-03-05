@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Thu Mar  4 18:40:21 PST 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx PulsarDbApp.cxx PulsarToolApp.cxx 
+Log Message:
+Improve how to specify default spin and orbital extensions in the PulsarDb constructor arguments.
+    *
+------------------------------------------------------------
+User: hirayama  Thu Mar  4 18:40:21 PST 2010
 pulsarDb/pulsarDb
 
 Modified Files:
