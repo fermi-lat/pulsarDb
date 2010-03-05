@@ -79,13 +79,19 @@ namespace pulsarDb {
 
       /** \brief Create a data base object for the given FITS template file.
           \param tpl_file The name of the FITS template file used to create the file in memory.
-          \param default_spin_ext The extension number of SPIN_PARAMETER extension in a given template file (tpl_file),
+          \param default_spin_ext The number to specify a SPIN_PARAMETER extension in a given template file (tpl_file),
                  to which spin ephemerides in pulsar database file in the original format (w/o EPHSTYLE) will be loaded.
+                 Give one (1) for the first SPIN_PARAMETER extension in the template, two (2) for the second, and so on.
                  If zero (0) is given, an exception will be thrown for spin-ephemeris extensions in the original format.
-                 Give one (1) for the first HDU after the primary HDU.
+                 If a number larger than the number of SPIN_PARAMETER extension(s) in the template is given, an exception
+                 will be thrown by the constructor.
           \param default_orbital_ext Same as above, but for ORBITAL_PARAMETER extensions.
       */
       PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext = 0, TableCont::size_type default_orbital_ext = 0);
+      // TODO: Remove default_spin/orbital_ext from the argument list and embed them in a FITS template file,
+      //       and put the above explanation in the FITS template header as comments.
+      //       DEF_SPIN = 1 / Make the 1st SPIN_PARAMETER extension default
+      //       DEF_ORB  = 1 / Make the 1st ORBITAL_PARAMETER extension default
 
       /// \brief Destruct this PulsarDb object.
       virtual ~PulsarDb();
@@ -212,14 +218,6 @@ namespace pulsarDb {
 
     private:
       typedef std::vector<std::string> ParsedLine;
-
-      /** \brief Helper method for the constructor, to check and pick up an appropriate table for
-          a default spin or orbital extension to support the original ephemerides file format.
-          \param ext_number The extension number. Same as constructor arguments, default_spin/orbital_ext.
-          \param is_spin_table If true, it looks for a spin parameter table. If false, it looks for an
-          orbital parameter table.
-      */
-      tip::Table * findDefaultTable(TableCont::size_type ext_number, bool is_spin_table) const;
 
       /** \brief Load ephemerides and related information from the given FITS file.
           \param in_file The name of the input FITS file.

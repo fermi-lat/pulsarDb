@@ -322,7 +322,7 @@ namespace pulsarDb {
       // Create an empty pulsar ephemerides database, using template file.
       std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
       static const PulsarDb::TableCont::size_type default_spin_extension = 1;
-      static const PulsarDb::TableCont::size_type default_orbital_extension = 2;
+      static const PulsarDb::TableCont::size_type default_orbital_extension = 1;
       PulsarDb database(tpl_file, default_spin_extension, default_orbital_extension);
 
       // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.

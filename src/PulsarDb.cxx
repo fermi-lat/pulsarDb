@@ -96,40 +96,25 @@ namespace pulsarDb {
       }
     }
 
-    // Set default spin and orbital tables.
-    m_default_spin_par_table = findDefaultTable(default_spin_ext, true);
-    m_default_orbital_par_table = findDefaultTable(default_orbital_ext, false);
-  }
-
-  Table * PulsarDb::findDefaultTable(TableCont::size_type ext_number, bool is_spin_table) const {
-    Table * return_table(0);
-     std::string table_type = (is_spin_table ? "spin" : "orbital");
-
-    if (ext_number > m_all_table.size()) { 
-      // Throw an exception for extension number out of bounds.
+    // Throw an exception for default extension number out of bounds.
+    if (default_spin_ext > m_spin_par_table.size()) { 
       std::ostringstream os;
-      os << "Default extension number for " << table_type << " parameters out of bounds: " << ext_number << std::endl;
+      os << "Default extension number for spin parameters out of bounds: " << default_spin_ext << std::endl;
       throw std::runtime_error(os.str());
-
-    } else if (ext_number == 0) {
-      // Return zero to indicate no default.
-      return_table = 0;
-
-    } else {
-      // Set a designated table to the return value.
-      return_table = m_all_table[ext_number - 1];
-
-      // Check whether the chosen table is really a table of the requested type (spin or orbital).
-      const TableCont & table_cont = (is_spin_table ? m_spin_par_table : m_orbital_par_table);
-      const std::set<const Table *> table_set(table_cont.begin(), table_cont.end());
-      if (table_set.find(return_table) == table_set.end()) {
-        std::ostringstream os;
-        os << "Default " << table_type << " parameter extension is set to an extension not for " << table_type << " parameters";
-        throw std::runtime_error(os.str());
-      }
     }
- 
-    return return_table;
+    if (default_orbital_ext > m_orbital_par_table.size()) { 
+      std::ostringstream os;
+      os << "Default extension number for orbital parameters out of bounds: " << default_orbital_ext << std::endl;
+      throw std::runtime_error(os.str());
+    }
+
+    // Set default spin table, or zero (0) indicating no default.
+    if (default_spin_ext == 0) m_default_spin_par_table = 0;
+    else m_default_spin_par_table = m_spin_par_table[default_spin_ext - 1];
+
+    // Set default orbital table, or zero (0) indicating no default.
+    if (default_orbital_ext == 0) m_default_orbital_par_table = 0;
+    else m_default_orbital_par_table = m_orbital_par_table[default_orbital_ext - 1];
   }
 
   void PulsarDb::load(const std::string & in_file) {

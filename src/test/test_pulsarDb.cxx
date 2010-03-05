@@ -2055,16 +2055,16 @@ void PulsarDbTestApp::testMultipleEphModel() {
 
   // Test rejection of a wrong target extension for spin ephemerides in the original format.
   try {
-    database.reset(new PulsarDb(tpl_file, 3, 4));
-    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 3, 4) did not throw an exception" << std::endl;
+    database.reset(new PulsarDb(tpl_file, 3, 2));
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 3, 2) did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
 
   // Test rejection of a wrong target extension for orbital ephemerides in the original format.
   try {
-    database.reset(new PulsarDb(tpl_file, 2, 1));
-    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 1) did not throw an exception" << std::endl;
+    database.reset(new PulsarDb(tpl_file, 2, 3));
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 3) did not throw an exception" << std::endl;
   } catch (const std::exception &) {
     // This is fine.
   }
@@ -2072,9 +2072,9 @@ void PulsarDbTestApp::testMultipleEphModel() {
   // Test successful creation of a PulsarDb object with a correct target extension for spin and orbital ephemerides
   // in the original format.
   try {
-    database.reset(new PulsarDb(tpl_file, 2, 4));
+    database.reset(new PulsarDb(tpl_file, 2, 2));
   } catch (const std::exception & x) {
-    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 4) threw exception: " << std::endl <<
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 2) threw exception: " << std::endl <<
       x.what() << std::endl;
   }
 
@@ -2103,7 +2103,7 @@ void PulsarDbTestApp::testMultipleEphModel() {
   testLoadingFits("original FITS", *database, tpl_file, load_original, expected_to_fail);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
-  database.reset(new PulsarDb(tpl_file, 1, 3));
+  database.reset(new PulsarDb(tpl_file, 1, 1));
   load_original = true;
   expected_to_fail = false;
   testLoadingFits("original FITS", *database, tpl_file, load_original, expected_to_fail);
@@ -2152,7 +2152,7 @@ void PulsarDbTestApp::testMultipleEphModel() {
   testLoadingText("original TEXT", *database, ext_info_cont, load_original, expected_to_fail);
 
   // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
-  database.reset(new PulsarDb(tpl_file, 1, 3));
+  database.reset(new PulsarDb(tpl_file, 1, 1));
   load_original = true;
   expected_to_fail = false;
   testLoadingText("original TEXT", *database, ext_info_cont, load_original, expected_to_fail);
