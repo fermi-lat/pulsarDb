@@ -83,7 +83,7 @@ namespace pulsarDb {
 
     // Create an empty pulsar ephemerides database, using the template file.
     static const PulsarDb::TableCont::size_type default_spin_extension = 1;
-    static const PulsarDb::TableCont::size_type default_orbital_extension = 2;
+    static const PulsarDb::TableCont::size_type default_orbital_extension = 1;
     PulsarDb data_base(tpl_file, default_spin_extension, default_orbital_extension);
 
     // Load input ephemerides.
