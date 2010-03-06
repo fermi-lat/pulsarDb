@@ -31,6 +31,7 @@
 #include "tip/IFileSvc.h"
 #include "tip/KeyRecord.h"
 #include "tip/Table.h"
+#include "tip/TipException.h"
 
 using namespace timeSystem;
 using namespace tip;
@@ -69,10 +70,7 @@ namespace pulsarDb {
       // Check EPHSTYLE header keyword in SPIN_PARAMETERS and ORBITAL_PARAMETERS extensions.
       if ("SPIN_PARAMETERS" == ext_name || "ORBITAL_PARAMETERS" == ext_name) {
         Header & header(table->getHeader());
-        std::string eph_style;
-        try {
-          header["EPHSTYLE"].get(eph_style);
-        } catch (const TipException &) {
+        if (header.find("EPHSTYLE") == header.end()) {
           throw std::runtime_error("Could not find header keyword \"EPHSTYLE\" in extension \"" + ext_name + "\" in FITS template \""
             + tpl_file + "\"");
         }
