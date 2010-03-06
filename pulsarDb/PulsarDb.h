@@ -17,7 +17,6 @@
 
 #include "tip/FileSummary.h"
 #include "tip/Table.h"
-#include "tip/TipException.h"
 #include "tip/TipFile.h"
 
 namespace tip {
@@ -310,16 +309,15 @@ namespace pulsarDb {
       std::string ext_name;
       header["EXTNAME"].get(ext_name);
 
-      // Try to read EPHSTYLE keyword to select a proper ephemeris factory.
-      std::string eph_style;
-      try {
-        header["EPHSTYLE"].get(eph_style);
-      } catch (const tip::TipException &) {
+      // Check and read EPHSTYLE keyword to select a proper ephemeris factory.
+      if (header.find("EPHSTYLE") == header.end()) {
         // Note: EPHSTYLE must exist in SPIN_PARAMETERS and ORBITAL_PARAMETERS extensions, and it is enforced
         //       in the constructor of this class. Not finding EPHSTYLE here suggests inconsistency in methods
         //       of this class, or a bug most likely.
         throw std::logic_error("EPHSTYLE header keyword is missing in " + ext_name + " extension");
       }
+      std::string eph_style;
+      header["EPHSTYLE"].get(eph_style);
 
       // Use a registered subclass of PulsarEph or OrbitalEph whichever appropriate, if EPHSTYLE keyword exists.
       typename FactoryCont::mapped_type factory(0);
