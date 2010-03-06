@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Mar  5 19:38:45 PST 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Remove unnecessary use of exceptions.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Mar  5 19:38:45 PST 2010
 pulsarDb/pulsarDb
 
 Modified Files:
