@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Mar  9 00:25:00 PST 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Introduce the concept of table generation to generalize default target tables.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Mar  9 00:25:00 PST 2010
 pulsarDb/src
 
 Modified Files:
