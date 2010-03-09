@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Mar  9 00:25:00 PST 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx PulsarDbApp.cxx PulsarToolApp.cxx 
+Log Message:
+Introduce the concept of table generation to generalize default target tables.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Mar  9 00:24:59 PST 2010
 pulsarDb/pulsarDb
 
