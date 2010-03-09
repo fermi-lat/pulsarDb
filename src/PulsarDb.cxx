@@ -38,10 +38,10 @@ using namespace tip;
 
 namespace pulsarDb {
 
-  PulsarDb::PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext, TableCont::size_type default_orbital_ext):
+  PulsarDb::PulsarDb(const std::string & tpl_file):
     m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_eph_remark_table(),
-    m_obs_code_table(), m_psr_name_table(), m_default_spin_par_table(0), m_default_orbital_par_table(0), m_spin_factory_cont(),
-    m_orbital_factory_cont(), m_command_history(), m_ancestry_record() {
+    m_obs_code_table(), m_psr_name_table(), m_spin_factory_cont(), m_orbital_factory_cont(), m_command_history(),
+    m_ancestry_record() {
     // Create a FITS file in memory that holds ephemeris data, using a unique name.
     std::ostringstream oss;
     oss << "pulsardb" << this << ".fits";
@@ -59,17 +59,18 @@ namespace pulsarDb {
     // Skip the primary by incrementing the iterator in the first clause of the for loop.
     int ext_number = 1;
     for (++ext_itor; ext_itor != file_summary.end(); ++ext_itor, ++ext_number) {
+      // Get the extension name.
       std::string ext_name = ext_itor->getExtId();
 
-      // Get a table and its extension name.
+      // Get the table and the header.
       Table * table = 0;
       std::ostringstream oss;
       oss << ext_number;
       table = m_tip_file.editTable(oss.str());
+      Header & header(table->getHeader());
 
       // Check EPHSTYLE header keyword in SPIN_PARAMETERS and ORBITAL_PARAMETERS extensions.
       if ("SPIN_PARAMETERS" == ext_name || "ORBITAL_PARAMETERS" == ext_name) {
-        Header & header(table->getHeader());
         if (header.find("EPHSTYLE") == header.end()) {
           throw std::runtime_error("Could not find header keyword \"EPHSTYLE\" in extension \"" + ext_name + "\" in FITS template \""
             + tpl_file + "\"");
@@ -92,27 +93,16 @@ namespace pulsarDb {
         // Do nothing for other extensions.
         ;
       }
-    }
 
-    // Throw an exception for default extension number out of bounds.
-    if (default_spin_ext > m_spin_par_table.size()) { 
-      std::ostringstream os;
-      os << "Default extension number for spin parameters out of bounds: " << default_spin_ext << std::endl;
-      throw std::runtime_error(os.str());
+      // Get or determine table generation.
+      int table_generation = 0;
+      if (header.find("PDBTGEN") != header.end()) {
+        header["PDBTGEN"].get(table_generation);
+      } else {
+        table_generation = 1;
+      }
+      m_table_generation_dict[table] = table_generation;
     }
-    if (default_orbital_ext > m_orbital_par_table.size()) { 
-      std::ostringstream os;
-      os << "Default extension number for orbital parameters out of bounds: " << default_orbital_ext << std::endl;
-      throw std::runtime_error(os.str());
-    }
-
-    // Set default spin table, or zero (0) indicating no default.
-    if (default_spin_ext == 0) m_default_spin_par_table = 0;
-    else m_default_spin_par_table = m_spin_par_table[default_spin_ext - 1];
-
-    // Set default orbital table, or zero (0) indicating no default.
-    if (default_orbital_ext == 0) m_default_orbital_par_table = 0;
-    else m_default_orbital_par_table = m_orbital_par_table[default_orbital_ext - 1];
   }
 
   void PulsarDb::load(const std::string & in_file) {
@@ -601,36 +591,27 @@ namespace pulsarDb {
         Header::KeySeq_t required_keyword;
         bool ephstyle_found = false;
         for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
-          // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2.
+          // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2, and EXTVER.
           std::string keyword_name(key_itor->getName());
           if (!keyword_name.empty()) {
             for (std::string::iterator str_itor = keyword_name.begin(); str_itor != keyword_name.end(); ++str_itor) {
               *str_itor = std::toupper(*str_itor);
             }
             if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM" && keyword_name != "DATASUM"
-              && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2") required_keyword.push_back(*key_itor);
+              && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2" && keyword_name != "EXTVER")
+              required_keyword.push_back(*key_itor);
 
             // Use EPHSTYLE header keyword as an indicator of the current format.
             if (keyword_name == "EPHSTYLE") ephstyle_found = true;
           }
         }
 
-        // Find the right tip::Table object.
+        // Find and update a matching table with the required keywords.
         Table * target_table(0);
         const std::string ext_name = ext_itor->getExtId();
-        if ("SPIN_PARAMETERS" == ext_name && !ephstyle_found) {
-          // Treat the input as a spin parameter table in the original format.
-          target_table = m_default_spin_par_table;
+        target_table = updateMatchingHeader(required_keyword);
 
-        } else if ("ORBITAL_PARAMETERS" == ext_name && !ephstyle_found) {
-          // Treat the input as an orbital parameter table in the original format.
-          target_table = m_default_orbital_par_table;
-
-        } else {
-          // Treat the input as any table in the current format.
-          target_table = updateMatchingHeader(required_keyword);
-        }
-
+        // Throw an exception if no extension is found to load to.
         if (target_table == 0) {
           // Throw an exception if no extension is found to load to.
           throw std::runtime_error("Could not find an extension to load the contents of extension \"" + ext_name + "\" in file \""
@@ -651,18 +632,71 @@ namespace pulsarDb {
   }
 
   Table * PulsarDb::updateMatchingHeader(const Header::KeySeq_t & required_keyword) {
+    // Examine the given list of required keywords.
+    Header::KeySeq_t required_keyword_to_match;
+    std::set<int> generation_to_search;
+    std::string ext_name("");
+    std::string eph_style("");
+    for (Header::KeySeq_t::const_iterator key_itor = required_keyword.begin(); key_itor != required_keyword.end(); ++key_itor) {
+      // Copy keyword name and make it case-insensitive.
+      std::string key_name(key_itor->getName());
+      for (std::string::iterator str_itor = key_name.begin(); str_itor != key_name.end(); ++str_itor) {
+        *str_itor = std::toupper(*str_itor);
+      }
+
+      // Determine table generation number to search, if explicitly requested.
+      if ("PDBTGEN" == key_name) {
+        // Search only tables with the same generation as the input.
+        if (generation_to_search.empty()) {
+          int input_generation = 0;
+          key_itor->getValue(input_generation);
+          generation_to_search.insert(input_generation);
+        }
+
+      } else {
+        // Copy keyword value and make it case-insensitive.
+        std::string key_value(key_itor->getValue());
+        for (std::string::iterator str_itor = key_value.begin(); str_itor != key_value.end(); ++str_itor) {
+          *str_itor = std::toupper(*str_itor);
+        }
+
+        // Keep this keyword record for keyword matching, for case-insensitive comparison.
+        required_keyword_to_match.push_back(KeyRecord(key_name, key_value, key_itor->getComment()));
+
+        // Store generation-related keywords, for cases with no PDBTGEN keyword in the request.
+        if ("EXTNAME" == key_name && ext_name.empty()) ext_name = key_value;
+        else if ("EPHSTYLE" == key_name && eph_style.empty()) eph_style = key_value;
+      }
+    }
+
+    // Guess input file generation by looking for generation-related keywords, if not determined yet.
+    if (generation_to_search.empty()) {
+      // Start with the first generation tables only.
+      generation_to_search.insert(1);
+
+      // Add a generation to the table generation list, depending on generation-related header keywords in the request.
+      if (("SPIN_PARAMETERS" == ext_name && !eph_style.empty()) || ("ORBITAL_PARAMETERS" == ext_name && !eph_style.empty())) {
+        // Add the second generation tables.
+        generation_to_search.insert(2);
+      }
+    }
+
     // Prepare for the matching and updating.
     Table * matched_table(0);
-    Header::KeySeq_t::size_type num_required_keyword(required_keyword.size());
     typedef std::list<std::pair<tip::Header::Iterator, tip::Header::ConstIterator> > MatchedPairCont;
     MatchedPairCont updater_pair;
 
     // Walk through all tables.
     for (TableCont::iterator table_itor = m_all_table.begin(); table_itor != m_all_table.end(); ++table_itor) {
+      // Check whether this table is determined to be searched.
+      int table_generation = m_table_generation_dict[*table_itor];
+      if (generation_to_search.find(table_generation) == generation_to_search.end()) continue;
+
+      // Set table and header to local variables for convenience.
       Table & table(**table_itor);
       Header & header(table.getHeader());
 
-      // Prepare containers of matched pairs.
+      // Prepare containers of matched pairs, and a counter of required keywords to match.
       MatchedPairCont tight_match; // Contains pairs whose keyword names and values match.
       MatchedPairCont loose_match; // Contains pairs whose keyword names match and at least one of their values is empty.
 
@@ -675,13 +709,10 @@ namespace pulsarDb {
         }
 
         // Check all required records.
-        for (Header::ConstIterator required_key_itor = required_keyword.begin(); required_key_itor != required_keyword.end();
-          ++required_key_itor) {
-          // Get keyword name and make it case-insensitive.
+        for (Header::KeySeq_t::const_iterator required_key_itor = required_keyword_to_match.begin();
+          required_key_itor != required_keyword_to_match.end(); ++required_key_itor) {
+          // Get keyword name (already made case-insensitive).
           std::string name_required(required_key_itor->getName());
-          for (std::string::iterator str_itor = name_required.begin(); str_itor != name_required.end(); ++str_itor) {
-            *str_itor = std::toupper(*str_itor);
-          }
 
           // Compare two records.
           if (name_header == name_required) {
@@ -694,10 +725,7 @@ namespace pulsarDb {
               for (std::string::iterator str_itor = string_value_header.begin(); str_itor != string_value_header.end(); ++str_itor) {
                 *str_itor = std::toupper(*str_itor);
               }
-              std::string string_value_required(required_key_itor->getValue());
-              for (std::string::iterator str_itor = string_value_required.begin(); str_itor != string_value_required.end(); ++str_itor) {
-                *str_itor = std::toupper(*str_itor);
-              }
+              std::string string_value_required(required_key_itor->getValue()); // Already made case-insensitive.
 
               // Compare keyword values as string.
               bool value_identical = false;
@@ -748,7 +776,7 @@ namespace pulsarDb {
       }
 
       // Judge completeness of matchup.
-      if (required_key_taken.size() == num_required_keyword) {
+      if (required_key_taken.size() == required_keyword_to_match.size()) {
         if (matched_table) throw std::runtime_error("More than one extension contain the given list of header keywords");
         else matched_table = &table;
       }
@@ -841,19 +869,8 @@ namespace pulsarDb {
         keyword_found = true;
 
       } else {
-        // Find an appropriate table and update its header.
-        if ("SPIN_PARAMETERS" == ext_name && !keyword_found) {
-          // Treat the input as a spin parameter table in the original format.
-          target_table = m_default_spin_par_table;
-
-        } else if ("ORBITAL_PARAMETERS" == ext_name && !keyword_found) {
-          // Treat the input as an orbital parameter table in the original format.
-          target_table = m_default_orbital_par_table;
-
-        } else {
-          // Treat the input as any table in the current format.
-          target_table = updateMatchingHeader(header_keyword);
-        }
+        // Find and update a matching table with the required keywords.
+        target_table = updateMatchingHeader(header_keyword);
 
         // Throw an exception if no extension is found to load to.
         if (target_table == 0) {
