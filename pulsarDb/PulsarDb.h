@@ -78,19 +78,8 @@ namespace pulsarDb {
 
       /** \brief Create a data base object for the given FITS template file.
           \param tpl_file The name of the FITS template file used to create the file in memory.
-          \param default_spin_ext The number to specify a SPIN_PARAMETER extension in a given template file (tpl_file),
-                 to which spin ephemerides in pulsar database file in the original format (w/o EPHSTYLE) will be loaded.
-                 Give one (1) for the first SPIN_PARAMETER extension in the template, two (2) for the second, and so on.
-                 If zero (0) is given, an exception will be thrown for spin-ephemeris extensions in the original format.
-                 If a number larger than the number of SPIN_PARAMETER extension(s) in the template is given, an exception
-                 will be thrown by the constructor.
-          \param default_orbital_ext Same as above, but for ORBITAL_PARAMETER extensions.
       */
-      PulsarDb(const std::string & tpl_file, TableCont::size_type default_spin_ext = 0, TableCont::size_type default_orbital_ext = 0);
-      // TODO: Remove default_spin/orbital_ext from the argument list and embed them in a FITS template file,
-      //       and put the above explanation in the FITS template header as comments.
-      //       DEF_SPIN = 1 / Make the 1st SPIN_PARAMETER extension default
-      //       DEF_ORB  = 1 / Make the 1st ORBITAL_PARAMETER extension default
+      PulsarDb(const std::string & tpl_file);
 
       /// \brief Destruct this PulsarDb object.
       virtual ~PulsarDb();
@@ -280,8 +269,7 @@ namespace pulsarDb {
       TableCont m_eph_remark_table;
       TableCont m_obs_code_table;
       TableCont m_psr_name_table;
-      tip::Table * m_default_spin_par_table;
-      tip::Table * m_default_orbital_par_table;
+      std::map<tip::Table *, int> m_table_generation_dict;
       std::map<std::string, IEphFactory<PulsarEph> *> m_spin_factory_cont;
       std::map<std::string, IEphFactory<OrbitalEph> *> m_orbital_factory_cont;
       std::list<std::string> m_command_history;

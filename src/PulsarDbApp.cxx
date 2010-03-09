@@ -64,9 +64,6 @@ namespace pulsarDb {
     std::string leap_sec_file = pars["leapsecfile"];
     timeSystem::TimeSystem::setDefaultLeapSecFileName(leap_sec_file);
 
-    // Find template file.
-    std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
-
     // Check whether the output file already exists, when clobber is set to no.
     std::string out_file = pars["outfile"];
     bool clobber = pars["clobber"];
@@ -82,9 +79,8 @@ namespace pulsarDb {
     if (file_names.empty()) throw std::runtime_error("No files were found matching input file \"" + in_file + "\"");
 
     // Create an empty pulsar ephemerides database, using the template file.
-    static const PulsarDb::TableCont::size_type default_spin_extension = 1;
-    static const PulsarDb::TableCont::size_type default_orbital_extension = 1;
-    PulsarDb data_base(tpl_file, default_spin_extension, default_orbital_extension);
+    std::string tpl_file = facilities::commonUtilities::joinPath(facilities::commonUtilities::getDataPath("pulsarDb"), "PulsarDb.tpl");
+    PulsarDb data_base(tpl_file);
 
     // Load input ephemerides.
     for (st_facilities::FileSys::FileNameCont::const_iterator itor = file_names.begin(); itor != file_names.end(); ++itor) {

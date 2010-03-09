@@ -348,7 +348,6 @@ class PulsarDbTestApp : public PulsarTestApp {
     virtual void testEphComputerApp();
 
   private:
-    typedef std::list<std::pair<std::string, std::string> > ExtInfoCont;
     std::string m_in_file;
     std::string m_tpl_file;
     std::string m_creator;
@@ -368,13 +367,15 @@ class PulsarDbTestApp : public PulsarTestApp {
     /** \brief Helper method for testMultipleEphModel, to test loading ephemerides from text database files.
         \param test_subject Character string to identify a subject to be tested.
         \param database Pulsar ephemeris database object to load ephemeris to.
-        \param ext_info_cont List of extension names and EPHSTYLE values to load ephemerides from.
+        \param ext_name Extension name of an input text ephemerides database to load ephemerides from.
+        \param eph_style EPHSTYLE value of an input text ephemerides database to load ephemerides from.
+        \param string_value Ephemeris data (STRING_VALUE column value) to load.
         \param load_original Set to true to test loading ephemerides from a FITS file in the original format (w/o EPHSTYLE
                keyword). Set to false to test loading from a FITS file in the current format.
         \param expected_to_fail Set to true if this test is expected to fail. Set to false otherwise.
     */
-    void testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
-      bool load_original, bool expected_to_fail);
+    void testLoadingText(const std::string & test_subject, PulsarDb & database, const std::string & ext_name,
+      const std::string & eph_style, const std::string & string_value, bool load_original, bool expected_to_fail);
 
     /** \brief Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
         \param test_subject Character string to identify a subject to be tested.
@@ -2044,7 +2045,7 @@ void PulsarDbTestApp::testMultipleEphModel() {
     // This is fine.
   }
 
-  // Test successful creation of a PulsarDb object with a correct template.
+  // Test successful creation of a PulsarDb object with a normal template.
   tpl_file = prependDataPath("test_pulsarDb.tpl");
   try {
     database.reset(new PulsarDb(tpl_file));
@@ -2053,36 +2054,43 @@ void PulsarDbTestApp::testMultipleEphModel() {
       x.what() << std::endl;
   }
 
-  // Test rejection of a wrong target extension for spin ephemerides in the original format.
+  // Test successful creation of a PulsarDb object with an unusual template.
+  // --- First generation SPIN_PARAMETERS tables duplicated.
+  tpl_file = prependDataPath("test_pulsarDb_g0g1g2g1.tpl");
   try {
-    database.reset(new PulsarDb(tpl_file, 3, 2));
-    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 3, 2) did not throw an exception" << std::endl;
-  } catch (const std::exception &) {
-    // This is fine.
-  }
-
-  // Test rejection of a wrong target extension for orbital ephemerides in the original format.
-  try {
-    database.reset(new PulsarDb(tpl_file, 2, 3));
-    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 3) did not throw an exception" << std::endl;
-  } catch (const std::exception &) {
-    // This is fine.
-  }
-
-  // Test successful creation of a PulsarDb object with a correct target extension for spin and orbital ephemerides
-  // in the original format.
-  try {
-    database.reset(new PulsarDb(tpl_file, 2, 2));
+    database.reset(new PulsarDb(tpl_file));
   } catch (const std::exception & x) {
-    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\", 2, 2) threw exception: " << std::endl <<
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") threw exception: " << std::endl <<
+      x.what() << std::endl;
+  }
+
+  // Test successful creation of a PulsarDb object with an unusual template.
+  // --- First generation ORBITAL_PARAMETERS tables duplicated.
+  tpl_file = prependDataPath("test_pulsarDb_g2g1g0g1.tpl");
+  try {
+    database.reset(new PulsarDb(tpl_file));
+  } catch (const std::exception & x) {
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") threw exception: " << std::endl <<
+      x.what() << std::endl;
+  }
+
+  // Test successful creation of a PulsarDb object with an unusual template.
+  // --- No duplication of tables, but tables are not orderd by generation.
+  tpl_file = prependDataPath("test_pulsarDb_g2g1g2g0.tpl");
+  try {
+    database.reset(new PulsarDb(tpl_file));
+  } catch (const std::exception & x) {
+    err() << "PulsarDb::PulsarDb(\"" << tpl_file << "\") threw exception: " << std::endl <<
       x.what() << std::endl;
   }
 
   // Test loading ephemerides from FITS database files in the current format.
+  std::string test_subject("current FITS");
   database.reset(new PulsarDb(tpl_file));
+  tpl_file = prependDataPath("test_pulsarDb.tpl");
   bool load_original = false;
   bool expected_to_fail = false;
-  testLoadingFits("current FITS", *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits(test_subject, *database, tpl_file, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the current format.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -2094,19 +2102,14 @@ void PulsarDbTestApp::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
-  checkEphRouting("current FITS", *database, expected_route_dict);
+  checkEphRouting(test_subject, *database, expected_route_dict);
 
-  // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
+  // Test loading ephemerides from FITS database files in the original format.
+  test_subject = "original FITS";
   database.reset(new PulsarDb(tpl_file));
   load_original = true;
-  expected_to_fail = true;
-  testLoadingFits("original FITS", *database, tpl_file, load_original, expected_to_fail);
-
-  // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
-  database.reset(new PulsarDb(tpl_file, 1, 1));
-  load_original = true;
   expected_to_fail = false;
-  testLoadingFits("original FITS", *database, tpl_file, load_original, expected_to_fail);
+  testLoadingFits(test_subject, *database, tpl_file, load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the original format.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -2118,20 +2121,17 @@ void PulsarDbTestApp::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
-  checkEphRouting("original FITS", *database, expected_route_dict);
-
-  // Prepare information of extensions for loading ephemerides from text database files.
-  ExtInfoCont ext_info_cont;
-  ext_info_cont.push_back(std::make_pair("SPIN_PARAMETERS", "MODEL1"));
-  ext_info_cont.push_back(std::make_pair("SPIN_PARAMETERS", "MODEL2"));
-  ext_info_cont.push_back(std::make_pair("ORBITAL_PARAMETERS", "MODEL1"));
-  ext_info_cont.push_back(std::make_pair("ORBITAL_PARAMETERS", "MODEL2"));
+  checkEphRouting(test_subject, *database, expected_route_dict);
 
   // Test loading ephemerides from text database files in the current format.
+  test_subject = "current TEXT";
   database.reset(new PulsarDb(tpl_file));
   load_original = false;
   expected_to_fail = false;
-  testLoadingText("current TEXT", *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from text database files.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -2143,19 +2143,17 @@ void PulsarDbTestApp::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
-  checkEphRouting("current TEXT", *database, expected_route_dict);
+  checkEphRouting(test_subject, *database, expected_route_dict);
 
-  // Test loading ephemerides from FITS database files in the original format, with target extensions unspecified.
+  // Test loading ephemerides from FITS database files in the original format.
+  test_subject = "original TEXT";
   database.reset(new PulsarDb(tpl_file));
   load_original = true;
-  expected_to_fail = true;
-  testLoadingText("original TEXT", *database, ext_info_cont, load_original, expected_to_fail);
-
-  // Test loading ephemerides from FITS database files in the original format, with target extensions specified.
-  database.reset(new PulsarDb(tpl_file, 1, 1));
-  load_original = true;
   expected_to_fail = false;
-  testLoadingText("original TEXT", *database, ext_info_cont, load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
 
   // Test getting ephemerides that were loaded from FITS database files in the original format.
   database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
@@ -2167,7 +2165,162 @@ void PulsarDbTestApp::testMultipleEphModel() {
   expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
   expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
   expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
-  checkEphRouting("original TEXT", *database, expected_route_dict);
+  checkEphRouting(test_subject, *database, expected_route_dict);
+
+  // Test loading ephemerides from FITS database files in the current format into a badly formatted database.
+  test_subject = "current FITS into two SPIN";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g0g1g2g1.tpl")));
+  load_original = false;
+  expected_to_fail = true;
+  testLoadingFits(test_subject, *database, prependDataPath("test_pulsarDb.tpl"), load_original, expected_to_fail);
+
+  // Test loading ephemerides from FITS database files in the current format into a badly formatted database.
+  test_subject = "current FITS into two ORBITAL";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g0g1.tpl")));
+  load_original = false;
+  expected_to_fail = true;
+  testLoadingFits(test_subject, *database, prependDataPath("test_pulsarDb.tpl"), load_original, expected_to_fail);
+
+  // Test loading ephemerides from FITS database files in the current format into an unusually formatted database.
+  test_subject = "current FITS into reverse-ordered";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g2g0.tpl")));
+  load_original = false;
+  expected_to_fail = false;
+  testLoadingFits(test_subject, *database, prependDataPath("test_pulsarDb.tpl"), load_original,
+    expected_to_fail);
+
+  // Test getting ephemerides that were loaded from FITS database files in the current format.
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
+  checkEphRouting(test_subject, *database, expected_route_dict);
+
+  // Test loading ephemerides from FITS database files in the original format into a badly formatted database.
+  test_subject = "original FITS into two SPIN";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g0g1g2g1.tpl")));
+  load_original = true;
+  expected_to_fail = true;
+  testLoadingFits(test_subject, *database, prependDataPath("test_pulsarDb.tpl"), load_original, expected_to_fail);
+
+  // Test loading ephemerides from FITS database files in the original format into a badly formatted database.
+  test_subject = "original FITS into two ORBITAL";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g0g1.tpl")));
+  load_original = true;
+  expected_to_fail = true;
+  testLoadingFits(test_subject, *database, prependDataPath("test_pulsarDb.tpl"), load_original, expected_to_fail);
+
+  // Test loading ephemerides from FITS database files in the original format into an unusually formatted database.
+  test_subject = "original FITS into reverse-ordered";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g2g0.tpl")));
+  load_original = true;
+  expected_to_fail = false;
+  testLoadingFits(test_subject, *database, prependDataPath("test_pulsarDb.tpl"), load_original,
+    expected_to_fail);
+
+  // Test getting ephemerides that were loaded from FITS database files in the original format.
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  checkEphRouting(test_subject, *database, expected_route_dict);
+
+  // Test loading ephemerides from TEXT database files in the current format into a badly formatted database.
+  test_subject = "current TEXT into two SPIN";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g0g1g2g1.tpl")));
+  load_original = false;
+  expected_to_fail = true;
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  expected_to_fail = false;
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
+
+  // Test loading ephemerides from TEXT database files in the current format into a badly formatted database.
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g0g1.tpl")));
+  load_original = false;
+  expected_to_fail = false;
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  expected_to_fail = true;
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
+
+  // Test loading ephemerides from TEXT database files in the current format into an unusually formatted database.
+  test_subject = "current TEXT into reverse-ordered";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g2g0.tpl")));
+  load_original = false;
+  expected_to_fail = false;
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
+
+  // Test getting ephemerides that were loaded from TEXT database files in the current format.
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL2", "BogusPulsarEph2");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL2", "BogusOrbitalEph2");
+  checkEphRouting(test_subject, *database, expected_route_dict);
+
+  // Test loading ephemerides from TEXT database files in the original format into a badly formatted database.
+  test_subject = "original TEXT into two SPIN";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g0g1g2g1.tpl")));
+  load_original = true;
+  expected_to_fail = true;
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  expected_to_fail = false;
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
+
+  // Test loading ephemerides from TEXT database files in the original format into a badly formatted database.
+  test_subject = "original TEXT into two ORBITAL";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g0g1.tpl")));
+  load_original = true;
+  expected_to_fail = false;
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  expected_to_fail = true;
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
+
+  // Test loading ephemerides from TEXT database files in the original format into an unusually formatted database.
+  test_subject = "original TEXT into reverse-ordered";
+  database.reset(new PulsarDb(prependDataPath("test_pulsarDb_g2g1g2g0.tpl")));
+  load_original = true;
+  expected_to_fail = false;
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL1", "VALUE1", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "SPIN_PARAMETERS", "MODEL2", "VALUE2", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL1", "VALUE3", load_original, expected_to_fail);
+  testLoadingText(test_subject, *database, "ORBITAL_PARAMETERS", "MODEL2", "VALUE4", load_original, expected_to_fail);
+
+  // Test getting ephemerides that were loaded from TEXT database files in the original format.
+  database->registerPulsarEph<BogusPulsarEph<1> >("MODEL1");
+  database->registerPulsarEph<BogusPulsarEph<2> >("MODEL2");
+  database->registerOrbitalEph<BogusOrbitalEph<1> >("MODEL1");
+  database->registerOrbitalEph<BogusOrbitalEph<2> >("MODEL2");
+  expected_route_dict.clear();
+  expected_route_dict["VALUE1"] = EphRoutingInfo("VALUE1", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE2"] = EphRoutingInfo("VALUE2", "SPIN_PARAMETERS", "MODEL1", "BogusPulsarEph1");
+  expected_route_dict["VALUE3"] = EphRoutingInfo("VALUE3", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  expected_route_dict["VALUE4"] = EphRoutingInfo("VALUE4", "ORBITAL_PARAMETERS", "MODEL1", "BogusOrbitalEph1");
+  checkEphRouting(test_subject, *database, expected_route_dict);
 }
 
 void PulsarDbTestApp::testEphStatus() {
@@ -3018,7 +3171,10 @@ void PulsarDbTestApp::testLoadingFits(const std::string & test_subject, PulsarDb
     record["STRING_VALUE"].set(string_value);
 
     // Erase EPHSTYLE header record, if the original format is requested.
-    if (load_original) table->getHeader().erase("EPHSTYLE");
+    if (load_original) {
+      table->getHeader().erase("EPHSTYLE");
+      table->getHeader().erase("PDBTGEN");
+    }
   }
 
   // Test loading ephemerides.
@@ -3041,49 +3197,37 @@ void PulsarDbTestApp::testLoadingFits(const std::string & test_subject, PulsarDb
   }
 }
 
-void PulsarDbTestApp::testLoadingText(const std::string & test_subject, PulsarDb & database, const ExtInfoCont & ext_info_cont,
-  bool load_original, bool expected_to_fail) {
+void PulsarDbTestApp::testLoadingText(const std::string & test_subject, PulsarDb & database, const std::string & ext_name,
+      const std::string & eph_style, const std::string & string_value, bool load_original, bool expected_to_fail) {
   std::string filename("testdb.txt");
 
-  int int_value = 1;
-  for (ExtInfoCont::const_iterator itor = ext_info_cont.begin(); itor != ext_info_cont.end(); ++itor) {
-    const std::string & ext_name(itor->first);
-    const std::string & model_name(itor->second);
-    std::ostringstream oss;
-    oss << "VALUE" << int_value;
-    const std::string string_value = oss.str();
-  
-    // Create a text database file.
-    remove(filename.c_str());
-    std::ofstream ofs(filename.c_str());
-    ofs << ext_name << std::endl;
-    if (!load_original) ofs << "EPHSTYLE = " << model_name << std::endl;
-    ofs << "STRING_VALUE" << std::endl;
-    ofs << string_value << std::endl;
-    ofs.close();
+  // Create a text database file.
+  remove(filename.c_str());
+  std::ofstream ofs(filename.c_str());
+  ofs << ext_name << std::endl;
+  if (!load_original) ofs << "EPHSTYLE = " << eph_style << std::endl;
+  ofs << "STRING_VALUE" << std::endl;
+  ofs << string_value << std::endl;
+  ofs.close();
 
-    // Load the text database.
-    try {
-      database.load(filename);
-      if (expected_to_fail) {
-        err() << "Loading " << test_subject << ": PulsarDb::load method did not throw exception for text file \"" << filename <<
-          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", STRING_VALUE=" << string_value <<
-          ": " << std::endl;
-      } else {
-        // This is fine.
-      }
-    } catch (const std::exception & x) {
-      if (expected_to_fail) {
-        // This is fine.
-      } else {
-        err() << "Loading " << test_subject << ": PulsarDb::load method threw exception for text file \"" << filename <<
-          "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << model_name << ", STRING_VALUE=" << string_value <<
-          ": " << std::endl << x.what() << std::endl;
-      }
+  // Load the text database.
+  try {
+    database.load(filename);
+    if (expected_to_fail) {
+      err() << "Loading " << test_subject << ": PulsarDb::load method did not throw exception for text file \"" << filename <<
+        "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << eph_style << ", STRING_VALUE=" << string_value <<
+        ": " << std::endl;
+    } else {
+      // This is fine.
     }
-
-    // Increment the column value to distinguish test database files.
-    ++int_value;
+  } catch (const std::exception & x) {
+    if (expected_to_fail) {
+      // This is fine.
+    } else {
+      err() << "Loading " << test_subject << ": PulsarDb::load method threw exception for text file \"" << filename <<
+        "\" with EXTNAME=" << ext_name << ", EPHSTYLE=" << eph_style << ", STRING_VALUE=" << string_value <<
+        ": " << std::endl << x.what() << std::endl;
+    }
   }
 }
 
