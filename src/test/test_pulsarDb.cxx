@@ -58,6 +58,7 @@ using namespace timeSystem;
 using namespace pulsarDb;
 
 class EphRoutingInfo;
+class TextEph;
 
 /** \class PulsarDbAppTester
     \brief Test PulsarDbApp application (gtpulsardb).
@@ -377,13 +378,21 @@ class PulsarDbTestApp : public PulsarTestApp {
     void testLoadingText(const std::string & test_subject, PulsarDb & database, const std::string & ext_name,
       const std::string & eph_style, const std::string & string_value, bool load_original, bool expected_to_fail);
 
-    /** \brief Helper method for testMultipleEphModel, check ephemerides returned by PulsarDb::getEph method.
+    /** \brief Helper method for testMultipleEphModel, to check ephemerides returned by PulsarDb::getEph method.
         \param test_subject Character string to identify a subject to be tested.
         \param database Pulsar ephemeris database object to load ephemeris to.
         \param expected_route_dict Dictionary of reference routing information for test results to be compared with.
     */
     void checkEphRouting(const std::string & test_subject, const PulsarDb & database,
       const std::map<std::string, EphRoutingInfo> & expected_route_dict);
+
+    /** \brief Helper method to check text outputs returned by FormattedEph::write method.
+        \param base_name Character string to be used to create temporary file names from.
+        \param eph Ephemeris to be tested.
+        \param text_eph TextEph object that holds character strings to be compared with a text output from write method of
+               the given ephemeris object (eph).
+    */
+    void checkEphParameter(const std::string & base_name, const FormattedEph & eph, const TextEph & text_eph);
 };
 
 PulsarDbTestApp::PulsarDbTestApp(): PulsarTestApp("pulsarDb"), m_in_file(), m_tpl_file(), m_creator(), m_author() {
@@ -801,38 +810,81 @@ void PulsarDbTestApp::testTextPulsarDb() {
   }
 }
 
+class TextEph: public FormattedEph {
+  public:
+    TextEph() {}
+    virtual ~TextEph() {}
+
+    void append(const std::string & par_name, const std::string & par_value) {
+      m_par_list.push_back(std::make_pair(par_name, par_value));
+    }
+
+    template <typename DataType>
+    void append(const std::string & par_name, const DataType & par_value) {
+      std::ostringstream oss;
+      oss.precision(std::numeric_limits<double>::digits10);
+      oss << par_value;
+      append(par_name, oss.str());
+    }
+
+    void clear() {
+      m_par_list.clear();
+    }
+
+    virtual st_stream::OStream & write(st_stream::OStream & os) const {
+      for (plist_type::const_iterator itor = m_par_list.begin(); itor != m_par_list.end(); ++itor) {
+        // Place a carriage return at the end of line, except for the last line.
+        if (itor != m_par_list.begin()) os << std::endl;
+
+        // Write parameter value.
+        const std::string & par_name(itor->first);
+        const std::string & par_value(itor->second);
+        if (("Valid Since" == par_name) || ("Valid Until" == par_name)) {
+          os << format(par_name, par_value, " : ");
+        } else {
+          os << format(par_name, par_value);
+        }
+      }
+      return os;
+    }
+
+  private:
+    typedef std::list<std::pair<std::string, std::string> > plist_type;
+    plist_type m_par_list;
+};
+
 void PulsarDbTestApp::testFrequencyEph() {
   setMethod("testFrequencyEph");
 
+  // Prepare absolute times and tolerance for testing computations.
   AbsoluteTime since("TT", 51910, 0.);
   AbsoluteTime until("TT", 51910, 1.);
   AbsoluteTime epoch("TT", 51910, 123.456789);
-
   double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
-  FrequencyEph f_eph("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
+  FrequencyEph eph1("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6);
 
   // Create a time to pick an ephemeris.
   AbsoluteTime pick_time("TT", 51910, 223.456789);
 
   // Test pulse phase computations.
-  double phase = f_eph.calcPulsePhase(pick_time);
+  double phase = eph1.calcPulsePhase(pick_time);
   if (fabs(phase/.235 - 1.) > epsilon)
     err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
  
   // Test pulse phase computations, with a non-zero global phase offset.
-  phase = f_eph.calcPulsePhase(pick_time, 0.1234);
+  phase = eph1.calcPulsePhase(pick_time, 0.1234);
   if (fabs(phase/.3584 - 1.) > epsilon)
     err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
  
   // Change ephemeris to produce a noticeable effect.
   epoch = AbsoluteTime("TT", 51910, 123.4567891234567);
-  FrequencyEph f_eph2("TDB", since, until, epoch, 22., 45., .11, 1.125e-2, -2.25e-4, 13.5e-6);
+  FrequencyEph eph2("TDB", since, until, epoch, 22., 45., .11, 1.125e-2, -2.25e-4, 13.5e-6);
   AbsoluteTime ev_time("TT", 51910, 223.4567891234567);
 
   // Test coordinates.
-  std::pair<double, double> computed_ra_dec = f_eph2.calcSkyPosition(ev_time);
+  std::pair<double, double> computed_ra_dec = eph2.calcSkyPosition(ev_time);
   double computed_ra = computed_ra_dec.first;
   double correct_ra = 22.;
   if (fabs(computed_ra - correct_ra) > epsilon) {
@@ -846,45 +898,78 @@ void PulsarDbTestApp::testFrequencyEph() {
   }
   
   // Test phase computation.
-  double computed_phi0 = f_eph2.calcPulsePhase(ev_time);
+  double computed_phi0 = eph2.calcPulsePhase(ev_time);
   if (fabs(computed_phi0/.36 - 1.) > epsilon)
     err() << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << " not .36" << std::endl;
  
   // Test frequency computation.
-  double computed_f0 = f_eph2.calcFrequency(ev_time, 0);
+  double computed_f0 = eph2.calcFrequency(ev_time, 0);
   double correct_f0 = 5.625e-2;
   if (fabs(computed_f0 - correct_f0) > epsilon) {
     err() << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << " not " << correct_f0 << std::endl;
   }
   
-  double computed_f1 = f_eph2.calcFrequency(ev_time, 1);
+  double computed_f1 = eph2.calcFrequency(ev_time, 1);
   double correct_f1 = 11.25e-4;
   if (fabs(computed_f1 - correct_f1) > epsilon) {
     err() << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << " not " << correct_f1 << std::endl;
   }
   
-  double computed_f2 = f_eph2.calcFrequency(ev_time, 2);
+  double computed_f2 = eph2.calcFrequency(ev_time, 2);
   double correct_f2 = 13.5e-6;
   if (fabs(computed_f2 - correct_f2) > epsilon) {
     err() << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << " not " << correct_f2 << std::endl;
   }
 
-  // The following test is no longer needed or possible because dt is private. It is implicitly
-  // tested in phase (and other) calculations.
-#if 0
-  // Create a frequency ephemeris with unit time 5 s, to test PulsarEph::dt method with one argument.
-  FrequencyEph f_eph4("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6, 5.);
-  double delta_t = f_eph4.dt(ev_time);
-  if (fabs(delta_t/20. - 1.) > epsilon)
-    err() << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
+  // Test the constructor that takes numerical arguments.
+  FrequencyEph eph3("TDB", AbsoluteTime("TDB", 12345, 51840.), AbsoluteTime("TDB", 23456, 60480.), AbsoluteTime("TDB", 34567, 69120.),
+    11., 22., 33., 44., 55., 66.);
+  TextEph t_eph;
+  t_eph.append("Valid Since", "12345.6 MJD (TDB)");
+  t_eph.append("Valid Until", "23456.7 MJD (TDB)");
+  t_eph.append("Epoch",       "34567.8 MJD (TDB)");
+  t_eph.append("RA",   "11");
+  t_eph.append("Dec",  "22");
+  t_eph.append("Phi0", "33");
+  t_eph.append("F0",   "44");
+  t_eph.append("F1",   "55");
+  t_eph.append("F2",   "66");
+  checkEphParameter(getMethod() + "_numeric", eph3, t_eph);
 
-  // Test PulsarEph::dt method with two arguments.
-  glast_tdb.setValue(23.456789);
-  AbsoluteTime time_origin(glast_tdb);
-  delta_t = f_eph4.dt(ev_time, time_origin);
-  if (fabs(delta_t/40. - 1.) > epsilon)
-    err() << "PulsarEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
-#endif
+  // Test the constructor that takes a FITS record.
+  PulsarDb database();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_FrequencyEph.tpl"));
+  tip::Table * table = tip_file.editTable("1");
+  table->setNumRecords(1);
+  tip::Header & header(table->getHeader());
+  tip::Table::Record & record(*(table->begin()));
+  record["VALID_SINCE"].set(54321);
+  record["VALID_UNTIL"].set(65432);
+  record["EPOCH_INT"].set(76543);
+  record["EPOCH_FRAC"].set(.5);
+  record["TOABARY_INT"].set(76543);
+  record["TOABARY_FRAC"].set(.50001); // 0.864 seconds off.
+  record["RA"].set(1.1);
+  record["DEC"].set(2.2);
+  record["F0"].set(3.3);
+  record["F1"].set(4.4);
+  record["F2"].set(5.5);
+  FrequencyEph eph4(record, header);
+  t_eph.clear();
+  t_eph.append("Valid Since", "54321 MJD (TDB)");
+  t_eph.append("Valid Until", "65433 MJD (TDB)"); // The end of 65432 == the begining of 65433.
+  t_eph.append("Epoch",       "76543.5 MJD (TDB)");
+  t_eph.append("RA",   "1.1");
+  t_eph.append("Dec",  "2.2");
+  double dt = .864;
+  double phi0 = -(3.3*dt + 4.4/2.*dt*dt + 5.5/6.*dt*dt*dt);
+  while (phi0 < 0.) ++phi0;
+  while (phi0 >= 1.) --phi0;
+  t_eph.append("Phi0", phi0);
+  t_eph.append("F0",   "3.3");
+  t_eph.append("F1",   "4.4");
+  t_eph.append("F2",   "5.5");
+  checkEphParameter(getMethod() + "_fits", eph4, t_eph);
 }
 
 class SimplePeriodEph {
@@ -1003,7 +1088,7 @@ void PulsarDbTestApp::testPeriodEph() {
   double p0 = 1.23456789;
   double p1 = 9.87654321e-5;
   double p2 = 1.357902468e-10;
-  PeriodEph p_eph1("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
+  PeriodEph eph1("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
   SimplePeriodEph s_eph1(phi0, p0, p1, p2);
 
   epsilon = 1.e-3; // Note: Need a loose tolerance because SimplePeriodEph::calcFrequency is not that precise.
@@ -1011,7 +1096,7 @@ void PulsarDbTestApp::testPeriodEph() {
   double expected = 0.;
   bool test_failed = true;
   for (int order = 0; order < 5; ++order) {
-    result = p_eph1.calcFrequency(abs_time, order);
+    result = eph1.calcFrequency(abs_time, order);
     expected = s_eph1.calcFrequency(time_since_epoch, step_size, order);
     if (0. == result || 0. == expected) test_failed = fabs(result + expected) > std::numeric_limits<double>::epsilon();
     else test_failed = std::fabs(result / expected - 1.) > epsilon;
@@ -1026,7 +1111,7 @@ void PulsarDbTestApp::testPeriodEph() {
   double global_phase_offset = 0.34567;
 
   double phase_tolerance = 1.e-5;
-  result = p_eph1.calcPulsePhase(abs_time, global_phase_offset);
+  result = eph1.calcPulsePhase(abs_time, global_phase_offset);
   expected = s_eph1.calcPulsePhase(time_since_epoch, step_size, global_phase_offset);
   test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
     && fabs(result - expected - 1) > phase_tolerance);
@@ -1036,7 +1121,7 @@ void PulsarDbTestApp::testPeriodEph() {
   }
 
   global_phase_offset = 0.;
-  result = p_eph1.calcPulsePhase(abs_time, global_phase_offset);
+  result = eph1.calcPulsePhase(abs_time, global_phase_offset);
   expected = s_eph1.calcPulsePhase(time_since_epoch, step_size, global_phase_offset);
   test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
     && fabs(result - expected - 1) > phase_tolerance);
@@ -1058,9 +1143,9 @@ void PulsarDbTestApp::testPeriodEph() {
     p0 = good_period_par[ii][0];
     p1 = good_period_par[ii][1];
     p2 = good_period_par[ii][2];
-    PeriodEph p_eph2("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
+    PeriodEph eph2("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
     SimplePeriodEph s_eph2(phi0, p0, p1, p2);
-    result = p_eph2.calcPulsePhase(abs_time);
+    result = eph2.calcPulsePhase(abs_time);
     expected = s_eph2.calcPulsePhase(time_since_epoch, step_size, 0.);
     test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
       && fabs(result - expected - 1) > phase_tolerance);
@@ -1081,57 +1166,98 @@ void PulsarDbTestApp::testPeriodEph() {
     p0 = bad_period_par[ii][0];
     p1 = bad_period_par[ii][1];
     p2 = bad_period_par[ii][2];
-    PeriodEph p_eph3("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
+    PeriodEph eph3("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2);
     try {
-      p_eph3.calcPulsePhase(abs_time);
+      eph3.calcPulsePhase(abs_time);
       err() << "PeriodEph::calcPulsePhase(abs_time) did not throw an exception for p0=" << p0 <<
         ", p1=" << p1 << ", p2=" << p2 << std::endl;
     } catch (const std::exception &) {
       // This is fine.
     }
   }
+
+  // Test the constructor that takes numerical arguments.
+  PeriodEph eph4("TDB", AbsoluteTime("TDB", 12345, 51840.), AbsoluteTime("TDB", 23456, 60480.), AbsoluteTime("TDB", 34567, 69120.),
+    11., 22., 33., 44., 55., 66.);
+  TextEph t_eph;
+  t_eph.append("Valid Since", "12345.6 MJD (TDB)");
+  t_eph.append("Valid Until", "23456.7 MJD (TDB)");
+  t_eph.append("Epoch",       "34567.8 MJD (TDB)");
+  t_eph.append("RA",   "11");
+  t_eph.append("Dec",  "22");
+  t_eph.append("Phi0", "33");
+  t_eph.append("P0",   "44");
+  t_eph.append("P1",   "55");
+  t_eph.append("P2",   "66");
+  checkEphParameter(getMethod() + "_numeric", eph4, t_eph);
+
+  // Test the constructor that takes a FITS record.
+  PulsarDb database();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_PeriodEph.tpl"));
+  tip::Table * table = tip_file.editTable("1");
+  table->setNumRecords(1);
+  tip::Header & header(table->getHeader());
+  tip::Table::Record & record(*(table->begin()));
+  record["VALID_SINCE"].set(54321);
+  record["VALID_UNTIL"].set(65432);
+  record["EPOCH_INT"].set(76543);
+  record["EPOCH_FRAC"].set(.5);
+  record["TOABARY_INT"].set(76543);
+  record["TOABARY_FRAC"].set(.50001); // 0.864 seconds off.
+  record["RA"].set(1.1);
+  record["DEC"].set(2.2);
+  record["P0"].set(3.3);
+  record["P1"].set(4.4);
+  record["P2"].set(5.5);
+  PeriodEph eph5(record, header);
+  t_eph.clear();
+  t_eph.append("Valid Since", "54321 MJD (TDB)");
+  t_eph.append("Valid Until", "65433 MJD (TDB)"); // The end of 65432 == the begining of 65433.
+  t_eph.append("Epoch",       "76543.5 MJD (TDB)");
+  t_eph.append("RA",   "1.1");
+  t_eph.append("Dec",  "2.2");
+  double dt = .864;
+  double sqrt_term = std::sqrt(2.*3.3*5.5 - 4.4*4.4);
+  phi0 = -(2. / sqrt_term * std::atan(sqrt_term*dt/(2.*3.3+4.4*dt)));
+  while (phi0 < 0.) ++phi0;
+  while (phi0 >= 1.) --phi0;
+  t_eph.append("Phi0", phi0);
+  t_eph.append("P0",   "3.3");
+  t_eph.append("P1",   "4.4");
+  t_eph.append("P2",   "5.5");
+  checkEphParameter(getMethod() + "_fits", eph5, t_eph);
 }
 
 void PulsarDbTestApp::testSimpleDdEph() {
   setMethod("testSimpleDdEph");
 
   AbsoluteTime t0("TDB", 51910, 123.456789);
-  SimpleDdEph o_eph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
+  SimpleDdEph eph1("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.);
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
 
   double epsilon = 1.e-8;
 
   // Test time system getter.
-  std::string sys_name = o_eph.getSystem().getName();
+  std::string sys_name = eph1.getSystem().getName();
   if ("TDB" != sys_name) {
     err() << "SimpleDdEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
   }
 
   // Test orbital phase computations.
-  double phase = o_eph.calcOrbitalPhase(ev_time);
+  double phase = eph1.calcOrbitalPhase(ev_time);
   if (fabs(phase/.099 - 1.) > epsilon)
     err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
-  phase = o_eph.calcOrbitalPhase(ev_time, 0.1234);
+  phase = eph1.calcOrbitalPhase(ev_time, 0.1234);
   if (fabs(phase/.2224 - 1.) > epsilon)
     err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
-
-  // The following test is no longer needed or possible because dt is private. It is implicitly
-  // tested in phase (and other) calculations.
-#if 0
-  // Create an orbital ephemeris with unit time 5 s, to test SimpleDdEph::dt method.
-  SimpleDdEph o_eph2("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 5.);
-  delta_t = o_eph2.dt(ev_time);
-  if (fabs(delta_t/20. - 1.) > epsilon)
-    err() << "SimpleDdEph::dt() produced delta_t == " << delta_t << ", not 20. as expected." << std::endl;
-#endif
 
   // Test binary modulation and demodulation.
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
   // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0)
   AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
-  SimpleDdEph eph1("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662,
+  SimpleDdEph eph2("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662,
                    abs_t0, 0.004295, 0.0, 0.0);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
@@ -1169,7 +1295,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
-    eph1.modulateBinary(tdb_mjd);
+    eph2.modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
       err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
@@ -1180,12 +1306,51 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
-    eph1.demodulateBinary(tdb_mjd);
+    eph2.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
       err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
+
+  // Test the constructor that takes numerical arguments.
+  SimpleDdEph eph3("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8, 9.9, 11.1);
+  TextEph t_eph;
+  t_eph.append("PB",        "12345.6789");
+  t_eph.append("PBDOT",     "1.1");
+  t_eph.append("A1",        "2.2");
+  t_eph.append("XDOT",      "3.3");
+  t_eph.append("ECC",       "4.4");
+  t_eph.append("ECCDOT",    "5.5");
+  t_eph.append("OM",        6.6 * SimpleDdEph::s_rad_per_deg);
+  t_eph.append("OMDOT",     7.7 * SimpleDdEph::s_rad_year_per_deg_sec);
+  t_eph.append("T0",        "12345.6");
+  t_eph.append("GAMMA",     "8.8");
+  t_eph.append("SHAPIRO_R", "9.9e-06");
+  t_eph.append("SHAPIRO_S", "11.1");
+  checkEphParameter(getMethod() + "_numeric", eph3, t_eph);
+
+  // Test the constructor that takes a FITS record.
+  PulsarDb database();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_SimpleDdEph.tpl"));
+  tip::Table * table = tip_file.editTable("1");
+  table->setNumRecords(1);
+  tip::Header & header(table->getHeader());
+  tip::Table::Record & record(*(table->begin()));
+  record["PB"].set(12345.6789);
+  record["PBDOT"].set(1.1);
+  record["A1"].set(2.2);
+  record["XDOT"].set(3.3);
+  record["ECC"].set(4.4);
+  record["ECCDOT"].set(5.5);
+  record["OM"].set(6.6);
+  record["OMDOT"].set(7.7);
+  record["T0"].set(12345.6);
+  record["GAMMA"].set(8.8);
+  record["SHAPIRO_R"].set(9.9);
+  record["SHAPIRO_S"].set(11.1);
+  SimpleDdEph eph4(record, header);
+  checkEphParameter(getMethod() + "_fits", eph4, t_eph);
 } 
 
 void PulsarDbTestApp::testPdotCanceler() {
@@ -3326,6 +3491,35 @@ void PulsarDbTestApp::checkEphRouting(const std::string & test_subject, const Pu
   pulsar_eph_cont.clear();
   for (OrbitalEphCont::reverse_iterator itor = orbital_eph_cont.rbegin(); itor != orbital_eph_cont.rend(); ++itor) delete *itor;
   orbital_eph_cont.clear();
+}
+
+void PulsarDbTestApp::checkEphParameter(const std::string & base_name, const FormattedEph & eph, const TextEph & text_eph) {
+  // Prepare files for text outputs.
+  std::string outfile(base_name + ".out");
+  std::string reffile(base_name + ".ref");
+  remove(outfile.c_str());
+  remove(reffile.c_str());
+
+  // Prepare an output stream to capture a text output from ephemeris objects.
+  st_stream::OStream st_os(false);
+
+  // Write out an ephemeris being tested.
+  std::ofstream ofs_out(outfile.c_str());
+  st_os.connect(ofs_out);
+  eph.write(st_os);
+  st_os.disconnect(ofs_out);
+  ofs_out.close();
+
+  // Write out a reference ephemeris.
+  std::ofstream ofs_ref(reffile.c_str());
+  st_os.connect(ofs_ref);
+  text_eph.write(st_os);
+  st_os.disconnect(ofs_ref);
+  ofs_ref.close();
+
+  // Compare the text outputs.
+  EphComputerAppTester tester(*this);
+  tester.checkOutputText(outfile, reffile);
 }
 
 st_app::StAppFactory<PulsarDbTestApp> g_factory("test_pulsarDb");
