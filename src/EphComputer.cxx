@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"

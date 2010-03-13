@@ -6,6 +6,7 @@
 #include <limits>
 #include <iomanip>
 #include <iostream>
+#include <stdexcept>
 
 #include "st_stream/Stream.h"
 

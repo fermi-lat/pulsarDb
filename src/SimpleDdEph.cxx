@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <iomanip>
+#include <stdexcept>
 
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/SimpleDdEph.h"
