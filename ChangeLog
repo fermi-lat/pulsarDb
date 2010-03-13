@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 12 17:44:43 PST 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	PeriodEph.h 
+Log Message:
+Add a constructor that takes a FITS record.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 12 17:44:11 PST 2010
 pulsarDb/pulsarDb
 
