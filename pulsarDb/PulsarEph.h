@@ -90,8 +90,6 @@ namespace pulsarDb {
       virtual void writeModelParameter(st_stream::OStream & os) const = 0;
   };
 
-  inline st_stream::OStream & operator <<(st_stream::OStream & os, const PulsarEph & eph) { return eph.write(os); }
-
   typedef std::vector<PulsarEph *> PulsarEphCont;
 }
 

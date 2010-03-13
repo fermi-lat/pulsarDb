@@ -52,9 +52,14 @@ namespace pulsarDb {
   }
 
   /** \class FormattedEph
-      \brief Class that provides helper functions for reading and writing pulsar ephemerides, both spin and orbital.
+      \brief Class that provides virtual methods and helper functions for reading and writing pulsar ephemerides,
+             both spin and orbital.
   */
   class FormattedEph {
+    public:
+      /// \brief Output text expression of this FormattedEph to a given output stream.
+      virtual st_stream::OStream & write(st_stream::OStream & os) const = 0;
+
     protected:
       /** \brief Return a ParameterFormatter object to be used to format a text output of a given parameter.
           \param param_name Name of parameter to appear in a formatted text output.
@@ -139,6 +144,8 @@ namespace pulsarDb {
 #endif
       }
   };
+
+  inline st_stream::OStream & operator <<(st_stream::OStream & os, const FormattedEph & eph) { return eph.write(os); }
 }
 
 #endif
