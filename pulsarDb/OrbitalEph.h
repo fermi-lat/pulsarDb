@@ -67,7 +67,7 @@ namespace pulsarDb {
       /// \brief Create a copy of this object.
       virtual OrbitalEph * clone() const = 0;
 
-      /// \brief Output text expression of this PulsarEph to a given output stream.
+      /// \brief Output text expression of this OrbitalEph to a given output stream.
       virtual st_stream::OStream & write(st_stream::OStream & os) const;
 
     protected:
@@ -77,7 +77,7 @@ namespace pulsarDb {
       */
       OrbitalEph(const timeSystem::ElapsedTime & tolerance, int max_iteration);
 
-      /// \brief Output text expression of subclass-specific parameters of this PulsarEph to a given output stream.
+      /// \brief Output text expression of subclass-specific parameters of this OrbitalEph to a given output stream.
       virtual void writeModelParameter(st_stream::OStream & os) const = 0;
 
     private:
@@ -86,8 +86,6 @@ namespace pulsarDb {
   };
 
   typedef std::vector<OrbitalEph *> OrbitalEphCont;
-
-  inline st_stream::OStream & operator <<(st_stream::OStream & os, const OrbitalEph & eph) { return eph.write(os); }
 }
 
 #endif
