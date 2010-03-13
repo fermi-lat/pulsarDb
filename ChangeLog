@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 12 17:48:22 PST 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of constructors of Pulsar/OrbitalEph sub-classes. Remove obsolete tests. Improve variable names for clarity.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 12 17:48:12 PST 2010
 pulsarDb/data
 
