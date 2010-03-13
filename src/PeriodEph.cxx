@@ -3,8 +3,10 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+#include <cmath>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/PeriodEph.h"
@@ -30,6 +32,54 @@ namespace {
 }
 
 namespace pulsarDb {
+
+  PeriodEph::PeriodEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
+    m_system(&TimeSystem::getSystem("TDB")), m_since("TDB", 0, 0.), m_until("TDB", 0, 0.), m_epoch("TDB", 0, 0.),
+    m_ra(0.), m_dec(0.), m_phi0(0.), m_p0(0.), m_p1(0.), m_p2(0.) {
+    // Epoch and toa are split into int and frac parts.
+    long epoch_int = 0;
+    double epoch_frac = 0.;
+    long toa_int = 0;
+    double toa_frac = 0.;
+
+    // Read reference epoch and pulse TOA (integer parts required, fractional parts optional).
+    read(record, "EPOCH_INT", epoch_int);
+    read(record, "EPOCH_FRAC", epoch_frac, 0.);
+    read(record, "TOABARY_INT", toa_int);
+    read(record, "TOABARY_FRAC", toa_frac, 0.);
+
+    // Combine separate parts of epoch and toa to get single values.
+    m_epoch = AbsoluteTime("TDB", Mjd(epoch_int, epoch_frac));
+    AbsoluteTime toa("TDB", Mjd(toa_int, toa_frac));
+
+    // Read the start time of validity window (required).
+    long valid_since_date = 0;
+    read(record, "VALID_SINCE", valid_since_date);
+    m_since = AbsoluteTime("TDB", Mjd(valid_since_date, 0.));
+
+    // Read the end time of validity window (required).
+    // Note: One is added to the endpoint because the "VALID_UNTIL" field in the file expires at the end of that day,
+    // whereas the valid_until argument to the ephemeris object is the absolute cutoff.
+    long valid_until_date = 0;
+    read(record, "VALID_UNTIL", valid_until_date);
+    m_until = AbsoluteTime("TDB", Mjd(valid_until_date + 1, 0.));
+
+    // Read the sky position and frequency coefficients (RA, Dec, F0: required, F1, F2: optional).
+    read(record, "RA",  m_ra);
+    read(record, "Dec", m_dec);
+    read(record, "P0",  m_p0);
+    read(record, "P1",  m_p1 , 0.);
+    read(record, "P2",  m_p2 , 0.);
+
+    // Create temporary copy of this ephemeris with phi0 == 0.
+    PeriodEph tmp("TDB", m_since, m_until, m_epoch, m_ra, m_dec, 0., m_p0, m_p1, m_p2);
+
+    // Use the temporary ephemeris to compute the phase from the negative of the toa field.
+    m_phi0 = - tmp.calcPulsePhase(toa);
+
+    // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
+    if (0. > m_phi0) m_phi0 += 1.;
+  }
 
   double PeriodEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
     return (at1 - at2).computeDuration(m_system->getName(), "Sec");
