@@ -1019,12 +1019,8 @@ namespace pulsarDb {
     string_value.erase(string_value.begin(), itor);
 
     // Remove trailing white spaces.
-    itor = string_value.end();
-    for (std::string::reverse_iterator r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor);
-      ++r_itor) {
-      itor = r_itor.base();
-      --itor;
-    }
-    string_value.erase(itor, string_value.end());
+    std::string::reverse_iterator r_itor;
+    for (r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor); ++r_itor) {}
+    string_value.erase(r_itor.base(), string_value.end());
   }
 }
