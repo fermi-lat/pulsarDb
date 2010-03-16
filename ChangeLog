@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Mar 16 15:38:11 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Improve a literal expression of a test constant for clarity. Correct a comment.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-03, operation: add
 Package: pulsarDb
