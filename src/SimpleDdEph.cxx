@@ -71,7 +71,7 @@ namespace pulsarDb {
   const double SimpleDdEph::s_two_pi = 2. * SimpleDdEph::s_one_pi;
   const double SimpleDdEph::s_rad_per_deg  = SimpleDdEph::s_one_pi / 180.;
   const double SimpleDdEph::s_sec_per_day  = 86400.;
-  const double SimpleDdEph::s_sec_per_year = 365. * SimpleDdEph::s_sec_per_day;
+  const double SimpleDdEph::s_sec_per_year = 365.25 * SimpleDdEph::s_sec_per_day;
   const double SimpleDdEph::s_rad_year_per_deg_sec = SimpleDdEph::s_rad_per_deg / SimpleDdEph::s_sec_per_year;
   const double SimpleDdEph::s_sec_per_microsec = 1.e-6;
 
