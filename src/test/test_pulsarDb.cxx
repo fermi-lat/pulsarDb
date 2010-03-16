@@ -1256,8 +1256,9 @@ void PulsarDbTestApp::testSimpleDdEph() {
   // Test binary modulation and demodulation.
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
   // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0)
+  // Note: OMDOT has been changed to 4.22662*365/365.25 to adopt the bug fix (by M. Hirayama on March 16th, 2010).
   AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
-  SimpleDdEph eph2("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662,
+  SimpleDdEph eph2("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22951494520547944870,
                    abs_t0, 0.004295, 0.0, 0.0);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
@@ -1308,7 +1309,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph2.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
