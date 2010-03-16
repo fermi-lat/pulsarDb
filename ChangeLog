@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Mar 16 12:00:27 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	SimpleDdEph.cxx 
+Log Message:
+Fix the day-per-year bug in SimpleDdEph class.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 12 17:48:22 PST 2010
 pulsarDb/src/test
 
