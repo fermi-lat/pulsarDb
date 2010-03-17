@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Mar 16 17:51:07 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Remove unnecessary lines to silence compilation warnings.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-04, operation: add
 Package: pulsarDb
