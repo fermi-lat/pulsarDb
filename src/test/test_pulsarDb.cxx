@@ -937,7 +937,6 @@ void PulsarDbTestApp::testFrequencyEph() {
   checkEphParameter(getMethod() + "_numeric", eph3, t_eph);
 
   // Test the constructor that takes a FITS record.
-  PulsarDb database();
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_FrequencyEph.tpl"));
   tip::Table * table = tip_file.editTable("1");
   table->setNumRecords(1);
@@ -1192,7 +1191,6 @@ void PulsarDbTestApp::testPeriodEph() {
   checkEphParameter(getMethod() + "_numeric", eph4, t_eph);
 
   // Test the constructor that takes a FITS record.
-  PulsarDb database();
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_PeriodEph.tpl"));
   tip::Table * table = tip_file.editTable("1");
   table->setNumRecords(1);
@@ -1332,7 +1330,6 @@ void PulsarDbTestApp::testSimpleDdEph() {
   checkEphParameter(getMethod() + "_numeric", eph3, t_eph);
 
   // Test the constructor that takes a FITS record.
-  PulsarDb database();
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_SimpleDdEph.tpl"));
   tip::Table * table = tip_file.editTable("1");
   table->setNumRecords(1);
