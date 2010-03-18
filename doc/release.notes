@@ -2,11 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.58 2010/03/16 21:53:10 hirayama Exp $
+$Id: release.notes,v 1.59 2010/03/16 22:58:08 hirayama Exp $
 
 \verbatim
 * EOH *
 
+ pulsarDb-08-05-05 17-Mar-2010 hirayama Remove unnecessary lines from test_pulsarDb.cxx to silence compilation warnings.
  pulsarDb-08-05-04 16-Mar-2010 hirayama Cosmetic changes in the unit test only.
  pulsarDb-08-05-03 16-Mar-2010 hirayama Introduce the concept of ephemeris table generation. Bug fixes (the day-per-year bug in SimpleDdEph class and intolerance for extra white speces in text D4 parsing), and minor improvements.
  pulsarDb-08-05-02 22-Feb-2010    jrb correct use of xxLib for libEnv
