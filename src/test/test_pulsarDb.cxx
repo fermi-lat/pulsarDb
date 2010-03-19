@@ -938,10 +938,10 @@ void PulsarDbTestApp::testFrequencyEph() {
 
   // Test the constructor that takes a FITS record.
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_FrequencyEph.tpl"));
-  tip::Table * table = tip_file.editTable("1");
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
-  tip::Table::Record record(table, 0);
+  tip::TableRecord record(table.get(), 0);
   record["VALID_SINCE"].set(54321);
   record["VALID_UNTIL"].set(65432);
   record["EPOCH_INT"].set(76543);
@@ -1192,10 +1192,10 @@ void PulsarDbTestApp::testPeriodEph() {
 
   // Test the constructor that takes a FITS record.
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_PeriodEph.tpl"));
-  tip::Table * table = tip_file.editTable("1");
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
-  tip::Table::Record record(table, 0);
+  tip::TableRecord record(table.get(), 0);
   record["VALID_SINCE"].set(54321);
   record["VALID_UNTIL"].set(65432);
   record["EPOCH_INT"].set(76543);
@@ -1377,10 +1377,10 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // Test the constructor that takes a FITS record.
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_SimpleDdEph.tpl"));
-  tip::Table * table = tip_file.editTable("1");
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
-  tip::Table::Record record(table, 0);
+  tip::Table::Record record(table.get(), 0);
   record["PB"].set(12345.6789);
   record["PBDOT"].set(1.1);
   record["A1"].set(2.2);
@@ -3374,6 +3374,7 @@ void PulsarDbTestApp::testLoadingFits(const std::string & test_subject, PulsarDb
     std::auto_ptr<tip::Table> table(file_svc.editTable(filename, oss.str()));
 
     // Put the integer number in STRING_VALUE column.
+    table->setNumRecords(1);
     tip::Table::Iterator record_itor = table->begin();
     tip::TableRecord & record(*record_itor);
     std::string string_value = "VALUE" + oss.str();
