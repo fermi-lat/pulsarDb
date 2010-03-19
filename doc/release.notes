@@ -2,11 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.60 2010/03/18 01:01:34 hirayama Exp $
+$Id: release.notes,v 1.61 2010/03/19 02:21:29 hirayama Exp $
 
 \verbatim
 * EOH *
 
+ pulsarDb-08-05-07 18-Mar-2010 hirayama Minor changes in the unit test for robustness and clarity.
  pulsarDb-08-05-06 18-Mar-2010 hirayama Add a test of SimpleDdEph::calcOrbitalDelay method. Fix a bug in the unit test (on problematic use of tip::Table::Iterator).
  pulsarDb-08-05-05 17-Mar-2010 hirayama Remove unnecessary lines from test_pulsarDb.cxx to silence compilation warnings.
  pulsarDb-08-05-04 16-Mar-2010 hirayama Cosmetic changes in the unit test only.
