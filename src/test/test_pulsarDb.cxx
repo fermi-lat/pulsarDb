@@ -1251,12 +1251,58 @@ void PulsarDbTestApp::testSimpleDdEph() {
   if (fabs(phase/.2224 - 1.) > epsilon)
     err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
 
+  // Test orbital delay computations.
+  // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
+  // 1) Set constants.
+  double pi = 3.14159265358979323846;
+  double par_PB = 10. * 86400.; // 10 days in seconds.
+  double par_XDOT = -0.44;
+  double par_ECCDOT = -0.00055;
+  double par_OMDOT = 6.6;
+  double par_GAMMA = 0.0011;
+  double par_SHAPIRO_R = 0.0022; // in micro-seconds.
+  double par_SHAPIRO_S = 0.0033;
+
+  // 2) Set values to variables that appear in equations 8, 9, and 10.
+  double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
+  double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+  double var_u = 60. / 180. * pi; // 60 degrees in radian (sin u = sqrt(3)/2, cos u = 1/2, tan u/2 = sqrt(3)/3).
+  double var_x = 10.; // 10 light-seconds.
+  double var_r = par_SHAPIRO_R * 1.e-6; // micro-seconds to seconds.
+
+  // 3) Compute orbital delay and true anomaly.
+  double delay = var_x * 1./2. * (1./2. - 0.6) + var_x * 0.8 * 3./4.; // Equation 8.
+  delay += par_GAMMA * std::sqrt(3.)/2.; // Equation 9.
+  delay += -2. * var_r * std::log(1. - 0.6*1./2. - par_SHAPIRO_S*(1./2.*(1./2. - 0.6) + 0.8*3./4.)); // Equation 10.
+  double true_anomaly = 2. * std::atan(2. * std::sqrt(3.)/3.); // Equation 13.
+
+  // 4) Compute back orbital parameters so as to reproduce values set in step 2.
+  double elapsed = var_u / 2. / pi * par_PB; // Equation 12.
+  double par_PBDOT = 0.6 * std::sqrt(3.)/2. / pi * (par_PB/elapsed) * (par_PB/elapsed); // Equation 12.
+  double par_A1 = var_x - par_XDOT * elapsed;
+  double par_ECC = var_e - par_ECCDOT * elapsed;
+  double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+  double var_k = var_wdot / 2. / pi * par_PB;
+  double par_OM = var_w - var_k * true_anomaly; // Equation 14.
+  par_OM *= 180. / pi; // radians to degrees.
+  ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+  // 5) Create an ephemeris object and test its calcOrbitalDelay method.
+  SimpleDdEph eph2("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT, t0,
+    par_GAMMA, par_SHAPIRO_R, par_SHAPIRO_S);
+  ElapsedTime delay_result = eph2.calcOrbitalDelay(ev_time);
+  ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
+  Duration delay_tolerance(1.e-12, "Sec");
+  if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
+    err() << "SimpleDdEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " not equivalent to " <<
+      delay_expected << " as expected." << std::endl;
+
   // Test binary modulation and demodulation.
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
   // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295, 0.0, 0.0)
   // Note: OMDOT has been changed to 4.22662*365.25/365.0 to adopt the bug fix (by M. Hirayama on March 16th, 2010).
   AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
-  SimpleDdEph eph2("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662 * 365.25 / 365.0,
+  SimpleDdEph eph3("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662 * 365.25 / 365.0,
                    abs_t0, 0.004295, 0.0, 0.0);
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
@@ -1294,7 +1340,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
-    eph2.modulateBinary(tdb_mjd);
+    eph3.modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
       err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
@@ -1305,7 +1351,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
-    eph2.demodulateBinary(tdb_mjd);
+    eph3.demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
       err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
@@ -1313,7 +1359,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
   }
 
   // Test the constructor that takes numerical arguments.
-  SimpleDdEph eph3("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8, 9.9, 11.1);
+  SimpleDdEph eph4("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8, 9.9, 11.1);
   TextEph t_eph;
   t_eph.append("PB",        "12345.6789");
   t_eph.append("PBDOT",     "1.1");
@@ -1327,7 +1373,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
   t_eph.append("GAMMA",     "8.8");
   t_eph.append("SHAPIRO_R", "9.9e-06");
   t_eph.append("SHAPIRO_S", "11.1");
-  checkEphParameter(getMethod() + "_numeric", eph3, t_eph);
+  checkEphParameter(getMethod() + "_numeric", eph4, t_eph);
 
   // Test the constructor that takes a FITS record.
   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_SimpleDdEph.tpl"));
@@ -1347,8 +1393,8 @@ void PulsarDbTestApp::testSimpleDdEph() {
   record["GAMMA"].set(8.8);
   record["SHAPIRO_R"].set(9.9);
   record["SHAPIRO_S"].set(11.1);
-  SimpleDdEph eph4(record, header);
-  checkEphParameter(getMethod() + "_fits", eph4, t_eph);
+  SimpleDdEph eph5(record, header);
+  checkEphParameter(getMethod() + "_fits", eph5, t_eph);
 } 
 
 void PulsarDbTestApp::testPdotCanceler() {
