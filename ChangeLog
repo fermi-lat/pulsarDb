@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 18 19:17:01 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Fix a bug in the unit test (on problematic use of tip::Table::Iterator).
+    *
+------------------------------------------------------------
 User: hirayama  Thu Mar 18 18:17:05 PDT 2010
 pulsarDb/src/test
 
