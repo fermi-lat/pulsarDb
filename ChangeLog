@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 18 21:48:46 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Delete opened FITS objects. Set the number of records before adding a FITS row.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-06, operation: add
 Package: pulsarDb
