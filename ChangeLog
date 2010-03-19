@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Mar 18 18:17:05 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add a test of SimpleDdEph::calcOrbitalDelay method.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-05, operation: add
 Package: pulsarDb
