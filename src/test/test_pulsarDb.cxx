@@ -941,7 +941,7 @@ void PulsarDbTestApp::testFrequencyEph() {
   std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
-  tip::TableRecord record(table.get(), 0);
+  tip::Table::Record record(table.get(), 0);
   record["VALID_SINCE"].set(54321);
   record["VALID_UNTIL"].set(65432);
   record["EPOCH_INT"].set(76543);
@@ -1195,7 +1195,7 @@ void PulsarDbTestApp::testPeriodEph() {
   std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
-  tip::TableRecord record(table.get(), 0);
+  tip::Table::Record record(table.get(), 0);
   record["VALID_SINCE"].set(54321);
   record["VALID_UNTIL"].set(65432);
   record["EPOCH_INT"].set(76543);
@@ -3376,7 +3376,7 @@ void PulsarDbTestApp::testLoadingFits(const std::string & test_subject, PulsarDb
     // Put the integer number in STRING_VALUE column.
     table->setNumRecords(1);
     tip::Table::Iterator record_itor = table->begin();
-    tip::TableRecord & record(*record_itor);
+    tip::Table::Record & record(*record_itor);
     std::string string_value = "VALUE" + oss.str();
     record["STRING_VALUE"].set(string_value);
 
