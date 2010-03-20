@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 19 18:20:18 PDT 2010
+pulsarDb/data
+
+Added Files:
+	PulsarDb_orbital_dd.tpl PulsarDb_primary.tpl 
+	PulsarDb_spin_freq.tpl PulsarDb_spin_per.tpl 
+Removed Files:
+	test_FrequencyEph.tpl test_PeriodEph.tpl test_SimpleDdEph.tpl 
+Log Message:
+Use the include directive in FITS template files for the unit test.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Mar 19 18:20:17 PDT 2010
 pulsarDb/src/test
 
