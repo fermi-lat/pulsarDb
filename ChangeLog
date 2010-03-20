@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 19 18:20:17 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Use the include directive in FITS template files for the unit test.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-07, operation: add
 Package: pulsarDb
