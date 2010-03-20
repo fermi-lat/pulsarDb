@@ -937,7 +937,13 @@ void PulsarDbTestApp::testFrequencyEph() {
   checkEphParameter(getMethod() + "_numeric", eph3, t_eph);
 
   // Test the constructor that takes a FITS record.
-  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_FrequencyEph.tpl"));
+  std::string test_tpl("test_FrequencyEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_spin_freq.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
   std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
@@ -1191,7 +1197,13 @@ void PulsarDbTestApp::testPeriodEph() {
   checkEphParameter(getMethod() + "_numeric", eph4, t_eph);
 
   // Test the constructor that takes a FITS record.
-  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_PeriodEph.tpl"));
+  std::string test_tpl("test_PeriodEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_spin_per.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
   std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
@@ -1376,7 +1388,13 @@ void PulsarDbTestApp::testSimpleDdEph() {
   checkEphParameter(getMethod() + "_numeric", eph4, t_eph);
 
   // Test the constructor that takes a FITS record.
-  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", prependDataPath("test_SimpleDdEph.tpl"));
+  std::string test_tpl("test_SimpleDdEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_orbital_dd.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
   std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
