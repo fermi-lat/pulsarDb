@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "pulsarDb/BtModelEph.h"
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/EphComputerApp.h"
@@ -321,6 +322,9 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test SimpleDdEph class (a subclass of OrbitalEph class).
     virtual void testSimpleDdEph();
 
+    /// \brief Test BtModelEph class (a subclass of OrbitalEph class).
+    virtual void testBtModelEph();
+
     /// \brief Test PdotCanceler class.
     virtual void testPdotCanceler();
 
@@ -430,6 +434,7 @@ void PulsarDbTestApp::runTest() {
   testFrequencyEph();
   testPeriodEph();
   testSimpleDdEph();
+  testBtModelEph();
   testPdotCanceler();
 
   // Test ephemeris manipulation.
@@ -1414,6 +1419,78 @@ void PulsarDbTestApp::testSimpleDdEph() {
   SimpleDdEph eph5(record, header);
   checkEphParameter(getMethod() + "_fits", eph5, t_eph);
 } 
+
+void PulsarDbTestApp::testBtModelEph() {
+  setMethod("BtModelDdEph");
+
+  AbsoluteTime t0("TDB", 51910, 123.456789);
+  BtModelEph eph1("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0.);
+  AbsoluteTime ev_time("TDB", 51910, 223.456789);
+
+  double epsilon = 1.e-8;
+
+  // Test time system getter.
+  std::string sys_name = eph1.getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "BtModelEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
+  // Test orbital phase computations.
+  double phase = eph1.calcOrbitalPhase(ev_time);
+  double phase_expected = 100./1010.;
+  if (fabs(phase/phase_expected - 1.) > epsilon)
+    err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
+
+  // Test orbital phase computations, with a non-zero global phase offset.
+  phase = eph1.calcOrbitalPhase(ev_time, 0.1234);
+  phase_expected += 0.1234;
+  if (fabs(phase/phase_expected - 1.) > epsilon)
+    err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
+
+  // TODO: Add tests of calcOrbitalDelay method and modulate/demodulateBinary methods.
+  //       Use eph2 for a test of calcOrbitalDelay, and eph3 for modulate/demodulateBinary.
+  //       See tests of SimpleDdEph (testSimpleDdEph method) defined above.
+
+  // Test the constructor that takes numerical arguments.
+  BtModelEph eph4("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8);
+  TextEph t_eph;
+  t_eph.append("PB",        "12345.6789");
+  t_eph.append("PBDOT",     "1.1");
+  t_eph.append("A1",        "2.2");
+  t_eph.append("XDOT",      "3.3");
+  t_eph.append("ECC",       "4.4");
+  t_eph.append("ECCDOT",    "5.5");
+  t_eph.append("OM",        6.6 * BtModelEph::s_rad_per_deg);
+  t_eph.append("OMDOT",     7.7 * BtModelEph::s_rad_year_per_deg_sec);
+  t_eph.append("T0",        "12345.6");
+  t_eph.append("GAMMA",     "8.8");
+  checkEphParameter(getMethod() + "_numeric", eph4, t_eph);
+
+  // Test the constructor that takes a FITS record.
+  std::string test_tpl("test_BtModelEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_orbital_bt.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  tip::Header & header(table->getHeader());
+  table->setNumRecords(1);
+  tip::Table::Record record(table.get(), 0);
+  record["PB"].set(12345.6789);
+  record["PBDOT"].set(1.1);
+  record["A1"].set(2.2);
+  record["XDOT"].set(3.3);
+  record["ECC"].set(4.4);
+  record["ECCDOT"].set(5.5);
+  record["OM"].set(6.6);
+  record["OMDOT"].set(7.7);
+  record["T0"].set(12345.6);
+  record["GAMMA"].set(8.8);
+  BtModelEph eph5(record, header);
+  checkEphParameter(getMethod() + "_fits", eph5, t_eph);
+}
 
 void PulsarDbTestApp::testPdotCanceler() {
   setMethod("testPdotCanceler");
