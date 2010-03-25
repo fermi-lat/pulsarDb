@@ -1447,9 +1447,95 @@ void PulsarDbTestApp::testBtModelEph() {
   if (fabs(phase/phase_expected - 1.) > epsilon)
     err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
 
-  // TODO: Add tests of calcOrbitalDelay method and modulate/demodulateBinary methods.
-  //       Use eph2 for a test of calcOrbitalDelay, and eph3 for modulate/demodulateBinary.
-  //       See tests of SimpleDdEph (testSimpleDdEph method) defined above.
+  // Test orbital delay computations.
+  // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
+  // 1) Set constants.
+  double pi = 3.14159265358979323846;
+  double par_PBDOT = -0.33;
+  double par_XDOT = -0.44;
+  double par_ECCDOT = -0.00055;
+  double par_OMDOT = 6.6;
+  double par_GAMMA = 0.0011;
+
+  // 2) Set values to variables that appear in equations 8, 9, and 10.
+  double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
+  double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+  double var_large_e = 60. / 180. * pi; // 60 degrees in radian (sin E = sqrt(3)/2, cos E = 1/2).
+  double var_x = 10.; // 10 light-seconds.
+  double var_PB = 10. * 86400.; // 10 days in seconds.
+
+  // 3) Compute orbital delay and true anomaly.
+  double delay = var_x * 1./2. * (1./2. - 0.6); // Equation 5, line 1.
+  delay += (var_x * std::sqrt(3.)/2. * 0.8 + par_GAMMA) * std::sqrt(3.)/2.; // Equation 5, line 2.
+  delay *= 1. - 2.*pi / var_PB * (var_x * std::sqrt(3.)/2. * 0.8 * 1./2. - var_x * 1./2. * std::sqrt(3.)/2.) // Equation 5, line 3.
+    / (1. - var_e * 1./2.); // Equation 5, line 4.
+
+  // 4) Compute back orbital parameters so as to reproduce values set in step 2.
+  double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / pi * var_PB; // Equation 6.
+  double par_PB = var_PB - par_PBDOT * elapsed / 2.; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+  double par_A1 = var_x - par_XDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+  double par_ECC = var_e - par_ECCDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+  double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+  double par_OM = var_w - var_wdot * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+  par_OM *= 180. / pi; // radians to degrees.
+  ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+  // 5) Create an ephemeris object and test its calcOrbitalDelay method.
+  BtModelEph eph2("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT, t0, par_GAMMA);
+  ElapsedTime delay_result = eph2.calcOrbitalDelay(ev_time);
+  ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
+  Duration delay_tolerance(1.e-12, "Sec");
+  if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
+    err() << "BtModelEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " not equivalent to " <<
+      delay_expected << " as expected." << std::endl;
+
+  // Test binary modulation and demodulation.
+  // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA)
+  // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295)
+  AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
+  BtModelEph eph3("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, abs_t0, 0.004295);
+
+  // MJD's: { {original-MJD, modulated-MJD}, ... }
+  Mjd mjd_test_values[][2] = {
+    { Mjd(45988, .00001172486599971307e+04), Mjd(45988, .117282331130303) },
+    { Mjd(45988, .00001519708822161192e+04), Mjd(45988, .152005749258786) },
+    { Mjd(45988, .00001866931044423836e+04), Mjd(45988, .186723317282064) },
+    { Mjd(45988, .00002214153266613721e+04), Mjd(45988, .221430382515889) },
+    { Mjd(45988, .00002561375488876365e+04), Mjd(45988, .256125434462583) },
+    { Mjd(45988, .00002908597711066250e+04), Mjd(45988, .290853254561344) },
+    { Mjd(45988, .00003255819933328894e+04), Mjd(45988, .325587769293515) },
+    { Mjd(45988, .00003603042155518779e+04), Mjd(45988, .360321326055940) },
+    { Mjd(45988, .00003950264377781423e+04), Mjd(45988, .395052666042408) },
+    { Mjd(45988, .00004297486599971307e+04), Mjd(45988, .429781125461549) },
+    { Mjd(45988, .00004644708822161192e+04), Mjd(45988, .464505895077888) }
+  };
+
+  // Permitted difference is 100 ns.
+  double delta = 100. * 1.e-9;
+  ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
+
+  std::cerr.precision(24);
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
+    eph3.modulateBinary(tdb_mjd);
+    if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
+    }
+  }
+
+  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
+    eph3.demodulateBinary(tdb_mjd);
+    if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
+      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
+    }
+  }
 
   // Test the constructor that takes numerical arguments.
   BtModelEph eph4("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8);
