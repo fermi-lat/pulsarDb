@@ -1270,49 +1270,57 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // Test orbital delay computations.
   // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
-  // 1) Set constants.
-  double pi = 3.14159265358979323846;
-  double par_PB = 10. * 86400.; // 10 days in seconds.
-  double par_XDOT = -0.44;
-  double par_ECCDOT = -0.00055;
-  double par_OMDOT = 6.6;
-  double par_GAMMA = 0.0011;
-  double par_SHAPIRO_R = 0.0022; // in micro-seconds.
-  double par_SHAPIRO_S = 0.0033;
+  int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
+  std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
+  for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {
+    // 1) Set constants.
+    double pi = 3.14159265358979323846;
+    double par_PB = 10. * 86400.; // 10 days in seconds.
+    double par_XDOT = -0.44;
+    double par_ECCDOT = -0.00055;
+    double par_OMDOT = 6.6;
+    double par_GAMMA = 0.0011;
+    double par_SHAPIRO_R = 0.0022; // in micro-seconds.
+    double par_SHAPIRO_S = 0.0033;
 
-  // 2) Set values to variables that appear in equations 8, 9, and 10.
-  double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
-  double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
-  double var_u = 60. / 180. * pi; // 60 degrees in radian (sin u = sqrt(3)/2, cos u = 1/2, tan u/2 = sqrt(3)/3).
-  double var_x = 10.; // 10 light-seconds.
-  double var_r = par_SHAPIRO_R * 1.e-6; // micro-seconds to seconds.
+    // 2) Set values to variables that appear in equations 8, 9, and 10.
+    double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
+    double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+    double var_u = 60. / 180. * pi; // 60 degrees in radian (sin u = sqrt(3)/2, cos u = 1/2, tan u/2 = sqrt(3)/3).
+    double var_x = 10.; // 10 light-seconds.
+    double var_r = par_SHAPIRO_R * 1.e-6; // micro-seconds to seconds.
 
-  // 3) Compute orbital delay and true anomaly.
-  double delay = var_x * 1./2. * (1./2. - 0.6) + var_x * 0.8 * 3./4.; // Equation 8.
-  delay += par_GAMMA * std::sqrt(3.)/2.; // Equation 9.
-  delay += -2. * var_r * std::log(1. - 0.6*1./2. - par_SHAPIRO_S*(1./2.*(1./2. - 0.6) + 0.8*3./4.)); // Equation 10.
-  double true_anomaly = 2. * std::atan(2. * std::sqrt(3.)/3.); // Equation 13.
+    // 3) Compute orbital delay and true anomaly.
+    double delay = var_x * 1./2. * (1./2. - 0.6) + var_x * 0.8 * 3./4.; // Equation 8.
+    delay += par_GAMMA * std::sqrt(3.)/2.; // Equation 9.
+    delay += -2. * var_r * std::log(1. - 0.6*1./2. - par_SHAPIRO_S*(1./2.*(1./2. - 0.6) + 0.8*3./4.)); // Equation 10.
+    double true_anomaly = 2. * std::atan(2. * std::sqrt(3.)/3.); // Equation 13.
 
-  // 4) Compute back orbital parameters so as to reproduce values set in step 2.
-  double elapsed = var_u / 2. / pi * par_PB; // Equation 12.
-  double par_PBDOT = 0.6 * std::sqrt(3.)/2. / pi * (par_PB/elapsed) * (par_PB/elapsed); // Equation 12.
-  double par_A1 = var_x - par_XDOT * elapsed;
-  double par_ECC = var_e - par_ECCDOT * elapsed;
-  double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
-  double var_k = var_wdot / 2. / pi * par_PB;
-  double par_OM = var_w - var_k * true_anomaly; // Equation 14.
-  par_OM *= 180. / pi; // radians to degrees.
-  ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+    // 4) Modify variables for additional turns of the binary system.
+    var_u += 2. * pi * (*turn_itor);
+    true_anomaly += 2. * pi * (*turn_itor);
 
-  // 5) Create an ephemeris object and test its calcOrbitalDelay method.
-  SimpleDdEph eph2("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT, t0,
-    par_GAMMA, par_SHAPIRO_R, par_SHAPIRO_S);
-  ElapsedTime delay_result = eph2.calcOrbitalDelay(ev_time);
-  ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
-  Duration delay_tolerance(1.e-12, "Sec");
-  if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
-    err() << "SimpleDdEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " not equivalent to " <<
-      delay_expected << " as expected." << std::endl;
+    // 5) Compute back orbital parameters so as to reproduce values set in step 2.
+    double elapsed = var_u / 2. / pi * par_PB; // Equation 12.
+    double par_PBDOT = 0.6 * std::sqrt(3.)/2. / pi * (par_PB/elapsed) * (par_PB/elapsed); // Equation 12.
+    double par_A1 = var_x - par_XDOT * elapsed;
+    double par_ECC = var_e - par_ECCDOT * elapsed;
+    double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+    double var_k = var_wdot / 2. / pi * par_PB;
+    double par_OM = var_w - var_k * true_anomaly; // Equation 14.
+    par_OM *= 180. / pi; // radians to degrees.
+    ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+    // 6) Create an ephemeris object and test its calcOrbitalDelay method.
+    SimpleDdEph eph2("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT, t0,
+      par_GAMMA, par_SHAPIRO_R, par_SHAPIRO_S);
+    ElapsedTime delay_result = eph2.calcOrbitalDelay(ev_time);
+    ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
+    Duration delay_tolerance(std::numeric_limits<double>::epsilon() * 86400. * 100., "Sec");
+    if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
+      err() << "SimpleDdEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " after " << *turn_itor <<
+        " turn(s), not equivalent to " << delay_expected << " as expected." << std::endl;
+  }
 
   // Test binary modulation and demodulation.
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA, SHAPIRO_R, SHAPIRO_S)
@@ -1450,44 +1458,51 @@ void PulsarDbTestApp::testBtModelEph() {
   // Test orbital delay computations.
   // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
   // 1) Set constants.
-  double pi = 3.14159265358979323846;
-  double par_PBDOT = -0.33;
-  double par_XDOT = -0.44;
-  double par_ECCDOT = -0.00055;
-  double par_OMDOT = 6.6;
-  double par_GAMMA = 0.0011;
+  int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
+  std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
+  for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {
+    double pi = 3.14159265358979323846;
+    double par_PBDOT = -0.33;
+    double par_XDOT = -0.44;
+    double par_ECCDOT = -0.00055;
+    double par_OMDOT = 6.6;
+    double par_GAMMA = 0.0011;
 
-  // 2) Set values to variables that appear in equations 8, 9, and 10.
-  double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
-  double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
-  double var_large_e = 60. / 180. * pi; // 60 degrees in radian (sin E = sqrt(3)/2, cos E = 1/2).
-  double var_x = 10.; // 10 light-seconds.
-  double var_PB = 10. * 86400.; // 10 days in seconds.
+    // 2) Set values to variables that appear in equations 8, 9, and 10.
+    double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
+    double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+    double var_large_e = 60. / 180. * pi; // 60 degrees in radian (sin E = sqrt(3)/2, cos E = 1/2).
+    double var_x = 10.; // 10 light-seconds.
+    double var_PB = 10. * 86400.; // 10 days in seconds.
 
-  // 3) Compute orbital delay and true anomaly.
-  double delay = var_x * 1./2. * (1./2. - 0.6); // Equation 5, line 1.
-  delay += (var_x * std::sqrt(3.)/2. * 0.8 + par_GAMMA) * std::sqrt(3.)/2.; // Equation 5, line 2.
-  delay *= 1. - 2.*pi / var_PB * (var_x * std::sqrt(3.)/2. * 0.8 * 1./2. - var_x * 1./2. * std::sqrt(3.)/2.) // Equation 5, line 3.
-    / (1. - var_e * 1./2.); // Equation 5, line 4.
+    // 3) Compute orbital delay and true anomaly.
+    double delay = var_x * 1./2. * (1./2. - 0.6); // Equation 5, line 1.
+    delay += (var_x * std::sqrt(3.)/2. * 0.8 + par_GAMMA) * std::sqrt(3.)/2.; // Equation 5, line 2.
+    delay *= 1. - 2.*pi / var_PB * (var_x * std::sqrt(3.)/2. * 0.8 * 1./2. - var_x * 1./2. * std::sqrt(3.)/2.) // Equation 5, line 3.
+      / (1. - var_e * 1./2.); // Equation 5, line 4.
 
-  // 4) Compute back orbital parameters so as to reproduce values set in step 2.
-  double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / pi * var_PB; // Equation 6.
-  double par_PB = var_PB - par_PBDOT * elapsed / 2.; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
-  double par_A1 = var_x - par_XDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
-  double par_ECC = var_e - par_ECCDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
-  double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
-  double par_OM = var_w - var_wdot * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
-  par_OM *= 180. / pi; // radians to degrees.
-  ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+    // 4) Modify variables for additional turns of the binary system.
+    var_large_e += 2. * pi * (*turn_itor);
 
-  // 5) Create an ephemeris object and test its calcOrbitalDelay method.
-  BtModelEph eph2("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT, t0, par_GAMMA);
-  ElapsedTime delay_result = eph2.calcOrbitalDelay(ev_time);
-  ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
-  Duration delay_tolerance(1.e-12, "Sec");
-  if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
-    err() << "BtModelEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " not equivalent to " <<
-      delay_expected << " as expected." << std::endl;
+    // 5) Compute back orbital parameters so as to reproduce values set in step 2.
+    double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / pi * var_PB; // Equation 6.
+    double par_PB = var_PB - par_PBDOT * elapsed / 2.; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+    double par_A1 = var_x - par_XDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+    double par_ECC = var_e - par_ECCDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+    double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+    double par_OM = var_w - var_wdot * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+    par_OM *= 180. / pi; // radians to degrees.
+    ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+    // 6) Create an ephemeris object and test its calcOrbitalDelay method.
+    BtModelEph eph2("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT, t0, par_GAMMA);
+    ElapsedTime delay_result = eph2.calcOrbitalDelay(ev_time);
+    ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
+    Duration delay_tolerance(std::numeric_limits<double>::epsilon() * 86400. * 100., "Sec");
+    if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
+      err() << "BtModelEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " after " << *turn_itor <<
+        " turn(s), not equivalent to " << delay_expected << " as expected." << std::endl;
+  }
 
   // Test binary modulation and demodulation.
   // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA)
