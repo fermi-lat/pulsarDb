@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Mar 26 19:58:58 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add extra turns of binary system to tests of OrbitalEph subclasses.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Mar 24 18:19:23 PDT 2010
 pulsarDb/src/test
 
