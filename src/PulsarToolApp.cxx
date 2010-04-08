@@ -472,22 +472,15 @@ namespace pulsarDb {
     bool candidate_found = false;
     AbsoluteTime abs_candidate_time("TDB", 0, 0.);
 
+    // Set field name.
+    const std::string & field_name(request_start_time ? m_gti_start_field : m_gti_stop_field);
+
     // First, look for requested time (start or stop) in the GTI.
     for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
       EventTimeHandler & gti_handler = **itor;
 
-      // If possible, get tstart (or tstop) from first (or last) interval in GTI extension.
-      gti_handler.setFirstRecord();
-      if (!gti_handler.isEndOfTable()) {
-        // Set field name and move to the last record if necessary.
-        std::string field_name;
-        if (request_start_time) {
-          field_name = m_gti_start_field;
-        } else {
-          gti_handler.setLastRecord();
-          field_name = m_gti_stop_field;
-        }
-
+      // If possible, get tstart (or tstop) from GTI extension.
+      for (gti_handler.setFirstRecord(); !gti_handler.isEndOfTable(); gti_handler.setNextRecord()) {
         // Read GTI START (or STOP) column value as AbsoluteTime.
         AbsoluteTime abs_gti_time = readTimeColumn(gti_handler, field_name, request_time_correction);
 
