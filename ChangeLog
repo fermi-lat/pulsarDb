@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Apr  7 20:42:00 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Fix a bug in finding start/stop times from unsorted GTI's.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-16-01, operation: add
 Package: pulsarDb
