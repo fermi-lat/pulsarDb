@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Tue Apr 13 18:46:02 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	BtModelEph.h EphComputer.h FrequencyEph.h PdotCanceler.h 
+	PeriodEph.h PulsarEph.h SimpleDdEph.h 
+Log Message:
+Improve Doxygen comments.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-08, operation: add
 Package: pulsarDb
