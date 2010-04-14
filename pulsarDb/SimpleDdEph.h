@@ -46,17 +46,17 @@ namespace pulsarDb {
       /** \brief Construct a SimpleDdEph object from parameter values.
           \param time_system_name Name of time system in which this orbital ephemeris is defined.
           \param pb Orbital period in seconds.
-          \param pb_dot First time derivative of the orbital period (dimension-less)
-          \param a1 Projected semi-major axis in light seconds.
+          \param pb_dot First time derivative of the orbital period (dimension-less).
+          \param a1 Projected semi-major axis in light-seconds.
           \param x_dot First time derivative of the projected semi-major axis in light-seconds per second.
-          \param ecc Orbital eccentricity (dimension-less)
+          \param ecc Orbital eccentricity (dimension-less).
           \param ecc_dot First time derivative of eccentricity in inverse of seconds.
           \param om Longitude of periastron in degrees.
-          \param om_dot First Time derivative of periastron longitude in degrees per year.
+          \param om_dot First Time derivative of periastron longitude in degrees per Julian year (365.25 days).
           \param t0 Barycentric time of periastron.
-          \param gamma Time-dilation and gravitational redshift parameter (dimension-less)
+          \param gamma Time-dilation and gravitational redshift parameter in seconds.
           \param shapiro_r Range parameter of Shapiro delay in binary system in microseconds.
-          \param shapiro_s Shape parameter of Shapiro delay in binary system (dimension-less)
+          \param shapiro_s Shape parameter of Shapiro delay in binary system (dimension-less).
       */
       SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot,
         double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s);
