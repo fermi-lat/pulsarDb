@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Apr 13 18:46:20 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Remove unnecessary qualifiers.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Apr 13 18:46:02 PDT 2010
 pulsarDb/pulsarDb
 
