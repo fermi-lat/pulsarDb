@@ -442,10 +442,10 @@ namespace pulsarDb {
 
     // Collect all remarks in all REMARKS extensions.
     for (TableCont::const_iterator table_itor = m_eph_remark_table.begin(); table_itor != m_eph_remark_table.end(); ++table_itor) {
-      const tip::Table & table = **table_itor;
-      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+      const Table & table = **table_itor;
+      for (Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
         // For convenience, get record from iterator.
-        tip::Table::ConstRecord & record(*record_itor);
+        Table::ConstRecord & record(*record_itor);
 
         // Get the remark in this record.
         double dbl_since = record["EFFECTIVE_SINCE"].get();
@@ -486,10 +486,10 @@ namespace pulsarDb {
 
     // Examine BINARY_FLAG column in SPIN_PARAMETERS extensions.
     for (TableCont::const_iterator table_itor = m_spin_par_table.begin(); table_itor != m_spin_par_table.end(); ++table_itor) {
-      const tip::Table & table = **table_itor;
-      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+      const Table & table = **table_itor;
+      for (Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
         // For convenience, get record from iterator.
-        tip::Table::ConstRecord & record(*record_itor);
+        Table::ConstRecord & record(*record_itor);
 
         // Get pulsar name in this record.
         std::string psr_name;
@@ -502,7 +502,7 @@ namespace pulsarDb {
         if (alt_name_cont.find(psr_name) != alt_name_cont.end()) {
           // Get binary flag in this record.
           bool binary_flag = false;
-          const tip::TableCell & cell = record["BINARY_FLAG"];
+          const TableCell & cell = record["BINARY_FLAG"];
           if (!cell.isNull()) {
             cell.get(binary_flag);
 
@@ -516,10 +516,10 @@ namespace pulsarDb {
 
     // Look for orbital ephemerides for the pulsar.
     for (TableCont::const_iterator table_itor = m_orbital_par_table.begin(); table_itor != m_orbital_par_table.end(); ++table_itor) {
-      const tip::Table & table = **table_itor;
-      for (tip::Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
+      const Table & table = **table_itor;
+      for (Table::ConstIterator record_itor = table.begin(); record_itor != table.end(); ++record_itor) {
         // For convenience, get record from iterator.
-        tip::Table::ConstRecord & record(*record_itor);
+        Table::ConstRecord & record(*record_itor);
 
         // Get pulsar name in this record.
         std::string psr_name;
@@ -683,7 +683,7 @@ namespace pulsarDb {
 
     // Prepare for the matching and updating.
     Table * matched_table(0);
-    typedef std::list<std::pair<tip::Header::Iterator, tip::Header::ConstIterator> > MatchedPairCont;
+    typedef std::list<std::pair<Header::Iterator, Header::ConstIterator> > MatchedPairCont;
     MatchedPairCont updater_pair;
 
     // Walk through all tables.
