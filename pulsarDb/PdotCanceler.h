@@ -21,7 +21,7 @@ namespace pulsarDb {
 
   /** \class PdotCanceler
       \brief Class representing a single pulsar ephemeris. Warning: f0, f1, f2 depend on the time system.
-      While AbsoluteTime objects are interchangeable, these other values are not!
+             While AbsoluteTime objects are interchangeable, these other values are not!
   */
   class PdotCanceler {
     public:
@@ -30,8 +30,9 @@ namespace pulsarDb {
           \param time_origin Origin of time for the pdot cancellation.
           \param fdot_ratio Array of ratios of frequency derivatives over frequency at the origin of time.
                  Its first element is ratio of f1 over f0, the second is ratio of f2 over f0, and so on,
-                 where f0 is the frequency at the origin of time, f1 the first time-derivative of frequency
-                 at the origin of time, f2 the second, and so on.
+                 where f0 is the frequency in the units of s^(-1) at the origin of time, f1 the first
+                 time-derivative of frequency in the units of s^(-2) at the origin of time, f2 the second
+                 in the units of s^(-3), and so on.
       */
       PdotCanceler(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
         const std::vector<double> & fdot_ratio);

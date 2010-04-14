@@ -33,13 +33,13 @@ namespace pulsarDb {
       /** \brief Create a pulsar ephemeris object with the given parameters.
           \param valid_since Beginning of time period during which this ephemeris is considered valid.
           \param valid_until End of time period during which this ephemeris is considered valid.
-          \param epoch Reference epoch of frequency parameters (f0, f1, and f2).
-          \param ra Right Ascension of the pulsar.
-          \param dec Declination of the pulsar.
-          \param phi0 Pulse phase at the given epoch.
-          \param f0 Pulse period at the given epoch.
-          \param f1 First time derivative of pulse period at the given epoch.
-          \param f2 Second time derivative of pulse period at the given epoch.
+          \param epoch Reference epoch of frequency parameters (p0, p1, and p2).
+          \param ra Right Ascension of the pulsar in degrees.
+          \param dec Declination of the pulsar in degrees.
+          \param phi0 Pulse phase at the given epoch (dimensionless).
+          \param p0 Pulse period in seconds at the given epoch.
+          \param p1 First time derivative of pulse period at the given epoch (dimensionless).
+          \param p2 Second time derivative of pulse period in the units of s^(-1) at the given epoch.
       */
       PeriodEph(const std::string & time_system_name, const timeSystem::AbsoluteTime & valid_since,
         const timeSystem::AbsoluteTime & valid_until, const timeSystem::AbsoluteTime & epoch, double ra, double dec,
@@ -82,8 +82,11 @@ namespace pulsarDb {
       */
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
-      /** \brief Compute a pulse frequency at a given time, and return it.
-                 Note: validity of the ephemeris (valid since and valid until) are not checked.
+      /** \brief Compute a pulse frequency or its time derivative at a given time in the time system given to
+                 this object upon its construction. Call getSytem method to obtain the time system to interpret
+                 the return value of this method. The unit of frequency and its derivatives must be derived from
+                 the time unit of seconds, i.e., Hz (sE-1), Hz/s (sE-2), and so on.
+                 Note: validity of the ephemeris (valid since and valid until) are not checked. 
           \param ev_time Absolute time at which a pulse frequency is to be computed.
           \param derivative_order Order of frequency derivative to be computed. Set zero (0) to this argument
                  to compute a pulse frequency, one (1) the first time derivative of pulse frequency, and so on.
@@ -91,7 +94,7 @@ namespace pulsarDb {
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
       /** \brief Compute a sky position at a given time, and return it. The returned value is a pair of Right Ascension
-                 and Declination of the position.
+                 and Declination of the position in degrees.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.
           \param ev_time Absolute time at which a sky position is to be computed.
       */

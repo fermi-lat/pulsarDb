@@ -58,10 +58,10 @@ namespace pulsarDb {
       */
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
 
-      /** \brief Compute the pulse frequency at a given time in the time system given to this object
-                 upon its construction. Call getSytem method to obtain the time system to interpret
-                 the return value of this method. The unit of frequency and its derivatives must be
-                 based on seconds, i.e., Hz (sE-1), Hz/s (sE-2), and so on.
+      /** \brief Compute a pulse frequency or its time derivative at a given time in the time system given to
+                 this object upon its construction. Call getSytem method to obtain the time system to interpret
+                 the return value of this method. The unit of frequency and its derivatives must be derived from
+                 the time unit of seconds, i.e., Hz (sE-1), Hz/s (sE-2), and so on.
                  Note: validity of the ephemeris (valid since and valid until) are not checked. 
           \param ev_time Time of the event.
           \param derivative_order Order of time derivative of frequency to compute. Set 0 (zero) to obtain
@@ -70,7 +70,7 @@ namespace pulsarDb {
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const = 0;
 
       /** \brief Compute a sky position at a given time, and return it. The returned value is a pair of Right Ascension
-                 and Declination of the position.
+                 and Declination of the position in degrees.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.
           \param ev_time Absolute time at which a sky position is to be computed.
       */

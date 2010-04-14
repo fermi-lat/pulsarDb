@@ -76,8 +76,9 @@ namespace pulsarDb {
           \param time_system_name Name of time system in which given parameters are interpreted.
           \param time_origin Origin of time for the pdot-cancellation.
           \param fdot_ratio Vector of frequency derivatives at the time origin divided by a frequency at the time origin,
-                 where fdot_ratio[0] stores a ratio of the first time derivative of frequency over the frequency,
-                 fdot_ratio[1] stores a ratio of the second time derivative of frequency over the frequency, and so on.
+                 namely, fdot_ratio[0] stores a ratio of the first time derivative of frequency over the frequency,
+                 fdot_ratio[1] stores a ratio of the second time derivative of frequency over the frequency, and so on,
+                 where the frequency is in the units of s^(-1), the first time derivative in s^(-2), the second in s^(-3), etc.
       */
       void setPdotCancelParameter(const std::string & time_system_name, const timeSystem::AbsoluteTime & time_origin,
         const std::vector<double> & fdot_ratio);
