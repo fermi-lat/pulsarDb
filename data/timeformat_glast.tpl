@@ -1,5 +1,5 @@
 # Definition of LAT Event Summary File (FT1)
-# $Header: /nfs/slac/g/glast/ground/cvs/fitsGen/data/ft1.tpl,v 1.26 2009/04/11 21:42:39 jchiang Exp $
+# $Header: /nfs/slac/g/glast/ground/cvs/pulsarDb/data/timeformat_glast.tpl,v 1.2 2009/04/25 02:16:10 hirayama Exp $
 SIMPLE      = T                              / file does conform to FITS standard
 BITPIX      = 8                              / number of bits per data pixel
 NAXIS       = 0                              / number of data axes
@@ -147,28 +147,26 @@ TFORM17     = 'D'                                       / data format of field: 
 TUNIT17     = 's'                                       / physical unit of field
 TLMIN17     = 0.0                                       / minimum value
 TLMAX17     = 1.0D+10                                   / maximum value
-TTYPE18     = 'CTBCLASSLEVEL'                           / event class (temporary)
-TFORM18     = 'J'                                       / data format 
-TTYPE19     = 'DIFRSP0'                                 / Diffuse response component
+TTYPE18     = 'DIFRSP0'                                 / Diffuse response component
+TFORM18     = 'E'                                       / data format 
+TLMIN18     = 0.0                                       / minimum value
+TLMAX18     = 1.0D+38                                   / maximum value
+TTYPE19     = 'DIFRSP1'                                 / Diffuse response component
 TFORM19     = 'E'                                       / data format 
 TLMIN19     = 0.0                                       / minimum value
 TLMAX19     = 1.0D+38                                   / maximum value
-TTYPE20     = 'DIFRSP1'                                 / Diffuse response component
+TTYPE20     = 'DIFRSP2'                                 / Diffuse response component
 TFORM20     = 'E'                                       / data format 
 TLMIN20     = 0.0                                       / minimum value
 TLMAX20     = 1.0D+38                                   / maximum value
-TTYPE21     = 'DIFRSP2'                                 / Diffuse response component
+TTYPE21     = 'DIFRSP3'                                 / Diffuse response component
 TFORM21     = 'E'                                       / data format 
 TLMIN21     = 0.0                                       / minimum value
 TLMAX21     = 1.0D+38                                   / maximum value
-TTYPE22     = 'DIFRSP3'                                 / Diffuse response component
+TTYPE22     = 'DIFRSP4'                                 / Diffuse response component
 TFORM22     = 'E'                                       / data format 
 TLMIN22     = 0.0                                       / minimum value
 TLMAX22     = 1.0D+38                                   / maximum value
-TTYPE23     = 'DIFRSP4'                                 / Diffuse response component
-TFORM23     = 'E'                                       / data format 
-TLMIN23     = 0.0                                       / minimum value
-TLMAX23     = 1.0D+38                                   / maximum value
 END
 
 XTENSION    = 'BINTABLE'                  / binary table extension
