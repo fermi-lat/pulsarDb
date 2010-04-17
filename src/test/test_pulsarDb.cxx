@@ -1077,7 +1077,7 @@ void PulsarDbTestApp::testPeriodEph() {
   std::pair<double, double> p_ra_dec = f_eph.calcSkyPosition(epoch);
   double value2[] = { p_ra_dec.first, p_ra_dec.second, p_eph.calcPulsePhase(epoch), p_eph.calcFrequency(epoch, 0),
                       p_eph.calcFrequency(epoch, 1), p_eph.calcFrequency(epoch, 2) };
-  for (int ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
+  for (size_t ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
     if (0. == value1[ii] || 0. == value2[ii]) {
       if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
         err() << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] <<
