@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Apr 16 19:38:35 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change type of iterating index from int to size_t (cosmetic).
+    *
+------------------------------------------------------------
 User: hirayama  Thu Apr 15 15:45:23 PDT 2010
 pulsarDb/data
 
