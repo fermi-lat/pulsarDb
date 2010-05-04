@@ -2,11 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.62 2010/03/19 05:19:49 hirayama Exp $
+$Id: release.notes,v 1.63 2010/04/09 16:24:48 hirayama Exp $
 
 \verbatim
 * EOH *
 
+ pulsarDb-08-05-09 04-May-2010 hirayama Improve Doxygen comments.
  pulsarDb-08-05-08 09-Apr-2010 hirayama Support unsorted GTI's. Add the code to support BT model. Improve the unit tests for orbital models.
  pulsarDb-08-05-07 18-Mar-2010 hirayama Minor changes in the unit test for robustness and clarity.
  pulsarDb-08-05-06 18-Mar-2010 hirayama Add a test of SimpleDdEph::calcOrbitalDelay method. Fix a bug in the unit test (on problematic use of tip::Table::Iterator).
