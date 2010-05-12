@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed May 12 16:26:05 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Remove unnecessary inclusion of BaryTimeComputer.h.
+    *
+------------------------------------------------------------
 TAG
 Tag name: pulsarDb-08-05-09, operation: add
 Package: pulsarDb
