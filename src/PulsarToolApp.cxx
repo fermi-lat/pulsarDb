@@ -33,7 +33,6 @@
 #include "st_stream/Stream.h"
 
 #include "timeSystem/AbsoluteTime.h"
-#include "timeSystem/BaryTimeComputer.h"
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
