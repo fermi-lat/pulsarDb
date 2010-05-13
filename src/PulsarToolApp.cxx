@@ -39,6 +39,7 @@
 #include "timeSystem/EventTimeHandler.h"
 #include "timeSystem/GlastTimeHandler.h"
 #include "timeSystem/MjdFormat.h"
+#include "timeSystem/SourcePosition.h"
 #include "timeSystem/TimeInterval.h"
 
 #include "tip/Header.h"
@@ -677,19 +678,20 @@ namespace pulsarDb {
         ra = pars["ra"];
         dec = pars["dec"];
       }
+      SourcePosition src_position(ra, dec);
 
       // Initialize event extensions for barycentric corrections.
       for (handler_cont_type::const_iterator itor = m_event_handler_cont.begin(); itor != m_event_handler_cont.end(); ++itor) {
         EventTimeHandler & event_handler = **itor;
         event_handler.initTimeCorrection(sc_file, sc_extension, solar_eph, request_match_solar_eph, ang_tolerance);
-        if (!m_vary_ra_dec) event_handler.setSourcePosition(ra, dec);
+        if (!m_vary_ra_dec) event_handler.setSourcePosition(src_position);
       }
 
       // Initialize GTI extensions for barycentric corrections.
       for (handler_cont_type::const_iterator itor = m_gti_handler_cont.begin(); itor != m_gti_handler_cont.end(); ++itor) {
         EventTimeHandler & gti_handler = **itor;
         gti_handler.initTimeCorrection(sc_file, sc_extension, solar_eph, request_match_solar_eph, ang_tolerance);
-        if (!m_vary_ra_dec) gti_handler.setSourcePosition(ra, dec);
+        if (!m_vary_ra_dec) gti_handler.setSourcePosition(src_position);
       }
     }
 
@@ -1034,7 +1036,7 @@ namespace pulsarDb {
         // Reset RA and Dec for the given arrival time, if requested.
         if (m_vary_ra_dec) {
           std::pair<double, double> ra_dec = m_computer->calcSkyPosition(abs_time);
-          handler.setSourcePosition(ra_dec.first, ra_dec.second);
+          handler.setSourcePosition(SourcePosition(ra_dec.first, ra_dec.second));
         }
 
         // Try barycentric correction with the RA and Dec.
