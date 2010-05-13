@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed May 12 18:12:36 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Modify BaryTimeComputer to accept a SourcePosition object instead of RA and Dec.
+    *
+------------------------------------------------------------
 User: hirayama  Wed May 12 16:26:05 PDT 2010
 pulsarDb/src
 
