@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 13 18:17:27 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	EphComputer.cxx EphComputerApp.cxx FrequencyEph.cxx 
+	PeriodEph.cxx PulsarToolApp.cxx 
+Log Message:
+Replace calcSkyPosition with calcPosition that returns a SourcePosition object.
+    *
+------------------------------------------------------------
 User: hirayama  Thu May 13 18:17:26 PDT 2010
 pulsarDb/pulsarDb
 
