@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu May 13 18:17:26 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	EphComputer.h FrequencyEph.h PeriodEph.h PulsarEph.h 
+Log Message:
+Replace calcSkyPosition with calcPosition that returns a SourcePosition object.
+    *
+------------------------------------------------------------
 User: hirayama  Wed May 12 18:12:36 PDT 2010
 pulsarDb/src
 
