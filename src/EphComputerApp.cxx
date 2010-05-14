@@ -14,9 +14,11 @@
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
+#include "timeSystem/SourcePosition.h"
 #include "timeSystem/TimeSystem.h"
 
 #include <cctype>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -26,7 +28,7 @@
 #include <string>
 #include <utility>
 
-static const std::string s_cvs_id("$Name: v8r4 $");
+static const std::string s_cvs_id("$Name:  $");
 
 using namespace timeSystem;
 
@@ -128,14 +130,14 @@ namespace pulsarDb {
       const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
 
       // Compute extrapolated ephemeris.
-      std::pair<double, double> ra_dec;
+      SourcePosition src_pos(0., 0.);
       double phi0 = 0.;
       double f0 = 0.;
       double f1 = 0.;
       double f2 = 0.;
       bool computed_ok = false;
       try {
-        ra_dec = chosen_eph.calcSkyPosition(abs_ref_time);
+        src_pos = chosen_eph.calcPosition(abs_ref_time);
         phi0 = chosen_eph.calcPulsePhase(abs_ref_time);
         f0 = chosen_eph.calcFrequency(abs_ref_time, 0);
         f1 = chosen_eph.calcFrequency(abs_ref_time, 1);
@@ -145,11 +147,26 @@ namespace pulsarDb {
         m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
       }
 
+      // Compute RA and Dec.
+      static const double degree_per_radian = 180. / M_PI;
+      const std::vector<double> & src_dir = src_pos.getDirection();
+      double dec = std::asin(src_dir[2]) * degree_per_radian;
+      double ra = 0.;
+      if (src_dir[0] != 0. || src_dir[1] != 0.) ra = std::atan2(src_dir[1], src_dir[0]) * degree_per_radian;
+      if (ra < 0.) ra += 360.;
+
       // Print computed ephemeris.
       if (computed_ok) {
         m_os.out().precision(std::numeric_limits<double>::digits10);
-        m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra_dec.first << std::endl;
-        m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << ra_dec.second << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << dec << std::endl;
+#if 0
+        // TODO: Uncomment this section once an ephemeris with a finite distance is implemented.
+        m_os.out().prefix().width(30); m_os.out() << "Distance (light-second) : ";
+        if (src_pos.hasDistance()) m_os.out() << src_pos.getDistance();
+        else m_os.out() << "Unknown";
+        m_os.out() << std::endl;
+#endif
         m_os.out().prefix().width(30); m_os.out() << "Pulse Phase : " << phi0 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Pulse Frequency (Hz) : " << f0 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "1st Derivative (Hz/s) : " << f1 << std::endl;

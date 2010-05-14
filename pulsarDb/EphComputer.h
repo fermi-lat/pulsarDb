@@ -14,6 +14,7 @@
 
 namespace timeSystem {
   class AbsoluteTime;
+  class SourcePosition;
 }
 
 namespace pulsarDb {
@@ -111,12 +112,11 @@ namespace pulsarDb {
       */
       double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
-      /** \brief Compute a sky position at a given time, and return it. The returned value is a pair of Right Ascension
-                 and Declination of the position.
+      /** \brief Compute the pulsar position at a given time, and return it.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.
-          \param ev_time Absolute time at which a sky position is to be computed.
+          \param ev_time Absolute time at which the pulsar position is to be computed.
       */
-      std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
+      timeSystem::SourcePosition calcPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
       /** \brief Compute an orbital phase of a given time, and return it.
           \param ev_time Absolute time for which an orbital phase is to be computed.

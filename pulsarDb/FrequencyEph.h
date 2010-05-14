@@ -95,12 +95,11 @@ namespace pulsarDb {
       */
       virtual double calcFrequency(const timeSystem::AbsoluteTime & ev_time, int derivative_order = 0) const;
 
-      /** \brief Compute a sky position at a given time, and return it. The returned value is a pair of Right Ascension
-                 and Declination of the position in degrees.
+      /** \brief Compute the pulsar position at a given time, and return it.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.
-          \param ev_time Absolute time at which a sky position is to be computed.
+          \param ev_time Absolute time at which the pulsar position is to be computed.
       */
-      virtual std::pair<double, double> calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const;
+      virtual timeSystem::SourcePosition calcPosition(const timeSystem::AbsoluteTime & ev_time) const;
 
     protected:
       /// \brief Output text expression of subclass-specific parameters of this object to a given output stream.
