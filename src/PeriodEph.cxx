@@ -13,8 +13,8 @@
 
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
+#include "timeSystem/SourcePosition.h"
 #include "timeSystem/TimeInterval.h"
-#include "timeSystem/TimeSystem.h"
 
 using namespace timeSystem;
 
@@ -233,7 +233,8 @@ namespace pulsarDb {
     return return_value;
   }
 
-  std::pair<double, double> PeriodEph::calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
-    return std::make_pair(m_ra, m_dec);
+  timeSystem::SourcePosition PeriodEph::calcPosition(const AbsoluteTime & /* ev_time */) const {
+    return timeSystem::SourcePosition(m_ra, m_dec);
   }
+
 }

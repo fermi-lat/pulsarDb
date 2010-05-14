@@ -11,9 +11,9 @@
 #include "pulsarDb/PulsarEph.h"
 #include "pulsarDb/FrequencyEph.h"
 
-#include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
+#include "timeSystem/SourcePosition.h"
 #include "timeSystem/TimeInterval.h"
 
 using namespace timeSystem;
@@ -122,7 +122,8 @@ namespace pulsarDb {
     return return_value;
   }
 
-  std::pair<double, double> FrequencyEph::calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
-    return std::make_pair(m_ra, m_dec);
+  timeSystem::SourcePosition FrequencyEph::calcPosition(const AbsoluteTime & /* ev_time */) const {
+    return timeSystem::SourcePosition(m_ra, m_dec);
   }
+
 }

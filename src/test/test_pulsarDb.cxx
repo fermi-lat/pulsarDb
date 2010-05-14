@@ -43,6 +43,7 @@
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
 #include "timeSystem/PulsarTestApp.h"
+#include "timeSystem/SourcePosition.h"
 #include "timeSystem/TimeConstant.h"
 #include "timeSystem/TimeInterval.h"
 
@@ -875,12 +876,12 @@ void PulsarDbTestApp::testFrequencyEph() {
 
   // Test pulse phase computations.
   double phase = eph1.calcPulsePhase(pick_time);
-  if (fabs(phase/.235 - 1.) > epsilon)
+  if (std::fabs(phase/.235 - 1.) > epsilon)
     err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
  
   // Test pulse phase computations, with a non-zero global phase offset.
   phase = eph1.calcPulsePhase(pick_time, 0.1234);
-  if (fabs(phase/.3584 - 1.) > epsilon)
+  if (std::fabs(phase/.3584 - 1.) > epsilon)
     err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
  
   // Change ephemeris to produce a noticeable effect.
@@ -888,41 +889,43 @@ void PulsarDbTestApp::testFrequencyEph() {
   FrequencyEph eph2("TDB", since, until, epoch, 22., 45., .11, 1.125e-2, -2.25e-4, 13.5e-6);
   AbsoluteTime ev_time("TT", 51910, 223.4567891234567);
 
-  // Test coordinates.
-  std::pair<double, double> computed_ra_dec = eph2.calcSkyPosition(ev_time);
-  double computed_ra = computed_ra_dec.first;
-  double correct_ra = 22.;
-  if (fabs(computed_ra - correct_ra) > epsilon) {
-    err() << "FrequencyEph::calcSkyPosition produced ra == " << computed_ra << " not " << correct_ra << std::endl;
+  // Test the pulsar position.
+  SourcePosition computed_pos = eph2.calcPosition(ev_time);
+  SourcePosition correct_pos = SourcePosition(22., 45.);
+  std::string coord_name("XYZ");
+  for (size_t ii = 0; ii < 3; ++ii) {
+    double computed_coord = computed_pos.getDirection()[ii];
+    double correct_coord = correct_pos.getDirection()[ii];
+    if (std::fabs(computed_coord - correct_coord) > epsilon) {
+      err() << "FrequencyEph::calcPosition returned " << coord_name[ii] << "=" << computed_coord << ", not " <<
+        correct_coord << "." << std::endl;
+    }
   }
-  
-  double computed_dec = computed_ra_dec.second;
-  double correct_dec = 45.;
-  if (fabs(computed_dec - correct_dec) > epsilon) {
-    err() << "FrequencyEph::calcSkyPosition produced dec == " << computed_dec << " not " << correct_dec << std::endl;
+  if (computed_pos.hasDistance() != false) {
+    err() << "FrequencyEph::calcPosition returned a source position with its distance known." << std::endl;
   }
-  
+
   // Test phase computation.
   double computed_phi0 = eph2.calcPulsePhase(ev_time);
-  if (fabs(computed_phi0/.36 - 1.) > epsilon)
+  if (std::fabs(computed_phi0/.36 - 1.) > epsilon)
     err() << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << " not .36" << std::endl;
  
   // Test frequency computation.
   double computed_f0 = eph2.calcFrequency(ev_time, 0);
   double correct_f0 = 5.625e-2;
-  if (fabs(computed_f0 - correct_f0) > epsilon) {
+  if (std::fabs(computed_f0 - correct_f0) > epsilon) {
     err() << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << " not " << correct_f0 << std::endl;
   }
   
   double computed_f1 = eph2.calcFrequency(ev_time, 1);
   double correct_f1 = 11.25e-4;
-  if (fabs(computed_f1 - correct_f1) > epsilon) {
+  if (std::fabs(computed_f1 - correct_f1) > epsilon) {
     err() << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << " not " << correct_f1 << std::endl;
   }
   
   double computed_f2 = eph2.calcFrequency(ev_time, 2);
   double correct_f2 = 13.5e-6;
-  if (fabs(computed_f2 - correct_f2) > epsilon) {
+  if (std::fabs(computed_f2 - correct_f2) > epsilon) {
     err() << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << " not " << correct_f2 << std::endl;
   }
 
@@ -1070,22 +1073,36 @@ void PulsarDbTestApp::testPeriodEph() {
   if (!f_eph.getEpoch().equivalentTo(p_eph.getEpoch(), tolerance))
     err() << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
 
-  char * field[] = { "ra", "dec", "phi0", "f0", "f1" , "f2" };
-  std::pair<double, double> f_ra_dec = f_eph.calcSkyPosition(epoch);
-  double value1[] = { f_ra_dec.first, f_ra_dec.second, f_eph.calcPulsePhase(epoch), f_eph.calcFrequency(epoch, 0),
-                      f_eph.calcFrequency(epoch, 1), f_eph.calcFrequency(epoch, 2) };
-  std::pair<double, double> p_ra_dec = f_eph.calcSkyPosition(epoch);
-  double value2[] = { p_ra_dec.first, p_ra_dec.second, p_eph.calcPulsePhase(epoch), p_eph.calcFrequency(epoch, 0),
-                      p_eph.calcFrequency(epoch, 1), p_eph.calcFrequency(epoch, 2) };
+  char * field[] = { "phi0", "f0", "f1" , "f2" };
+  double value1[] = { f_eph.calcPulsePhase(epoch), f_eph.calcFrequency(epoch, 0), f_eph.calcFrequency(epoch, 1),
+                      f_eph.calcFrequency(epoch, 2) };
+  double value2[] = { p_eph.calcPulsePhase(epoch), p_eph.calcFrequency(epoch, 0), p_eph.calcFrequency(epoch, 1),
+                      p_eph.calcFrequency(epoch, 2) };
   for (size_t ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
     if (0. == value1[ii] || 0. == value2[ii]) {
-      if (fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
+      if (std::fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
         err() << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] <<
           " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
-    } else if (fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
+    } else if (std::fabs(value1[ii] / value2[ii] - 1.) > epsilon) {
       err() << "FrequencyEph and PeriodEph give fractionally different values for " << field[ii] <<
         " (" << value1[ii] << " and " << value2[ii] << ")" << std::endl;
     }
+  }
+
+  // Test the pulsar position.
+  SourcePosition computed_pos = p_eph.calcPosition(epoch);
+  SourcePosition correct_pos = SourcePosition(22., 45.);
+  std::string coord_name("XYZ");
+  for (size_t ii = 0; ii < 3; ++ii) {
+    double computed_coord = computed_pos.getDirection()[ii];
+    double correct_coord = correct_pos.getDirection()[ii];
+    if (std::fabs(computed_coord - correct_coord) > epsilon) {
+      err() << "PeriodEph::calcPosition returned " << coord_name[ii] << "=" << computed_coord << ", not " <<
+        correct_coord << "." << std::endl;
+    }
+  }
+  if (computed_pos.hasDistance() != false) {
+    err() << "PeriodEph::calcPosition returned a source position with its distance known." << std::endl;
   }
 
   // Test frequency computation away from the reference epoch.
@@ -1108,7 +1125,7 @@ void PulsarDbTestApp::testPeriodEph() {
   for (int order = 0; order < 5; ++order) {
     result = eph1.calcFrequency(abs_time, order);
     expected = s_eph1.calcFrequency(time_since_epoch, step_size, order);
-    if (0. == result || 0. == expected) test_failed = fabs(result + expected) > std::numeric_limits<double>::epsilon();
+    if (0. == result || 0. == expected) test_failed = std::fabs(result + expected) > std::numeric_limits<double>::epsilon();
     else test_failed = std::fabs(result / expected - 1.) > epsilon;
     if (test_failed) {
       err() << "PeriodEph::calcFrequency(abs_time, " << order << ") returned " << result <<
@@ -1123,8 +1140,8 @@ void PulsarDbTestApp::testPeriodEph() {
   double phase_tolerance = 1.e-5;
   result = eph1.calcPulsePhase(abs_time, global_phase_offset);
   expected = s_eph1.calcPulsePhase(time_since_epoch, step_size, global_phase_offset);
-  test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
-    && fabs(result - expected - 1) > phase_tolerance);
+  test_failed = (std::fabs(result - expected) > phase_tolerance && std::fabs(result - expected + 1) > phase_tolerance
+    && std::fabs(result - expected - 1) > phase_tolerance);
   if (test_failed) {
     err() << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
       ", not close enough to " << expected << " as expected" << std::endl;
@@ -1133,8 +1150,8 @@ void PulsarDbTestApp::testPeriodEph() {
   global_phase_offset = 0.;
   result = eph1.calcPulsePhase(abs_time, global_phase_offset);
   expected = s_eph1.calcPulsePhase(time_since_epoch, step_size, global_phase_offset);
-  test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
-    && fabs(result - expected - 1) > phase_tolerance);
+  test_failed = (std::fabs(result - expected) > phase_tolerance && std::fabs(result - expected + 1) > phase_tolerance
+    && std::fabs(result - expected - 1) > phase_tolerance);
   if (test_failed) {
     err() << "PeriodEph::calcPulsePhase(abs_time, " << global_phase_offset << ") returned " << result <<
       ", not close enough to " << expected << " as expected" << std::endl;
@@ -1157,8 +1174,8 @@ void PulsarDbTestApp::testPeriodEph() {
     SimplePeriodEph s_eph2(phi0, p0, p1, p2);
     result = eph2.calcPulsePhase(abs_time);
     expected = s_eph2.calcPulsePhase(time_since_epoch, step_size, 0.);
-    test_failed = (fabs(result - expected) > phase_tolerance && fabs(result - expected + 1) > phase_tolerance
-      && fabs(result - expected - 1) > phase_tolerance);
+    test_failed = (std::fabs(result - expected) > phase_tolerance && std::fabs(result - expected + 1) > phase_tolerance
+      && std::fabs(result - expected - 1) > phase_tolerance);
     if (test_failed) {
       err() << "PeriodEph::calcPulsePhase(abs_time, 0.) returned " << result <<
         ", not close enough to " << expected << " as expected" << std::endl;
@@ -1260,12 +1277,12 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // Test orbital phase computations.
   double phase = eph1.calcOrbitalPhase(ev_time);
-  if (fabs(phase/.099 - 1.) > epsilon)
+  if (std::fabs(phase/.099 - 1.) > epsilon)
     err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = eph1.calcOrbitalPhase(ev_time, 0.1234);
-  if (fabs(phase/.2224 - 1.) > epsilon)
+  if (std::fabs(phase/.2224 - 1.) > epsilon)
     err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
 
   // Test orbital delay computations.
@@ -1446,13 +1463,13 @@ void PulsarDbTestApp::testBtModelEph() {
   // Test orbital phase computations.
   double phase = eph1.calcOrbitalPhase(ev_time);
   double phase_expected = 100./1010.;
-  if (fabs(phase/phase_expected - 1.) > epsilon)
+  if (std::fabs(phase/phase_expected - 1.) > epsilon)
     err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = eph1.calcOrbitalPhase(ev_time, 0.1234);
   phase_expected += 0.1234;
-  if (fabs(phase/phase_expected - 1.) > epsilon)
+  if (std::fabs(phase/phase_expected - 1.) > epsilon)
     err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
 
   // Test orbital delay computations.
@@ -1946,12 +1963,21 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "EphComputer::calcPulsePhase returned phase " << pulse_phase << ", not " <<
       expected_pulse_phase << ", as expected." << std::endl;
 
-  // Test calcSkyPosition, by comparing it with FrequencyEph::calcSkyPosition.
-  std::pair<double, double> expected_ra_dec = eph.calcSkyPosition(expected_gtdb);
-  std::pair<double, double> ra_dec = computer.calcSkyPosition(expected_gtdb);
-  if (expected_ra_dec != ra_dec)
-    err() << "EphComputer::calcSkyPosition returned (RA, Dec) = (" << ra_dec.first << ", " << ra_dec.second <<
-      "), not (" << expected_ra_dec.first << ", " << expected_ra_dec.second << "), as expected." << std::endl;
+  // Test calcPosition, by comparing it with FrequencyEph::calcPosition.
+  SourcePosition expected_src_pos = eph.calcPosition(expected_gtdb);
+  SourcePosition src_pos = computer.calcPosition(expected_gtdb);
+  std::string coord_name("XYZ");
+  for (size_t ii = 0; ii < 3; ++ii) {
+    double expected_coord = expected_src_pos.getDirection()[ii];
+    double coord = src_pos.getDirection()[ii];
+    if (expected_coord != coord) {
+      err() << "EphComputer::calcPosition returned " << coord_name[ii] << "=" << coord << ", not " <<
+        expected_coord << "." << std::endl;
+    }
+  }
+  if (src_pos.hasDistance() != false) {
+    err() << "PeriodEph::calcPosition returned a source position with its distance known" << std::endl;
+  }
 
   // Test binary modulation/demodulation.
   // Get new independent access to database, to keep independent from the tests above.
@@ -2361,8 +2387,8 @@ class BogusPulsarEphBase: public PulsarEph {
       return 0.;
     }
     virtual double calcFrequency(const AbsoluteTime & /* ev_time */, int /* derivative_order */ = 0) const { return 0.; }
-    virtual std::pair<double, double> calcSkyPosition(const AbsoluteTime & /* ev_time */) const {
-      return std::make_pair(0., 0.); 
+    virtual SourcePosition calcPosition(const AbsoluteTime & /* ev_time */) const {
+      return SourcePosition(0., 0.); 
     }
 
   protected:

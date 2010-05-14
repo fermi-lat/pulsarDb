@@ -1035,8 +1035,8 @@ namespace pulsarDb {
       if (m_request_bary) {
         // Reset RA and Dec for the given arrival time, if requested.
         if (m_vary_ra_dec) {
-          std::pair<double, double> ra_dec = m_computer->calcSkyPosition(abs_time);
-          handler.setSourcePosition(SourcePosition(ra_dec.first, ra_dec.second));
+          SourcePosition src_pos = m_computer->calcPosition(abs_time);
+          handler.setSourcePosition(src_pos);
         }
 
         // Try barycentric correction with the RA and Dec.

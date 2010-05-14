@@ -13,6 +13,8 @@
 #include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PulsarDb.h"
 
+#include "timeSystem/SourcePosition.h"
+
 namespace pulsarDb {
 
   EphComputer::EphComputer(): m_pulsar_eph_cont(), m_orbital_eph_cont(), m_eph_remark_cont(), m_pdot_canceler(0),
@@ -90,9 +92,9 @@ namespace pulsarDb {
     return eph.calcPulsePhase(ev_time, phase_offset);
   }
 
-  std::pair<double, double> EphComputer::calcSkyPosition(const timeSystem::AbsoluteTime & ev_time) const {
+  timeSystem::SourcePosition EphComputer::calcPosition(const timeSystem::AbsoluteTime & ev_time) const {
     const PulsarEph & eph(m_chooser->choose(m_pulsar_eph_cont, ev_time));
-    return eph.calcSkyPosition(ev_time);
+    return eph.calcPosition(ev_time);
   }
 
   double EphComputer::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
