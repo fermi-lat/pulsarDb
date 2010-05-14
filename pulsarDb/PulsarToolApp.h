@@ -129,7 +129,7 @@ namespace pulsarDb {
       */
       void initEphComputer(const st_app::AppParGroup & pars, const EphChooser & chooser, st_stream::OStream & os);
 
-      /** \brief Initializa arrival time corrections, with the time origin to be read from a given set of parameters.
+      /** \brief Initialize arrival time corrections, with the time origin to be read from a given set of parameters.
           \param pars Set of parameters from which initialization information is to be read.
           \param vary_ra_dec If true, the sky position of a celestial source is to be read from the stored spin ephemerides
                  for each event. Otherwise, one position is to be used for all events.
@@ -139,7 +139,7 @@ namespace pulsarDb {
       */
       void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os);
 
-      /** \brief Initializa arrival time corrections, with the time origin specified by a character string.
+      /** \brief Initialize arrival time corrections, with the time origin specified by a character string.
           \param pars Set of parameters from which initialization information is to be read.
           \param vary_ra_dec If true, the sky position of a celestial source is to be read from the stored spin ephemerides
                  for each event. Otherwise, one position is to be used for all events.
@@ -151,7 +151,7 @@ namespace pulsarDb {
       void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os,
         const std::string & str_origin);
 
-      /** \brief Initializa arrival time corrections, with the time origin explicitly given.
+      /** \brief Initialize arrival time corrections, with the time origin explicitly given.
           \param pars Set of parameters from which initialization information is to be read.
           \param vary_ra_dec If true, the sky position of a celestial source is to be read from the stored spin ephemerides
                  for each event. Otherwise, one position is to be used for all events.
@@ -163,7 +163,7 @@ namespace pulsarDb {
       void initTimeCorrection(const st_app::AppParGroup & pars, bool vary_ra_dec, bool guess_pdot, st_stream::OStream & os,
         const timeSystem::AbsoluteTime & abs_origin);
 
-      /** \brief Compute the number of elepased seconds since the time origin.
+      /** \brief Compute the number of elapsed seconds since the time origin.
           \param abs_time Absolute time for which the number of elapsed seconds is to be computed.
       */
       double computeElapsedSecond(const timeSystem::AbsoluteTime & abs_time) const;
@@ -268,7 +268,7 @@ namespace pulsarDb {
       virtual void resetApp();
 
       /** \brief Read a time value from a specified FITS column, create an AbosoluteTime object that represents the time,
-                 apply time correctios on it if requested, and return it.
+                 apply time corrections on it if requested, and return it.
           \param handler EventTimeHandler object to read a time value from.
           \param column_name Name of FITS column from which a time value to be read.
           \param request_time_correction If true, arrival time corrections are to be requested on the time. Otherwise,
