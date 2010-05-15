@@ -33,4 +33,5 @@ namespace pulsarDb {
   };
 
 }
+
 #endif

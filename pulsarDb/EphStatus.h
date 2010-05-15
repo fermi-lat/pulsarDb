@@ -104,6 +104,7 @@ namespace pulsarDb {
   }
 
   typedef std::list<EphStatus> EphStatusCont;
+
 }
 
 #endif

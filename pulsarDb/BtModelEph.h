@@ -109,6 +109,7 @@ namespace pulsarDb {
       timeSystem::AbsoluteTime m_t0;
       double m_gamma;
   };
+
 }
 
 #endif

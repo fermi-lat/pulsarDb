@@ -113,6 +113,7 @@ namespace pulsarDb {
       double m_gamma;
       double m_shapiro_r, m_shapiro_s;
   };
+
 }
 
 #endif
