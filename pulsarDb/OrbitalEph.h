@@ -86,6 +86,7 @@ namespace pulsarDb {
   };
 
   typedef std::vector<OrbitalEph *> OrbitalEphCont;
+
 }
 
 #endif

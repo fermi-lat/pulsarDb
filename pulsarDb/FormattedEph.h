@@ -146,6 +146,7 @@ namespace pulsarDb {
   };
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const FormattedEph & eph) { return eph.write(os); }
+
 }
 
 #endif
