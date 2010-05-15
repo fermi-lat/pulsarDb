@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Fri May 14 19:12:43 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	BtModelEph.h EphChooser.h EphComputerApp.h EphStatus.h 
+	FormattedEph.h OrbitalEph.h PulsarDb.h PulsarDbApp.h 
+	SimpleDdEph.h 
+Log Message:
+Cosmetic changes for consistency.
+    *
+------------------------------------------------------------
 User: hirayama  Fri May 14 19:11:27 PDT 2010
 pulsarDb/pulsarDb
 
