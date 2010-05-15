@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri May 14 19:11:27 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	FrequencyEph.h PeriodEph.h PulsarEph.h 
+Log Message:
+Correct Doxygen comments. Cosmetic changes for consistency.
+    *
+------------------------------------------------------------
 User: hirayama  Fri May 14 15:31:54 PDT 2010
 pulsarDb/pulsarDb
 
