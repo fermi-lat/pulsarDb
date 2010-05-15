@@ -60,7 +60,7 @@ namespace pulsarDb {
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const = 0;
 
       /** \brief Compute a pulse frequency or its time derivative at a given time in the time system given to
-                 this object upon its construction. Call getSytem method to obtain the time system to interpret
+                 this object upon its construction. Call getSystem method to obtain the time system to interpret
                  the return value of this method. The unit of frequency and its derivatives must be derived from
                  the time unit of seconds, i.e., Hz (sE-1), Hz/s (sE-2), and so on.
                  Note: validity of the ephemeris (valid since and valid until) are not checked. 
@@ -91,6 +91,7 @@ namespace pulsarDb {
   };
 
   typedef std::vector<PulsarEph *> PulsarEphCont;
+
 }
 
 #endif
