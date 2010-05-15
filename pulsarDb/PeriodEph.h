@@ -33,6 +33,7 @@ namespace pulsarDb {
   class PeriodEph : public PulsarEph {
     public:
       /** \brief Create a pulsar ephemeris object with the given parameters.
+          \param time_system_name Name of time system to interpret period parameters, such as "TDB" or "UTC".
           \param valid_since Beginning of time period during which this ephemeris is considered valid.
           \param valid_until End of time period during which this ephemeris is considered valid.
           \param epoch Reference epoch of frequency parameters (p0, p1, and p2).
@@ -49,8 +50,8 @@ namespace pulsarDb {
         m_since(valid_since), m_until(valid_until), m_epoch(epoch), m_ra(ra), m_dec(dec), m_phi0(phi0), m_p0(p0), m_p1(p1), m_p2(p2) {}
 
       /** \brief Create a pulsar ephemeris object with the parameters stored in tip record.
-          \param time_system_name Name of time system to interpret frequency parameters, such as "TDB" or "UTC".
-          \param record Record that stores all parameters for an ephemeris being created.
+          \param record FITS row from which all parameters for an ephemeris being created are to be read.
+          \param header FITS header to read other information if necessary (not used).
       */
       PeriodEph(const tip::Table::ConstRecord & record, const tip::Header & header);
 
@@ -85,7 +86,7 @@ namespace pulsarDb {
       virtual double calcPulsePhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset = 0.) const;
 
       /** \brief Compute a pulse frequency or its time derivative at a given time in the time system given to
-                 this object upon its construction. Call getSytem method to obtain the time system to interpret
+                 this object upon its construction. Call getSystem method to obtain the time system to interpret
                  the return value of this method. The unit of frequency and its derivatives must be derived from
                  the time unit of seconds, i.e., Hz (sE-1), Hz/s (sE-2), and so on.
                  Note: validity of the ephemeris (valid since and valid until) are not checked. 
@@ -130,6 +131,7 @@ namespace pulsarDb {
       double m_p1;
       double m_p2;
   };
+
 }
 
 #endif
