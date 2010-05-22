@@ -48,4 +48,5 @@ namespace pulsarDb {
     // Apply time correction.
     abs_time += timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(correction, "Sec"));
   }
+
 }

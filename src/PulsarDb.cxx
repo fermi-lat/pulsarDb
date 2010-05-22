@@ -1023,4 +1023,5 @@ namespace pulsarDb {
     for (r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor); ++r_itor) {}
     string_value.erase(r_itor.base(), string_value.end());
   }
+
 }

@@ -66,4 +66,5 @@ namespace pulsarDb {
     os.precision(orig_prec);
     return os;
   }
+
 }
