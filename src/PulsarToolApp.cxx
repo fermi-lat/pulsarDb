@@ -1053,4 +1053,5 @@ namespace pulsarDb {
     // Return the requested time.
     return abs_time;
   }
+
 }

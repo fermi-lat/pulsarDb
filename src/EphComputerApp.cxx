@@ -179,4 +179,5 @@ namespace pulsarDb {
       reportEphStatus(m_os.warn(), abs_ref_time, chosen_eph.getEpoch(), code_to_report);
     }
   }
+
 }

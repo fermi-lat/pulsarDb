@@ -277,4 +277,5 @@ namespace pulsarDb {
   EphChooser * SloppyEphChooser::clone() const {
     return new SloppyEphChooser(*this);
   }
+
 }
