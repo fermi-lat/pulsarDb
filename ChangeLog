@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Jun 16 17:43:11 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	FrequencyEph.cxx PeriodEph.cxx 
+Log Message:
+Change Dec to DEC for column names. Cosmetic changes in comments.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Jun 16 17:41:13 PDT 2010
 pulsarDb/data
 
