@@ -314,6 +314,9 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test ephemerides database in text format. Also test the getter for history records.
     virtual void testTextPulsarDb();
 
+    /// \brief Test FormattedEph class.
+    virtual void testFormattedEph();
+
     /// \brief Test FrequencyEph class (a subclass of PulsarEph class).
     virtual void testFrequencyEph();
 
@@ -432,6 +435,7 @@ void PulsarDbTestApp::runTest() {
   testTextPulsarDb();
 
   // Test ephemeris computation.
+  testFormattedEph();
   testFrequencyEph();
   testPeriodEph();
   testSimpleDdEph();
@@ -811,9 +815,227 @@ void PulsarDbTestApp::testTextPulsarDb() {
     try {
       database.load(prependDataPath(filename));
     } catch (const std::exception & x) {
-      err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << x.what() << std::endl;
+      err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << std::endl << x.what() << std::endl;
     }
   }
+}
+
+class FormattedEphTester: public FormattedEph {
+  public:
+    FormattedEphTester(PulsarTestApp & test_app): m_test_app(&test_app) {}
+    virtual ~FormattedEphTester() {}
+
+    virtual st_stream::OStream & write(st_stream::OStream & os) const { return os; }
+
+    template <typename DataType>
+    void testFormat(const std::string & param_name, const DataType & param_obj) const {
+      st_stream::OStream st_os(false);
+
+      // Test format method without a separator specified.
+      std::ostringstream oss1;
+      st_os.connect(oss1);
+      st_os << format(param_name, param_obj);
+      st_os.disconnect(oss1);
+      std::string result = oss1.str();
+
+      std::ostringstream oss2;
+      oss2.width(16); oss2 << param_name << " = " << param_obj;
+      std::string expected = oss2.str();
+
+      if (result != expected) {
+        m_test_app->err() << "FormattedEph::format(\"" << param_name << "\", " << param_obj <<
+          ") returned a formatter that writes out \"" << result << "\", not \"" << expected << "\"" << std::endl;
+      }
+
+      // Test format method with a separator specified.
+      std::ostringstream oss3;
+      st_os.connect(oss3);
+      st_os << format(param_name, param_obj, " : ");
+      st_os.disconnect(oss3);
+      result = oss3.str();
+
+      std::ostringstream oss4;
+      oss4.width(16); oss4 << param_name << " : " << param_obj;
+      expected = oss4.str();
+
+      if (result != expected) {
+        m_test_app->err() << "FormattedEph::format(\"" << param_name << "\", " << param_obj <<
+          ", \":\") returned a formatter that writes out \"" << result << "\", not \"" << expected << "\"" << std::endl;
+      }
+    }
+
+    template <typename DataType>
+    void testRead(const tip::Table::ConstRecord & record, const std::string & field_name, const DataType & field_content,
+      const DataType & default_value, bool expected_to_fail) const {
+      DataType data_value;
+
+      // Test read method without a default value.
+      bool exception_thrown = false;
+      try {
+        read(record, field_name, data_value);
+        if (expected_to_fail) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value) did not throw an exception" <<
+            std::endl;
+        }
+      } catch (const std::exception & x) {
+        exception_thrown = true;
+        if (!expected_to_fail) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name <<
+            "\", data_value) unexpectedly threw an exception: " << std::endl << x.what() << std::endl;
+        }
+      }
+      if (!expected_to_fail && !exception_thrown && data_value != field_content) {
+        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value) returned with data_value = " <<
+          data_value << ", not " << field_content << std::endl;
+      }
+
+      // Test read method with a default value.
+      exception_thrown = false;
+      try {
+        read(record, field_name, data_value, default_value);
+      } catch (const std::exception & x) {
+        exception_thrown = true;
+        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << default_value <<
+          ") unexpectedly threw an exception: " << std::endl << x.what() << std::endl;
+      }
+      const DataType & expected_value = (expected_to_fail ? default_value : field_content);
+      if (!exception_thrown && data_value != expected_value) {
+        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << default_value <<
+          ") returned with data_value = " << data_value << ", not " << expected_value << std::endl;
+      }
+    }
+
+    void testTrimPhaseValue(double phase_value, double phase_offset, double expected_with_offset, double expected_no_offset,
+      double tolerance) const {
+      // Test trimPhaseValue method with offset argument.
+      double phase_result = trimPhaseValue(phase_value, phase_offset);
+      if (std::fabs(expected_with_offset - phase_result) > tolerance) {
+        m_test_app->err() << std::setprecision(std::numeric_limits<double>::digits10);
+        m_test_app->err() << "FormattedEph::trimPhaseValue(" << phase_value << ", " << phase_offset << ") returned " <<
+          phase_result << ", not " << expected_with_offset << std::endl;
+      }
+
+      // Test trimPhaseValue method without offset argument.
+      phase_result = trimPhaseValue(phase_value);
+      if (std::fabs(expected_no_offset - phase_result) > tolerance) {
+        m_test_app->err() << std::setprecision(std::numeric_limits<double>::digits10);
+        m_test_app->err() << "FormattedEph::trimPhaseValue(" << phase_value << ", " << phase_offset << ") returned " <<
+          phase_result << ", not " << expected_no_offset << std::endl;
+      }
+    }
+
+  private:
+    PulsarTestApp * m_test_app;
+};
+
+void PulsarDbTestApp::testFormattedEph() {
+  setMethod("testFormattedEph");
+
+  // Create a tester object.
+  FormattedEphTester tester(*this);
+
+  // Test format method for basic data types.
+  float  float_value  = 1.1; tester.testFormat("float",  float_value);
+  double double_value = 2.2; tester.testFormat("double", double_value);
+  char   char_value   = 'c'; tester.testFormat("char",   char_value);
+  signed char  signed_char_value  = 's'; tester.testFormat("signed char",  signed_char_value);
+  signed short signed_short_value = -11; tester.testFormat("signed short", signed_short_value);
+  signed int   signed_int_value   = -22; tester.testFormat("signed int",   signed_int_value);
+  signed long  signed_long_value  = -33; tester.testFormat("signed long",  signed_long_value);
+  unsigned char  unsigned_char_value  = 'u'; tester.testFormat("unsigned char",  unsigned_char_value);
+  unsigned short unsigned_short_value = 11;  tester.testFormat("unsigned short", unsigned_short_value);
+  unsigned int   unsigned_int_value   = 22;  tester.testFormat("unsigned int",   unsigned_int_value);
+  unsigned long  unsigned_long_value  = 33;  tester.testFormat("unsigned long",  unsigned_long_value);
+
+  // Test format method for compound data types.
+  std::string string_value = "string value"; tester.testFormat("string", string_value);
+  AbsoluteTime abs_time("TDB", 51910, 12345.6789); tester.testFormat("absolute time", abs_time);
+
+  // Open a FITS file to test reading column values.
+  std::string filename(prependDataPath("column_samples.fits"));
+  std::auto_ptr<const tip::Table> table(tip::IFileSvc::instance().readTable(filename, "SCALAR"));
+
+  // Set test constants.
+  bool content_1L = true;
+  bool default_1L = false;
+  char content_1B = 12;
+  char default_1B = 34;
+  int content_1I = 123;
+  int default_1I = 456;
+  long content_1J = 12345;
+  long default_1J = 67890;
+  std::string content_1A = "s";
+  std::string default_1A = "d";
+  float content_1E = 12.345;
+  float default_1E = 543.21;
+  double content_1D = 1234.56789;
+  double default_1D = 98765.4321;
+
+  // Test read method for various data types.
+  tip::Table::ConstIterator record_itor = table->begin();
+  bool expected_to_fail = false;
+  tester.testRead(*record_itor, "1L_COLUMN", content_1L, default_1L, expected_to_fail);
+  tester.testRead(*record_itor, "1B_COLUMN", content_1B, default_1B, expected_to_fail);
+  tester.testRead(*record_itor, "1I_COLUMN", content_1I, default_1I, expected_to_fail);
+  tester.testRead(*record_itor, "1J_COLUMN", content_1J, default_1J, expected_to_fail);
+  tester.testRead(*record_itor, "1A_COLUMN", content_1A, default_1A, expected_to_fail);
+  tester.testRead(*record_itor, "1E_COLUMN", content_1E, default_1E, expected_to_fail);
+  tester.testRead(*record_itor, "1D_COLUMN", content_1D, default_1D, expected_to_fail);
+
+  // Test read method for non-existing column.
+  expected_to_fail = true;
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1L, default_1L, expected_to_fail);
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1B, default_1B, expected_to_fail);
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1I, default_1I, expected_to_fail);
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1J, default_1J, expected_to_fail);
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1A, default_1A, expected_to_fail);
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1E, default_1E, expected_to_fail);
+  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1D, default_1D, expected_to_fail);
+
+  // Test read method for NULL detection.
+  ++record_itor;
+  expected_to_fail = true;
+  tester.testRead(*record_itor, "1L_COLUMN", content_1L, default_1L, expected_to_fail);
+  tester.testRead(*record_itor, "1B_COLUMN", content_1B, default_1B, expected_to_fail);
+  tester.testRead(*record_itor, "1I_COLUMN", content_1I, default_1I, expected_to_fail);
+  tester.testRead(*record_itor, "1J_COLUMN", content_1J, default_1J, expected_to_fail);
+  tester.testRead(*record_itor, "1A_COLUMN", content_1A, default_1A, expected_to_fail);
+  tester.testRead(*record_itor, "1E_COLUMN", content_1E, default_1E, expected_to_fail);
+  tester.testRead(*record_itor, "1D_COLUMN", content_1D, default_1D, expected_to_fail);
+
+  // Test trimPhaseValue method.
+  double tolerance = 1.e-6;
+  tester.testTrimPhaseValue(0.00345,         0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +     1, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 +     1, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +     1, 0.12 +     1, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +    21, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 +    21, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +    21, 0.12 +    21, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +   321, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 +   321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +   321, 0.12 +   321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +  4321, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 +  4321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 +  4321, 0.12 +  4321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 + 54321, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 + 54321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 + 54321, 0.12 + 54321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -     1, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 -     1, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -     1, 0.12 -     1, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -    21, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 -    21, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -    21, 0.12 -    21, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -   321, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 -   321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -   321, 0.12 -   321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -  4321, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 -  4321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 -  4321, 0.12 -  4321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 - 54321, 0.12,         0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345,         0.12 - 54321, 0.12345, 0.00345, tolerance);
+  tester.testTrimPhaseValue(0.00345 - 54321, 0.12 - 54321, 0.12345, 0.00345, tolerance);
 }
 
 class TextEph: public FormattedEph {
@@ -877,12 +1099,12 @@ void PulsarDbTestApp::testFrequencyEph() {
   // Test pulse phase computations.
   double phase = eph1.calcPulsePhase(pick_time);
   if (std::fabs(phase/.235 - 1.) > epsilon)
-    err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .235" << std::endl;
+    err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << ", not .235" << std::endl;
  
   // Test pulse phase computations, with a non-zero global phase offset.
   phase = eph1.calcPulsePhase(pick_time, 0.1234);
   if (std::fabs(phase/.3584 - 1.) > epsilon)
-    err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << " not .3584" << std::endl;
+    err() << "FrequencyEph::calcPulsePhase produced phase == " << phase << ", not .3584" << std::endl;
  
   // Change ephemeris to produce a noticeable effect.
   epoch = AbsoluteTime("TT", 51910, 123.4567891234567);
@@ -908,25 +1130,25 @@ void PulsarDbTestApp::testFrequencyEph() {
   // Test phase computation.
   double computed_phi0 = eph2.calcPulsePhase(ev_time);
   if (std::fabs(computed_phi0/.36 - 1.) > epsilon)
-    err() << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << " not .36" << std::endl;
+    err() << "FrequencyEph::calcPulsePhase produced phi0 == " << computed_phi0 << ", not .36" << std::endl;
  
   // Test frequency computation.
   double computed_f0 = eph2.calcFrequency(ev_time, 0);
   double correct_f0 = 5.625e-2;
   if (std::fabs(computed_f0 - correct_f0) > epsilon) {
-    err() << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << " not " << correct_f0 << std::endl;
+    err() << "FrequencyEph::calcFrequency produced f0 == " << computed_f0 << ", not " << correct_f0 << std::endl;
   }
   
   double computed_f1 = eph2.calcFrequency(ev_time, 1);
   double correct_f1 = 11.25e-4;
   if (std::fabs(computed_f1 - correct_f1) > epsilon) {
-    err() << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << " not " << correct_f1 << std::endl;
+    err() << "FrequencyEph::calcFrequency produced f1 == " << computed_f1 << ", not " << correct_f1 << std::endl;
   }
   
   double computed_f2 = eph2.calcFrequency(ev_time, 2);
   double correct_f2 = 13.5e-6;
   if (std::fabs(computed_f2 - correct_f2) > epsilon) {
-    err() << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << " not " << correct_f2 << std::endl;
+    err() << "FrequencyEph::calcFrequency produced f2 == " << computed_f2 << ", not " << correct_f2 << std::endl;
   }
 
   // Test the constructor that takes numerical arguments.
@@ -1278,12 +1500,12 @@ void PulsarDbTestApp::testSimpleDdEph() {
   // Test orbital phase computations.
   double phase = eph1.calcOrbitalPhase(ev_time);
   if (std::fabs(phase/.099 - 1.) > epsilon)
-    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .099" << std::endl;
+    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not .099" << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = eph1.calcOrbitalPhase(ev_time, 0.1234);
   if (std::fabs(phase/.2224 - 1.) > epsilon)
-    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << " not .2224" << std::endl;
+    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not .2224" << std::endl;
 
   // Test orbital delay computations.
   // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
@@ -1464,13 +1686,13 @@ void PulsarDbTestApp::testBtModelEph() {
   double phase = eph1.calcOrbitalPhase(ev_time);
   double phase_expected = 100./1010.;
   if (std::fabs(phase/phase_expected - 1.) > epsilon)
-    err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
+    err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = eph1.calcOrbitalPhase(ev_time, 0.1234);
   phase_expected += 0.1234;
   if (std::fabs(phase/phase_expected - 1.) > epsilon)
-    err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << " not " << phase_expected << std::endl;
+    err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
 
   // Test orbital delay computations.
   // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
@@ -1632,7 +1854,7 @@ void PulsarDbTestApp::testPdotCanceler() {
   canceler1.cancelPdot(ev_time1);
   if (!correct_time.equivalentTo(ev_time1, tolerance)) {
     err() << "After constructed from literal numbers, PdotCanceler::cancelPdot produced pdot-corrected time == "
-      << ev_time1 << " not " << correct_time << std::endl;
+      << ev_time1 << ", not " << correct_time << std::endl;
   }
 
   // Test PdotCanceler created from a PulsarEph object.
@@ -1644,7 +1866,7 @@ void PulsarDbTestApp::testPdotCanceler() {
   canceler2.cancelPdot(ev_time2);
   if (!correct_time.equivalentTo(ev_time2, tolerance)) {
     err() << "After constructed from PulsarEph, PdotCanceler::cancelPdot produced pdot-corrected time == "
-      << ev_time2 << " not " << correct_time << std::endl;
+      << ev_time2 << ", not " << correct_time << std::endl;
   }
 
   // Test time system getter.
@@ -1778,8 +2000,8 @@ void PulsarDbTestApp::testChooser() {
         expected_t0 << std::endl;
     }
   } catch (const std::runtime_error & x) {
-    err() << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " <<
-    x.what() << std::endl;
+    err() << "for time " << pick_time << ", chooser had trouble choosing orbital eph: " << std::endl <<
+      x.what() << std::endl;
   }
 
   // Clean up.
