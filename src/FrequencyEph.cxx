@@ -55,9 +55,9 @@ namespace pulsarDb {
     read(record, "VALID_UNTIL", valid_until_date);
     m_until = AbsoluteTime("TDB", Mjd(valid_until_date + 1, 0.));
 
-    // Read the sky position and frequency coefficients (RA, Dec, F0: required, F1, F2: optional).
+    // Read the sky position and frequency coefficients (RA, DEC, F0: required, F1, F2: optional).
     read(record, "RA",  m_ra);
-    read(record, "Dec", m_dec);
+    read(record, "DEC", m_dec);
     read(record, "F0",  m_f0);
     read(record, "F1",  m_f1 , 0.);
     read(record, "F2",  m_f2 , 0.);
