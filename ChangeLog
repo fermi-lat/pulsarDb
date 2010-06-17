@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Jun 16 17:41:13 PDT 2010
+pulsarDb/data
+
+Added Files:
+	column_samples.fits 
+Log Message:
+Add tests of FormattedEph class. Cosmetic changes in error messages.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Jun 16 17:41:13 PDT 2010
 pulsarDb/src/test
 
 Modified Files:
