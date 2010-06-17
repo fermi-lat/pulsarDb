@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Jun 16 17:41:13 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests of FormattedEph class. Cosmetic changes in error messages.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-17-00, operation: add
 Package: pulsarDb
