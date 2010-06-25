@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jun 25 16:07:52 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Separate method definitions from their declarations (cosmetic).
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jun 25 15:32:33 PDT 2010
 pulsarDb/src/test
 
