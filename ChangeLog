@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jun 25 14:44:12 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Support vector-valued columns.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-17-00, operation: add
 Package: pulsarDb
