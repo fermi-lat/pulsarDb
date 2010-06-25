@@ -865,43 +865,101 @@ class FormattedEphTester: public FormattedEph {
     }
 
     template <typename DataType>
-    void testRead(const tip::Table::ConstRecord & record, const std::string & field_name, const DataType & field_content,
-      const DataType & default_value, bool expected_to_fail) const {
+    void testReadScalarColumn(const tip::Table::ConstRecord & record, const std::string & field_name, const DataType & default_value,
+      const DataType & expected_value, bool expected_to_fail) const {
       DataType data_value;
 
       // Test read method without a default value.
       bool exception_thrown = false;
+      bool return_value = true;
       try {
-        read(record, field_name, data_value);
+        return_value = read(record, field_name, data_value);
         if (expected_to_fail) {
           m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value) did not throw an exception" <<
             std::endl;
         }
-      } catch (const std::exception & x) {
+      } catch (const CellReadError & x) {
         exception_thrown = true;
         if (!expected_to_fail) {
           m_test_app->err() << "FormattedEph::read(record, \"" << field_name <<
             "\", data_value) unexpectedly threw an exception: " << std::endl << x.what() << std::endl;
         }
+      } catch (const std::exception & x) {
+        exception_thrown = true;
+        m_test_app->err() << "FormattedEph::read(record, \"" << field_name <<
+          "\", data_value) threw a standard exception: " << std::endl << x.what() << std::endl;
       }
-      if (!expected_to_fail && !exception_thrown && data_value != field_content) {
-        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value) returned with data_value = " <<
-          data_value << ", not " << field_content << std::endl;
+      if (!expected_to_fail && !exception_thrown) {
+        if (data_value != expected_value) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value) returned with data_value = " <<
+            represent(data_value) << ", not " << represent(expected_value) << std::endl;
+        }
+        if (false != return_value) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name <<
+            "\", data_value) returned a logical TRUE, not FALSE" << std::endl;
+        }
       }
 
       // Test read method with a default value.
       exception_thrown = false;
+      return_value = false;
       try {
-        read(record, field_name, data_value, default_value);
+        return_value = read(record, field_name, data_value, default_value);
       } catch (const std::exception & x) {
         exception_thrown = true;
-        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << default_value <<
+        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << represent(default_value) <<
           ") unexpectedly threw an exception: " << std::endl << x.what() << std::endl;
       }
-      const DataType & expected_value = (expected_to_fail ? default_value : field_content);
-      if (!exception_thrown && data_value != expected_value) {
-        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << default_value <<
-          ") returned with data_value = " << data_value << ", not " << expected_value << std::endl;
+      if (!exception_thrown) {
+        if(data_value != expected_value) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << represent(default_value) <<
+            ") returned with data_value = " << represent(data_value) << ", not " << represent(expected_value) << std::endl;
+        }
+        if (return_value != expected_to_fail) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_value, " << represent(default_value) <<
+            ") returned a logical " << (return_value ? "TRUE" : "FALSE") << ", not " <<
+            (expected_to_fail ? "TRUE" : "FALSE") << std::endl;
+        }
+      }
+    }
+
+    template <typename DataType>
+    void testReadVectorColumn(const tip::Table::ConstRecord & record, const std::string & field_name,
+      const std::vector<DataType> & default_array, const DataType & default_value, const std::vector<DataType> & expected_array,
+      const std::vector<bool> & expected_flag, bool expected_to_fail) const {
+      std::vector<DataType> data_array;
+      std::vector<bool> flag_array;
+
+      // Test read method for a scalar column.
+      const std::vector<DataType> & expected_array_scalar = (expected_to_fail ? default_array : expected_array);
+      testReadScalarColumn(record, field_name, default_array, expected_array_scalar, expected_to_fail);
+
+      // Test read method with vector arguments.
+      bool exception_thrown = false;
+      bool return_value = false;
+      try {
+        return_value = read(record, field_name, data_array, default_value, flag_array);
+      } catch (const std::exception & x) {
+        exception_thrown = true;
+        m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_array, " << default_value <<
+          ", flag_array) unexpectedly threw an exception: " << std::endl << x.what() << std::endl;
+      }
+      if (!exception_thrown) {
+        if (data_array != expected_array) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_array, " << default_value <<
+            ", flag_array) returned with data_array = " << represent(data_array) << ", not " <<
+            represent(expected_array) << std::endl;
+        }
+        if (flag_array != expected_flag) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_array, " << default_value <<
+            ", flag_array) returned with flag_array = " << represent(flag_array) << ", not " <<
+            represent(expected_flag) << std::endl;
+        }
+        if (return_value != expected_to_fail) {
+          m_test_app->err() << "FormattedEph::read(record, \"" << field_name << "\", data_array, " << default_value <<
+            ", flag_array) returned a logical " << (return_value ? "TRUE" : "FALSE") << ", not " <<
+            (expected_to_fail ? "TRUE" : "FALSE") << std::endl;
+        }
       }
     }
 
@@ -926,6 +984,36 @@ class FormattedEphTester: public FormattedEph {
 
   private:
     PulsarTestApp * m_test_app;
+
+    template <typename DataType>
+    std::string represent(const DataType & data_value) const {
+      std::ostringstream oss;
+      oss << data_value;
+      return oss.str();
+    }
+
+    template <typename DataType>
+    std::string represent(const std::vector<DataType> & data_array) const {
+      std::ostringstream oss;
+      oss << "(";
+      for (typename std::vector<DataType>::const_iterator itor = data_array.begin(); itor != data_array.end(); ++itor) {
+        if (data_array.begin() != itor) oss << ", ";
+        oss << *itor;
+      }
+      oss << ")";
+      return oss.str();
+    }
+
+    std::string represent(const std::vector<bool> & flag_array) const {
+      std::ostringstream oss;
+      oss << "(";
+      for (std::vector<bool>::const_iterator itor = flag_array.begin(); itor != flag_array.end(); ++itor) {
+        if (flag_array.begin() != itor) oss << ", ";
+        oss << (*itor ? "TRUE" : "FALSE");
+      }
+      oss << ")";
+      return oss.str();
+    }
 };
 
 void PulsarDbTestApp::testFormattedEph() {
@@ -951,7 +1039,7 @@ void PulsarDbTestApp::testFormattedEph() {
   std::string string_value = "string value"; tester.testFormat("string", string_value);
   AbsoluteTime abs_time("TDB", 51910, 12345.6789); tester.testFormat("absolute time", abs_time);
 
-  // Open a FITS file to test reading column values.
+  // Open a FITS extension to test reading column values.
   std::string filename(prependDataPath("column_samples.fits"));
   std::auto_ptr<const tip::Table> table(tip::IFileSvc::instance().readTable(filename, "SCALAR"));
 
@@ -962,10 +1050,8 @@ void PulsarDbTestApp::testFormattedEph() {
   char default_1B = 34;
   int content_1I = 123;
   int default_1I = 456;
-  long content_1J = 12345;
-  long default_1J = 67890;
-  std::string content_1A = "s";
-  std::string default_1A = "d";
+  long content_1J = 1234;
+  long default_1J = 5678;
   float content_1E = 12.345;
   float default_1E = 543.21;
   double content_1D = 1234.56789;
@@ -974,34 +1060,316 @@ void PulsarDbTestApp::testFormattedEph() {
   // Test read method for various data types.
   tip::Table::ConstIterator record_itor = table->begin();
   bool expected_to_fail = false;
-  tester.testRead(*record_itor, "1L_COLUMN", content_1L, default_1L, expected_to_fail);
-  tester.testRead(*record_itor, "1B_COLUMN", content_1B, default_1B, expected_to_fail);
-  tester.testRead(*record_itor, "1I_COLUMN", content_1I, default_1I, expected_to_fail);
-  tester.testRead(*record_itor, "1J_COLUMN", content_1J, default_1J, expected_to_fail);
-  tester.testRead(*record_itor, "1A_COLUMN", content_1A, default_1A, expected_to_fail);
-  tester.testRead(*record_itor, "1E_COLUMN", content_1E, default_1E, expected_to_fail);
-  tester.testRead(*record_itor, "1D_COLUMN", content_1D, default_1D, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1L_COLUMN", default_1L, content_1L, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1B_COLUMN", default_1B, content_1B, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1I_COLUMN", default_1I, content_1I, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1J_COLUMN", default_1J, content_1J, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1E_COLUMN", default_1E, content_1E, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1D_COLUMN", default_1D, content_1D, expected_to_fail);
 
   // Test read method for non-existing column.
   expected_to_fail = true;
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1L, default_1L, expected_to_fail);
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1B, default_1B, expected_to_fail);
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1I, default_1I, expected_to_fail);
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1J, default_1J, expected_to_fail);
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1A, default_1A, expected_to_fail);
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1E, default_1E, expected_to_fail);
-  tester.testRead(*record_itor, "NO_SUCH_COLUMN", content_1D, default_1D, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "NO_SUCH_COLUMN", default_1L, default_1L, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "NO_SUCH_COLUMN", default_1B, default_1B, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "NO_SUCH_COLUMN", default_1I, default_1I, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "NO_SUCH_COLUMN", default_1J, default_1J, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "NO_SUCH_COLUMN", default_1E, default_1E, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "NO_SUCH_COLUMN", default_1D, default_1D, expected_to_fail);
 
   // Test read method for NULL detection.
   ++record_itor;
   expected_to_fail = true;
-  tester.testRead(*record_itor, "1L_COLUMN", content_1L, default_1L, expected_to_fail);
-  tester.testRead(*record_itor, "1B_COLUMN", content_1B, default_1B, expected_to_fail);
-  tester.testRead(*record_itor, "1I_COLUMN", content_1I, default_1I, expected_to_fail);
-  tester.testRead(*record_itor, "1J_COLUMN", content_1J, default_1J, expected_to_fail);
-  tester.testRead(*record_itor, "1A_COLUMN", content_1A, default_1A, expected_to_fail);
-  tester.testRead(*record_itor, "1E_COLUMN", content_1E, default_1E, expected_to_fail);
-  tester.testRead(*record_itor, "1D_COLUMN", content_1D, default_1D, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1L_COLUMN", default_1L, default_1L, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1B_COLUMN", default_1B, default_1B, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1I_COLUMN", default_1I, default_1I, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1J_COLUMN", default_1J, default_1J, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1E_COLUMN", default_1E, default_1E, expected_to_fail);
+  tester.testReadScalarColumn(*record_itor, "1D_COLUMN", default_1D, default_1D, expected_to_fail);
+
+  // Open a FITS extension to test reading vector-column values.
+  table.reset(tip::IFileSvc::instance().readTable(filename, "VECTOR"));
+  record_itor = table->begin();
+
+  // Set test constants.
+  std::vector<bool> null_array(5);
+  null_array[0] = false;
+  null_array[1] = true;
+  null_array[2] = true;
+  null_array[3] = false;
+  null_array[4] = false;
+  std::vector<bool> allok_array(5, false);
+  std::vector<bool> empty_array(0);
+
+  std::vector<bool> content_5L(5);
+  content_5L[0] = true;
+  content_5L[1] = false;
+  content_5L[2] = true;
+  content_5L[3] = true;
+  content_5L[4] = false;
+  std::vector<bool> defarray_5L(3);
+  defarray_5L[0] = true;
+  defarray_5L[1] = true;
+  defarray_5L[2] = false;
+  bool defvalue_5L = false;
+  std::vector<bool> empty_5L(0);
+
+  std::vector<char> content_5B(5);
+  content_5B[0] = 12;
+  content_5B[1] = 23;
+  content_5B[2] = 34;
+  content_5B[3] = 45;
+  content_5B[4] = 56;
+  std::vector<char> defarray_5B(3);
+  defarray_5B[0] = 11;
+  defarray_5B[1] = 22;
+  defarray_5B[2] = 33;
+  char defvalue_5B = 67;
+  std::vector<char> empty_5B(0);
+
+  std::vector<int> content_5I(5);
+  content_5I[0] = 123;
+  content_5I[1] = 234;
+  content_5I[2] = 345;
+  content_5I[3] = 456;
+  content_5I[4] = 567;
+  std::vector<int> defarray_5I(3);
+  defarray_5I[0] = 111;
+  defarray_5I[1] = 222;
+  defarray_5I[2] = 333;
+  int defvalue_5I = 678;
+  std::vector<int> empty_5I(0);
+
+  std::vector<long> content_5J(5);
+  content_5J[0] = 1234;
+  content_5J[1] = 2345;
+  content_5J[2] = 3456;
+  content_5J[3] = 4567;
+  content_5J[4] = 5678;
+  std::vector<long> defarray_5J(3);
+  defarray_5J[0] = 1111;
+  defarray_5J[1] = 2222;
+  defarray_5J[2] = 3333;
+  long defvalue_5J = 6789;
+  std::vector<long> empty_5J(0);
+
+  std::vector<float> content_5E(5);
+  content_5E[0] = 12.345;
+  content_5E[1] = 23.456;
+  content_5E[2] = 34.567;
+  content_5E[3] = 45.678;
+  content_5E[4] = 56.789;
+  std::vector<float> defarray_5E(3);
+  defarray_5E[0] = 11.111;
+  defarray_5E[1] = 22.222;
+  defarray_5E[2] = 33.333;
+  float defvalue_5E = 67.891;
+  std::vector<float> empty_5E(0);
+
+  std::vector<double> content_5D(5);
+  content_5D[0] = 1234.56789;
+  content_5D[1] = 2345.67891;
+  content_5D[2] = 3456.78912;
+  content_5D[3] = 4567.89123;
+  content_5D[4] = 5678.91234;
+  std::vector<double> defarray_5D(3);
+  defarray_5D[0] = 1111.11111;
+  defarray_5D[1] = 2222.22222;
+  defarray_5D[2] = 3333.33333;
+  double defvalue_5D = 6789.12345;
+  std::vector<double> empty_5D(0);
+
+  // Test read method for vector columns.
+  expected_to_fail = false;
+  tester.testReadVectorColumn(*record_itor, "5L_COLUMN", defarray_5L, defvalue_5L, content_5L, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5B_COLUMN", defarray_5B, defvalue_5B, content_5B, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5I_COLUMN", defarray_5I, defvalue_5I, content_5I, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5J_COLUMN", defarray_5J, defvalue_5J, content_5J, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5E_COLUMN", defarray_5E, defvalue_5E, content_5E, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5D_COLUMN", defarray_5D, defvalue_5D, content_5D, allok_array, expected_to_fail);
+
+  // Test read method for non-existing vector columns.
+  expected_to_fail = true;
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", defarray_5L, defvalue_5L, empty_5L, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", defarray_5B, defvalue_5B, empty_5B, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", defarray_5I, defvalue_5I, empty_5I, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", defarray_5J, defvalue_5J, empty_5J, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", defarray_5E, defvalue_5E, empty_5E, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", defarray_5D, defvalue_5D, empty_5D, empty_array, expected_to_fail);
+
+  // Test read method for NULL detection for vector columns.
+  ++record_itor;
+  expected_to_fail = true;
+
+  content_5L[0] = false;
+  content_5L[1] = defvalue_5L;
+  content_5L[2] = defvalue_5L;
+  content_5L[3] = false;
+  content_5L[4] = true;
+
+  content_5B[0] = 21;
+  content_5B[1] = defvalue_5B;
+  content_5B[2] = defvalue_5B;
+  content_5B[3] = 54;
+  content_5B[4] = 65;
+
+  content_5I[0] = 321;
+  content_5I[1] = defvalue_5I;
+  content_5I[2] = defvalue_5I;
+  content_5I[3] = 654;
+  content_5I[4] = 765;
+
+  content_5J[0] = 4321;
+  content_5J[1] = defvalue_5J;
+  content_5J[2] = defvalue_5J;
+  content_5J[3] = 7654;
+  content_5J[4] = 8765;
+
+  content_5E[0] = 54.321;
+  content_5E[1] = defvalue_5E;
+  content_5E[2] = defvalue_5E;
+  content_5E[3] = 87.654;
+  content_5E[4] = 98.765;
+
+  content_5D[0] = 9876.54321;
+  content_5D[1] = defvalue_5D;
+  content_5D[2] = defvalue_5D;
+  content_5D[3] = 3219.87654;
+  content_5D[4] = 4321.98765;
+
+  tester.testReadVectorColumn(*record_itor, "5L_COLUMN", defarray_5L, defvalue_5L, content_5L, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5B_COLUMN", defarray_5B, defvalue_5B, content_5B, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5I_COLUMN", defarray_5I, defvalue_5I, content_5I, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5J_COLUMN", defarray_5J, defvalue_5J, content_5J, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5E_COLUMN", defarray_5E, defvalue_5E, content_5E, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "5D_COLUMN", defarray_5D, defvalue_5D, content_5D, null_array, expected_to_fail);
+
+  // Open a FITS extension to test reading variable-length-column values.
+  table.reset(tip::IFileSvc::instance().readTable(filename, "VARRAY"));
+  record_itor = table->begin();
+
+  // Set test constants.
+  null_array.resize(7);
+  null_array[0] = false;
+  null_array[1] = false;
+  null_array[2] = true;
+  null_array[3] = true;
+  null_array[4] = false;
+  null_array[5] = false;
+  null_array[6] = false;
+  allok_array.resize(3);
+
+  std::vector<bool> content_PL(3);
+  content_PL[0] = true;
+  content_PL[1] = false;
+  content_PL[2] = true;
+
+  std::vector<char> content_PB(3);
+  content_PB[0] = 12;
+  content_PB[1] = 23;
+  content_PB[2] = 34;
+
+  std::vector<int> content_PI(3);
+  content_PI[0] = 123;
+  content_PI[1] = 234;
+  content_PI[2] = 345;
+
+  std::vector<long> content_PJ(3);
+  content_PJ[0] = 1234;
+  content_PJ[1] = 2345;
+  content_PJ[2] = 3456;
+
+  std::vector<float> content_PE(3);
+  content_PE[0] = 12.345;
+  content_PE[1] = 23.456;
+  content_PE[2] = 34.567;
+
+  std::vector<double> content_PD(3);
+  content_PD[0] = 1234.56789;
+  content_PD[1] = 2345.67891;
+  content_PD[2] = 3456.78912;
+
+  // Test read method for variable-length columns.
+  expected_to_fail = false;
+  tester.testReadVectorColumn(*record_itor, "PL_COLUMN", content_5L, defvalue_5L, content_PL, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PB_COLUMN", content_5B, defvalue_5B, content_PB, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PI_COLUMN", content_5I, defvalue_5I, content_PI, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PJ_COLUMN", content_5J, defvalue_5J, content_PJ, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PE_COLUMN", content_5E, defvalue_5E, content_PE, allok_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PD_COLUMN", content_5D, defvalue_5D, content_PD, allok_array, expected_to_fail);
+
+  // Test read method for non-existing variable-length columns.
+  expected_to_fail = true;
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", content_5L, defvalue_5L, empty_5L, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", content_5B, defvalue_5B, empty_5B, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", content_5I, defvalue_5I, empty_5I, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", content_5J, defvalue_5J, empty_5J, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", content_5E, defvalue_5E, empty_5E, empty_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "NO_SUCH_COLUMN", content_5D, defvalue_5D, empty_5D, empty_array, expected_to_fail);
+
+  // Test read method for NULL detection for vector columns.
+  ++record_itor;
+  expected_to_fail = true;
+
+  content_PL.resize(7);
+  content_PL[0] = false;
+  content_PL[1] = true;
+  content_PL[2] = defvalue_5L;
+  content_PL[3] = defvalue_5L;
+  content_PL[4] = false;
+  content_PL[5] = false;
+  content_PL[6] = true;
+
+  content_PB.resize(7);
+  content_PB[0] = 21;
+  content_PB[1] = 32;
+  content_PB[2] = defvalue_5B;
+  content_PB[3] = defvalue_5B;
+  content_PB[4] = 43;
+  content_PB[5] = 54;
+  content_PB[6] = 65;
+
+  content_PI.resize(7);
+  content_PI[0] = 321;
+  content_PI[1] = 432;
+  content_PI[2] = defvalue_5I;
+  content_PI[3] = defvalue_5I;
+  content_PI[4] = 543;
+  content_PI[5] = 654;
+  content_PI[6] = 765;
+
+  content_PJ.resize(7);
+  content_PJ[0] = 4321;
+  content_PJ[1] = 5432;
+  content_PJ[2] = defvalue_5J;
+  content_PJ[3] = defvalue_5J;
+  content_PJ[4] = 6543;
+  content_PJ[5] = 7654;
+  content_PJ[6] = 8765;
+
+  content_PE.resize(7);
+  content_PE[0] = 54.321;
+  content_PE[1] = 65.432;
+  content_PE[2] = defvalue_5E;
+  content_PE[3] = defvalue_5E;
+  content_PE[4] = 76.543;
+  content_PE[5] = 87.654;
+  content_PE[6] = 98.765;
+
+  content_PD.resize(7);
+  content_PD[0] = 9876.54321;
+  content_PD[1] = 1987.65432;
+  content_PD[2] = defvalue_5D;
+  content_PD[3] = defvalue_5D;
+  content_PD[4] = 2198.76543;
+  content_PD[5] = 3219.87654;
+  content_PD[6] = 4321.98765;
+
+  tester.testReadVectorColumn(*record_itor, "PL_COLUMN", content_5L, defvalue_5L, content_PL, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PB_COLUMN", content_5B, defvalue_5B, content_PB, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PI_COLUMN", content_5I, defvalue_5I, content_PI, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PJ_COLUMN", content_5J, defvalue_5J, content_PJ, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PE_COLUMN", content_5E, defvalue_5E, content_PE, null_array, expected_to_fail);
+  tester.testReadVectorColumn(*record_itor, "PD_COLUMN", content_5D, defvalue_5D, content_PD, null_array, expected_to_fail);
 
   // Test trimPhaseValue method.
   double tolerance = 1.e-6;
