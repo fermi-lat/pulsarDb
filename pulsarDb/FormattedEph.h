@@ -95,44 +95,7 @@ namespace pulsarDb {
           \param data_value Output argument to which the value read from the cell is set.
       */
       template <typename DataType>
-      bool read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) const {
-        // Get the field index and check whether it is a scalar column or a vector.
-        tip::FieldIndex_t field_index = 0;
-        try {
-          field_index = record.getExtensionData()->getFieldIndex(field_name);
-        } catch (const tip::TipException & x) {
-          // Re-throw the error as CellReadError, so that the caller can distinguish it from other exceptions.
-          throw CellReadError(x.what());
-        }
-        bool is_scalar = record.getExtensionData()->getColumn(field_index)->isScalar();
-
-        // Get the cell.
-        const tip::TableCell & cell = record[field_name];
-
-        // Check whether this cell contains a defined value.
-        if (is_scalar) {
-          if (cell.isNull()) throw CellReadError("Field \"" + field_name + "\" is undefined");
-        } else {
-          std::vector<bool> null_array;
-          if (hasNull(cell, null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
-          // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
-          //if (cell.hasNull(null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
-        }
-
-        // Try to get the cell content.
-        cell.get(data_value);
-
-        // Throw an exception if the cell contains an Not-A-Number.
-        if (is_scalar) {
-          if (isNan(data_value)) throw CellReadError("Value of field \"" + field_name + "\" is not a number");
-        } else {
-          std::vector<bool> nan_array;
-          if (hasNan(data_value, nan_array)) throw CellReadError("Value(s) of field \"" + field_name + "\" are not a number");
-        }
-
-        // Always return a logical false.
-        return false;
-      }
+      bool read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) const;
 
       /** \brief Helper method to get a value from a cell, returning it through an output argument (data_value).
                  If the cell contains a NULL or a Not-A-Number, or if a named cell does not exist in the given
@@ -148,21 +111,7 @@ namespace pulsarDb {
       */
       template <typename DataType>
       bool read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value,
-        const DataType & default_value) const {
-        // Prepare a return value.
-        bool is_default = false;
-
-        // Try to read out the cell.
-        try {
-          read(record, field_name, data_value);
-        } catch (const CellReadError &) {
-          data_value = default_value;
-          is_default = true;
-        }
-
-        // Return the flag.
-        return is_default;
-      }
+        const DataType & default_value) const;
 
       /** \brief Helper method to get a data array from a cell, returning it through an output argument (data_array).
                  If the cell contains a NULL or a Not-A-Number, then the given default value (default_value) is set to
@@ -183,72 +132,14 @@ namespace pulsarDb {
       */
       template <typename DataType>
       bool read(const tip::Table::ConstRecord & record, const std::string & field_name, std::vector<DataType> & data_array,
-        const DataType & default_value, std::vector<bool> & is_default) const {
-        // Get the field index.
-        bool no_such_field = false;
-        tip::FieldIndex_t field_index = 0;
-        try {
-          field_index = record.getExtensionData()->getFieldIndex(field_name);
-        } catch (const tip::TipException & x) {
-          no_such_field = true;
-        }
-        if (no_such_field) {
-          data_array.clear();
-          is_default.clear();
-          return true;
-        }
-
-        // Throw an exception if it is a scalar column.
-        if (record.getExtensionData()->getColumn(field_index)->isScalar()) {
-          throw CellReadError("Attempted to read an array of data from a scalar column");
-        }
-
-        // Get the cell.
-        const tip::TableCell & cell = record[field_name];
-
-        // Try to get the cell content, and prepare for the output flags.
-        cell.get(data_array);
-        typename std::vector<DataType>::size_type array_size = data_array.size();
-        is_default.resize(array_size);
-        if (is_default.size() != array_size) throw std::runtime_error("Failed to allocate memory space for default flags");
-
-        // Check whether this cell contains a defined value.
-        std::vector<bool> null_array;
-        hasNull(cell, null_array);
-        // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
-        //cell.hasNull(null_array));
-        if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
-
-        // Check whether the cell contains an Not-A-Number.
-        std::vector<bool> nan_array;
-        hasNan(data_array, nan_array);
-        if (nan_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for Not-A-Number flags");
-
-        // Take a logical OR of NULL and Not-A-Number, and set the default value to a corresponding element.
-        bool return_value = false;
-        for (std::vector<bool>::size_type ii = 0; ii < array_size; ++ii) {
-          is_default[ii] = null_array[ii] || nan_array[ii];
-          if (is_default[ii]) {
-            data_array[ii] = default_value;
-            return_value = true;
-          }
-        }
-
-        // Return the logical OR of all NULL-or-Not-A-Number flags.
-        return return_value;
-      }
+        const DataType & default_value, std::vector<bool> & is_default) const;
 
       /** \brief Helper method that returns the fractional part of a given value, making sure that
                  the return value is in the range of [0, 1).
           \param phase_value Phase value whose fractional part is to be returned.
           \param phase_offset Phase value to be added to the computed pulse or orbital phase.
       */
-      double trimPhaseValue(double phase_value, double phase_offset = 0.) const {
-        double int_part; // ignored, needed for modf.
-        double phase = std::modf(phase_value + phase_offset, &int_part);
-        if (phase < 0.) ++phase;
-        return phase;
-      }
+      inline double trimPhaseValue(double phase_value, double phase_offset = 0.) const;
 
     private:
       /** \brief Helper method to check whether a given templated data is an INDEF.
@@ -263,64 +154,196 @@ namespace pulsarDb {
           \param data_value Data to be examined.
       */
       template <typename DataType>
-      inline bool isNotANumber(DataType data_value) const {
-#ifdef WIN32
-        return 0 != _isnan(data_value);
-#else
-        return 0 != std::isnan(data_value);
-#endif
-      }
+      inline bool isNotANumber(DataType data_value) const;
 
       /** \brief Helper method to check whether elements of a given data array are Not-A-Number.
                  The results are stored in an output array of Boolean values (nan_array), and this
                  method returns a logical OR of all the Boolean values.
           \param data_array Array of data to examine.
-          \param nan_array 
+          \param nan_array Output array to which a logical true is set if a corresponding data element
+                 is Not-A-Number.
       */
-      template <typename DataType>
-      bool hasNan(DataType /* data_array */, std::vector<bool> & /* nan_array */) const {
-        throw std::runtime_error("Unsupported array type is used for reading a vector column");
-      }
-
-      template <typename DataType>
-      bool hasNan(std::vector<DataType> data_array, std::vector<bool> & nan_array) const {
-        // Allocate memory space for Boolean flags.
-        typename std::vector<DataType>::size_type array_size = data_array.size();
-        nan_array.resize(array_size);
-        if (nan_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for Not-A-Number flags");
-
-        // Check the array contents.
-        bool has_nan = false;
-        for (typename std::vector<DataType>::size_type ii = 0; ii < array_size; ++ii) {
-          nan_array[ii] = isNan(data_array[ii]);
-          has_nan |= nan_array[ii];
-        }
-
-        // Return the logical OR of the results.
-        return has_nan;
-      }
+      template <typename DataType> bool hasNan(DataType /* data_array */, std::vector<bool> & /* nan_array */) const;
+      template <typename DataType> bool hasNan(std::vector<DataType> data_array, std::vector<bool> & nan_array) const;
 
       // TODO: Remove the following method once tip::TableCell::hasNull is implemented.
-      inline bool hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const {
-        std::vector<std::string> string_array;
-        cell.get(string_array);
-
-        // Resize the output array (null_array).
-        std::vector<std::string>::size_type array_size = string_array.size();
-        null_array.resize(array_size);
-        if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
-
-        // Check the array for undefined elements.
-        bool has_null = false;
-        for (std::vector<std::string>::size_type ii = 0; ii < array_size; ++ii) {
-          null_array[ii] = ("INDEF" == string_array[ii]);
-          has_null |= null_array[ii];
-        }
-
-        // Return the logical OR of the result.
-        return has_null;
-      }
+      inline bool hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const;
   };
+
+  template <typename DataType>
+  bool FormattedEph::read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) const {
+    // Get the field index and check whether it is a scalar column or a vector.
+    tip::FieldIndex_t field_index = 0;
+    try {
+      field_index = record.getExtensionData()->getFieldIndex(field_name);
+    } catch (const tip::TipException & x) {
+      // Re-throw the error as CellReadError, so that the caller can distinguish it from other exceptions.
+      throw CellReadError(x.what());
+    }
+    bool is_scalar = record.getExtensionData()->getColumn(field_index)->isScalar();
+
+    // Get the cell.
+    const tip::TableCell & cell = record[field_name];
+
+    // Check whether this cell contains a defined value.
+    if (is_scalar) {
+      if (cell.isNull()) throw CellReadError("Field \"" + field_name + "\" is undefined");
+    } else {
+      std::vector<bool> null_array;
+      if (hasNull(cell, null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
+      // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
+      //if (cell.hasNull(null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
+    }
+
+    // Try to get the cell content.
+    cell.get(data_value);
+
+    // Throw an exception if the cell contains an Not-A-Number.
+    if (is_scalar) {
+      if (isNan(data_value)) throw CellReadError("Value of field \"" + field_name + "\" is not a number");
+    } else {
+      std::vector<bool> nan_array;
+      if (hasNan(data_value, nan_array)) throw CellReadError("Value(s) of field \"" + field_name + "\" are not a number");
+    }
+
+    // Always return a logical false.
+    return false;
+  }
+
+  template <typename DataType>
+  bool FormattedEph::read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value,
+    const DataType & default_value) const {
+    // Prepare a return value.
+    bool is_default = false;
+
+    // Try to read out the cell.
+    try {
+      read(record, field_name, data_value);
+    } catch (const CellReadError &) {
+      data_value = default_value;
+      is_default = true;
+    }
+
+    // Return the flag.
+    return is_default;
+  }
+
+  template <typename DataType>
+  bool FormattedEph::read(const tip::Table::ConstRecord & record, const std::string & field_name, std::vector<DataType> & data_array,
+    const DataType & default_value, std::vector<bool> & is_default) const {
+    // Get the field index.
+    bool no_such_field = false;
+    tip::FieldIndex_t field_index = 0;
+    try {
+      field_index = record.getExtensionData()->getFieldIndex(field_name);
+    } catch (const tip::TipException & x) {
+      no_such_field = true;
+    }
+    if (no_such_field) {
+      data_array.clear();
+      is_default.clear();
+      return true;
+    }
+
+    // Throw an exception if it is a scalar column.
+    if (record.getExtensionData()->getColumn(field_index)->isScalar()) {
+      throw CellReadError("Attempted to read an array of data from a scalar column");
+    }
+
+    // Get the cell.
+    const tip::TableCell & cell = record[field_name];
+
+    // Try to get the cell content, and prepare for the output flags.
+    cell.get(data_array);
+    typename std::vector<DataType>::size_type array_size = data_array.size();
+    is_default.resize(array_size);
+    if (is_default.size() != array_size) throw std::runtime_error("Failed to allocate memory space for default flags");
+
+    // Check whether this cell contains a defined value.
+    std::vector<bool> null_array;
+    hasNull(cell, null_array);
+    // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
+    //cell.hasNull(null_array));
+    if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
+
+    // Check whether the cell contains an Not-A-Number.
+    std::vector<bool> nan_array;
+    hasNan(data_array, nan_array);
+    if (nan_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for Not-A-Number flags");
+
+    // Take a logical OR of NULL and Not-A-Number, and set the default value to a corresponding element.
+    bool return_value = false;
+    for (std::vector<bool>::size_type ii = 0; ii < array_size; ++ii) {
+      is_default[ii] = null_array[ii] || nan_array[ii];
+      if (is_default[ii]) {
+        data_array[ii] = default_value;
+        return_value = true;
+      }
+    }
+
+    // Return the logical OR of all NULL-or-Not-A-Number flags.
+    return return_value;
+  }
+
+  inline double FormattedEph::trimPhaseValue(double phase_value, double phase_offset) const {
+    double int_part; // ignored, needed for modf.
+    double phase = std::modf(phase_value + phase_offset, &int_part);
+    if (phase < 0.) ++phase;
+    return phase;
+  }
+
+  template <typename DataType>
+  inline bool FormattedEph::isNotANumber(DataType data_value) const {
+#ifdef WIN32
+    return 0 != _isnan(data_value);
+#else
+    return 0 != std::isnan(data_value);
+#endif
+  }
+
+  template <typename DataType>
+  bool FormattedEph::hasNan(DataType /* data_array */, std::vector<bool> & /* nan_array */) const {
+    throw std::runtime_error("Unsupported array type is used for reading a vector column");
+  }
+
+  template <typename DataType>
+  bool FormattedEph::hasNan(std::vector<DataType> data_array, std::vector<bool> & nan_array) const {
+    // Allocate memory space for Boolean flags.
+    typename std::vector<DataType>::size_type array_size = data_array.size();
+    nan_array.resize(array_size);
+    if (nan_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for Not-A-Number flags");
+
+    // Check the array contents.
+    bool has_nan = false;
+    for (typename std::vector<DataType>::size_type ii = 0; ii < array_size; ++ii) {
+      nan_array[ii] = isNan(data_array[ii]);
+      has_nan |= nan_array[ii];
+    }
+
+    // Return the logical OR of the results.
+    return has_nan;
+  }
+
+  // TODO: Remove the following method once tip::TableCell::hasNull is implemented.
+  inline bool FormattedEph::hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const {
+    std::vector<std::string> string_array;
+    cell.get(string_array);
+
+    // Resize the output array (null_array).
+    std::vector<std::string>::size_type array_size = string_array.size();
+    null_array.resize(array_size);
+    if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
+
+    // Check the array for undefined elements.
+    bool has_null = false;
+    for (std::vector<std::string>::size_type ii = 0; ii < array_size; ++ii) {
+      null_array[ii] = ("INDEF" == string_array[ii]);
+      has_null |= null_array[ii];
+    }
+
+    // Return the logical OR of the result.
+    return has_null;
+  }
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const FormattedEph & eph) { return eph.write(os); }
 
