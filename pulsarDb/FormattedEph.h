@@ -7,11 +7,13 @@
 #define pulsarDb_FormattedEph_h
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
 #include "st_stream/Stream.h"
 #include "tip/Table.h"
+#include "tip/tip_types.h"
 
 namespace tip {
   class Header;
@@ -20,7 +22,7 @@ namespace tip {
 namespace pulsarDb {
 
   /** \class ParameterFormatter
-      \brief Class that formats parameter value listing in a text output. This class is desgined to be used for the shift
+      \brief Class that formats parameter value listing in a text output. This class is designed to be used for the shift
       operator (<<) for PulsarEph and OrbitalEph classes.
   */
   template <typename DataType>
@@ -61,6 +63,17 @@ namespace pulsarDb {
       virtual st_stream::OStream & write(st_stream::OStream & os) const = 0;
 
     protected:
+      /** \class CellReadError
+          \brief Class that indicates an error in reading a FITS cell.
+      */
+      class CellReadError : public std::runtime_error {
+        public:
+          /** \brief Construct a CellReadError object by calling a base class constructor.
+              \param what_arg Character string that describes the error.
+          */
+          explicit CellReadError(const std::string & what_arg): std::runtime_error(what_arg) {}
+      };
+
       /** \brief Return a ParameterFormatter object to be used to format a text output of a given parameter.
           \param param_name Name of parameter to appear in a formatted text output.
           \param param_obj Object that holds the parameter value to output. The object must support a shift operator (<<)
@@ -72,47 +85,162 @@ namespace pulsarDb {
         return ParameterFormatter<DataType>(param_name, param_obj, separator);
       }
 
-      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, without handling the
-          case where the value is null or a special value like Not-A-Number (throws an exception for such cases).
-          \param record The record of tip::Table that contains the cell whose value to get.
-          \param field_name The name of the field for the cell.
-          \param data_value Variable to store the value.
+      /** \brief Helper method to get a value from a cell, returning it through an output argument (data_value).
+                 This method throws an exception if the cell contains a special value like a NULL and a Not-A-Number.
+                 It also throws an exception for an error in reading a FITS cell, such as a named column does not exist
+                 in the FITS table that the given cell belongs to. If it does not throw an exception, it returns a logical
+                 false as a return value of the method, indicating no error has occurred in reading out the cell.
+          \param record Record of tip::Table that contains the cell to read its value from.
+          \param field_name Name of the field for the cell.
+          \param data_value Output argument to which the value read from the cell is set.
       */
       template <typename DataType>
-      void read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) const {
+      bool read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value) const {
+        // Get the field index and check whether it is a scalar column or a vector.
+        tip::FieldIndex_t field_index = 0;
+        try {
+          field_index = record.getExtensionData()->getFieldIndex(field_name);
+        } catch (const tip::TipException & x) {
+          // Re-throw the error as CellReadError, so that the caller can distinguish it from other exceptions.
+          throw CellReadError(x.what());
+        }
+        bool is_scalar = record.getExtensionData()->getColumn(field_index)->isScalar();
+
         // Get the cell.
         const tip::TableCell & cell = record[field_name];
 
-        // Check whether this cell has a defined value.
-        if (cell.isNull()) throw std::runtime_error("Field \"" + field_name + "\" is undefined");
+        // Check whether this cell contains a defined value.
+        if (is_scalar) {
+          if (cell.isNull()) throw CellReadError("Field \"" + field_name + "\" is undefined");
+        } else {
+          std::vector<bool> null_array;
+          if (hasNull(cell, null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
+          // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
+          //if (cell.hasNull(null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
+        }
 
         // Try to get the cell content.
         cell.get(data_value);
 
-        // Throw an exception if the cell content is INDEF or not.
-        if (isNan(data_value)) throw std::runtime_error("Value of field \"" + field_name + "\" is not a number");
+        // Throw an exception if the cell contains an Not-A-Number.
+        if (is_scalar) {
+          if (isNan(data_value)) throw CellReadError("Value of field \"" + field_name + "\" is not a number");
+        } else {
+          std::vector<bool> nan_array;
+          if (hasNan(data_value, nan_array)) throw CellReadError("Value(s) of field \"" + field_name + "\" are not a number");
+        }
+
+        // Always return a logical false.
+        return false;
       }
 
-      /** \brief Helper method to get a value from a cell, returning it as the temmplated type, and handling the
-          case where the cell doesn't exist, the value is null or a special value like Not-A-Number.
-          \param record The record of tip::Table that contains the cell whose value to get.
-          \param field_name The name of the field for the cell.
-          \param data_value Variable to store the value.
-          \param failed_value The value to set to data_value when exception occurs.
+      /** \brief Helper method to get a value from a cell, returning it through an output argument (data_value).
+                 If the cell contains a NULL or a Not-A-Number, or if a named cell does not exist in the given
+                 FITS record (record), then the given default value (default_value) is set to the output argument,
+                 and a logical true is returned to indicate that. This method throws an exception for other errors
+                 in reading a FITS cell. In all other cases, it returns a logical false to indicate no error has
+                 occurred in reading out the cell.
+          \param record Record of tip::Table that contains the cell to read its value from.
+          \param field_name Name of the field for the cell.
+          \param data_value Output argument to which the value read from the cell is set.
+          \param default_value Default value to set to the output argument (data_value) when the named column does
+                 not exist, the content is a NULL or a Not-A-Number.
       */
       template <typename DataType>
-      void read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value,
-        const DataType & failed_value) const {
+      bool read(const tip::Table::ConstRecord & record, const std::string & field_name, DataType & data_value,
+        const DataType & default_value) const {
+        // Prepare a return value.
+        bool is_default = false;
+
+        // Try to read out the cell.
         try {
           read(record, field_name, data_value);
-        } catch (...) {
-          data_value = failed_value;
+        } catch (const CellReadError &) {
+          data_value = default_value;
+          is_default = true;
         }
+
+        // Return the flag.
+        return is_default;
+      }
+
+      /** \brief Helper method to get a data array from a cell, returning it through an output argument (data_array).
+                 If the cell contains a NULL or a Not-A-Number, then the given default value (default_value) is set to
+                 the corresponding element of the output argument, the corresponding element of an output Boolean array
+                 (is_default) is set, and a logical OR of the Boolean array is returned. If a named cell does not exist
+                 in the given FITS record (record), then this method removes all elements from the output argument and
+                 the output Boolean array (which make them zero-length arrays), and returns a logical true to indicate
+                 the error (i.e., no such column exists). This method throws an exception for other errors in reading
+                 a FITS cell. In all other cases, this method returns a logical false, indicating no error has occurred
+                 in reading out the cell.
+          \param record Record of tip::Table that contains the cell to read its value from.
+          \param field_name Name of the field for the cell.
+          \param data_array Output argument to which the values read from the cell are set.
+          \param default_value Default value to set to an element of the output argument (data_array) when the cell
+                 contains a NULL or a Not-A-Number.
+          \param is_default Output Boolean array which indicates that the given default value is set to the corresponding
+                 element of the output argument (data_array).
+      */
+      template <typename DataType>
+      bool read(const tip::Table::ConstRecord & record, const std::string & field_name, std::vector<DataType> & data_array,
+        const DataType & default_value, std::vector<bool> & is_default) const {
+        // Get the field index.
+        bool no_such_field = false;
+        tip::FieldIndex_t field_index = 0;
+        try {
+          field_index = record.getExtensionData()->getFieldIndex(field_name);
+        } catch (const tip::TipException & x) {
+          no_such_field = true;
+        }
+        if (no_such_field) {
+          data_array.clear();
+          is_default.clear();
+          return true;
+        }
+
+        // Throw an exception if it is a scalar column.
+        if (record.getExtensionData()->getColumn(field_index)->isScalar()) {
+          throw CellReadError("Attempted to read an array of data from a scalar column");
+        }
+
+        // Get the cell.
+        const tip::TableCell & cell = record[field_name];
+
+        // Try to get the cell content, and prepare for the output flags.
+        cell.get(data_array);
+        typename std::vector<DataType>::size_type array_size = data_array.size();
+        is_default.resize(array_size);
+        if (is_default.size() != array_size) throw std::runtime_error("Failed to allocate memory space for default flags");
+
+        // Check whether this cell contains a defined value.
+        std::vector<bool> null_array;
+        hasNull(cell, null_array);
+        // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
+        //cell.hasNull(null_array));
+        if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
+
+        // Check whether the cell contains an Not-A-Number.
+        std::vector<bool> nan_array;
+        hasNan(data_array, nan_array);
+        if (nan_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for Not-A-Number flags");
+
+        // Take a logical OR of NULL and Not-A-Number, and set the default value to a corresponding element.
+        bool return_value = false;
+        for (std::vector<bool>::size_type ii = 0; ii < array_size; ++ii) {
+          is_default[ii] = null_array[ii] || nan_array[ii];
+          if (is_default[ii]) {
+            data_array[ii] = default_value;
+            return_value = true;
+          }
+        }
+
+        // Return the logical OR of all NULL-or-Not-A-Number flags.
+        return return_value;
       }
 
       /** \brief Helper method that returns the fractional part of a given value, making sure that
-          the return value is in the range of [0, 1).
-          param phase_value Phase value whose fractional part is to be returned.
+                 the return value is in the range of [0, 1).
+          \param phase_value Phase value whose fractional part is to be returned.
           \param phase_offset Phase value to be added to the computed pulse or orbital phase.
       */
       double trimPhaseValue(double phase_value, double phase_offset = 0.) const {
@@ -124,24 +252,73 @@ namespace pulsarDb {
 
     private:
       /** \brief Helper method to check whether a given templated data is an INDEF.
-          \param x The data to be examined.
+          \param data_value Data to be examined.
       */
       template <typename DataType>
       inline bool isNan(DataType /* data_value */) const { return false; }
-
       inline bool isNan(float data_value) const { return isNotANumber(data_value); }
       inline bool isNan(double data_value) const { return isNotANumber(data_value); }
 
-      /** \brief Helper method to check whether a given double variable is Not-A-Number.
-          \param x The data to be examined.
+      /** \brief Helper method to check whether a given floating-point number is Not-A-Number.
+          \param data_value Data to be examined.
       */
-      template <typename T>
-      inline bool isNotANumber(T x) const {
+      template <typename DataType>
+      inline bool isNotANumber(DataType data_value) const {
 #ifdef WIN32
-        return 0 != _isnan(x);
+        return 0 != _isnan(data_value);
 #else
-        return 0 != std::isnan(x);
+        return 0 != std::isnan(data_value);
 #endif
+      }
+
+      /** \brief Helper method to check whether elements of a given data array are Not-A-Number.
+                 The results are stored in an output array of Boolean values (nan_array), and this
+                 method returns a logical OR of all the Boolean values.
+          \param data_array Array of data to examine.
+          \param nan_array 
+      */
+      template <typename DataType>
+      bool hasNan(DataType /* data_array */, std::vector<bool> & /* nan_array */) const {
+        throw std::runtime_error("Unsupported array type is used for reading a vector column");
+      }
+
+      template <typename DataType>
+      bool hasNan(std::vector<DataType> data_array, std::vector<bool> & nan_array) const {
+        // Allocate memory space for Boolean flags.
+        typename std::vector<DataType>::size_type array_size = data_array.size();
+        nan_array.resize(array_size);
+        if (nan_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for Not-A-Number flags");
+
+        // Check the array contents.
+        bool has_nan = false;
+        for (typename std::vector<DataType>::size_type ii = 0; ii < array_size; ++ii) {
+          nan_array[ii] = isNan(data_array[ii]);
+          has_nan |= nan_array[ii];
+        }
+
+        // Return the logical OR of the results.
+        return has_nan;
+      }
+
+      // TODO: Remove the following method once tip::TableCell::hasNull is implemented.
+      inline bool hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const {
+        std::vector<std::string> string_array;
+        cell.get(string_array);
+
+        // Resize the output array (null_array).
+        std::vector<std::string>::size_type array_size = string_array.size();
+        null_array.resize(array_size);
+        if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
+
+        // Check the array for undefined elements.
+        bool has_null = false;
+        for (std::vector<std::string>::size_type ii = 0; ii < array_size; ++ii) {
+          null_array[ii] = ("INDEF" == string_array[ii]);
+          has_null |= null_array[ii];
+        }
+
+        // Return the logical OR of the result.
+        return has_null;
       }
   };
 
