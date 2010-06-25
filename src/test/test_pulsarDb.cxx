@@ -320,7 +320,7 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test FrequencyEph class (a subclass of PulsarEph class).
     virtual void testFrequencyEph();
 
-    /// \brief Test PeriodEph classes (a subclass of PulsarEph class).
+    /// \brief Test PeriodEph class (a subclass of PulsarEph class).
     virtual void testPeriodEph();
 
     /// \brief Test SimpleDdEph class (a subclass of OrbitalEph class).
