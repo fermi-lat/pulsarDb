@@ -15,7 +15,6 @@
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/MjdFormat.h"
-#include "timeSystem/TimeInterval.h"
 
 using namespace timeSystem;
 
@@ -104,12 +103,6 @@ namespace pulsarDb {
     // Adjust units.
     m_om *= s_rad_per_deg;
     m_om_dot *= s_rad_year_per_deg_sec;
-  }
-
-  BtModelEph::~BtModelEph() {}
-
-  double BtModelEph::calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
-    return (at - m_t0).computeDuration(m_system->getName(), "Sec");
   }
 
   void BtModelEph::writeModelParameter(st_stream::OStream & os) const {

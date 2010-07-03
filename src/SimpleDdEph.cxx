@@ -15,7 +15,6 @@
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/MjdFormat.h"
-#include "timeSystem/TimeInterval.h"
 
 using namespace timeSystem;
 
@@ -110,12 +109,6 @@ namespace pulsarDb {
     m_om *= s_rad_per_deg;
     m_om_dot *= s_rad_year_per_deg_sec;
     m_shapiro_r *= s_sec_per_microsec;
-  }
-
-  SimpleDdEph::~SimpleDdEph() {}
-
-  double SimpleDdEph::calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
-    return (at - m_t0).computeDuration(m_system->getName(), "Sec");
   }
 
   void SimpleDdEph::writeModelParameter(st_stream::OStream & os) const {
