@@ -13,6 +13,7 @@
 #include "pulsarDb/OrbitalEph.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/TimeInterval.h"
 
 namespace st_stream {
   class OStream;
@@ -68,7 +69,7 @@ namespace pulsarDb {
       SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & header);
 
       /// \brief Destruct this SimpleDdEph object.
-      virtual ~SimpleDdEph();
+      virtual ~SimpleDdEph() {}
 
       /// \brief Return a time system in which binary demodulation is performed.
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
@@ -102,7 +103,9 @@ namespace pulsarDb {
       /** \brief Compute the number of elapsed seconds since the barycentric time of periastron (T0 parameter), and return it.
           \param at Absolute time for which the number of elapsed seconds is to be computed.
       */
-      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const;
+      inline double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
+        return (at - m_t0).computeDuration(m_system->getName(), "Sec");
+      }
 
       const timeSystem::TimeSystem * m_system;
       double m_pb, m_pb_dot;
