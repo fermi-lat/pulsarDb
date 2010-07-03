@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul  2 17:38:59 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	FrequencyEph.cxx PeriodEph.cxx 
+Log Message:
+Change calcElapsedSecond taking one argument from virtual to inline. Remove calcElapsedSecond taking two argument.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul  2 17:38:58 PDT 2010
 pulsarDb/pulsarDb
 
