@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Jul  2 17:39:53 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	SimpleDdEph.cxx BtModelEph.cxx 
+Log Message:
+Change calcElapsedSecond from virtual to inline. Move definition of destructor (cosmetic).
+    *
+------------------------------------------------------------
+User: hirayama  Fri Jul  2 17:39:53 PDT 2010
 pulsarDb/pulsarDb
 
 Modified Files:
