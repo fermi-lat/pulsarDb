@@ -14,6 +14,7 @@
 #include "tip/Table.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/TimeInterval.h"
 #include "timeSystem/TimeSystem.h"
 
 namespace tip {
@@ -107,18 +108,13 @@ namespace pulsarDb {
       virtual void writeModelParameter(st_stream::OStream & os) const;
 
     private:
-      /** \brief Compute the number of elapsed seconds between given absolute times in the time system in which this ephemeris
-                 is defined, and return it.
-          \param at1 Absolute time at which the number of elapsed seconds is to be computed.
-          \param at2 Absolute time that gives a start time to count the number of elapsed seconds.
-      */
-      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at1, const timeSystem::AbsoluteTime & at2) const;
-
-      /** \brief Compute the number of elapsed seconds at a given absolute time in the time system in which this ephemeris
-                 is defined, and return it.
+      /** \brief Compute the number of elapsed seconds at a given absolute time since the reference epoch of this ephemeris,
+                 measured in the time system in which this ephemeris is defined, and return it.
           \param at Absolute time at which the number of elapsed seconds is to be computed.
       */
-      virtual double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const { return calcElapsedSecond(at, m_epoch); }
+      inline double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
+        return (at - m_epoch).computeDuration(m_system->getName(), "Sec");
+      }
 
       const timeSystem::TimeSystem * m_system;
       timeSystem::AbsoluteTime m_since;

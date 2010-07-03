@@ -14,7 +14,6 @@
 #include "timeSystem/CalendarFormat.h"
 #include "timeSystem/MjdFormat.h"
 #include "timeSystem/SourcePosition.h"
-#include "timeSystem/TimeInterval.h"
 
 using namespace timeSystem;
 
@@ -79,10 +78,6 @@ namespace pulsarDb {
 
     // Make sure it is in the range [0, 1). calcPulsePhase is bounded in this way.
     if (0. > m_phi0) m_phi0 += 1.;
-  }
-
-  double PeriodEph::calcElapsedSecond(const AbsoluteTime & at1, const AbsoluteTime & at2) const {
-    return (at1 - at2).computeDuration(m_system->getName(), "Sec");
   }
 
   void PeriodEph::writeModelParameter(st_stream::OStream & os) const {
