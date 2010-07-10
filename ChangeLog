@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jul  9 18:41:53 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Stop using namespace timeSystem for clarity.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jul  9 18:41:21 PDT 2010
 pulsarDb/src/test
 
