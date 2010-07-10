@@ -30,8 +30,6 @@
 
 static const std::string s_cvs_id("$Name:  $");
 
-using namespace timeSystem;
-
 namespace pulsarDb {
 
   EphComputerApp::EphComputerApp(): m_os("EphComputerApp", "", 2) {
@@ -71,7 +69,7 @@ namespace pulsarDb {
     // and set the time of the representation to be the given reference time.
     std::string time_format_parsed;
     std::string time_sys_parsed;
-    AbsoluteTime abs_ref_time = parseTime(time_format, time_sys, ref_time, time_format_parsed, time_sys_parsed);
+    timeSystem::AbsoluteTime abs_ref_time = parseTime(time_format, time_sys, ref_time, time_format_parsed, time_sys_parsed);
 
     // Set up EphComputer for ephemeris computations.
     std::auto_ptr<EphChooser> chooser(0);
@@ -113,9 +111,9 @@ namespace pulsarDb {
     // Compose a string expression of the given time.
     std::string time_string;
     try {
-      time_string = abs_ref_time.represent(time_sys_parsed, MjdFmt);
+      time_string = abs_ref_time.represent(time_sys_parsed, timeSystem::MjdFmt);
     } catch (const std::exception &) {
-      time_string = abs_ref_time.represent(time_sys_parsed, CalendarFmt);
+      time_string = abs_ref_time.represent(time_sys_parsed, timeSystem::CalendarFmt);
     }
 
     // Calculate spin ephemeris for the given reference time, if at least a spin ephemeris was found above, and report the result.
@@ -130,7 +128,7 @@ namespace pulsarDb {
       const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
 
       // Compute extrapolated ephemeris.
-      SourcePosition src_pos(0., 0.);
+      timeSystem::SourcePosition src_pos(0., 0.);
       double phi0 = 0.;
       double f0 = 0.;
       double f1 = 0.;
