@@ -75,16 +75,14 @@ namespace pulsarDb {
   const double SimpleDdEph::s_sec_per_microsec = 1.e-6;
 
   SimpleDdEph::SimpleDdEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot,
-    double ecc, double ecc_dot, double om, double om_dot, const timeSystem::AbsoluteTime & t0, double gamma,
-    double shapiro_r, double shapiro_s):
-    OrbitalEph(timeSystem::ElapsedTime(time_system_name, timeSystem::Duration(10.e-9, "Sec")), 100),
-    m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_pb(pb), m_pb_dot(pb_dot), m_a1(a1), m_x_dot(x_dot),
+    double ecc, double ecc_dot, double om, double om_dot, const AbsoluteTime & t0, double gamma, double shapiro_r, double shapiro_s):
+    OrbitalEph(ElapsedTime(time_system_name, Duration(10.e-9, "Sec")), 100), m_system(&TimeSystem::getSystem(time_system_name)),
+    m_pb(pb), m_pb_dot(pb_dot), m_a1(a1), m_x_dot(x_dot),
     m_ecc(ecc), m_ecc_dot(ecc_dot), m_om(om * s_rad_per_deg), m_om_dot(om_dot * s_rad_year_per_deg_sec), m_t0(t0), m_gamma(gamma),
     m_shapiro_r(shapiro_r * s_sec_per_microsec), m_shapiro_s(shapiro_s) {}
 
   SimpleDdEph::SimpleDdEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
-    OrbitalEph(timeSystem::ElapsedTime("TDB", timeSystem::Duration(10.e-9, "Sec")), 100),
-    m_system(&timeSystem::TimeSystem::getSystem("TDB")), m_t0("TDB", 0, 0.) {
+    OrbitalEph(ElapsedTime("TDB", Duration(10.e-9, "Sec")), 100), m_system(&TimeSystem::getSystem("TDB")), m_t0("TDB", 0, 0.) {
     // Get parameters from record.
     // Required fields: PB, A1, ECC, OM, T0.
     // Optional fields: PBDOT, XDOT, ECCDOT, OMDOT, GAMMA, SHAPIRO_R, SHAPIRO_S.
@@ -103,7 +101,7 @@ namespace pulsarDb {
     read(record, "SHAPIRO_S", m_shapiro_s, 0.);
 
     // Create an AbsoluteTime object from the value of "T0" column.
-    m_t0 = timeSystem::AbsoluteTime("TDB", Mjd1(dbl_t0));
+    m_t0 = AbsoluteTime("TDB", Mjd1(dbl_t0));
 
     // Adjust units.
     m_om *= s_rad_per_deg;
@@ -130,7 +128,7 @@ namespace pulsarDb {
 
   OrbitalEph * SimpleDdEph::clone() const { return new SimpleDdEph(*this); }
 
-  double SimpleDdEph::calcOrbitalPhase(const timeSystem::AbsoluteTime & ev_time, double phase_offset) const {
+  double SimpleDdEph::calcOrbitalPhase(const AbsoluteTime & ev_time, double phase_offset) const {
     // Compute elapsed time from epoch of periastron in seconds.
     double delta_second = calcElapsedSecond(ev_time);
 
@@ -144,7 +142,7 @@ namespace pulsarDb {
     return trimPhaseValue(phase, phase_offset);
   }
 
-  timeSystem::ElapsedTime SimpleDdEph::calcOrbitalDelay(const timeSystem::AbsoluteTime & ev_time) const {
+  ElapsedTime SimpleDdEph::calcOrbitalDelay(const AbsoluteTime & ev_time) const {
     // Compute elapsed time from epoch of periastron in seconds.
     double delta_second = calcElapsedSecond(ev_time);
 
