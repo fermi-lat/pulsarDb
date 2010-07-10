@@ -77,7 +77,7 @@ namespace pulsarDb {
 
   AbsoluteTime PulsarToolApp::parseTime(const std::string & time_format, const std::string & time_system,
     const std::string & time_value, std::string & parsed_time_format, std::string & parsed_time_system,
-    const timeSystem::EventTimeHandler * event_time_handler) const {
+    const EventTimeHandler * event_time_handler) const {
     // Make upper case copies of input for case insensitive comparisons.
     std::string time_format_rat(time_format);
     for (std::string::iterator itor = time_format_rat.begin(); itor != time_format_rat.end(); ++itor) *itor = std::toupper(*itor);
@@ -614,7 +614,7 @@ namespace pulsarDb {
       time_system_name = "TDB";
       time_system_set = true;
     }
-    m_target_time_system = &timeSystem::TimeSystem::getSystem(time_system_name);
+    m_target_time_system = &TimeSystem::getSystem(time_system_name);
 
     // Check whether time system is successfully set.
     if (!time_system_set) throw std::runtime_error("cannot determine time system for the time series to analyze");
@@ -844,8 +844,8 @@ namespace pulsarDb {
     reportEphStatus(os, start_time, stop_time, code_to_report);
   }
 
-  void PulsarToolApp::reportEphStatus(st_stream::OStream & os, const timeSystem::AbsoluteTime & start_time,
-    const timeSystem::AbsoluteTime & stop_time, const std::set<EphStatusCodeType> & code_to_report) const {
+  void PulsarToolApp::reportEphStatus(st_stream::OStream & os, const AbsoluteTime & start_time, const AbsoluteTime & stop_time,
+    const std::set<EphStatusCodeType> & code_to_report) const {
     // Return if reporting is not requested.
     if (!m_report_eph_status) return;
     if (code_to_report.empty()) return;

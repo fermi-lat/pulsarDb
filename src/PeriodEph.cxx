@@ -228,8 +228,8 @@ namespace pulsarDb {
     return return_value;
   }
 
-  timeSystem::SourcePosition PeriodEph::calcPosition(const AbsoluteTime & /* ev_time */) const {
-    return timeSystem::SourcePosition(m_ra, m_dec);
+  SourcePosition PeriodEph::calcPosition(const AbsoluteTime & /* ev_time */) const {
+    return SourcePosition(m_ra, m_dec);
   }
 
 }

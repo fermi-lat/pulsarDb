@@ -2973,7 +2973,7 @@ class BogusPulsarEphBase: public PulsarEph {
     virtual const AbsoluteTime & getValidUntil() const { return getBogusTime(); }
     virtual const AbsoluteTime & getEpoch() const { return getBogusTime(); }
     virtual PulsarEph * clone() const { return new BogusPulsarEphBase(*this); }
-    virtual double calcPulsePhase(const timeSystem::AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
+    virtual double calcPulsePhase(const AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
       return 0.;
     }
     virtual double calcFrequency(const AbsoluteTime & /* ev_time */, int /* derivative_order */ = 0) const { return 0.; }
@@ -3005,9 +3005,9 @@ class BogusPulsarEph: public BogusPulsarEphBase {
 
 class BogusOrbitalEphBase: public OrbitalEph {
   public:
-    BogusOrbitalEphBase(): OrbitalEph(timeSystem::ElapsedTime("TDB", Duration(10.e-9, "Sec")), 100) {}
+    BogusOrbitalEphBase(): OrbitalEph(ElapsedTime("TDB", Duration(10.e-9, "Sec")), 100) {}
 
-    virtual const timeSystem::TimeSystem & getSystem() const { return TimeSystem::getSystem("TDB"); }
+    virtual const TimeSystem & getSystem() const { return TimeSystem::getSystem("TDB"); }
 
     virtual const EphRoutingInfo & getRoutingInfo() const {
       static const EphRoutingInfo s_bogus_info;
@@ -3021,7 +3021,7 @@ class BogusOrbitalEphBase: public OrbitalEph {
     virtual double calcOrbitalPhase(const AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
       return 0.;
     }
-    virtual ElapsedTime calcOrbitalDelay(const timeSystem::AbsoluteTime & /* ev_time */) const {
+    virtual ElapsedTime calcOrbitalDelay(const AbsoluteTime & /* ev_time */) const {
       static const ElapsedTime s_bogus_elapsed_time("TDB", Duration::zero());
       return s_bogus_elapsed_time;
     }

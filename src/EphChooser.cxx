@@ -18,7 +18,7 @@ using namespace timeSystem;
 
 namespace pulsarDb {
 
-  const PulsarEph & EphChooser::findClosest(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+  const PulsarEph & EphChooser::findClosest(const PulsarEphCont & ephemerides, const AbsoluteTime & abs_time) const {
     if (ephemerides.empty()) {
       std::ostringstream os;
       os << "No spin ephemeris is available to choose the closest ephemeris to " << abs_time;
@@ -50,7 +50,7 @@ namespace pulsarDb {
     return *(*candidate);
   }
 
-  const OrbitalEph & EphChooser::findClosest(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+  const OrbitalEph & EphChooser::findClosest(const OrbitalEphCont & ephemerides, const AbsoluteTime & abs_time) const {
     if (ephemerides.empty()) {
       std::ostringstream os;
       os << "No orbital ephemeris is available to choose the closest ephemeris to " << abs_time;
@@ -85,9 +85,9 @@ namespace pulsarDb {
     return std::fabs((at1 - at2).computeDuration("TDB", "Day"));
   }
 
-  StrictEphChooser::StrictEphChooser(const timeSystem::ElapsedTime & tolerance): m_tolerance(tolerance) {}
+  StrictEphChooser::StrictEphChooser(const ElapsedTime & tolerance): m_tolerance(tolerance) {}
 
-  const PulsarEph & StrictEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+  const PulsarEph & StrictEphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & abs_time) const {
     PulsarEphCont::const_iterator candidate = ephemerides.end();
 
     for (PulsarEphCont::const_iterator itor = ephemerides.begin(); itor != ephemerides.end(); ++itor) {
@@ -120,12 +120,12 @@ namespace pulsarDb {
     return *(*candidate);
   }
 
-  const OrbitalEph & StrictEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+  const OrbitalEph & StrictEphChooser::choose(const OrbitalEphCont & ephemerides, const AbsoluteTime & abs_time) const {
     return findClosest(ephemerides, abs_time);
   }
 
-  void StrictEphChooser::examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
-    const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const {
+  void StrictEphChooser::examine(const PulsarEphCont & ephemerides, const AbsoluteTime & start_time, const AbsoluteTime & stop_time,
+    EphStatusCont & eph_status) const {
     // Check the time order of the time interval arguments.
     if (start_time > stop_time) {
       std::ostringstream os;
@@ -217,9 +217,9 @@ namespace pulsarDb {
 
   SloppyEphChooser::SloppyEphChooser(): m_strict_chooser() {}
 
-  SloppyEphChooser::SloppyEphChooser(const timeSystem::ElapsedTime & tolerance): m_strict_chooser(tolerance) {}
+  SloppyEphChooser::SloppyEphChooser(const ElapsedTime & tolerance): m_strict_chooser(tolerance) {}
 
-  const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+  const PulsarEph & SloppyEphChooser::choose(const PulsarEphCont & ephemerides, const AbsoluteTime & abs_time) const {
     if (ephemerides.empty()) {
       std::ostringstream os;
       os << "No spin ephemeris is available to choose the best ephemeris for " << abs_time;
@@ -235,12 +235,12 @@ namespace pulsarDb {
     return findClosest(ephemerides, abs_time);
   }
 
-  const OrbitalEph & SloppyEphChooser::choose(const OrbitalEphCont & ephemerides, const timeSystem::AbsoluteTime & abs_time) const {
+  const OrbitalEph & SloppyEphChooser::choose(const OrbitalEphCont & ephemerides, const AbsoluteTime & abs_time) const {
     return findClosest(ephemerides, abs_time);
   }
 
-  void SloppyEphChooser::examine(const PulsarEphCont & ephemerides, const timeSystem::AbsoluteTime & start_time,
-    const timeSystem::AbsoluteTime & stop_time, EphStatusCont & eph_status) const {
+  void SloppyEphChooser::examine(const PulsarEphCont & ephemerides, const AbsoluteTime & start_time,
+    const AbsoluteTime & stop_time, EphStatusCont & eph_status) const {
     // Check the time order of the time interval arguments.
     if (start_time > stop_time) {
       std::ostringstream os;

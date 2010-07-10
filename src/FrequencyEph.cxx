@@ -117,8 +117,8 @@ namespace pulsarDb {
     return return_value;
   }
 
-  timeSystem::SourcePosition FrequencyEph::calcPosition(const AbsoluteTime & /* ev_time */) const {
-    return timeSystem::SourcePosition(m_ra, m_dec);
+  SourcePosition FrequencyEph::calcPosition(const AbsoluteTime & /* ev_time */) const {
+    return SourcePosition(m_ra, m_dec);
   }
 
 }
