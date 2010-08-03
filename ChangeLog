@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Aug  2 19:36:37 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Fix two bugs: 1) stop using tip::KeyRecord::getValue(double) for string-to-double conversions (to avoid changes in behavior of a shift operator in newer gcc), and 2) stop using header_key_itor to set double_value_required.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Aug  2 19:28:09 PDT 2010
 pulsarDb/pulsarDb
 
