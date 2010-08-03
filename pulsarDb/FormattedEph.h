@@ -134,6 +134,14 @@ namespace pulsarDb {
       bool read(const tip::Table::ConstRecord & record, const std::string & field_name, std::vector<DataType> & data_array,
         const DataType & default_value, std::vector<bool> & is_default) const;
 
+      // TODO: Split the above method into the following two methods.
+      //template <typename DataType>
+      //bool read(const tip::Table::ConstRecord & record, const std::string & field_name, std::vector<DataType> & data_array,
+      //  const DataType & default_value) const;
+      //template <typename DataType>
+      //bool read(const tip::Table::ConstRecord & record, const std::string & field_name,
+      //  std::vector<std::pair<DataType, bool> > & data_array) const;
+
       /** \brief Helper method that returns the fractional part of a given value, making sure that
                  the return value is in the range of [0, 1).
           \param phase_value Phase value whose fractional part is to be returned.
