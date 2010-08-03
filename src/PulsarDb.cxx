@@ -12,7 +12,6 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <limits>
 #include <list>
 #include <memory>
@@ -738,13 +737,17 @@ namespace pulsarDb {
                 value_identical = true;
 
               } else {
-                // Get keyword values as double.
-                double double_nan = std::numeric_limits<double>::quiet_NaN();
-                double double_value_header(double_nan);
-                header_key_itor->getValue(double_value_header);
-                double double_value_required(double_nan);
-                header_key_itor->getValue(double_value_required);
-                if (double_value_header == double_value_required && double_value_header != double_nan) value_identical = true;
+                // Convert keyword values into double values.
+                std::istringstream iss_header(string_value_header);
+                double double_value_header(0.);
+                iss_header >> double_value_header;
+
+                std::istringstream iss_required(string_value_required);
+                double double_value_required(0.);
+                iss_required >> double_value_required;
+
+                // Compare keyword values as double values.
+                if (iss_header.good() && iss_required.good() && double_value_header == double_value_required) value_identical = true;
               }
               if (value_identical) tight_match.push_back(std::make_pair(header_key_itor, required_key_itor));
             }
