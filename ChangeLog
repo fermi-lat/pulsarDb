@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Aug 13 19:17:14 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add new type of spin ephemeris.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Aug 13 19:17:14 PDT 2010
 pulsarDb/data
 
 Added Files:
