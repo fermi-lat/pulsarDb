@@ -24,6 +24,7 @@
 #include "pulsarDb/EphComputerApp.h"
 #include "pulsarDb/EphStatus.h"
 #include "pulsarDb/FrequencyEph.h"
+#include "pulsarDb/HighPrecisionEph.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PeriodEph.h"
@@ -323,6 +324,9 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test PeriodEph class (a subclass of PulsarEph class).
     virtual void testPeriodEph();
 
+    /// \brief Test HighPrecisionEph class (a subclass of PulsarEph class).
+    virtual void testHighPrecisionEph();
+
     /// \brief Test SimpleDdEph class (a subclass of OrbitalEph class).
     virtual void testSimpleDdEph();
 
@@ -438,6 +442,7 @@ void PulsarDbTestApp::runTest() {
   testFormattedEph();
   testFrequencyEph();
   testPeriodEph();
+  testHighPrecisionEph();
   testSimpleDdEph();
   testBtModelEph();
   testPdotCanceler();
@@ -1848,6 +1853,745 @@ void PulsarDbTestApp::testPeriodEph() {
   t_eph.append("P1",   "4.4");
   t_eph.append("P2",   "5.5");
   checkEphParameter(getMethod() + "_fits", *eph, t_eph);
+}
+
+void PulsarDbTestApp::testHighPrecisionEph() {
+  setMethod("testHighPrecisionEph");
+
+  // Prepare variables for tests.
+  std::auto_ptr<HighPrecisionEph> eph(0);
+  AbsoluteTime since("TDB", 51910, 0.);
+  AbsoluteTime until("TDB", 51910, 1.);
+  AbsoluteTime epoch("TDB", 51910, 123.456789);
+  AbsoluteTime ev_time("TDB", 51910, 0.);
+  const HighPrecisionEph::freq_type freq_empty(0);
+  const HighPrecisionEph::wave_type wave_empty(0);
+  const HighPrecisionEph::glitch_type glitch_empty(0);
+  double elapsed = 12.345 * SecPerDay(); // 12.345 days in seconds.
+  ev_time = epoch + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+  // Test pulse phase computation, only with frequency parameters.
+  HighPrecisionEph::freq_type freq_pars(20);
+  double factor = 1.;
+  int nth_term = 1;
+  for (HighPrecisionEph::freq_type::iterator itor = freq_pars.begin(); itor != freq_pars.end(); ++itor, ++nth_term) {
+    *itor = 1.001 * nth_term * factor;
+    factor *= nth_term / elapsed;
+  }
+
+  eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+    epoch, freq_pars, 1., wave_empty, wave_empty, glitch_empty));
+  double phase = eph->calcPulsePhase(ev_time);
+  double correct_phase_freq = freq_pars.size() * (freq_pars.size() + 1) / 2000.;
+  double correct_phase = correct_phase_freq;
+  double epsilon = 1.e-6;
+  if (std::fabs(phase - correct_phase) > epsilon) {
+    err() << "HighPrecisionEph::calcPulsePhase returned " << phase << ", not " << correct_phase << ", for " <<
+      freq_pars.size() << "-term frequency parameters." << std::endl;
+  }
+
+  // Test pulse phase computation with the sine component of wave parameters, as well as frequency parameters.
+  double wave_angle = 5.4321;
+  double wave_omega = wave_angle / elapsed;
+  HighPrecisionEph::wave_type wave_sine(20);
+  nth_term = 1;
+  for (HighPrecisionEph::wave_type::iterator itor = wave_sine.begin(); itor != wave_sine.end(); ++itor, ++nth_term) {
+    *itor = 1.0001 * nth_term / std::sin(wave_angle * nth_term) / freq_pars[1];
+  }
+
+  eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+    epoch, freq_pars, wave_omega, wave_sine, wave_empty, glitch_empty));
+  phase = eph->calcPulsePhase(ev_time);
+  double correct_phase_sine = wave_sine.size() * (wave_sine.size() + 1) / 20000.;
+  correct_phase = correct_phase_freq + correct_phase_sine;
+  epsilon = 1.e-7;
+  if (std::fabs(phase - correct_phase) > epsilon) {
+    err() << "HighPrecisionEph::calcPulsePhase returned " << phase << ", not " << correct_phase << ", for " <<
+      wave_sine.size() << "-term wave parameters (sine components only) on top of frequency parameters." << std::endl;
+  }
+
+  // Test pulse phase computation, only with the cosine component of wave parameters.
+  HighPrecisionEph::wave_type wave_cosine(20);
+  nth_term = 1;
+  for (HighPrecisionEph::wave_type::iterator itor = wave_cosine.begin(); itor != wave_cosine.end(); ++itor, ++nth_term) {
+    *itor = 1.00001 * nth_term / std::cos(wave_angle * nth_term) / freq_pars[1];
+  }
+
+  eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+    epoch, freq_pars, wave_omega, wave_empty, wave_cosine, glitch_empty));
+  phase = eph->calcPulsePhase(ev_time);
+  double correct_phase_cosine = wave_cosine.size() * (wave_cosine.size() + 1) / 200000.;
+  correct_phase = correct_phase_freq + correct_phase_cosine;
+  epsilon = 1.e-8;
+  if (std::fabs(phase - correct_phase) > epsilon) {
+    err() << "HighPrecisionEph::calcPulsePhase returned " << phase << ", not " << correct_phase << ", for " <<
+      wave_cosine.size() << "-term wave parameters (cosine components only) on top of frequency parameters." << std::endl;
+  }
+
+  // Test pulse phase computation, only with glitch parameters.
+  int num_past_glitch = 5;
+  HighPrecisionEph::glitch_type glitch_list(2 * num_past_glitch);
+  int nth_glitch = 1;
+  int num_all_term = 0;
+  for (HighPrecisionEph::glitch_type::iterator itor = glitch_list.begin(); itor != glitch_list.end(); ++itor, ++nth_glitch) {
+    int sign = (nth_glitch % 2 ? +1 : -1);
+    int num_jump_term = (nth_glitch + 1) / 2;
+    int num_decay_term = (nth_glitch + 1) / 2;
+    double dt_glitch = sign * nth_glitch * 12345.6789;
+    itor->m_epoch = ev_time - ElapsedTime("TDB", Duration(dt_glitch, "Sec"));
+    itor->m_perm_jump.resize(num_jump_term);
+    factor = 1.;
+    nth_term = num_all_term + 1;
+    for (HighPrecisionEph::jump_type::iterator jump_itor = itor->m_perm_jump.begin(); jump_itor != itor->m_perm_jump.end();
+      ++jump_itor, ++nth_term) {
+      *jump_itor = sign * 1.000001 * nth_term * factor;
+      factor *= (nth_term - num_all_term) / dt_glitch;
+    }
+    itor->m_decay_comp.resize(num_decay_term);
+    for (HighPrecisionEph::decay_type::iterator decay_itor = itor->m_decay_comp.begin(); decay_itor != itor->m_decay_comp.end();
+      ++decay_itor, ++nth_term) {
+      double decay_time = nth_term * 1.2345; // in days.
+      decay_itor->first = sign * 1.000001 * nth_term / (decay_time * SecPerDay())
+        / (1. - std::exp(-dt_glitch / SecPerDay() / decay_time));
+      decay_itor->second = decay_time;
+    }
+    if (nth_glitch % 2 == 0) num_all_term += num_jump_term + num_decay_term;
+  }
+
+  eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+    epoch, freq_empty, 1., wave_empty, wave_empty, glitch_list));
+  phase = eph->calcPulsePhase(ev_time);
+  double correct_phase_glitch = num_all_term * (num_all_term + 1) / 2000000.;
+  correct_phase = correct_phase_glitch;
+  epsilon = 1.e-9;
+  if (std::fabs(phase - correct_phase) > epsilon) {
+    err() << "HighPrecisionEph::calcPulsePhase returned " << phase << ", not " << correct_phase << ", for " <<
+      glitch_list.size() << " glitches." << std::endl;
+  }
+
+  // Test pulse phase computation with all components.
+  eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+    epoch, freq_pars, wave_omega, wave_sine, wave_cosine, glitch_list));
+  phase = eph->calcPulsePhase(ev_time);
+  correct_phase = correct_phase_freq + correct_phase_sine + correct_phase_cosine + correct_phase_glitch;
+  epsilon = 1.e-9;
+  if (std::fabs(phase - correct_phase) > epsilon) {
+    err() << "HighPrecisionEph::calcPulsePhase returned " << phase << ", not " << correct_phase <<
+      ", for all components combined." << std::endl;
+  }
+
+  // Test frequency computations for various orders of time-derivatives.
+  epsilon = std::numeric_limits<double>::epsilon() * 100.;
+  for (int nth_derivative = 0; nth_derivative < 10; ++nth_derivative) {
+    // Test frequency computation, only with frequency parameters.
+    factor = 1.;
+    nth_term = 1;
+    for (HighPrecisionEph::freq_type::iterator itor = freq_pars.begin(); itor != freq_pars.end(); ++itor, ++nth_term) {
+      *itor = 1.1 * nth_term * factor;
+      if (nth_term > nth_derivative + 1) factor *= (nth_term - nth_derivative - 1) / elapsed;
+    }
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+      epoch, freq_pars, 1., wave_empty, wave_empty, glitch_empty));
+    double frequency = eph->calcFrequency(ev_time, nth_derivative);
+    double correct_frequency_freq = 1.1 * (freq_pars.size() - nth_derivative - 1) * (freq_pars.size() + nth_derivative + 2) / 2.;
+    double correct_frequency = correct_frequency_freq;
+    if (std::fabs(frequency/correct_frequency - 1.) > epsilon) {
+      err() << "HighPrecisionEph::calcFrequency(ev_time, " << nth_derivative << ") returned " << frequency << ", not " <<
+        correct_frequency << ", for " << freq_pars.size() << "-term frequency parameters." << std::endl;
+    }
+
+    // Test frequency computation with the sine component of wave parameters, as well as frequency parameters.
+    nth_term = 1;
+    for (HighPrecisionEph::wave_type::iterator itor = wave_sine.begin(); itor != wave_sine.end(); ++itor, ++nth_term) {
+      double dsin_dt = 1.;
+      for (int ii = 0; ii < nth_derivative + 1; ++ii) dsin_dt *= wave_omega * nth_term;
+      switch (nth_derivative % 4){
+      case 0: dsin_dt *= +std::cos(wave_angle * nth_term); break;
+      case 1: dsin_dt *= -std::sin(wave_angle * nth_term); break;
+      case 2: dsin_dt *= -std::cos(wave_angle * nth_term); break;
+      case 3: dsin_dt *= +std::sin(wave_angle * nth_term); break;
+      default: break;
+      }
+      *itor = 1.11 * nth_term / dsin_dt / freq_pars[1];
+    }
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+      epoch, freq_pars, wave_omega, wave_sine, wave_empty, glitch_empty));
+    frequency = eph->calcFrequency(ev_time, nth_derivative);
+    double correct_frequency_sine = 1.11 * wave_sine.size() * (wave_sine.size() + 1) / 2.;
+    correct_frequency = correct_frequency_freq + correct_frequency_sine;
+    if (std::fabs(frequency/correct_frequency - 1.) > epsilon) {
+      err() << "HighPrecisionEph::calcFrequency(ev_time, " << nth_derivative << ") returned " << frequency << ", not " <<
+        correct_frequency << ", for " << wave_sine.size() <<
+        "-term wave parameters (sine components only) on top of frequency parameters." << std::endl;
+    }
+
+    // Test frequency computation with the cosine component of wave parameters, as well as frequency parameters.
+    nth_term = 1;
+    for (HighPrecisionEph::wave_type::iterator itor = wave_cosine.begin(); itor != wave_cosine.end(); ++itor, ++nth_term) {
+      double dcos_dt = 1.;
+      for (int ii = 0; ii < nth_derivative + 1; ++ii) dcos_dt *= wave_omega * nth_term;
+      switch (nth_derivative % 4){
+      case 0: dcos_dt *= -std::sin(wave_angle * nth_term); break;
+      case 1: dcos_dt *= -std::cos(wave_angle * nth_term); break;
+      case 2: dcos_dt *= +std::sin(wave_angle * nth_term); break;
+      case 3: dcos_dt *= +std::cos(wave_angle * nth_term); break;
+      default: break;
+      }
+      *itor = 1.111 * nth_term / dcos_dt / freq_pars[1];
+    }
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+      epoch, freq_pars, wave_omega, wave_empty, wave_cosine, glitch_empty));
+    frequency = eph->calcFrequency(ev_time, nth_derivative);
+    double correct_frequency_cosine = 1.111 * wave_cosine.size() * (wave_cosine.size() + 1) / 2.;
+    correct_frequency = correct_frequency_freq + correct_frequency_cosine;
+    if (std::fabs(frequency/correct_frequency - 1.) > epsilon) {
+      err() << "HighPrecisionEph::calcFrequency(ev_time, " << nth_derivative << ") returned " << frequency << ", not " <<
+        correct_frequency << ", for " << wave_cosine.size() <<
+        "-term wave parameters (cosine components only) on top of frequency parameters." << std::endl;
+    }
+
+    // Test frequency computation, only with glitch parameters.
+    int nth_glitch = 1;
+    int num_all_term = 0;
+    int rejected_term = 0;
+    for (HighPrecisionEph::glitch_type::iterator itor = glitch_list.begin(); itor != glitch_list.end(); ++itor, ++nth_glitch) {
+      int sign = (nth_glitch % 2 ? +1 : -1);
+      int num_jump_term = (nth_glitch + 1) / 2;
+      int num_decay_term = (nth_glitch + 1) / 2;
+      double dt_glitch = sign * nth_glitch * 12345.6789;
+      itor->m_epoch = ev_time - ElapsedTime("TDB", Duration(dt_glitch, "Sec"));
+      itor->m_perm_jump.resize(num_jump_term);
+      factor = 1.;
+      nth_term = num_all_term + 1;
+      for (HighPrecisionEph::jump_type::iterator jump_itor = itor->m_perm_jump.begin(); jump_itor != itor->m_perm_jump.end();
+           ++jump_itor, ++nth_term) {
+        *jump_itor = sign * 1.1111 * nth_term * factor;
+        if (nth_term - num_all_term > nth_derivative + 1) factor *= (nth_term - num_all_term - nth_derivative - 1) / dt_glitch;
+        else rejected_term += nth_term;
+      }
+      itor->m_decay_comp.resize(num_decay_term);
+      for (HighPrecisionEph::decay_type::iterator decay_itor = itor->m_decay_comp.begin(); decay_itor != itor->m_decay_comp.end();
+           ++decay_itor, ++nth_term) {
+        double decay_time = nth_term * 1.2345; // in days.
+        decay_itor->first = sign * 1.1111 * nth_term / std::exp(-dt_glitch / SecPerDay() / decay_time);
+        for (int ii = 0; ii < nth_derivative; ++ii) decay_itor->first *= -decay_time * SecPerDay();
+        decay_itor->second = decay_time;
+      }
+      if (nth_glitch % 2 == 0) num_all_term += num_jump_term + num_decay_term;
+    }
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_list));
+    frequency = eph->calcFrequency(ev_time, nth_derivative);
+    double correct_frequency_glitch = 1.1111 * (num_all_term * (num_all_term + 1) - rejected_term) / 2.;
+    correct_frequency = correct_frequency_glitch;
+    if (std::fabs(frequency/correct_frequency - 1.) > epsilon) {
+      err() << "HighPrecisionEph::calcFrequency(ev_time, " << nth_derivative << ") returned " << frequency << ", not " <<
+        correct_frequency << ", for " << glitch_list.size() << " glitches." << std::endl;
+    }
+
+    // Test frequency computation with all components.
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+      epoch, freq_pars, wave_omega, wave_sine, wave_cosine, glitch_list));
+    frequency = eph->calcFrequency(ev_time, nth_derivative);
+    correct_frequency = correct_frequency_freq + correct_frequency_sine + correct_frequency_cosine + correct_frequency_glitch;
+    if (std::fabs(frequency/correct_frequency - 1.) > epsilon) {
+      err() << "HighPrecisionEph::calcFrequency(ev_time, " << nth_derivative << ") returned " << frequency << ", not " <<
+        correct_frequency << ", for all components combined." << std::endl;
+    }
+  }
+
+  // Test the pulsar position.
+  double parsec = 3.26 * 365.25 * 86400.; // Approximately 1 parsec in light-seconds.
+  const double sqrt14 = std::sqrt(14.);
+  double par_list[][8] = {
+    // Contains physical parameters of the source position and the proper motion, which are:
+    //   RA & Dec (degree), distance (light-secod), dX, dY, & dZ (radian), displacement due to proper motion (light-second),
+    //   and an elapsed time (second).
+    { 60., +30., 4.*parsec, 1./sqrt14, 3./sqrt14, 2./sqrt14, 3.e-5*parsec, 3.e+7},
+    { 60., -30., 5.*parsec, 3./sqrt14, 1./sqrt14, 2./sqrt14, 2.e-5*parsec, 3.e+7},
+    {150., +30., 6.*parsec, 2./sqrt14, 3./sqrt14, 1./sqrt14, 1.e-5*parsec, 3.e+7},
+    {150., -30., 7.*parsec, 3./sqrt14, 2./sqrt14, 1./sqrt14, 4.e-5*parsec, 3.e+7},
+    {240., +30., 8.*parsec, 1./sqrt14, 2./sqrt14, 3./sqrt14, 5.e-5*parsec, 3.e+7},
+    {240., -30., 3.*parsec, 2./sqrt14, 1./sqrt14, 3./sqrt14, 6.e-5*parsec, 3.e+7},
+    {330., +30., 2.*parsec, 1./sqrt14, 3./sqrt14, 2./sqrt14, 7.e-5*parsec, 3.e+7},
+    {330., -30., 1.*parsec, 3./sqrt14, 1./sqrt14, 2./sqrt14, 8.e-5*parsec, 3.e+7},
+    // Repeat the parameters for a different period of time.
+    { 60., +30., 4.*parsec, 1./sqrt14, 3./sqrt14, 2./sqrt14, 3.e-5*parsec, 7.e+7},
+    { 60., -30., 5.*parsec, 3./sqrt14, 1./sqrt14, 2./sqrt14, 2.e-5*parsec, 7.e+7},
+    {150., +30., 6.*parsec, 2./sqrt14, 3./sqrt14, 1./sqrt14, 1.e-5*parsec, 7.e+7},
+    {150., -30., 7.*parsec, 3./sqrt14, 2./sqrt14, 1./sqrt14, 4.e-5*parsec, 7.e+7},
+    {240., +30., 8.*parsec, 1./sqrt14, 2./sqrt14, 3./sqrt14, 5.e-5*parsec, 7.e+7},
+    {240., -30., 3.*parsec, 2./sqrt14, 1./sqrt14, 3./sqrt14, 6.e-5*parsec, 7.e+7},
+    {330., +30., 2.*parsec, 1./sqrt14, 3./sqrt14, 2./sqrt14, 7.e-5*parsec, 7.e+7},
+    {330., -30., 1.*parsec, 3./sqrt14, 1./sqrt14, 2./sqrt14, 8.e-5*parsec, 7.e+7}
+  };
+  std::string coord_name("XYZ");
+  epsilon = std::numeric_limits<double>::epsilon() * 100.;
+  for (size_t ii = 0; ii != sizeof(par_list)/sizeof(par_list[0]); ++ii) {
+    // Copy parameters of physical model.
+    double * par = par_list[ii];
+    double ra = par[0];
+    double dec = par[1];
+    double initial_distance = par[2];
+    std::vector<double> pm_direction(par+3, par+6);
+    double pm_distance = par[6];
+    double elapsed_second = par[7];
+    ev_time = epoch + ElapsedTime("TDB", Duration(elapsed_second, "Sec"));
+
+    // Compute common parameters of the physical model.
+    const double deg_per_rad = 180. / 3.14159265358979323846;
+    const double mas_year_per_rad_sec = deg_per_rad * 3600. * 1000. * 365.25 * 86400.;
+    std::vector<double> initial_direction(3);
+    initial_direction[0] = std::cos(dec/deg_per_rad) * std::cos(ra/deg_per_rad);
+    initial_direction[1] = std::cos(dec/deg_per_rad) * std::sin(ra/deg_per_rad);
+    initial_direction[2] = std::sin(dec/deg_per_rad);
+    std::vector<double> final_position(3);
+    double final_distance = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) {
+      final_position[jj] = initial_direction[jj] * initial_distance + pm_direction[jj] * pm_distance;
+      final_distance += final_position[jj] * final_position[jj];
+    }
+    final_distance = std::sqrt(final_distance);
+    std::vector<double> final_direction(3);
+    for (size_t jj = 0; jj < 3; ++jj) final_direction[jj] = final_position[jj] / final_distance;
+    SourcePosition ra_vel_srcpos(ra + 90., 0.);
+    const std::vector<double> & ra_direction = ra_vel_srcpos.getDirection();
+    SourcePosition dec_vel_srcpos(ra, dec + 90.);
+    const std::vector<double> & dec_direction = dec_vel_srcpos.getDirection();
+    
+    // Case 1: stationary pulsar at an unknown distance.
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., 0., -1.,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+    SourcePosition computed_pos = eph->calcPosition(ev_time);
+    for (size_t jj = 0; jj < 3; ++jj) {
+      double computed_coord = computed_pos.getDirection()[jj];
+      double correct_coord = initial_direction[jj];
+      if (std::fabs(computed_coord - correct_coord) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned " << coord_name[jj] << "=" << computed_coord << ", not " <<
+          correct_coord << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. <<
+          ", radial velocity: " << 0. << ", parallax: unknown)." << std::endl;
+      }
+    }
+    if (computed_pos.hasDistance() != false) {
+      err() << "HighPrecisionEph::calcPosition returned a source position with its distance known (RA: " << ra <<
+        ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. << ", radial velocity: " << 0. <<
+        ", parallax: unknown)." << std::endl;
+    }
+
+    // Case 2: stationary pulsar at a known distance.
+    double parallax = 1.49597870691e+11 / 2.99792458e+8 / initial_distance; // in radians.
+    parallax *= deg_per_rad * 3600. * 1000.; // in milliarcseconds.
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., 0., parallax,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+    computed_pos = eph->calcPosition(ev_time);
+    for (size_t jj = 0; jj < 3; ++jj) {
+      double computed_coord = computed_pos.getDirection()[jj];
+      double correct_coord = initial_direction[jj];
+      if (std::fabs(computed_coord - correct_coord) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned " << coord_name[jj] << "=" << computed_coord << ", not " <<
+          correct_coord << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. <<
+          ", radial velocity: " << 0. << ", parallax: " << parallax << ")." << std::endl;
+      }
+    }
+    if (computed_pos.hasDistance() != true) {
+      err() << "HighPrecisionEph::calcPosition returned a source position with its distance unknown (RA: " << ra <<
+        ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. << ", radial velocity: " << 0. <<
+        ", parallax: " << parallax << ")." << std::endl;
+    } else {
+      double computed_dis = computed_pos.getDistance();
+      double correct_dis = initial_distance;
+      if (std::fabs(computed_dis/correct_dis - 1.) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned a source position with the distance of " << computed_dis <<
+          ", not " << correct_dis << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " <<
+          0. << ", radial velocity: " << 0. << ", parallax: " << parallax << ")." << std::endl;
+      }
+    }
+
+    // Case 3: pulsar moving along the line of signt at an unknown distance.
+    double distance_change_rate = (final_distance - initial_distance) * 2.99792458e+5 / elapsed_second; // in km/s.
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., distance_change_rate, -1.,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+    computed_pos = eph->calcPosition(ev_time);
+    for (size_t jj = 0; jj < 3; ++jj) {
+      double computed_coord = computed_pos.getDirection()[jj];
+      double correct_coord = initial_direction[jj];
+      if (std::fabs(computed_coord - correct_coord) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned " << coord_name[jj] << "=" << computed_coord << ", not " <<
+          correct_coord << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. <<
+          ", radial velocity: " << distance_change_rate << ", parallax: unknown)." << std::endl;
+      }
+    }
+    if (computed_pos.hasDistance() != false) {
+      err() << "HighPrecisionEph::calcPosition returned a source position with its distance known (RA: " << ra <<
+        ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. << ", radial velocity: " <<
+        distance_change_rate << ", parallax: unknown)." << std::endl;
+    }
+
+    // Case 4: pulsar moving along the line of signt at a known distance.
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., distance_change_rate, parallax,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+    computed_pos = eph->calcPosition(ev_time);
+    for (size_t jj = 0; jj < 3; ++jj) {
+      double computed_coord = computed_pos.getDirection()[jj];
+      double correct_coord = initial_direction[jj];
+      if (std::fabs(computed_coord - correct_coord) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned " << coord_name[jj] << "=" << computed_coord << ", not " <<
+          correct_coord << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. <<
+          ", radial velocity: " << distance_change_rate << ", parallax: " << parallax << ")." << std::endl;
+      }
+    }
+    if (computed_pos.hasDistance() != true) {
+      err() << "HighPrecisionEph::calcPosition returned a source position with its distance unknown (RA: " << ra <<
+        ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " << 0. << ", radial velocity: " <<
+        distance_change_rate << ", parallax: " << parallax << ")." << std::endl;
+    } else {
+      double computed_dis = computed_pos.getDistance();
+      double correct_dis = final_distance;
+      if (std::fabs(computed_dis/correct_dis - 1.) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned a source position with the distance of " << computed_dis <<
+          ", not " << correct_dis << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << 0. << ", Dec velocity: " <<
+          0. << ", radial velocity: " << distance_change_rate << ", parallax: " << parallax << ")." << std::endl;
+      }
+    }
+
+    // Case 5: general moving pulsar at an unknown distance.
+    double stretch_factor = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) stretch_factor += initial_direction[jj] * final_direction[jj];
+    std::vector<double> pm_vector_trans(3);
+    for (size_t jj = 0; jj < 3; ++jj) pm_vector_trans[jj] = final_direction[jj] / stretch_factor - initial_direction[jj];
+    double ra_vel = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) ra_vel += pm_vector_trans[jj] * ra_direction[jj] / std::cos(dec/deg_per_rad) / elapsed_second;
+    ra_vel *= mas_year_per_rad_sec; // in milliarcseconds per Julian year (365.25 days).
+    double dec_vel = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) dec_vel += pm_vector_trans[jj] * dec_direction[jj] / elapsed_second;
+    dec_vel *= mas_year_per_rad_sec; // in milliarcseconds per Julian year (365.25 days).
+    double radial_vel = distance_change_rate;
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, ra_vel, dec_vel, radial_vel, -1.,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+    computed_pos = eph->calcPosition(ev_time);
+    for (size_t jj = 0; jj < 3; ++jj) {
+      double computed_coord = computed_pos.getDirection()[jj];
+      double correct_coord = final_direction[jj];
+      if (std::fabs(computed_coord - correct_coord) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned " << coord_name[jj] << "=" << computed_coord << ", not " <<
+          correct_coord << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << ra_vel << ", Dec velocity: " <<
+          dec_vel << ", radial velocity: " << radial_vel << ", parallax: unknown)." << std::endl;
+      }
+    }
+    if (computed_pos.hasDistance() != false) {
+      err() << "HighPrecisionEph::calcPosition returned a source position with its distance known (RA: " << ra <<
+        ", Dec: " << dec << ", RA velocity: " << ra_vel << ", Dec velocity: " << dec_vel << ", radial velocity: " <<
+        radial_vel << ", parallax: unknown)." << std::endl;
+    }
+
+    // Case 6: general moving pulsar at a known distance.
+    double pm_speed_radial = pm_distance * 2.99792458e+5 / elapsed_second; // in km/s.
+    double pm_speed_trans = pm_distance / initial_distance / elapsed_second; // in radians per second.
+    pm_speed_trans *= mas_year_per_rad_sec; // in milliarcseconds per Julian year (365.25 days).
+    ra_vel = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) ra_vel += pm_direction[jj] * pm_speed_trans * ra_direction[jj] / std::cos(dec/deg_per_rad);
+    dec_vel = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) dec_vel += pm_direction[jj] * pm_speed_trans * dec_direction[jj];
+    radial_vel = 0.;
+    for (size_t jj = 0; jj < 3; ++jj) radial_vel += pm_direction[jj] * pm_speed_radial * initial_direction[jj];
+
+    eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, ra_vel, dec_vel, radial_vel, parallax,
+      epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+    computed_pos = eph->calcPosition(ev_time);
+    for (size_t jj = 0; jj < 3; ++jj) {
+      double computed_coord = computed_pos.getDirection()[jj];
+      double correct_coord = final_direction[jj];
+      if (std::fabs(computed_coord - correct_coord) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned " << coord_name[jj] << "=" << computed_coord << ", not " <<
+          correct_coord << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << ra_vel << ", Dec velocity: " <<
+          dec_vel << ", radial velocity: " << radial_vel << ", parallax: " << parallax << ")." << std::endl;
+      }
+    }
+    if (computed_pos.hasDistance() != true) {
+      err() << "HighPrecisionEph::calcPosition returned a source position with its distance unknown (RA: " << ra <<
+        ", Dec: " << dec << ", RA velocity: " << ra_vel << ", Dec velocity: " << dec_vel << ", radial velocity: " <<
+        radial_vel << ", parallax: " << parallax << ")." << std::endl;
+    } else {
+      double computed_dis = computed_pos.getDistance();
+      double correct_dis = final_distance;
+      if (std::fabs(computed_dis/correct_dis - 1.) > epsilon) {
+        err() << "HighPrecisionEph::calcPosition returned a source position with the distance of " << computed_dis <<
+          ", not " << correct_dis << " (RA: " << ra << ", Dec: " << dec << ", RA velocity: " << ra_vel << ", Dec velocity: " <<
+          dec_vel << ", radial velocity: " << radial_vel << ", parallax: " << parallax << ")." << std::endl;
+      }
+    }
+  }
+
+  // Test the constructor that takes numerical arguments.
+  freq_pars.clear();
+  freq_pars.push_back(.123456789);
+  freq_pars.push_back(1.23456789);
+  freq_pars.push_back(12.3456789);
+  freq_pars.push_back(123.456789);
+  freq_pars.push_back(1234.56789);
+  freq_pars.push_back(12345.6789);
+  wave_sine.clear();
+  wave_sine.push_back(.1122334455);
+  wave_sine.push_back(1.122334455);
+  wave_sine.push_back(11.22334455);
+  wave_cosine.clear();
+  wave_cosine.push_back(.9988776655);
+  wave_cosine.push_back(9.988776655);
+  wave_cosine.push_back(99.88776655);
+  wave_cosine.push_back(998.8776655);
+  wave_cosine.push_back(9988.776655);
+  glitch_list.clear();
+  glitch_list.resize(2);
+  HighPrecisionEph::glitch_type::iterator glitch_itor = glitch_list.begin();
+  glitch_itor->m_epoch = AbsoluteTime("TDB", 54321,  8640.);
+  glitch_itor->m_perm_jump.push_back(.987654321);
+  glitch_itor->m_perm_jump.push_back(9.87654321);
+  glitch_itor->m_perm_jump.push_back(98.7654321);
+  ++glitch_itor;
+  glitch_itor->m_epoch = AbsoluteTime("TDB", 65432, 17280.);
+  glitch_itor->m_decay_comp.push_back(std::make_pair(0.00054321, 123.45));
+  glitch_itor->m_decay_comp.push_back(std::make_pair(0.0056789, 54.321));
+  eph.reset(new HighPrecisionEph("TDB", AbsoluteTime("TDB", 12345, 51840.), AbsoluteTime("TDB", 23456, 60480.),
+    AbsoluteTime("TDB", 34567, 69120.), 11., 22., 33., 44., 55., 66., AbsoluteTime("TDB", 45678, 77760.),
+    freq_pars, 77., wave_sine, wave_cosine, glitch_list));
+  TextEph t_eph;
+  t_eph.append("Valid Since",     "12345.6 MJD (TDB)");
+  t_eph.append("Valid Until",     "23456.7 MJD (TDB)");
+  t_eph.append("Position Epoch",  "34567.8 MJD (TDB)");
+  t_eph.append("RA",              "11");
+  t_eph.append("Dec",             "22");
+  t_eph.append("RA Velocity",     "33");
+  t_eph.append("Dec Velocity",    "44");
+  t_eph.append("Radial Velocity", "55");
+  t_eph.append("Annual Parallax", "66");
+  t_eph.append("Frequency Epoch", "45678.9 MJD (TDB)");
+  t_eph.append("Phi0",            "0.123456789");
+  t_eph.append("F0",              "1.23456789");
+  t_eph.append("F1",              "12.3456789");
+  t_eph.append("F2",              "123.456789");
+  t_eph.append("F3",              "1234.56789");
+  t_eph.append("F4",              "12345.6789");
+  t_eph.append("Wave Frequency",  "77");
+  t_eph.append("Sin1",  "0.1122334455");
+  t_eph.append("Cos1",  "0.9988776655");
+  t_eph.append("Sin2",  "1.122334455");
+  t_eph.append("Cos2",  "9.988776655");
+  t_eph.append("Sin3",  "11.22334455");
+  t_eph.append("Cos3",  "99.88776655");
+  t_eph.append("Cos4",  "998.8776655");
+  t_eph.append("Cos5",  "9988.776655");
+  t_eph.append("Glitch Epoch", "54321.1 MJD (TDB)");
+  t_eph.append("dPhi0", "0.987654321");
+  t_eph.append("dF0",   "9.87654321");
+  t_eph.append("dF1",   "98.7654321");
+  t_eph.append("Glitch Epoch", "65432.2 MJD (TDB)");
+  t_eph.append("Amplitude",  "0.00054321");
+  t_eph.append("Decay Time", "123.45");
+  t_eph.append("Amplitude",  "0.0056789");
+  t_eph.append("Decay Time", "54.321");
+  checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
+
+  // Test the constructor that takes a FITS record.
+  std::string test_tpl("test_HighPrecisionEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_spin_hp.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  tip::Header & header(table->getHeader());
+  table->setNumRecords(1);
+  tip::Table::Record record(table.get(), 0);
+  record["VALID_SINCE"].set(12345);
+  record["VALID_UNTIL"].set(23456);
+  record["POS_EPOCH_INT"].set(34567);
+  record["POS_EPOCH_FRAC"].set(.8);
+  record["RA"].set(1.1);
+  record["DEC"].set(2.2);
+  record["RA_VELOCITY"].set(3.3);
+  record["DEC_VELOCITY"].set(4.4);
+  record["RADIAL_VELOCITY"].set(5.5);
+  record["PARALLAX"].set(6.6);
+  record["FREQ_EPOCH_INT"].set(45678);
+  record["FREQ_EPOCH_FRAC"].set(.9);
+  record["TOABARY_INT"].set(45678);
+  record["TOABARY_FRAC"].set(.9001); // 8.64 seconds off.
+  std::vector<double> pars;
+  pars.push_back(1.23456789);
+  pars.push_back(12.3456789);
+  pars.push_back(123.456789);
+  pars.push_back(1234.56789);
+  pars.push_back(12345.6789);
+  record["FREQ_PARAMETERS"].set(pars);
+  record["WAVE_OMEGA"].set(7.7);
+  pars.clear();
+  pars.push_back(.1122334455);
+  pars.push_back(1.122334455);
+  pars.push_back(11.22334455);
+  record["WAVE_SINE"].set(pars);
+  pars.clear();
+  pars.push_back(.9988776655);
+  pars.push_back(9.988776655);
+  pars.push_back(99.88776655);
+  pars.push_back(998.8776655);
+  pars.push_back(9988.776655);
+  record["WAVE_COSINE"].set(pars);
+  pars.clear();
+  pars.push_back(54321.1);
+  pars.push_back(0.987654321);
+  pars.push_back(9.87654321);
+  pars.push_back(98.7654321);
+  pars.push_back(65432.2);
+  pars.push_back(0.00054321);
+  pars.push_back(123.45);
+  pars.push_back(0.0056789);
+  pars.push_back(54.321);
+  record["GLITCH_PARAMETERS"].set(pars);
+  pars.clear();
+  pars.push_back(1);
+  pars.push_back(3);
+  pars.push_back(0);
+  pars.push_back(1);
+  pars.push_back(0);
+  pars.push_back(4);
+  record["GLITCH_DIMENSIONS"].set(pars);
+  eph.reset(new HighPrecisionEph(record, header));
+  t_eph.clear();
+  t_eph.append("Valid Since", "12345 MJD (TDB)");
+  t_eph.append("Valid Until", "23457 MJD (TDB)"); // The end of 65432 == the begining of 65433.
+  t_eph.append("Position Epoch",  "34567.8 MJD (TDB)");
+  t_eph.append("RA",              "1.1");
+  t_eph.append("Dec",             "2.2");
+  t_eph.append("RA Velocity",     "3.3");
+  t_eph.append("Dec Velocity",    "4.4");
+  t_eph.append("Radial Velocity", "5.5");
+  t_eph.append("Annual Parallax", "6.6");
+  t_eph.append("Frequency Epoch", "45678.9 MJD (TDB)");
+  double dt = 8.64;
+  double int_part = 0.;
+  double phi_at_toa = 0.;
+  phi_at_toa += std::modf(1.23456789*dt, &int_part);
+  phi_at_toa += std::modf(12.3456789/2.*dt*dt, &int_part);
+  phi_at_toa += std::modf(123.456789/6.*dt*dt*dt, &int_part);
+  phi_at_toa += std::modf(1234.56789/24.*dt*dt*dt*dt, &int_part);
+  phi_at_toa += std::modf(12345.6789/120.*dt*dt*dt*dt*dt, &int_part);
+  double f0 = 1.23456789;
+  double omega_at_toa = 7.7 * dt;
+  phi_at_toa += std::modf(.1122334455 * f0 * std::sin(1. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(1.122334455 * f0 * std::sin(2. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(11.22334455 * f0 * std::sin(3. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(.9988776655 * f0 * std::cos(1. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(9.988776655 * f0 * std::cos(2. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(99.88776655 * f0 * std::cos(3. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(998.8776655 * f0 * std::cos(4. * omega_at_toa), &int_part);
+  phi_at_toa += std::modf(9988.776655 * f0 * std::cos(5. * omega_at_toa), &int_part);
+  double phi0 = -phi_at_toa;
+  while (phi0 < 0.) ++phi0;
+  while (phi0 >= 1.) --phi0;
+  t_eph.append("Phi0", phi0);
+  t_eph.append("F0",   "1.23456789");
+  t_eph.append("F1",   "12.3456789");
+  t_eph.append("F2",   "123.456789");
+  t_eph.append("F3",   "1234.56789");
+  t_eph.append("F4",   "12345.6789");
+  t_eph.append("Wave Frequency", "7.7");
+  t_eph.append("Sin1",  "0.1122334455");
+  t_eph.append("Cos1",  "0.9988776655");
+  t_eph.append("Sin2",  "1.122334455");
+  t_eph.append("Cos2",  "9.988776655");
+  t_eph.append("Sin3",  "11.22334455");
+  t_eph.append("Cos3",  "99.88776655");
+  t_eph.append("Cos4",  "998.8776655");
+  t_eph.append("Cos5",  "9988.776655");
+  t_eph.append("Glitch Epoch", "54321.1 MJD (TDB)");
+  t_eph.append("dPhi0", "0.987654321");
+  t_eph.append("dF0",   "9.87654321");
+  t_eph.append("dF1",   "98.7654321");
+  t_eph.append("Glitch Epoch", "65432.2 MJD (TDB)");
+  t_eph.append("Amplitude",  "0.00054321");
+  t_eph.append("Decay Time", "123.45");
+  t_eph.append("Amplitude",  "0.0056789");
+  t_eph.append("Decay Time", "54.321");
+  checkEphParameter(getMethod() + "_fits", *eph, t_eph);
+
+  // Test detection of glitch parameter errors.
+  // TODO: Use tip::TableCell::setNull method once it is implemented in tip.
+  const double null_value = std::numeric_limits<double>::min();
+  pars.clear();
+  pars.push_back(54321.1);
+  pars.push_back(0.987654321);
+  pars.push_back(9.87654321);
+  pars.push_back(98.7654321);
+  pars.push_back(null_value);
+  pars.push_back(0.00054321);
+  pars.push_back(123.45);
+  pars.push_back(0.0056789);
+  pars.push_back(54.321);
+  record["GLITCH_PARAMETERS"].set(pars);
+  try {
+    HighPrecisionEph eph_obj(record, header);
+    err() << "HighPrecisionEph constructor did not throw an exception for an undefined glitch epoch" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  pars.clear();
+  pars.push_back(54321.1);
+  pars.push_back(0.987654321);
+  pars.push_back(9.87654321);
+  pars.push_back(98.7654321);
+  pars.push_back(65432.2);
+  pars.push_back(0.00054321);
+  pars.push_back(null_value);
+  pars.push_back(0.0056789);
+  pars.push_back(54.321);
+  record["GLITCH_PARAMETERS"].set(pars);
+  try {
+    HighPrecisionEph eph_obj(record, header);
+    err() << "HighPrecisionEph constructor did not throw an exception for an undefined glitch decay time" << std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  pars.clear();
+  pars.push_back(1);
+  pars.push_back(3);
+  pars.push_back(0);
+  pars.push_back(1);
+  pars.push_back(0);
+  pars.push_back(5);
+  record["GLITCH_DIMENSIONS"].set(pars);
+  try {
+    HighPrecisionEph eph_obj(record, header);
+    err() << "HighPrecisionEph constructor did not throw an exception for unmatched GLITCH_DIMENSIONS (1, 3, 0, 1, 0, 5)" <<
+      std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
+
+  pars.clear();
+  pars.push_back(2);
+  pars.push_back(2);
+  pars.push_back(0);
+  pars.push_back(1);
+  pars.push_back(0);
+  pars.push_back(4);
+  record["GLITCH_DIMENSIONS"].set(pars);
+  try {
+    HighPrecisionEph eph_obj(record, header);
+    err() << "HighPrecisionEph constructor did not throw an exception for having two fields for a glitch epoch" <<
+      std::endl;
+  } catch (const std::exception &) {
+    // This is fine.
+  }
 }
 
 void PulsarDbTestApp::testSimpleDdEph() {
