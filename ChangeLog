@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Aug 13 19:17:12 PDT 2010
+pulsarDb/pulsarDb
+
+Added Files:
+	HighPrecisionEph.h 
+Log Message:
+Add new type of spin ephemeris.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Aug  2 19:36:37 PDT 2010
 pulsarDb/src
 
