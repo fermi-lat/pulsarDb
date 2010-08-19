@@ -973,7 +973,6 @@ class FormattedEphTester: public FormattedEph {
       // Test trimPhaseValue method with offset argument.
       double phase_result = trimPhaseValue(phase_value, phase_offset);
       if (std::fabs(expected_with_offset - phase_result) > tolerance) {
-        m_test_app->err() << std::setprecision(std::numeric_limits<double>::digits10);
         m_test_app->err() << "FormattedEph::trimPhaseValue(" << phase_value << ", " << phase_offset << ") returned " <<
           phase_result << ", not " << expected_with_offset << std::endl;
       }
@@ -981,7 +980,6 @@ class FormattedEphTester: public FormattedEph {
       // Test trimPhaseValue method without offset argument.
       phase_result = trimPhaseValue(phase_value);
       if (std::fabs(expected_no_offset - phase_result) > tolerance) {
-        m_test_app->err() << std::setprecision(std::numeric_limits<double>::digits10);
         m_test_app->err() << "FormattedEph::trimPhaseValue(" << phase_value << ", " << phase_offset << ") returned " <<
           phase_result << ", not " << expected_no_offset << std::endl;
       }
@@ -2711,7 +2709,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
   double delta = 100. * 1.e-9;
   ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
 
-  std::cerr.precision(24);
+  setPrecision(24);
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
@@ -2880,7 +2878,7 @@ void PulsarDbTestApp::testBtModelEph() {
   double delta = 100. * 1.e-9;
   ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
 
-  std::cerr.precision(24);
+  setPrecision(24);
   for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
