@@ -1459,13 +1459,44 @@ void PulsarDbTestApp::testFrequencyEph() {
   AbsoluteTime since("TT", 51910, 0.);
   AbsoluteTime until("TT", 51910, 1.);
   AbsoluteTime epoch("TT", 51910, 123.456789);
+  AbsoluteTime pick_time("TT", 51910, 223.456789);
+  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nanosecond.
   double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
   std::auto_ptr<FrequencyEph> eph(new FrequencyEph("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6));
 
-  // Create a time to pick an ephemeris.
-  AbsoluteTime pick_time("TT", 51910, 223.456789);
+  // Test time system getter.
+  std::string sys_name = eph->getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "FrequencyEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
+  // Test valid-since getter.
+  const AbsoluteTime & since_returned = eph->getValidSince();
+  if (!since_returned.equivalentTo(since, tolerance)) {
+    err() << "FrequencyEph::getValidSince returned AbsoluteTime(" << since_returned << "), not AbsoluteTime(" << since <<
+      ")" << std::endl;
+  }
+
+  // Test valid-until getter.
+  const AbsoluteTime & until_returned = eph->getValidUntil();
+  if (!until_returned.equivalentTo(until, tolerance)) {
+    err() << "FrequencyEph::getValidUntil returned AbsoluteTime(" << until_returned << "), not AbsoluteTime(" << until <<
+      ")" << std::endl;
+  }
+
+  // Test epoch getter.
+  const AbsoluteTime & epoch_returned = eph->getEpoch();
+  if (!epoch_returned.equivalentTo(epoch, tolerance)) {
+    err() << "FrequencyEph::getEpoch returned AbsoluteTime(" << epoch_returned << "), not AbsoluteTime(" << epoch <<
+      ")" << std::endl;
+  }
+
+  // Test remark getter.
+  if (eph->getRemark().size()) {
+    err() << "FrequencyEph::getRemark returned a non-empty container of remarks." << std::endl;
+  }
 
   // Test pulse phase computations.
   double phase = eph->calcPulsePhase(pick_time);
@@ -1646,9 +1677,12 @@ class SimplePeriodEph {
 void PulsarDbTestApp::testPeriodEph() {
   setMethod("testPeriodEph");
 
+  // Prepare absolute times and tolerance for testing computations.
   AbsoluteTime since("TDB", 51910, 0.);
   AbsoluteTime until("TDB", 51910, 1.);
   AbsoluteTime epoch("TDB", 51910, 123.456789);
+  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nanosecond.
+  double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
   FrequencyEph f_eph("TDB", since, until, epoch, 22., 45., 0.875, 1.125e-2, -2.25e-4, 6.75e-6);
@@ -1659,10 +1693,6 @@ void PulsarDbTestApp::testPeriodEph() {
     1.777777777777777777777778, 0.0177777777777777777777778);
 
   // Compare frequency & period.
-  double epsilon = 1.e-8;
-  const double nano_sec = 1.e-9;
-  ElapsedTime tolerance("TDB", Duration(nano_sec, "Sec"));
-
   if (!f_eph.getEpoch().equivalentTo(p_eph.getEpoch(), tolerance))
     err() << "FrequencyEph and PeriodEph give different values for epoch" << std::endl;
 
@@ -1682,8 +1712,49 @@ void PulsarDbTestApp::testPeriodEph() {
     }
   }
 
+  // Create period ephemeris for regular testings.
+  double ra = 22.;
+  double dec = 45.;
+  double phi0 = 0.875;
+  double p0 = 1.23456789;
+  double p1 = 9.87654321e-5;
+  double p2 = 1.357902468e-10;
+  std::auto_ptr<PeriodEph> eph(new PeriodEph("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2));
+
+  // Test time system getter.
+  std::string sys_name = eph->getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "PeriodEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
+  // Test valid-since getter.
+  const AbsoluteTime & since_returned = eph->getValidSince();
+  if (!since_returned.equivalentTo(since, tolerance)) {
+    err() << "PeriodEph::getValidSince returned AbsoluteTime(" << since_returned << "), not AbsoluteTime(" << since <<
+      ")" << std::endl;
+  }
+
+  // Test valid-until getter.
+  const AbsoluteTime & until_returned = eph->getValidUntil();
+  if (!until_returned.equivalentTo(until, tolerance)) {
+    err() << "PeriodEph::getValidUntil returned AbsoluteTime(" << until_returned << "), not AbsoluteTime(" << until <<
+      ")" << std::endl;
+  }
+
+  // Test epoch getter.
+  const AbsoluteTime & epoch_returned = eph->getEpoch();
+  if (!epoch_returned.equivalentTo(epoch, tolerance)) {
+    err() << "PeriodEph::getEpoch returned AbsoluteTime(" << epoch_returned << "), not AbsoluteTime(" << epoch <<
+      ")" << std::endl;
+  }
+
+  // Test remark getter.
+  if (eph->getRemark().size()) {
+    err() << "PeriodEph::getRemark returned a non-empty container of remarks." << std::endl;
+  }
+
   // Test the pulsar position.
-  SourcePosition computed_pos = p_eph.calcPosition(epoch);
+  SourcePosition computed_pos = eph->calcPosition(epoch);
   SourcePosition correct_pos = SourcePosition(22., 45.);
   std::string coord_name("XYZ");
   for (size_t ii = 0; ii < 3; ++ii) {
@@ -1702,15 +1773,7 @@ void PulsarDbTestApp::testPeriodEph() {
   double time_since_epoch = 1000.;
   double step_size = 100.;
   AbsoluteTime abs_time = epoch + ElapsedTime("TDB", Duration(time_since_epoch, "Sec"));
-  double ra = 22.;
-  double dec = 45.;
-  double phi0 = 0.875;
-  double p0 = 1.23456789;
-  double p1 = 9.87654321e-5;
-  double p2 = 1.357902468e-10;
-  std::auto_ptr<PeriodEph> eph(new PeriodEph("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2));
   std::auto_ptr<SimplePeriodEph> s_eph(new SimplePeriodEph(phi0, p0, p1, p2));
-
   epsilon = 1.e-3; // Note: Need a loose tolerance because SimplePeriodEph::calcFrequency is not that precise.
   double result = 0.;
   double expected = 0.;
@@ -1855,18 +1918,56 @@ void PulsarDbTestApp::testPeriodEph() {
 
 void PulsarDbTestApp::testHighPrecisionEph() {
   setMethod("testHighPrecisionEph");
+  EphComputerAppTester tester(*this);
 
   // Prepare variables for tests.
-  std::auto_ptr<HighPrecisionEph> eph(0);
   AbsoluteTime since("TDB", 51910, 0.);
   AbsoluteTime until("TDB", 51910, 1.);
   AbsoluteTime epoch("TDB", 51910, 123.456789);
   AbsoluteTime ev_time("TDB", 51910, 0.);
+  ElapsedTime tolerance("TDB", Duration(1.e-9, "Sec")); // 1 nanosecond.
   const HighPrecisionEph::freq_type freq_empty(0);
   const HighPrecisionEph::wave_type wave_empty(0);
   const HighPrecisionEph::glitch_type glitch_empty(0);
   double elapsed = 12.345 * SecPerDay(); // 12.345 days in seconds.
   ev_time = epoch + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+  // Create a high-precision ephemeris.
+  std::auto_ptr<HighPrecisionEph> eph(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+    epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
+
+  // Test time system getter.
+  std::string sys_name = eph->getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "HighPrecisionEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
+  // Test valid-since getter.
+  const AbsoluteTime & since_returned = eph->getValidSince();
+  if (!since_returned.equivalentTo(since, tolerance)) {
+    err() << "HighPrecisionEph::getValidSince returned AbsoluteTime(" << since_returned << "), not AbsoluteTime(" << since <<
+      ")" << std::endl;
+  }
+
+  // Test valid-until getter.
+  const AbsoluteTime & until_returned = eph->getValidUntil();
+  if (!until_returned.equivalentTo(until, tolerance)) {
+    err() << "HighPrecisionEph::getValidUntil returned AbsoluteTime(" << until_returned << "), not AbsoluteTime(" << until <<
+      ")" << std::endl;
+  }
+
+  // Test epoch getter.
+  const AbsoluteTime & epoch_returned = eph->getEpoch();
+  if (!epoch_returned.equivalentTo(epoch, tolerance)) {
+    err() << "HighPrecisionEph::getEpoch returned AbsoluteTime(" << epoch_returned << "), not AbsoluteTime(" << epoch <<
+      ")" << std::endl;
+  }
+
+  // Test remark getter, for an empty result.
+  // Note: Tests with glitches are included below, following a test of each type of constructor.
+  if (eph->getRemark().size()) {
+    err() << "HighPrecisionEph::getRemark returned a non-empty container of remarks." << std::endl;
+  }
 
   // Test pulse phase computation, only with frequency parameters.
   HighPrecisionEph::freq_type freq_pars(20);
@@ -2396,6 +2497,29 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   t_eph.append("Decay Time", "54.321");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
+  // Test glitch reporting capability, with the constructor with numerical arguments.
+  EphStatusCont remark_list = eph->getRemark();
+  if (2 != remark_list.size()) {
+    err() << "HighPrecisionEph object constructed with numerical arguments reported " << remark_list.size() <<
+      " ephemeris remark(s), not 2." << std::endl;
+  } else {
+    std::list<std::string> report_list;
+    report_list.push_back("Remarked \"A glitch observed at 54321.1 MJD (TDB)\" since 54321.1 MJD (TDB) until 23456.7 MJD (TDB)");
+    report_list.push_back("Remarked \"A glitch observed at 65432.2 MJD (TDB)\" since 65432.2 MJD (TDB) until 23456.7 MJD (TDB)");
+    std::list<std::string>::const_iterator str_itor = report_list.begin();
+    int remark_number = 1;
+    for (EphStatusCont::const_iterator rem_itor = remark_list.begin(); rem_itor != remark_list.end() && str_itor != report_list.end();
+      ++rem_itor, ++str_itor, ++remark_number) {
+      std::ostringstream oss;
+      oss << rem_itor->report("TDB", MjdFmt);
+      std::ostringstream dummy_oss;
+      if (!tester.verify(oss.str(), *str_itor, dummy_oss)) {
+        err() << "HighPrecisionEph object constructed with numerical arguments reported '" << oss.str() <<
+          "' as ephemeris remark No. " << remark_number << ", not '" << *str_itor << "'." << std::endl;
+      }
+    }
+  }
+
   // Test the constructor that takes a FITS record.
   std::string test_tpl("test_HighPrecisionEph.tpl");
   remove(test_tpl.c_str());
@@ -2464,7 +2588,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   eph.reset(new HighPrecisionEph(record, header));
   t_eph.clear();
   t_eph.append("Valid Since", "12345 MJD (TDB)");
-  t_eph.append("Valid Until", "23457 MJD (TDB)"); // The end of 65432 == the begining of 65433.
+  t_eph.append("Valid Until", "23457 MJD (TDB)"); // The end of 23456 == the begining of 23457.
   t_eph.append("Position Epoch",  "34567.8 MJD (TDB)");
   t_eph.append("RA",              "1.1");
   t_eph.append("Dec",             "2.2");
@@ -2519,6 +2643,29 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   t_eph.append("Amplitude",  "0.0056789");
   t_eph.append("Decay Time", "54.321");
   checkEphParameter(getMethod() + "_fits", *eph, t_eph);
+
+  // Test glitch reporting capability, with the constructor with a FITS record.
+  remark_list = eph->getRemark();
+  if (2 != remark_list.size()) {
+    err() << "HighPrecisionEph object constructed with a FITS record reported " << remark_list.size() <<
+      " ephemeris remark(s), not 2." << std::endl;
+  } else {
+    std::list<std::string> report_list;
+    report_list.push_back("Remarked \"A glitch observed at 54321.1 MJD (TDB)\" since 54321.1 MJD (TDB) until 23457 MJD (TDB)");
+    report_list.push_back("Remarked \"A glitch observed at 65432.2 MJD (TDB)\" since 65432.2 MJD (TDB) until 23457 MJD (TDB)");
+    std::list<std::string>::const_iterator str_itor = report_list.begin();
+    int remark_number = 1;
+    for (EphStatusCont::const_iterator rem_itor = remark_list.begin(); rem_itor != remark_list.end() && str_itor != report_list.end();
+      ++rem_itor, ++str_itor, ++remark_number) {
+      std::ostringstream oss;
+      oss << rem_itor->report("TDB", MjdFmt);
+      std::ostringstream dummy_oss;
+      if (!tester.verify(oss.str(), *str_itor, dummy_oss)) {
+        err() << "HighPrecisionEph object constructed with a FITS record reported '" << oss.str() <<
+          "' as ephemeris remark No. " << remark_number << ", not '" << *str_itor << "'." << std::endl;
+      }
+    }
+  }
 
   // Test detection of glitch parameter errors.
   // TODO: Use tip::TableCell::setNull method once it is implemented in tip.
@@ -3714,6 +3861,7 @@ class BogusPulsarEphBase: public PulsarEph {
     virtual const AbsoluteTime & getValidSince() const { return getBogusTime(); }
     virtual const AbsoluteTime & getValidUntil() const { return getBogusTime(); }
     virtual const AbsoluteTime & getEpoch() const { return getBogusTime(); }
+    virtual const EphStatusCont & getRemark() const { static const EphStatusCont s_remark_cont; return s_remark_cont; }
     virtual PulsarEph * clone() const { return new BogusPulsarEphBase(*this); }
     virtual double calcPulsePhase(const AbsoluteTime & /* ev_time */, double /* phase_offset */ = 0.) const {
       return 0.;

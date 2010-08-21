@@ -36,7 +36,7 @@ namespace pulsarDb {
   HighPrecisionEph::HighPrecisionEph(const tip::Table::ConstRecord & record, const tip::Header & /* header */):
     m_system(&TimeSystem::getSystem("TDB")), m_since("TDB", 0, 0.), m_until("TDB", 0, 0.), m_pos_epoch("TDB", 0, 0.),
     m_ra(0.), m_dec(0.), m_ra_vel(0.), m_dec_vel(0.), m_radial_vel(0.), m_parallax(-1.), m_freq_epoch("TDB", 0, 0.),
-    m_freq_pars(0), m_wave_omega(-1.), m_wave_sine(0), m_wave_cosine(0), m_glitch_list(0) {
+    m_freq_pars(0), m_wave_omega(-1.), m_wave_sine(0), m_wave_cosine(0), m_glitch_list(0), m_remark_cont() {
     // Read the start time of validity window (required).
     long valid_since_date = 0;
     read(record, "VALID_SINCE", valid_since_date);
@@ -170,6 +170,9 @@ namespace pulsarDb {
 
     // Put the computed phi0.
     m_freq_pars[0] = phi0;
+
+    // Set ephemeris remarks to a data member.
+    setRemark();
   }
 
   void HighPrecisionEph::writeModelParameter(st_stream::OStream & os) const {
@@ -542,6 +545,15 @@ namespace pulsarDb {
     std::ostringstream oss;
     oss << "Logic error in computing the source position for " << ev_time;
     throw std::runtime_error(oss.str());
+  }
+
+  void HighPrecisionEph::setRemark() {
+    // Add glitches to the internal container of ephemeris remarks.
+    for (glitch_type::const_iterator glitch_itor = m_glitch_list.begin(); glitch_itor != m_glitch_list.end(); ++glitch_itor) {
+      std::ostringstream oss;
+      oss << "A glitch observed at " << glitch_itor->m_epoch.represent("TDB", MjdFmt);
+      m_remark_cont.push_back(EphStatus(glitch_itor->m_epoch, m_until, Remarked, oss.str()));
+    }
   }
 
 }
