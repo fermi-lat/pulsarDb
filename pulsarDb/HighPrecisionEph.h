@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "pulsarDb/EphStatus.h"
 #include "pulsarDb/FormattedEph.h"
 #include "pulsarDb/PulsarEph.h"
 
@@ -94,7 +95,8 @@ namespace pulsarDb {
         m_system(&timeSystem::TimeSystem::getSystem(time_system_name)), m_since(valid_since), m_until(valid_until),
         m_pos_epoch(pos_epoch), m_ra(ra), m_dec(dec), m_ra_vel(ra_velocity), m_dec_vel(dec_velocity),
         m_radial_vel(radial_velocity), m_parallax(parallax), m_freq_epoch(freq_epoch), m_freq_pars(freq_pars),
-        m_wave_omega(wave_omega), m_wave_sine(wave_sine), m_wave_cosine(wave_cosine), m_glitch_list(glitch_list) {}
+        m_wave_omega(wave_omega), m_wave_sine(wave_sine), m_wave_cosine(wave_cosine), m_glitch_list(glitch_list),
+        m_remark_cont() { setRemark(); }
 
       /** \brief Create a pulsar ephemeris object with the parameters stored in tip record.
           \param record FITS row from which all parameters for an ephemeris being created are to be read.
@@ -120,6 +122,9 @@ namespace pulsarDb {
 
       /// \brief Return a reference epoch of this ephemeris.
       virtual const timeSystem::AbsoluteTime & getEpoch() const { return m_freq_epoch; }
+
+      /// \brief Return the container of ephemeris remarks.
+      virtual const EphStatusCont & getRemark() const { return m_remark_cont; }
 
       /// \brief Create a copy of this object, and return a pointer to it.
       virtual PulsarEph * clone() const { return new HighPrecisionEph(*this); }
@@ -170,6 +175,10 @@ namespace pulsarDb {
       wave_type m_wave_sine;
       wave_type m_wave_cosine;
       glitch_type m_glitch_list;
+      EphStatusCont m_remark_cont;
+
+      /// \brief Set a list of ephemeris remarks to a data member.
+      void setRemark();
   };
 
 }

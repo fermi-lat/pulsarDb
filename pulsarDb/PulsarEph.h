@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "pulsarDb/EphStatus.h"
 #include "pulsarDb/FormattedEph.h"
 
 namespace st_stream {
@@ -50,6 +51,9 @@ namespace pulsarDb {
 
       /// \brief Return a reference epoch of this ephemeris.
       virtual const timeSystem::AbsoluteTime & getEpoch() const = 0;
+
+      /// \brief Return the container of ephemeris remarks.
+      virtual const EphStatusCont & getRemark() const = 0;
 
       /** \brief Compute the spin phase of the given time.
                  Note: validity of the ephemeris (valid since and valid until) are not checked.

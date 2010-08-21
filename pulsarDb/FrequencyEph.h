@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 
+#include "pulsarDb/EphStatus.h"
 #include "pulsarDb/PulsarEph.h"
 
 #include "tip/Table.h"
@@ -74,6 +75,9 @@ namespace pulsarDb {
 
       /// \brief Return a reference epoch of this ephemeris.
       virtual const timeSystem::AbsoluteTime & getEpoch() const { return m_epoch; }
+
+      /// \brief Return the container of ephemeris remarks.
+      virtual const EphStatusCont & getRemark() const { static const EphStatusCont s_remark_cont; return s_remark_cont; }
 
       /// \brief Create a copy of this object, and return a pointer to it.
       virtual PulsarEph * clone() const { return new FrequencyEph(*this); }
