@@ -121,7 +121,11 @@ namespace pulsarDb {
   }
 
   EphStatusCont::size_type EphComputer::getNumEphRemark() const {
-    return m_eph_remark_cont.size();
+    EphStatusCont::size_type num_remark = m_eph_remark_cont.size();
+    for (PulsarEphCont::const_iterator spin_itor = m_pulsar_eph_cont.begin(); spin_itor != m_pulsar_eph_cont.end(); ++spin_itor) {
+      num_remark += (*spin_itor)->getRemark().size();
+    }
+    return num_remark;
   }
 
   const PulsarEph & EphComputer::choosePulsarEph(const timeSystem::AbsoluteTime & ev_time) const {
@@ -145,6 +149,14 @@ namespace pulsarDb {
     // Subselect ephemeris remarks by the given time interval, and copy selected remarks to the output.
     for (EphStatusCont::const_iterator itor = m_eph_remark_cont.begin(); itor != m_eph_remark_cont.end(); ++itor) {
       if (itor->effectiveBetween(start_time, stop_time)) eph_status_cont.push_back(*itor);
+    }
+
+    // Collect ephemeris remarks from the stored PulsarEph objects, and subselect them in the same way as above.
+    for (PulsarEphCont::const_iterator spin_itor = m_pulsar_eph_cont.begin(); spin_itor != m_pulsar_eph_cont.end(); ++spin_itor) {
+      const EphStatusCont & remark_list = (*spin_itor)->getRemark();
+      for (EphStatusCont::const_iterator rem_itor = remark_list.begin(); rem_itor != remark_list.end(); ++rem_itor) {
+        if (rem_itor->effectiveBetween(start_time, stop_time)) eph_status_cont.push_back(*rem_itor);
+      }
     }
   }
 

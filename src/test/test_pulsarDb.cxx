@@ -3662,6 +3662,28 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading non-remark ephemeris status, there were " << computer3.getNumEphRemark() <<
       " ephemeris remark(s), not 13 as expected." << std::endl;
 
+  // Load just one set of spin parameters, with multiple remarks included.
+  const HighPrecisionEph::freq_type freq_empty(0);
+  const HighPrecisionEph::wave_type wave_empty(0);
+  HighPrecisionEph::glitch_type glitch_list(2);
+  HighPrecisionEph::glitch_type::iterator glitch_itor = glitch_list.begin();
+  glitch_itor->m_epoch = AbsoluteTime("TDB", 54321,  8640.);
+  ++glitch_itor;
+  glitch_itor->m_epoch = AbsoluteTime("TDB", 65432, 17280.);
+  computer3.loadPulsarEph(HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., 0., epoch,
+    freq_empty, 1., wave_empty, wave_empty, glitch_list));
+  if (1143 != computer3.getNumPulsarEph())
+    err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumPulsarEph() <<
+      " spin pulsar ephemeri(de)s, not 1143 as expected." << std::endl;
+
+  if (20 != computer3.getNumOrbitalEph())
+    err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumOrbitalEph() <<
+      " orbital ephemeri(de)s, not 20 as expected." << std::endl;
+
+  if (15 != computer3.getNumEphRemark())
+    err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumEphRemark() <<
+      " ephemeris remark(s), not 15 as expected." << std::endl;
+
   // Prepare variables for tests of examinePulsarEph method.
   EphComputer computer4;
   EphStatusCont eph_status_cont;
@@ -4593,11 +4615,24 @@ void PulsarDbTestApp::testEphStatus() {
   pulsar_eph_cont.clear();
 
   // Prepare variables for tests of ephemeris remark selection.
+  // Note: the following loads a set of remarks to the ephemeris computer as:
+  //       1) a regular remark effective since abs_time_05 until abs_time_07,
+  //       2) a regular remark effective since abs_time_09 until abs_time_10,
+  //       3) a glitch at abs_time_03, resulting a remark effective since abs_time_03 until abs_time_05, and
+  //       4) a glitch at abs_time_07, resulting a remark effective since abs_time_07 until abs_time_09.
   EphComputer eph_computer;
-  eph_computer.loadEphRemark(EphStatus(abs_time_03, abs_time_05, Remarked, "Remark No. 1"));
-  eph_computer.loadEphRemark(EphStatus(abs_time_05, abs_time_07, Remarked, "Remark No. 2"));
-  eph_computer.loadEphRemark(EphStatus(abs_time_07, abs_time_09, Remarked, "Remark No. 3"));
-  eph_computer.loadEphRemark(EphStatus(abs_time_09, abs_time_10, Remarked, "Remark No. 4"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_05, abs_time_07, Remarked, "Remark No. 1"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_09, abs_time_10, Remarked, "Remark No. 2"));
+  const HighPrecisionEph::freq_type freq_empty(0);
+  const HighPrecisionEph::wave_type wave_empty(0);
+  HighPrecisionEph::glitch_type glitch_list(1);
+  HighPrecisionEph::glitch_type::iterator glitch_itor = glitch_list.begin();
+  glitch_itor->m_epoch = abs_time_03;
+  eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_05, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
+    freq_empty, 1., wave_empty, wave_empty, glitch_list));
+  glitch_itor->m_epoch = abs_time_07;
+  eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_09, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
+    freq_empty, 1., wave_empty, wave_empty, glitch_list));
 
   // Test selection of ephemeris remarks by an ephemeris computer.
   eph_computer.getEphRemark(abs_time_04, abs_time_08, eph_status_cont);
@@ -4625,8 +4660,8 @@ void PulsarDbTestApp::testEphStatus() {
     const AbsoluteTime & result_since_1 = eph_status_1.getEffectiveSince();
     const AbsoluteTime & result_since_2 = eph_status_2.getEffectiveSince();
     const AbsoluteTime & result_since_3 = eph_status_3.getEffectiveSince();
-    const AbsoluteTime & expected_since_1 = abs_time_03;
-    const AbsoluteTime & expected_since_2 = abs_time_05;
+    const AbsoluteTime & expected_since_1 = abs_time_05;
+    const AbsoluteTime & expected_since_2 = abs_time_03;
     const AbsoluteTime & expected_since_3 = abs_time_07;
     if (!result_since_1.equivalentTo(expected_since_1, tolerance) || !result_since_2.equivalentTo(expected_since_2, tolerance) ||
         !result_since_3.equivalentTo(expected_since_3, tolerance)) {
@@ -4638,8 +4673,8 @@ void PulsarDbTestApp::testEphStatus() {
     const AbsoluteTime & result_until_1 = eph_status_1.getEffectiveUntil();
     const AbsoluteTime & result_until_2 = eph_status_2.getEffectiveUntil();
     const AbsoluteTime & result_until_3 = eph_status_3.getEffectiveUntil();
-    const AbsoluteTime & expected_until_1 = abs_time_05;
-    const AbsoluteTime & expected_until_2 = abs_time_07;
+    const AbsoluteTime & expected_until_1 = abs_time_07;
+    const AbsoluteTime & expected_until_2 = abs_time_05;
     const AbsoluteTime & expected_until_3 = abs_time_09;
     if (!result_until_1.equivalentTo(expected_until_1, tolerance) || !result_until_2.equivalentTo(expected_until_2, tolerance) ||
         !result_until_3.equivalentTo(expected_until_3, tolerance)) {
