@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Aug 20 19:27:55 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Modify EphComputer to handle ephemeris remarks from PulsarEph objects.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Aug 20 19:27:55 PDT 2010
 pulsarDb/src
 
 Modified Files:
