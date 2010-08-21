@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Aug 20 18:22:23 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarEph.h FrequencyEph.h PeriodEph.h HighPrecisionEph.h 
+Log Message:
+Add remark reporting capability to PulsarEph classes.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Aug 19 16:05:02 PDT 2010
 pulsarDb/src/test
 
