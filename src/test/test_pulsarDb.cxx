@@ -4298,22 +4298,36 @@ void PulsarDbTestApp::testEphStatus() {
   }
 
   // Prepare variables for tests of effectiveness checker.
+  AbsoluteTime abs_time_earliest("TDB", 51909, 0.);
   AbsoluteTime abs_time_earlier("TDB", 51909, 86399.);
-  AbsoluteTime abs_time_during("TDB", 51910, 43200.);
+  AbsoluteTime abs_time_during1("TDB", 51910, 21600.);
+  AbsoluteTime abs_time_during2("TDB", 51910, 64800.);
   AbsoluteTime abs_time_later("TDB", 51911, 1.);
-  AbsoluteTime abs_time_latest("TDB", 51911, 1.);
+  AbsoluteTime abs_time_latest("TDB", 51912, 0.);
 
   // Test determination of status effectiveness.
-  bool result_effective = eph_status.effectiveBetween(abs_time_earlier, abs_time_during);
-  bool expected_effective = true;
+  bool result_effective = eph_status.effectiveBetween(abs_time_earliest, abs_time_earlier);
+  bool expected_effective = false;
   if (result_effective != expected_effective) {
-    err() << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_during << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_earliest << ", " << abs_time_earlier << ") returned " <<
       result_effective << ", not " << expected_effective << " as expected." << std::endl;
   }
-  result_effective = eph_status.effectiveBetween(abs_time_during, abs_time_later);
+  result_effective = eph_status.effectiveBetween(abs_time_earlier, abs_time_during1);
   expected_effective = true;
   if (result_effective != expected_effective) {
-    err() << "EphStatus::effectiveBetween(" << abs_time_during << ", " << abs_time_later << ") returned " <<
+    err() << "EphStatus::effectiveBetween(" << abs_time_earlier << ", " << abs_time_during1 << ") returned " <<
+      result_effective << ", not " << expected_effective << " as expected." << std::endl;
+  }
+  result_effective = eph_status.effectiveBetween(abs_time_during1, abs_time_during2);
+  expected_effective = true;
+  if (result_effective != expected_effective) {
+    err() << "EphStatus::effectiveBetween(" << abs_time_during1 << ", " << abs_time_during2 << ") returned " <<
+      result_effective << ", not " << expected_effective << " as expected." << std::endl;
+  }
+  result_effective = eph_status.effectiveBetween(abs_time_during2, abs_time_later);
+  expected_effective = true;
+  if (result_effective != expected_effective) {
+    err() << "EphStatus::effectiveBetween(" << abs_time_during2 << ", " << abs_time_later << ") returned " <<
       result_effective << ", not " << expected_effective << " as expected." << std::endl;
   }
   result_effective = eph_status.effectiveBetween(abs_time_later, abs_time_latest);
@@ -4621,66 +4635,78 @@ void PulsarDbTestApp::testEphStatus() {
   //       3) a glitch at abs_time_03, resulting a remark effective since abs_time_03 until abs_time_05, and
   //       4) a glitch at abs_time_07, resulting a remark effective since abs_time_07 until abs_time_09.
   EphComputer eph_computer;
-  eph_computer.loadEphRemark(EphStatus(abs_time_05, abs_time_07, Remarked, "Remark No. 1"));
-  eph_computer.loadEphRemark(EphStatus(abs_time_09, abs_time_10, Remarked, "Remark No. 2"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_02, abs_time_03, Remarked, "Remark No. 1"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_03, abs_time_05, Remarked, "Remark No. 2"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_05, abs_time_07, Remarked, "Remark No. 3"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_07, abs_time_09, Remarked, "Remark No. 4"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_09, abs_time_10, Remarked, "Remark No. 5"));
+  eph_computer.loadEphRemark(EphStatus(abs_time_03, abs_time_09, Remarked, "Remark No. 6"));
   const HighPrecisionEph::freq_type freq_empty(0);
   const HighPrecisionEph::wave_type wave_empty(0);
   HighPrecisionEph::glitch_type glitch_list(1);
   HighPrecisionEph::glitch_type::iterator glitch_itor = glitch_list.begin();
+  glitch_itor->m_epoch = abs_time_02;
+  eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_03, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
+    freq_empty, 1., wave_empty, wave_empty, glitch_list));
   glitch_itor->m_epoch = abs_time_03;
   eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_05, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
     freq_empty, 1., wave_empty, wave_empty, glitch_list));
+  glitch_itor->m_epoch = abs_time_05;
+  eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_07, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
+    freq_empty, 1., wave_empty, wave_empty, glitch_list));
+  glitch_list.resize(3);
+  glitch_itor = glitch_list.begin();
   glitch_itor->m_epoch = abs_time_07;
-  eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_09, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
+  ++glitch_itor;
+  glitch_itor->m_epoch = abs_time_09;
+  ++glitch_itor;
+  glitch_itor->m_epoch = abs_time_03;
+  eph_computer.loadPulsarEph(HighPrecisionEph("TDB", abs_time_01, abs_time_10, abs_time_02, 0., 0., 0., 0., 0., 0., abs_time_02,
     freq_empty, 1., wave_empty, wave_empty, glitch_list));
 
   // Test selection of ephemeris remarks by an ephemeris computer.
+  EphStatusCont expected_status_cont;
+  expected_status_cont.push_back(EphStatus(abs_time_03, abs_time_05, Remarked, "Remark No. 2"));
+  expected_status_cont.push_back(EphStatus(abs_time_05, abs_time_07, Remarked, "Remark No. 3"));
+  expected_status_cont.push_back(EphStatus(abs_time_07, abs_time_09, Remarked, "Remark No. 4"));
+  expected_status_cont.push_back(EphStatus(abs_time_03, abs_time_09, Remarked, "Remark No. 6"));
+  expected_status_cont.push_back(EphStatus(abs_time_03, abs_time_05, Remarked, "Glitch No. 2"));
+  expected_status_cont.push_back(EphStatus(abs_time_05, abs_time_07, Remarked, "Glitch No. 3"));
+  expected_status_cont.push_back(EphStatus(abs_time_07, abs_time_10, Remarked, "Glitch No. 4"));
+  expected_status_cont.push_back(EphStatus(abs_time_03, abs_time_10, Remarked, "Glitch No. 6"));
   eph_computer.getEphRemark(abs_time_04, abs_time_08, eph_status_cont);
-  if (3 != eph_status_cont.size()) {
-    err() << "EphComputer::getEphRemark method returned " << eph_status_cont.size() <<
-      " ephemeris remark(s), not 3 as expected" << std::endl;
+  if (eph_status_cont.size() != expected_status_cont.size()) {
+    err() << "EphComputer::getEphRemark method returned " << eph_status_cont.size() << " ephemeris remark(s), not " <<
+      expected_status_cont.size() << " as expected" << std::endl;
   } else {
-    EphStatusCont::iterator status_itor = eph_status_cont.begin();
-    const EphStatus & eph_status_1 = *status_itor;
-    ++status_itor;
-    const EphStatus & eph_status_2 = *status_itor;
-    ++status_itor;
-    const EphStatus & eph_status_3 = *status_itor;
+    EphStatusCont::const_iterator result_itor = eph_status_cont.begin();
+    EphStatusCont::const_iterator expected_itor = expected_status_cont.begin();
+    int remark_number = 1;
+    for (; result_itor != eph_status_cont.end() && expected_itor != expected_status_cont.end(); ++result_itor, ++expected_itor,
+      ++remark_number) {
+      // Compare status code.
+      const EphStatusCodeType & result_code = result_itor->getStatusCode();
+      const EphStatusCodeType & expected_code = expected_itor->getStatusCode();
+      if (result_code != expected_code) {
+        err() << "EphComputer::getEphRemark method returned an EphStatus object with status codes of " <<
+          result_code << ", not " << expected_code << ", for " << expected_itor->getDescription() << "." << std::endl;
+      }
 
-    const EphStatusCodeType & result_code_1 = eph_status_1.getStatusCode();
-    const EphStatusCodeType & result_code_2 = eph_status_2.getStatusCode();
-    const EphStatusCodeType & result_code_3 = eph_status_3.getStatusCode();
-    EphStatusCodeType expected_code = Remarked;
-    if (result_code_1 != expected_code || result_code_2 != expected_code || result_code_3 != expected_code) {
-      err() << "EphComputer::getEphRemark method returned three EphStatus objects with status codes of " <<
-        result_code_1 << ", " << result_code_2 << ", and " << result_code_3 << ", respectively, not all " << expected_code <<
-        " as expected" << std::endl;
-    }
+      // Compare effective-since time.
+      const AbsoluteTime & result_since = result_itor->getEffectiveSince();
+      const AbsoluteTime & expected_since = expected_itor->getEffectiveSince();
+      if (!result_since.equivalentTo(expected_since, tolerance)) {
+        err() << "EphComputer::getEphRemark method returned an EphStatus object effective since " <<
+          result_since << ", not " << expected_since << ", for " << expected_itor->getDescription() << "." << std::endl;
+      }
 
-    const AbsoluteTime & result_since_1 = eph_status_1.getEffectiveSince();
-    const AbsoluteTime & result_since_2 = eph_status_2.getEffectiveSince();
-    const AbsoluteTime & result_since_3 = eph_status_3.getEffectiveSince();
-    const AbsoluteTime & expected_since_1 = abs_time_05;
-    const AbsoluteTime & expected_since_2 = abs_time_03;
-    const AbsoluteTime & expected_since_3 = abs_time_07;
-    if (!result_since_1.equivalentTo(expected_since_1, tolerance) || !result_since_2.equivalentTo(expected_since_2, tolerance) ||
-        !result_since_3.equivalentTo(expected_since_3, tolerance)) {
-      err() << "EphComputer::getEphRemark method returned three EphStatus objects effective since " <<
-        result_since_1 << ", " << result_since_2 << ", and " << result_since_3 << ", respectively, not " << expected_since_1 <<
-        ", " << expected_since_2 << ", and " << expected_since_3 << " as expected" << std::endl;
-    }
-
-    const AbsoluteTime & result_until_1 = eph_status_1.getEffectiveUntil();
-    const AbsoluteTime & result_until_2 = eph_status_2.getEffectiveUntil();
-    const AbsoluteTime & result_until_3 = eph_status_3.getEffectiveUntil();
-    const AbsoluteTime & expected_until_1 = abs_time_07;
-    const AbsoluteTime & expected_until_2 = abs_time_05;
-    const AbsoluteTime & expected_until_3 = abs_time_09;
-    if (!result_until_1.equivalentTo(expected_until_1, tolerance) || !result_until_2.equivalentTo(expected_until_2, tolerance) ||
-        !result_until_3.equivalentTo(expected_until_3, tolerance)) {
-      err() << "EphComputer::getEphRemark method returned three EphStatus objects effective until " <<
-        result_until_1 << ", " << result_until_2 << ", and " << result_until_3 << ", respectively, not " << expected_until_1 <<
-        ", " << expected_until_2 << ", and " << expected_until_3 << " as expected" << std::endl;
+      // Compare effective-until time.
+      const AbsoluteTime & result_until = result_itor->getEffectiveUntil();
+      const AbsoluteTime & expected_until = expected_itor->getEffectiveUntil();
+      if (!result_until.equivalentTo(expected_until, tolerance)) {
+        err() << "EphComputer::getEphRemark method returned an EphStatus object effective until " <<
+          result_until << ", not " << expected_until << ", for " << expected_itor->getDescription() << "." << std::endl;
+      }
     }
   }
 }
