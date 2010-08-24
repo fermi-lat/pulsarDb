@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Aug 23 17:21:11 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Improve testEphStatus for better testing ephemeris remark selection.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Aug 20 19:27:55 PDT 2010
 pulsarDb/src/test
 
