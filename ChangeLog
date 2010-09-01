@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:23:00 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Support vector columns in text database files.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Aug 31 17:23:00 PDT 2010
 pulsarDb/src
 
 Modified Files:
