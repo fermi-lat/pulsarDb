@@ -120,15 +120,15 @@ bool PulsarDbAppTester::verify(const std::string & /*keyword_name*/, const tip::
 
 bool PulsarDbAppTester::verify(const std::string & column_name, const tip::TableCell & out_cell,
   const tip::TableCell & ref_cell, std::ostream & error_stream) const {
-  // TODO: Add new columns for new ephemeris models (PeriodEph, HighPrecisionEph, BtModelEph, etc.)
   // Initialize return value.
   bool verified = false;
 
   // Compare columns.
   if ("PSRNAME" == column_name || "VALID_SINCE" == column_name || "VALID_UNTIL" == column_name || "EPOCH_INT" == column_name ||
-    "TOAGEO_INT" == column_name || "TOABARY_INT" == column_name || "OBSERVER_CODE" == column_name || "BINARY_FLAG" == column_name ||
-    "SOLAR_SYSTEM_EPHEMERIS" == column_name || "DESCRIPTION" == column_name || "OBSERVATORY" == column_name ||
-    "CONTACT_PERSON" == column_name || "REFERENCE" == column_name || "ALTNAME" == column_name) {
+    "POS_EPOCH_INT" == column_name || "FREQ_EPOCH_INT" == column_name || "TOAGEO_INT" == column_name || "TOABARY_INT" == column_name ||
+    "OBSERVER_CODE" == column_name || "BINARY_FLAG" == column_name || "SOLAR_SYSTEM_EPHEMERIS" == column_name ||
+    "DESCRIPTION" == column_name || "OBSERVATORY" == column_name || "CONTACT_PERSON" == column_name || "REFERENCE" == column_name ||
+    "ALTNAME" == column_name) {
     // Require an exact match as character strings.
     std::string out_value;
     std::string ref_value;
@@ -137,7 +137,9 @@ bool PulsarDbAppTester::verify(const std::string & column_name, const tip::Table
     verified = (out_value == ref_value);
     if (!verified) error_stream << "Character string \"" << out_value << "\" not identical to \"" << ref_value << "\"";
 
-  } else if ("3J_COLUMN" == column_name || "3D_COLUMN" == column_name || "PJ_COLUMN" == column_name || "PD_COLUMN" == column_name) {
+  } else if ("FREQ_PARAMETERS" == column_name || "WAVE_SINE" == column_name || "WAVE_COSINE" == column_name ||
+    "GLITCH_PARAMETERS" == column_name || "GLITCH_DIMENSIONS" == column_name || "3J_COLUMN" == column_name ||
+    "3D_COLUMN" == column_name || "PJ_COLUMN" == column_name || "PD_COLUMN" == column_name) {
     // Extract cell values as arrays of floating-point numbers.
     std::vector<double> out_array;
     std::vector<double> ref_array;
@@ -180,7 +182,8 @@ bool PulsarDbAppTester::verify(const std::string & column_name, const tip::Table
           " with absolute tolerance of 1e-10 degrees.";
       }
 
-    } else if ("EPOCH_FRAC" == column_name || "TOAGEO_FRAC" == column_name || "TOABARY_FRAC" == column_name) {
+    } else if ("EPOCH_FRAC" == column_name || "POS_EPOCH_FRAC" == column_name || "FREQ_EPOCH_FRAC" == column_name ||
+      "TOAGEO_FRAC" == column_name || "TOABARY_FRAC" == column_name) {
       // Require a match down to the 10th decimal point, which is approx. 10 microseconds.
       verified = (std::fabs(out_value - ref_value) <= 1.e-10);
       if (!verified) {
