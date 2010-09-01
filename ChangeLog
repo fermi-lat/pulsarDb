@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Aug 31 17:15:00 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	HighPrecisionEph.cxx 
+Log Message:
+Add std qualifier in front of size_t for clarity.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:14:32 PDT 2010
 pulsarDb/pulsarDb
 
