@@ -1,12 +1,12 @@
 #
-# Spin ephemeris file with extra quotes everywhere
+# Spin ephemeris file with an unbalanced quote
 #
-SPI"N_PARAM""ETERS"
+SPIN_PARAMETERS
 EPHSTYLE = TEST / dummy ephemeris model for text parser testing
-PSRNAME ""1D_COLUMN 3D_COLUMN"" PD_COLUMN 1J_COLUMN 3J"_"COL""""UMN "PJ_COLUMN"
+PSRNAME 1D_COLUMN 3D_COLUMN PD_COLUMN 1J_COLUMN 3J_COLUMN PJ_COLUMN
 
 "PSR J1234+5670"  1.11 ( 2.22,  3.33,  4.44) ( 5.55,  6.66,  7.77,  8.88,  9.99)  11 ( 22,  33,  44) ( 55,  66,  77,  88,  99)
-"PSR J1234+5671"" (1, 2, 3)" "11.11" ("12.22", 13.33, 14.44) (15.55, 16.66, 17"."77, 18.88, 19.99) 1"1"1 (122, ""133"", 144) (155, 166, 177, """"188, 199)
+"PSR J1234+5671" 11.11 (12.22, 13.33, 14.44\) (15.55, 16.66, 17.77, 18.88, 19.99) 111 (122, 133, 144) (155, 166, 177, 188, 199)
 "PSR J1234+5672" 21.11 (22.22, 23.33, 24.44) (25.55, 26.66, 27.77, 28.88, 29.99) 211 (222, 233, 244) (255, 266, 277, 288, 299)
 
 #

@@ -120,6 +120,7 @@ bool PulsarDbAppTester::verify(const std::string & /*keyword_name*/, const tip::
 
 bool PulsarDbAppTester::verify(const std::string & column_name, const tip::TableCell & out_cell,
   const tip::TableCell & ref_cell, std::ostream & error_stream) const {
+  // TODO: Add new columns for new ephemeris models (PeriodEph, HighPrecisionEph, BtModelEph, etc.)
   // Initialize return value.
   bool verified = false;
 
@@ -135,6 +136,33 @@ bool PulsarDbAppTester::verify(const std::string & column_name, const tip::Table
     ref_cell.get(ref_value);
     verified = (out_value == ref_value);
     if (!verified) error_stream << "Character string \"" << out_value << "\" not identical to \"" << ref_value << "\"";
+
+  } else if ("3J_COLUMN" == column_name || "3D_COLUMN" == column_name || "PJ_COLUMN" == column_name || "PD_COLUMN" == column_name) {
+    // Extract cell values as arrays of floating-point numbers.
+    std::vector<double> out_array;
+    std::vector<double> ref_array;
+    out_cell.get(out_array);
+    ref_cell.get(ref_array);
+    bool difference_found = false;
+
+    // Require an exact match in the number of elements.
+    if (ref_array.size() != out_array.size()) {
+      error_stream << "Number of elements is " << out_array.size() << ", not " << ref_array.size();
+      difference_found = true;
+
+    } else {
+      // Compare as floating-point numbers.
+      double rel_tol = std::numeric_limits<double>::epsilon() * 1000.;
+      for (std::vector<double>::size_type idx = 0; idx < ref_array.size(); ++idx) {
+        // NOTE: This requires out_value be exactly zero when ref_value is zero.
+        if (std::fabs(out_array[idx] - ref_array[idx]) > std::fabs(ref_array[idx]) * rel_tol) {
+          error_stream << std::endl << "Element " << idx + 1 << " of " << ref_array.size() << " is " << out_array[idx] <<
+            ", not " << ref_array[idx];
+          difference_found = true;
+        }
+      }
+    }
+    verified = !difference_found;
 
   } else {
     // Extract cell values as floating-point numbers.
@@ -790,7 +818,8 @@ void PulsarDbTestApp::testTextPulsarDb() {
     }
   }
 
-  // Test detection of badly-formatted tables.
+  // Test detection of error(s) in loading badly-formatted tables.
+  PulsarDb bad_database(prependDataPath("test_TextPulsarDb.tpl"));
   std::list<std::string> filename_list;
   filename_list.push_back("no_such_file.txt");
   filename_list.push_back("baddb_noextname.txt");
@@ -801,26 +830,53 @@ void PulsarDbTestApp::testTextPulsarDb() {
   filename_list.push_back("baddb_toolittlefield.txt");
   filename_list.push_back("baddb_toomanyfield.txt");
   filename_list.push_back("baddb_unbalancedquote.txt");
+  filename_list.push_back("baddb_escapedquote.txt");
+  filename_list.push_back("baddb_nestedvector.txt");
+  filename_list.push_back("baddb_quotedvector.txt");
+  filename_list.push_back("baddb_vectoredscalar.txt");
+  filename_list.push_back("baddb_badparenthesis1.txt");
+  filename_list.push_back("baddb_badparenthesis2.txt");
+  filename_list.push_back("baddb_badparenthesis3.txt");
+  filename_list.push_back("baddb_badparenthesis4.txt");
+  filename_list.push_back("baddb_badparenthesis5.txt");
+  filename_list.push_back("baddb_badparenthesis6.txt");
+  filename_list.push_back("baddb_badparenthesis7.txt");
+  filename_list.push_back("baddb_badparenthesis8.txt");
   for (std::list<std::string>::const_iterator itor = filename_list.begin(); itor != filename_list.end(); ++itor) {
     const std::string & filename(*itor);
     try {
-      database.load(prependDataPath(filename));
+      bad_database.load(prependDataPath(filename));
       err() << "PulsarDb::load method did not throw an exception for TEXT file \"" << filename << "\"" << std::endl;
-    } catch (const std::exception &) {
+    } catch (const std::exception & x) {
       // This is fine.
     }
   }
 
-  // Test no detection of poorly-formatted, but legal tables.
-  filename_list.clear();
-  filename_list.push_back("okdb_extraspace.txt");
-  filename_list.push_back("okdb_extraquote.txt");
-  for (std::list<std::string>::const_iterator itor = filename_list.begin(); itor != filename_list.end(); ++itor) {
-    const std::string & filename(*itor);
+  // Test no detection of errors in loading poorly-formatted, but legal tables.
+  std::list<std::string> basename_list;
+  basename_list.push_back("okdb_extraspace");
+  basename_list.push_back("okdb_extraquote");
+  basename_list.push_back("okdb_extraescape");
+  basename_list.push_back("okdb_notallcolumn1");
+  basename_list.push_back("okdb_notallcolumn2");
+  for (std::list<std::string>::const_iterator itor = basename_list.begin(); itor != basename_list.end(); ++itor) {
+    const std::string & basename(*itor);
+    PulsarDb ok_database(prependDataPath("test_TextPulsarDb.tpl"));
+    std::string filename(basename + ".txt");
+    bool successfully_loaded = false;
     try {
-      database.load(prependDataPath(filename));
+      ok_database.load(prependDataPath(filename));
+      successfully_loaded = true;
     } catch (const std::exception & x) {
       err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << std::endl << x.what() << std::endl;
+    }
+
+    // Write out to a FITS file and compare it with a reference.
+    if (successfully_loaded) {
+      std::string outfile(basename + ".fits");
+      remove(outfile.c_str());
+      ok_database.save(outfile, m_creator, m_author);
+      tester.checkOutputFits(outfile, prependOutrefPath(outfile));
     }
   }
 }
@@ -1517,7 +1573,7 @@ void PulsarDbTestApp::testFrequencyEph() {
   SourcePosition computed_pos = eph->calcPosition(ev_time);
   SourcePosition correct_pos = SourcePosition(22., 45.);
   std::string coord_name("XYZ");
-  for (size_t ii = 0; ii < 3; ++ii) {
+  for (std::size_t ii = 0; ii < 3; ++ii) {
     double computed_coord = computed_pos.getDirection()[ii];
     double correct_coord = correct_pos.getDirection()[ii];
     if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -1701,7 +1757,7 @@ void PulsarDbTestApp::testPeriodEph() {
                       f_eph.calcFrequency(epoch, 2) };
   double value2[] = { p_eph.calcPulsePhase(epoch), p_eph.calcFrequency(epoch, 0), p_eph.calcFrequency(epoch, 1),
                       p_eph.calcFrequency(epoch, 2) };
-  for (size_t ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof(value1) / sizeof(double); ++ii) {
     if (0. == value1[ii] || 0. == value2[ii]) {
       if (std::fabs(value1[ii] + value2[ii]) > std::numeric_limits<double>::epsilon())
         err() << "FrequencyEph and PeriodEph give absolutely different values for " << field[ii] <<
@@ -1757,7 +1813,7 @@ void PulsarDbTestApp::testPeriodEph() {
   SourcePosition computed_pos = eph->calcPosition(epoch);
   SourcePosition correct_pos = SourcePosition(22., 45.);
   std::string coord_name("XYZ");
-  for (size_t ii = 0; ii < 3; ++ii) {
+  for (std::size_t ii = 0; ii < 3; ++ii) {
     double computed_coord = computed_pos.getDirection()[ii];
     double correct_coord = correct_pos.getDirection()[ii];
     if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -1822,7 +1878,7 @@ void PulsarDbTestApp::testPeriodEph() {
     //       Parameters {2., 2.e-5, 1.e-10} and {1., 1.e-5, 2.e-10} were tried on Linux, but either of them
     //       did not achieve the equality as desired.
   };
-  for (size_t ii = 0; ii != sizeof (good_period_par)/sizeof(double[3]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof (good_period_par)/sizeof(double[3]); ++ii) {
     p0 = good_period_par[ii][0];
     p1 = good_period_par[ii][1];
     p2 = good_period_par[ii][2];
@@ -1845,7 +1901,7 @@ void PulsarDbTestApp::testPeriodEph() {
     //       Parameters {2., -2.e-2, 1.e-4} and {2., 2.e-2, -1.e-4} were tried on Linux, but either of them
     //       did not achieve the equality as desired.
   };
-  for (size_t ii = 0; ii != sizeof (bad_period_par)/sizeof(double[3]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof (bad_period_par)/sizeof(double[3]); ++ii) {
     p0 = bad_period_par[ii][0];
     p1 = bad_period_par[ii][1];
     p2 = bad_period_par[ii][2];
@@ -2230,7 +2286,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   };
   std::string coord_name("XYZ");
   epsilon = std::numeric_limits<double>::epsilon() * 100.;
-  for (size_t ii = 0; ii != sizeof(par_list)/sizeof(par_list[0]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof(par_list)/sizeof(par_list[0]); ++ii) {
     // Copy parameters of physical model.
     double * par = par_list[ii];
     double ra = par[0];
@@ -2250,13 +2306,13 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     initial_direction[2] = std::sin(dec/deg_per_rad);
     std::vector<double> final_position(3);
     double final_distance = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       final_position[jj] = initial_direction[jj] * initial_distance + pm_direction[jj] * pm_distance;
       final_distance += final_position[jj] * final_position[jj];
     }
     final_distance = std::sqrt(final_distance);
     std::vector<double> final_direction(3);
-    for (size_t jj = 0; jj < 3; ++jj) final_direction[jj] = final_position[jj] / final_distance;
+    for (std::size_t jj = 0; jj < 3; ++jj) final_direction[jj] = final_position[jj] / final_distance;
     SourcePosition ra_vel_srcpos(ra + 90., 0.);
     const std::vector<double> & ra_direction = ra_vel_srcpos.getDirection();
     SourcePosition dec_vel_srcpos(ra, dec + 90.);
@@ -2266,7 +2322,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., 0., -1.,
       epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
     SourcePosition computed_pos = eph->calcPosition(ev_time);
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       double computed_coord = computed_pos.getDirection()[jj];
       double correct_coord = initial_direction[jj];
       if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -2288,7 +2344,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., 0., parallax,
       epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
     computed_pos = eph->calcPosition(ev_time);
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       double computed_coord = computed_pos.getDirection()[jj];
       double correct_coord = initial_direction[jj];
       if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -2317,7 +2373,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., distance_change_rate, -1.,
       epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
     computed_pos = eph->calcPosition(ev_time);
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       double computed_coord = computed_pos.getDirection()[jj];
       double correct_coord = initial_direction[jj];
       if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -2336,7 +2392,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, 0., 0., distance_change_rate, parallax,
       epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
     computed_pos = eph->calcPosition(ev_time);
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       double computed_coord = computed_pos.getDirection()[jj];
       double correct_coord = initial_direction[jj];
       if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -2361,21 +2417,21 @@ void PulsarDbTestApp::testHighPrecisionEph() {
 
     // Case 5: general moving pulsar at an unknown distance.
     double stretch_factor = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) stretch_factor += initial_direction[jj] * final_direction[jj];
+    for (std::size_t jj = 0; jj < 3; ++jj) stretch_factor += initial_direction[jj] * final_direction[jj];
     std::vector<double> pm_vector_trans(3);
-    for (size_t jj = 0; jj < 3; ++jj) pm_vector_trans[jj] = final_direction[jj] / stretch_factor - initial_direction[jj];
+    for (std::size_t jj = 0; jj < 3; ++jj) pm_vector_trans[jj] = final_direction[jj] / stretch_factor - initial_direction[jj];
     double ra_vel = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) ra_vel += pm_vector_trans[jj] * ra_direction[jj] / std::cos(dec/deg_per_rad) / elapsed_second;
+    for (std::size_t jj = 0; jj < 3; ++jj) ra_vel += pm_vector_trans[jj] * ra_direction[jj] / std::cos(dec/deg_per_rad) / elapsed_second;
     ra_vel *= mas_year_per_rad_sec; // in milliarcseconds per Julian year (365.25 days).
     double dec_vel = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) dec_vel += pm_vector_trans[jj] * dec_direction[jj] / elapsed_second;
+    for (std::size_t jj = 0; jj < 3; ++jj) dec_vel += pm_vector_trans[jj] * dec_direction[jj] / elapsed_second;
     dec_vel *= mas_year_per_rad_sec; // in milliarcseconds per Julian year (365.25 days).
     double radial_vel = distance_change_rate;
 
     eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, ra_vel, dec_vel, radial_vel, -1.,
       epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
     computed_pos = eph->calcPosition(ev_time);
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       double computed_coord = computed_pos.getDirection()[jj];
       double correct_coord = final_direction[jj];
       if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -2395,16 +2451,16 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     double pm_speed_trans = pm_distance / initial_distance / elapsed_second; // in radians per second.
     pm_speed_trans *= mas_year_per_rad_sec; // in milliarcseconds per Julian year (365.25 days).
     ra_vel = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) ra_vel += pm_direction[jj] * pm_speed_trans * ra_direction[jj] / std::cos(dec/deg_per_rad);
+    for (std::size_t jj = 0; jj < 3; ++jj) ra_vel += pm_direction[jj] * pm_speed_trans * ra_direction[jj] / std::cos(dec/deg_per_rad);
     dec_vel = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) dec_vel += pm_direction[jj] * pm_speed_trans * dec_direction[jj];
+    for (std::size_t jj = 0; jj < 3; ++jj) dec_vel += pm_direction[jj] * pm_speed_trans * dec_direction[jj];
     radial_vel = 0.;
-    for (size_t jj = 0; jj < 3; ++jj) radial_vel += pm_direction[jj] * pm_speed_radial * initial_direction[jj];
+    for (std::size_t jj = 0; jj < 3; ++jj) radial_vel += pm_direction[jj] * pm_speed_radial * initial_direction[jj];
 
     eph.reset(new HighPrecisionEph("TDB", since, until, epoch, ra, dec, ra_vel, dec_vel, radial_vel, parallax,
       epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
     computed_pos = eph->calcPosition(ev_time);
-    for (size_t jj = 0; jj < 3; ++jj) {
+    for (std::size_t jj = 0; jj < 3; ++jj) {
       double computed_coord = computed_pos.getDirection()[jj];
       double correct_coord = final_direction[jj];
       if (std::fabs(computed_coord - correct_coord) > epsilon) {
@@ -2857,7 +2913,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
   ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
 
   setPrecision(24);
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
@@ -2868,7 +2924,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     }
   }
 
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
@@ -3026,7 +3082,7 @@ void PulsarDbTestApp::testBtModelEph() {
   ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
 
   setPrecision(24);
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
@@ -3037,7 +3093,7 @@ void PulsarDbTestApp::testBtModelEph() {
     }
   }
 
-  for (size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
     AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
     AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
     AbsoluteTime original_tdb_mjd(tdb_mjd);
@@ -3446,7 +3502,7 @@ void PulsarDbTestApp::testEphComputer() {
   SourcePosition expected_src_pos = eph.calcPosition(expected_gtdb);
   SourcePosition src_pos = computer.calcPosition(expected_gtdb);
   std::string coord_name("XYZ");
-  for (size_t ii = 0; ii < 3; ++ii) {
+  for (std::size_t ii = 0; ii < 3; ++ii) {
     double expected_coord = expected_src_pos.getDirection()[ii];
     double coord = src_pos.getDirection()[ii];
     if (expected_coord != coord) {
@@ -3798,20 +3854,20 @@ void PulsarDbTestApp::testEphGetter() {
 
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
-  if (pulsar_eph_cont.size() != size_t(database.getNumEph()))
+  if (pulsar_eph_cont.size() != std::size_t(database.getNumEph()))
     err() << "PulsarDb::getEph(PulsarEphCont &) got " << pulsar_eph_cont.size() << " ephemerides, not " <<
       database.getNumEph() << ", as expected." << std::endl;
 
   OrbitalEphCont orbital_eph_cont;
   database.getEph(orbital_eph_cont);
-  size_t expected_orbital = 19;
+  std::size_t expected_orbital = 19;
   if (orbital_eph_cont.size() != expected_orbital) 
     err() << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
       expected_orbital << ", as expected." << std::endl;
 
   EphStatusCont eph_status_cont;
   database.getRemark(eph_status_cont);
-  size_t expected_remark = 12;
+  std::size_t expected_remark = 12;
   if (eph_status_cont.size() != expected_remark)
     err() << "PulsarDb::getRemark(EphStatusCont &) got " << eph_status_cont.size() << " remarks, not " <<
       expected_remark << ", as expected." << std::endl;

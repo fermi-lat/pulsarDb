@@ -27,7 +27,8 @@ namespace tip {
 
 namespace pulsarDb {
 
-  /** \brief Base class to define the interface of ephemeris factory classes.
+  /** \class IEphFactory
+      \brief Base class to define the interface of ephemeris factory classes.
              Note: Template parameter, EPHTYPE, must be either PulsarEph or OrbitalEph.
   */
   template <typename EPHTYPE>
@@ -43,7 +44,8 @@ namespace pulsarDb {
       virtual EPHTYPE * create(const tip::Table::ConstRecord & record, const tip::Header & header) const = 0;
   };
 
-  /** \brief Concrete class to create a PulsarEph object or an OrbitalEph object.
+  /** \class EphFactory
+      \brief Concrete class to create a PulsarEph object or an OrbitalEph object.
              Note: The first emplate parameter, EPHTYPE, must be either PulsarEph or OrbitalEph.
                    The second template parameter, EPHSTYLE, must be one of their subclasses.
   */
@@ -206,8 +208,6 @@ namespace pulsarDb {
       virtual bool isBinary(const std::string & pulsar_name) const;
 
     private:
-      typedef std::vector<std::string> ParsedLine;
-
       /** \brief Load ephemerides and related information from the given FITS file.
           \param in_file The name of the input FITS file.
       */
@@ -223,17 +223,6 @@ namespace pulsarDb {
           \param in_file The name of the input TEXT file.
       */
       virtual void loadText(const std::string & in_file);
-
-      /** \brief Helper method to parse a text line for loadText method.
-          \param line The line to parse (input).
-          \param parsed_line The parsed line (output).
-      */
-      virtual void parseLine(const char * line, ParsedLine & parsed_line);
-
-      /** \brief Helper method to strip out leading and trailing white spaces.
-          \param string_value The string object from which white spaces are to be stripped.
-      */
-      virtual void stripWhiteSpace(std::string & string_value);
 
       /** \brief Clean up all extensions based on current set of selected spin and orbital ephemerides. All
           information in the OBSERVERS and ALTERNATIVE_NAMES extension which is not associated with a pulsar
