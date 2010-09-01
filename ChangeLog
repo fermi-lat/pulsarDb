@@ -1,4 +1,26 @@
 ------------------------------------------------------------
+User: hirayama  Tue Aug 31 17:23:01 PDT 2010
+pulsarDb/data
+
+Modified Files:
+	baddb_noextname.txt baddb_noheader.txt 
+	baddb_nosuchephstyle.txt baddb_nosuchextname.txt 
+	baddb_nosuchfield.txt baddb_toolittlefield.txt 
+	baddb_toomanyfield.txt baddb_unbalancedquote.txt 
+	okdb_extraquote.txt okdb_extraspace.txt 
+Added Files:
+	baddb_badparenthesis1.txt baddb_badparenthesis2.txt 
+	baddb_badparenthesis3.txt baddb_badparenthesis4.txt 
+	baddb_badparenthesis5.txt baddb_badparenthesis6.txt 
+	baddb_badparenthesis7.txt baddb_badparenthesis8.txt 
+	baddb_escapedquote.txt baddb_nestedvector.txt 
+	baddb_quotedvector.txt baddb_vectoredscalar.txt 
+	okdb_extraescape.txt okdb_notallcolumn1.txt 
+	okdb_notallcolumn2.txt 
+Log Message:
+Support vector columns in text database files.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:23:00 PDT 2010
 pulsarDb/src/test
 
