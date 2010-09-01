@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Aug 31 18:21:45 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add new column names for high-precision spin ephemeris table.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:23:26 PDT 2010
 pulsarDb/data
 
