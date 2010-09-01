@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Aug 31 17:23:00 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	PulsarDb.h 
+Log Message:
+Support vector columns in text database files.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:15:00 PDT 2010
 pulsarDb/src
 
