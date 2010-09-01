@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Aug 31 17:23:26 PDT 2010
+pulsarDb/data
+
+Added Files:
+	test_TextPulsarDb.tpl 
+Log Message:
+Support vector columns in text database files.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:23:01 PDT 2010
 pulsarDb/data/outref
 
