@@ -28,6 +28,9 @@ namespace tip {
 
 namespace pulsarDb {
 
+  /** \class OrbitalEph
+      \brief Base class representing a single orbital ephemeris.
+  */
   class OrbitalEph: public FormattedEph {
     public:
       /// \brief Destruct this OrbitalEph object.
