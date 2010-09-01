@@ -147,7 +147,7 @@ namespace pulsarDb {
           \param phase_value Phase value whose fractional part is to be returned.
           \param phase_offset Phase value to be added to the computed pulse or orbital phase.
       */
-      inline double trimPhaseValue(double phase_value, double phase_offset = 0.) const;
+      double trimPhaseValue(double phase_value, double phase_offset = 0.) const;
 
     private:
       /** \brief Helper method to check whether a given templated data is an INDEF.
@@ -162,7 +162,7 @@ namespace pulsarDb {
           \param data_value Data to be examined.
       */
       template <typename DataType>
-      inline bool isNotANumber(DataType data_value) const;
+      bool isNotANumber(DataType data_value) const;
 
       /** \brief Helper method to check whether elements of a given data array are Not-A-Number.
                  The results are stored in an output array of Boolean values (nan_array), and this
@@ -175,7 +175,7 @@ namespace pulsarDb {
       template <typename DataType> bool hasNan(std::vector<DataType> data_array, std::vector<bool> & nan_array) const;
 
       // TODO: Remove the following method once tip::TableCell::hasNull is implemented.
-      inline bool hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const;
+      bool hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const;
   };
 
   template <typename DataType>
