@@ -35,6 +35,152 @@
 using namespace timeSystem;
 using namespace tip;
 
+namespace {
+
+  /** \class TextField
+      \brief Helper class that represents one field in a line of a text file.
+  */
+  class TextField {
+    public:
+      /** \brief Create an empty TextField object.
+          \param scalar Indicate whether this object represents a scalar field or not.
+       */
+      TextField(bool scalar = true): m_scalar(scalar), m_field(""), m_parsed_field(1, "") {}
+
+      /// \brief Return a logical true if this object represents a scalar field, and false if otherwise.
+      bool isScalar() const { return m_scalar; }
+
+      /// \brief Return the entire field as a character string.
+      const std::string & getScalar() const { return m_field; }
+
+      /** \brief Return the entire field as an array of character strings. For a scalar field, this method
+                 returns an array with one element that contains the entire field. For a vector field, it
+                 returns an array of character strings, each of which contains an element of the vector
+                 as a character string.
+       */
+      const std::vector<std::string> & getVector() const { return m_parsed_field; }
+
+      /** \brief Append a given character to this field.
+          \param c The character to append.
+      */
+      void push_back(char c);
+
+    private:
+      bool m_scalar;
+      std::string m_field;
+      std::vector<std::string> m_parsed_field;
+  };
+
+  void TextField::push_back(char c) {
+    // Update the storage for the entire field value.
+    m_field.push_back(c);
+
+    // Update the array to store the parsed field.
+    if (!m_scalar && ',' == c) m_parsed_field.push_back("");
+    else m_parsed_field.back().push_back(c);
+  }
+
+  /** \brief Helper function to parse a text line into fields.
+      \param line Text line to parse (input).
+      \param parsed_line Container of fields to be returned (output).
+  */
+  void parseLine(const char * line, std::list<TextField> & parsed_line) {
+    // Start at the beginning of line.
+    const char * current = line;
+
+    // Skip leading whitespace.
+    while(isspace(*current)) ++current;
+
+    // Check for comment and return if it is one.
+    if ('#' == *current) return;
+
+    // Loop over characters, starting with not escaped, not quoted, and outside of a vector and a field.
+    bool is_escaped = false;
+    bool is_special = false;
+    bool in_quote = false;
+    bool in_vector = false;
+    bool in_field = false;
+    for (; '\0' != *current; ++current) {
+      // Handle special characters.
+      if (is_escaped) {
+        // Set the special character flag.
+        is_special = false;
+
+      } else {
+        // Assume a special character here, then overturn it later if it is not.
+        is_special = true;
+
+        // Check the character at the current position, to see whether it is a special character or not.
+        if ('\\' == *current) {
+          // Escape is skipped, but turn on the escape flag.
+          is_escaped = true;
+
+        } else if ('"' == *current) {
+          // Quote is skipped, but toggle the quote flag.
+          in_quote = !in_quote;
+
+        } else if (!in_quote && '(' == *current) {
+          // Opening parenthesis is skipped, but turn on the vector flag if appropriate.
+          if (in_vector) throw std::runtime_error(std::string("Line \"") + line +
+            "\" contains a second opening parenthesis before a closing one");
+          in_vector = true;
+
+        } else if (!in_quote && ')' == *current) {
+          // Closing parenthesis is skipped, but turn off the vector flag if appropriate.
+          if (!in_vector) throw std::runtime_error(std::string("Line \"") + line + "\" contains a mismatched closing parenthesis");
+          in_vector = false;
+
+        } else if (!in_quote && !in_vector && isspace(*current)) {
+          // Unquoted space outside of a vector expression is taken as the end of this field.
+          in_field = false;
+
+        } else {
+          // Unset the special character flag.
+          is_special = false;
+        }
+      }
+
+      // Handle non-special characters.
+      if (!is_special) {
+        if (!in_field) {
+          // Add a new field at the end of the return container.
+          const TextField new_field(!in_vector);
+          parsed_line.push_back(new_field);
+
+          // Set the field flag.
+          in_field = true;
+        }
+
+        // Add the character to the current field.
+        parsed_line.back().push_back(*current);
+
+        // Turn off the escape flag.
+        is_escaped = false;
+      }
+    }
+
+    // Check the flags.
+    if (in_quote) throw std::runtime_error(std::string("Line \"") + line + "\" contains an unbalanced quote");
+    if (in_vector) throw std::runtime_error(std::string("Closing parenthesis is missing in Line \"") + line + "\"");
+  }
+
+  /** \brief Helper function to strip out leading and trailing white spaces.
+      \param string_value The string object from which white spaces are to be stripped.
+  */
+  void stripWhiteSpace(std::string & string_value) {
+    // Remove leading white spaces.
+    std::string::iterator itor;
+    for (itor = string_value.begin(); itor != string_value.end() && std::isspace(*itor); ++itor) {}
+    string_value.erase(string_value.begin(), itor);
+
+    // Remove trailing white spaces.
+    std::string::reverse_iterator r_itor;
+    for (r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor); ++r_itor) {}
+    string_value.erase(r_itor.base(), string_value.end());
+  }
+
+}
+
 namespace pulsarDb {
 
   PulsarDb::PulsarDb(const std::string & tpl_file):
@@ -806,12 +952,11 @@ namespace pulsarDb {
     if (!in_table) throw std::runtime_error("Could not open file \"" + in_file + "\"");
 
     // Create a text buffer.
-    static const size_t s_line_size = 2048;
+    static const std::size_t s_line_size = 2048;
     char buf[s_line_size];
 
     Table * target_table(0);
-    ParsedLine parsed_line;
-    ParsedLine field_name;
+    std::list<std::string> field_name;
     Header::KeySeq_t header_keyword;
 
     // Read table until extension name is found.
@@ -821,25 +966,26 @@ namespace pulsarDb {
       in_table.getline(buf, s_line_size);
 
       // Parse it into fields.
+      std::list<TextField> parsed_line;
       parseLine(buf, parsed_line);
 
       if (parsed_line.size() > 1) throw std::runtime_error("Could not find an extension name in file \"" + in_file + "\"");
       else if (parsed_line.size() == 1) {
-        ext_name = *parsed_line.begin();
+        ext_name = parsed_line.begin()->getScalar();
         header_keyword.push_back(KeyRecord("EXTNAME", ext_name, "name of this binary table extension"));
         break;
       }
     }
       
-    std::map<std::string, size_t> found_map;
-
     // Read table until names of fields are found.
     bool keyword_found = false;
+    std::map<std::string, std::size_t> found_map;
     while (in_table) {
       // Get next line.
       in_table.getline(buf, s_line_size);
 
       // Parse it into fields.
+      std::list<TextField> parsed_line;
       parseLine(buf, parsed_line);
 
       // Ignore comment lines, etc.
@@ -885,29 +1031,31 @@ namespace pulsarDb {
         Table::FieldCont field = target_table->getValidFields();
         field_name.assign(field.begin(), field.end());
 
-        // Populate input_column number as a function of output column name.
-        for (ParsedLine::const_iterator itor = parsed_line.begin(); itor != parsed_line.end(); ++itor) {
+        // Populate input column number as a function of output column name.
+        std::size_t in_column = 0;
+        for (std::list<TextField>::const_iterator itor = parsed_line.begin(); itor != parsed_line.end(); ++itor, ++in_column) {
 
           // Convert to lowercase, because field names are all lowercase.
-          std::string token_lc(*itor);
+          std::string token_lc(itor->getScalar());
           for (std::string::iterator s_itor = token_lc.begin(); s_itor != token_lc.end(); ++s_itor) *s_itor = tolower(*s_itor);
 
           // Find a field with the same name as the current token.
-          ParsedLine::const_iterator found_itor = std::find(field_name.begin(), field_name.end(), token_lc);
+          std::list<std::string>::const_iterator found_itor = std::find(field_name.begin(), field_name.end(), token_lc);
           if (field_name.end() == found_itor) {
-            throw std::runtime_error("Could not find column \"" + *itor + "\" in target extension \"" + ext_name +
+            throw std::runtime_error("Could not find column \"" + itor->getScalar() + "\" in target extension \"" + ext_name +
                "\" in file \"" + in_file + "\"");
           }
 
           // Store the location of the current token.
-          found_map[*found_itor] = itor - parsed_line.begin();
+          found_map[*found_itor] = in_column;
         }
 
         // Finish reading header information, and move on to reading data entries.
         break;
       }
     }
-  
+
+    // Require at least one column is found in the target extension.
     if (found_map.empty())
       throw std::runtime_error("File \"" + in_file + "\" does not have any columns in common with target extension \"" +
         ext_name + "\"");
@@ -924,6 +1072,7 @@ namespace pulsarDb {
       in_table.getline(buf, s_line_size);
 
       // Parse it into fields.
+      std::list<TextField> parsed_line;
       parseLine(buf, parsed_line);
 
       // Ignore comment lines, etc.
@@ -940,13 +1089,26 @@ namespace pulsarDb {
       ++num_rec;
       target_table->setNumRecords(num_rec);
 
+      // Convert the parsed line from a list to a vector for random access.
+      std::vector<TextField> parsed_line_vector(parsed_line.begin(), parsed_line.end());
+
       // Populate the parsed line by iterating over output columns.
-      for (ParsedLine::iterator in_itor = field_name.begin(); in_itor != field_name.end(); ++in_itor) {
+      for (std::list<std::string>::iterator in_itor = field_name.begin(); in_itor != field_name.end(); ++in_itor) {
         // See if this column was found amongst the input table columns.
-        std::map<std::string, size_t>::iterator found_itor = found_map.find(*in_itor);
+        std::map<std::string, std::size_t>::iterator found_itor = found_map.find(*in_itor);
         if (found_map.end() != found_itor) {
-          // Found column, so look up the input table column number from the output column number.
-          (*target_itor)[*in_itor].set(parsed_line[found_itor->second]);
+          // Found column, so look up the input table column number.
+          const TextField & text_field = parsed_line_vector[found_itor->second];
+
+          // Set the field value to this output column.
+          if (text_field.isScalar()) {
+            // Treat it as a scalar value.
+            (*target_itor)[*in_itor].set(text_field.getScalar());
+          } else {
+            // Treat it as a value for a vector-valued column.
+            (*target_itor)[*in_itor].set(text_field.getVector());
+          }
+
         } else {
           // TODO: Make this write an INDEF in the field (requires further changes to tip).
           // (*target_itor)[*in_itor].setIndef();
@@ -971,60 +1133,6 @@ namespace pulsarDb {
     else if (last_delimiter != in_file.size() - 1) os_history << in_file.substr(last_delimiter + 1);
     os_history << "'";
     m_command_history.push_back(os_history.str());
-  }
-
-  void PulsarDb::parseLine(const char * line, ParsedLine & parsed_line) {
-    parsed_line.clear();
-
-    const char * current = line;
-
-    // Skip leading whitespace.
-    while(isspace(*current)) ++current;
-
-    // Check for comment and return if it is one.
-    if ('#' == *current) return;
-
-    // Loop over characters, starting with no quotes, and outside of field.
-    bool in_quote = false;
-    bool in_field = false;
-    for (; '\0' != *current; ++current) {
-      // Check the character at the current position.
-      if ('"' == *current) {
-        // Quote is skipped, but toggle the flag.
-        in_quote = !in_quote;
-
-      } else if (!in_quote && isspace(*current)) {
-        // Unquoted space is taken as the end of this field.
-        in_field = false;
-
-      } else if (!in_field) {
-        // Add a new field at the end of the container, and add the character to it.
-        const std::string new_field(1, *current);
-        parsed_line.insert(parsed_line.end(), new_field);
-
-        // Set the flag.
-        in_field = true;
-
-      } else {
-        // Add the character to the current field.
-        parsed_line.back().push_back(*current);
-      }
-    }
-
-    // Check the quote flag at exit.
-    if (in_quote) throw std::runtime_error(std::string("Line \"") + line + "\" contains an unbalanced quote");
-  }
-
-  void PulsarDb::stripWhiteSpace(std::string & string_value) {
-    // Remove leading white spaces.
-    std::string::iterator itor;
-    for (itor = string_value.begin(); itor != string_value.end() && std::isspace(*itor); ++itor) {}
-    string_value.erase(string_value.begin(), itor);
-
-    // Remove trailing white spaces.
-    std::string::reverse_iterator r_itor;
-    for (r_itor = string_value.rbegin(); r_itor != string_value.rend() && std::isspace(*r_itor); ++r_itor) {}
-    string_value.erase(r_itor.base(), string_value.end());
   }
 
 }

@@ -1,0 +1,14 @@
+#
+# Spin ephemeris file with extra quotes everywhere
+#
+SPIN_PARAMETERS
+EPHSTYLE = TEST / dummy ephemeris model for text parser testing
+1D_COLUMN PD_COLUMN 3J_COLUMN
+
+ 1.11 ( 5.55,  6.66,  7.77,  8.88,  9.99) ( 22,  33,  44)
+11.11 (15.55, 16.66, 17.77, 18.88, 19.99) (122, 133, 144)
+21.11 (25.55, 26.66, 27.77, 28.88, 29.99) (222, 233, 244)
+
+#
+# end of file
+#
