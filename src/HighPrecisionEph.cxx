@@ -85,7 +85,7 @@ namespace pulsarDb {
     // Note: Allow an empty array for frequency parameters (i.e., F0 = F1 = F2 = ... = 0.0). Technically it is possible
     //       that a positive frequency is resulted from other terms such as wave parameters and glitches.
     m_freq_pars.resize(double_array.size() + 1, 0.);
-    for (size_t ii = 0; ii != double_array.size(); ++ii) m_freq_pars[ii+1] = double_array[ii];
+    for (std::size_t ii = 0; ii != double_array.size(); ++ii) m_freq_pars[ii+1] = double_array[ii];
 
     // Read the wave parameters (optional).
     bool undefined = read(record, "WAVE_OMEGA", m_wave_omega, 1.);
