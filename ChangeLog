@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: hirayama  Tue Aug 31 17:23:01 PDT 2010
+pulsarDb/data/outref
+
+Added Files:
+	okdb_extraescape.fits okdb_extraquote.fits 
+	okdb_extraspace.fits okdb_notallcolumn1.fits 
+	okdb_notallcolumn2.fits 
+Log Message:
+Support vector columns in text database files.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Aug 31 17:23:01 PDT 2010
 pulsarDb/data
 
 Modified Files:
