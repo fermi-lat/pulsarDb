@@ -1,5 +1,5 @@
 #
-# Spin ephemeris file with extra quotes everywhere
+# Spin ephemeris file with extra escape characters ("\") everywhere
 #
 SPI\N_PARAM\ETERS\
 EPHSTYLE = TEST / dummy ephemeris model for text parser testing
