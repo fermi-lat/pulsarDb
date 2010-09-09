@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep  9 13:11:43 PDT 2010
+pulsarDb/data
+
+Modified Files:
+	baddb_badparenthesis1.txt baddb_badparenthesis2.txt 
+	baddb_badparenthesis3.txt baddb_badparenthesis4.txt 
+	baddb_badparenthesis5.txt baddb_badparenthesis6.txt 
+	baddb_badparenthesis7.txt baddb_badparenthesis8.txt 
+	baddb_escapedquote.txt baddb_nestedvector.txt 
+	baddb_quotedvector.txt baddb_vectoredscalar.txt 
+	okdb_extraescape.txt okdb_notallcolumn1.txt 
+	okdb_notallcolumn2.txt 
+Log Message:
+Correct comments (cosmetic).
+    *
+------------------------------------------------------------
 User: hirayama  Tue Aug 31 18:21:45 PDT 2010
 pulsarDb/src/test
 
