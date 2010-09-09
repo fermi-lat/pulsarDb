@@ -1,5 +1,5 @@
 #
-# Spin ephemeris file with an unbalanced quote
+# Spin ephemeris file with an escaped quotation mark
 #
 SPIN_PARAMETERS
 EPHSTYLE = TEST / dummy ephemeris model for text parser testing
