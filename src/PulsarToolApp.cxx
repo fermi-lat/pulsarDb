@@ -1023,34 +1023,52 @@ namespace pulsarDb {
     m_event_handler_itor = m_event_handler_cont.begin();
   }
 
-  AbsoluteTime PulsarToolApp::readTimeColumn(EventTimeHandler & handler, const std::string & column_name,
-    bool request_time_correction) const {
+  AbsoluteTime PulsarToolApp::obtainBaryTime(EventTimeHandler & handler, const std::string & column_name) const {
+    // Return the barycentric time if RA and Dec are fixed and preset.
+    if (!m_vary_ra_dec) return handler.getBaryTime(column_name);
 
-    // Read the original photon arrival time.
+    // Get the original photon arrival time as a candidate barycentric time for time-dependent RA and Dec.
     AbsoluteTime abs_time = handler.readTime(column_name);
 
-    // Apply selected corrections, if requested.
-    if (request_time_correction) {
-      // Apply barycentric correction, if requested.
-      if (m_request_bary) {
-        // Reset RA and Dec for the given arrival time, if requested.
-        if (m_vary_ra_dec) {
-          SourcePosition src_pos = m_computer->calcPosition(abs_time);
-          handler.setSourcePosition(src_pos);
-        }
+    // Numerically determine the barycentric time that is consistent with the source position at that time.
+    static const int max_iteration = 100;
+    static const ElapsedTime tolerance("TDB", Duration(10.e-9, "Sec")); // 10 nanoseconds.
+    bool converged = false;
+    for (int ii = 0; !converged && ii < max_iteration; ++ii) {
+      // Compute the source position at a candidate barycentric time.
+      AbsoluteTime pos_time = abs_time;
+      SourcePosition src_position = m_computer->calcPosition(pos_time);
 
-        // Try barycentric correction with the RA and Dec.
-        abs_time = handler.getBaryTime(column_name);
-      }
+      // Compute barycentric time using the source position.
+      handler.setSourcePosition(src_position);
+      abs_time = handler.getBaryTime(column_name);
 
-      // Apply binary demodulation, if requested.
-      if (m_demod_bin) m_computer->demodulateBinary(abs_time);
-
-      // Apply pdot cancellation corrections, if requested.
-      if (m_cancel_pdot) m_computer->cancelPdot(abs_time);
+      // Check whether the candidate barycentric time is essentially equal to the resultant barycentric time.
+      converged = pos_time.equivalentTo(abs_time, tolerance);
     }
 
-    // Return the requested time.
+    // Check convergence of barycentric correction.
+    if (!converged) throw std::runtime_error("Barycentric correction not converged for time-dependent RA and Dec");
+
+    // Return the resultant absolute time.
+    return abs_time;
+  }
+
+  AbsoluteTime PulsarToolApp::readTimeColumn(EventTimeHandler & handler, const std::string & column_name,
+    bool request_time_correction) const {
+    // Return the original photon arrival time, if no corrections are requested.
+    if (!request_time_correction) return handler.readTime(column_name);
+
+    // Get the requested photon arrival time.
+    AbsoluteTime abs_time = (m_request_bary ? obtainBaryTime(handler, column_name) : handler.readTime(column_name));
+
+    // Apply binary demodulation, if requested.
+    if (m_demod_bin) m_computer->demodulateBinary(abs_time);
+
+    // Apply pdot cancellation corrections, if requested.
+    if (m_cancel_pdot) m_computer->cancelPdot(abs_time);
+
+    // Return the corrected arrival time.
     return abs_time;
   }
 
