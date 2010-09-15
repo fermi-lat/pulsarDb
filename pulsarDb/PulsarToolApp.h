@@ -268,6 +268,14 @@ namespace pulsarDb {
       virtual void resetApp();
 
       /** \brief Read a time value from a specified FITS column, create an AbosoluteTime object that represents the time,
+                 apply barycentric corrections on it using either a pre-determined set of fixed RA and Dec or a time-dependent
+                 set of RA and Dec, and return it.
+          \param handler EventTimeHandler object to read a time value from.
+          \param column_name Name of FITS column from which a time value to be read.
+      */
+      timeSystem::AbsoluteTime obtainBaryTime(timeSystem::EventTimeHandler & handler, const std::string & column_name) const;
+
+      /** \brief Read a time value from a specified FITS column, create an AbosoluteTime object that represents the time,
                  apply time corrections on it if requested, and return it.
           \param handler EventTimeHandler object to read a time value from.
           \param column_name Name of FITS column from which a time value to be read.
