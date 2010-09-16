@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 15 17:10:11 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	EphComputerApp.cxx 
+Log Message:
+Add the distance to the pulsar to gtephem output.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 15 16:57:25 PDT 2010
 pulsarDb/src
 
