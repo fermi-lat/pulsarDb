@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 15 17:10:12 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par1.log testEphComputerApp_par3.log 
+	testEphComputerApp_par4.log testEphComputerApp_par5.log 
+	testEphComputerApp_par6.log testEphComputerApp_par7.log 
+	testEphComputerApp_par8.log testEphComputerApp_par9.log 
+	testEphComputerApp_par10.log testEphComputerApp_par15.log 
+Log Message:
+Add the distance to the pulsar to gtephem output.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 15 17:10:11 PDT 2010
 pulsarDb/src
 
