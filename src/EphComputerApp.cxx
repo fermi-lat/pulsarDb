@@ -158,13 +158,10 @@ namespace pulsarDb {
         m_os.out().precision(std::numeric_limits<double>::digits10);
         m_os.out().prefix().width(30); m_os.out() << "Right Ascension (degree) : " << ra << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Declination (degree) : " << dec << std::endl;
-#if 0
-        // TODO: Uncomment this section once an ephemeris with a finite distance is implemented.
         m_os.out().prefix().width(30); m_os.out() << "Distance (light-second) : ";
         if (src_pos.hasDistance()) m_os.out() << src_pos.getDistance();
         else m_os.out() << "Unknown";
         m_os.out() << std::endl;
-#endif
         m_os.out().prefix().width(30); m_os.out() << "Pulse Phase : " << phi0 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "Pulse Frequency (Hz) : " << f0 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "1st Derivative (Hz/s) : " << f1 << std::endl;
