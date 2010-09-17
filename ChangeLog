@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep 16 18:35:36 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	FrequencyEph.cxx PeriodEph.cxx HighPrecisionEph.cxx 
+	SimpleDdEph.cxx BtModelEph.cxx PulsarEph.cxx 
+Log Message:
+Append a physical unit at the end of each parameter value in its ASCII representation.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Sep 16 18:35:35 PDT 2010
 pulsarDb/pulsarDb
 
