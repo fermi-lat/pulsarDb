@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep 16 18:35:35 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Append a physical unit at the end of each parameter value in its ASCII representation.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Sep 16 18:33:39 PDT 2010
 pulsarDb/data
 
