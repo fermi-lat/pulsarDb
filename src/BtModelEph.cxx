@@ -12,6 +12,7 @@
 #include "pulsarDb/BtModelEph.h"
 
 #include "timeSystem/AbsoluteTime.h"
+#include "timeSystem/CalendarFormat.h"
 #include "timeSystem/Duration.h"
 #include "timeSystem/ElapsedTime.h"
 #include "timeSystem/MjdFormat.h"
@@ -105,18 +106,22 @@ namespace pulsarDb {
   }
 
   void BtModelEph::writeModelParameter(st_stream::OStream & os) const {
-    os << format("PB",        m_pb)        << std::endl;
-    os << format("PBDOT",     m_pb_dot)    << std::endl;
-    os << format("A1",        m_a1)        << std::endl;
-    os << format("XDOT",      m_x_dot)     << std::endl;
-    os << format("ECC",       m_ecc)       << std::endl;
-    os << format("ECCDOT",    m_ecc_dot)   << std::endl;
-    os << format("OM",        m_om)        << std::endl;
-    os << format("OMDOT",     m_om_dot)    << std::endl;
-    Mjd1 mjd(0.);
-    m_t0.get(m_system->getName(), mjd);
-    os << format("T0",        mjd.m_day)   << std::endl;
-    os << format("GAMMA",     m_gamma);
+    os << format("PB",        m_pb,      "s")           << std::endl;
+    os << format("PBDOT",     m_pb_dot,  "")            << std::endl;
+    os << format("A1",        m_a1,      "lt-s")        << std::endl;
+    os << format("XDOT",      m_x_dot,   "lt-s / s")    << std::endl;
+    os << format("ECC",       m_ecc,     "")            << std::endl;
+    os << format("ECCDOT",    m_ecc_dot, "s**(-1)")     << std::endl;
+    os << format("OM",        m_om,      "radians")     << std::endl;
+    os << format("OMDOT",     m_om_dot,  "radians / s") << std::endl;
+    std::string t0_string;
+    try {
+      t0_string = m_t0.represent(m_system->getName(), MjdFmt);
+    } catch (const std::exception &) {
+      t0_string = m_t0.represent(m_system->getName(), CalendarFmt);
+    } 
+    os << format("T0",        t0_string, "")   << std::endl;
+    os << format("GAMMA",     m_gamma,   "s");
   }
 
   OrbitalEph * BtModelEph::clone() const { return new BtModelEph(*this); }
