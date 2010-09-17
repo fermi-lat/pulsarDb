@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep 16 18:33:39 PDT 2010
+pulsarDb/data
+
+Modified Files:
+	PulsarDb_spin_per.tpl 
+Log Message:
+Correct physical units for P0, P1, and P2.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 15 17:10:12 PDT 2010
 pulsarDb/data/outref
 
