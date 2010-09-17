@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Thu Sep 16 18:35:36 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Append a physical unit at the end of each parameter value in its ASCII representation.
+    *
+------------------------------------------------------------
+User: hirayama  Thu Sep 16 18:35:36 PDT 2010
 pulsarDb/src
 
 Modified Files:
