@@ -183,13 +183,13 @@ namespace pulsarDb {
     } catch (const std::exception &) {
       pos_epoch_string = m_pos_epoch.represent(m_system->getName(), CalendarFmt);
     } 
-    os << format("Position Epoch",  pos_epoch_string) << std::endl;
-    os << format("RA",              m_ra)             << std::endl;
-    os << format("Dec",             m_dec)            << std::endl;
-    os << format("RA Velocity",     m_ra_vel)         << std::endl;
-    os << format("Dec Velocity",    m_dec_vel)        << std::endl;
-    os << format("Radial Velocity", m_radial_vel)     << std::endl;
-    if (m_parallax > 0.) os << format("Annual Parallax", m_parallax) << std::endl;
+    os << format("Position Epoch",  pos_epoch_string, "") << std::endl;
+    os << format("RA",              m_ra,             "degrees")              << std::endl;
+    os << format("Dec",             m_dec,            "degrees")              << std::endl;
+    os << format("RA Velocity",     m_ra_vel,         "10**(-3) arcsec / yr") << std::endl;
+    os << format("Dec Velocity",    m_dec_vel,        "10**(-3) arcsec / yr") << std::endl;
+    os << format("Radial Velocity", m_radial_vel,     "km / s")               << std::endl;
+    if (m_parallax > 0.) os << format("Annual Parallax", m_parallax, "10**(-3) arcsec") << std::endl;
 
     // Write the spin parameters.
     std::string freq_epoch_string;
@@ -198,26 +198,37 @@ namespace pulsarDb {
     } catch (const std::exception &) {
       freq_epoch_string = m_freq_epoch.represent(m_system->getName(), CalendarFmt);
     } 
-    os << format("Frequency Epoch", freq_epoch_string);
+    os << format("Frequency Epoch", freq_epoch_string, "");
     int deriv_order = -1;
     for (freq_type::const_iterator freq_itor = m_freq_pars.begin(); freq_itor != m_freq_pars.end(); ++freq_itor, ++deriv_order) {
+      // Create the parameter name.
       std::string par_name = (deriv_order < 0 ? "Phi" : "F");
-      std::ostringstream oss;
-      oss << std::max(deriv_order, 0);
-      par_name += oss.str();
-      os << std::endl << format(par_name, *freq_itor);
+      std::ostringstream oss_name;
+      oss_name << std::max(deriv_order, 0);
+      par_name += oss_name.str();
+
+      // Create the physical unit.
+      std::string par_unit = "";
+      if (deriv_order >= 0) {
+        std::ostringstream oss_unit;
+        oss_unit << "s**(-" << deriv_order + 1 << ")";
+        par_unit += oss_unit.str();
+      }
+
+      // Write the parameter.
+      os << std::endl << format(par_name, *freq_itor, par_unit);
     }
 
     // Write the wave parameters.
     wave_type::size_type num_elem_sine = m_wave_sine.size();
     wave_type::size_type num_elem_cosine = m_wave_cosine.size();
     if (num_elem_sine > 0 || num_elem_cosine > 0) {
-      os << std::endl << format("Wave Frequency", m_wave_omega);
+      os << std::endl << format("Wave Frequency", m_wave_omega, "radians / s");
       for (wave_type::size_type ii = 0; ii < std::max(num_elem_sine, num_elem_cosine); ++ii) {
         std::ostringstream oss;
         oss << ii + 1;
-        if (ii < num_elem_sine) os << std::endl << format("Sin" + oss.str(), m_wave_sine[ii]);
-        if (ii < num_elem_cosine) os << std::endl << format("Cos" + oss.str(), m_wave_cosine[ii]);
+        if (ii < num_elem_sine) os << std::endl << format("Sin" + oss.str(), m_wave_sine[ii], "s");
+        if (ii < num_elem_cosine) os << std::endl << format("Cos" + oss.str(), m_wave_cosine[ii], "s");
       }
     }
 
@@ -230,24 +241,35 @@ namespace pulsarDb {
       } catch (const std::exception &) {
         epoch_string = glitch_itor->m_epoch.represent(m_system->getName(), CalendarFmt);
       }
-      os << std::endl << format("Glitch Epoch", epoch_string);
+      os << std::endl << format("Glitch Epoch", epoch_string, "");
 
       // Write the permanent jumps.
       int deriv_order = -1;
       const jump_type & perm_jump(glitch_itor->m_perm_jump);
       for (jump_type::const_iterator jump_itor = perm_jump.begin(); jump_itor != perm_jump.end(); ++jump_itor, ++deriv_order) {
+        // Create the parameter name.
         std::string par_name = (deriv_order < 0 ? "dPhi" : "dF");
-        std::ostringstream oss;
-        oss << std::max(deriv_order, 0);
-        par_name += oss.str();
-        os << std::endl << format(par_name, *jump_itor);
+        std::ostringstream oss_name;
+        oss_name << std::max(deriv_order, 0);
+        par_name += oss_name.str();
+
+        // Create the physical unit.
+        std::string par_unit = "";
+        if (deriv_order >= 0) {
+          std::ostringstream oss_unit;
+          oss_unit << "s**(-" << deriv_order + 1 << ")";
+          par_unit += oss_unit.str();
+        }
+
+        // Write the parameter.
+        os << std::endl << format(par_name, *jump_itor, par_unit);
       }
 
       // Write the decaying components.
       const decay_type & decay_comp(glitch_itor->m_decay_comp);
       for (decay_type::const_iterator decay_itor = decay_comp.begin(); decay_itor != decay_comp.end(); ++decay_itor) {
-        os << std::endl << format("Amplitude", decay_itor->first);
-        os << std::endl << format("Decay Time", decay_itor->second);
+        os << std::endl << format("Amplitude", decay_itor->first, "s**(-1)");
+        os << std::endl << format("Decay Time", decay_itor->second, "days");
       }
     }
   }

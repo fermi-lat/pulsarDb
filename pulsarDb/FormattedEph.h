@@ -30,21 +30,24 @@ namespace pulsarDb {
     /** \brief Construct a ParameterFormatter object.
         \param param_name Name of parameter to be printed in a formatted text.
         \param param_obj Object to be printed in a formatted text.
+        \param param_unit Character string that represents the physical unit for the parameter value.
         \param separator Character string to be used as a separator between a parameter name and a parameter value in a formatted text.
     */
-    ParameterFormatter(const std::string & param_name, const DataType & param_obj, const std::string & separator):
-      m_name(param_name), m_obj(&param_obj), m_separator(separator) {}
+    ParameterFormatter(const std::string & param_name, const DataType & param_obj, const std::string & param_unit,
+      const std::string & separator): m_name(param_name), m_obj(&param_obj), m_unit(param_unit), m_separator(separator) {}
 
     /** \brief Write a formatted text to an output stream.
         \param os Output stream to write a formatted text to.
     */
     inline st_stream::OStream & write(st_stream::OStream & os) const {
       os.prefix().width(16); os << m_name << m_separator << *m_obj;
+      if (!m_unit.empty()) os << " " << m_unit;
       return os;
     }
 
     std::string m_name;
     const DataType * m_obj;
+    std::string m_unit;
     std::string m_separator;
   };
 
@@ -78,11 +81,12 @@ namespace pulsarDb {
           \param param_name Name of parameter to appear in a formatted text output.
           \param param_obj Object that holds the parameter value to output. The object must support a shift operator (<<)
                  for st_stream::OStream.
+          \param param_unit Character string that represents the physical unit for the parameter value.
       */
       template <typename DataType>
       inline ParameterFormatter<DataType> format(const std::string & param_name, const DataType & param_obj,
-        const std::string & separator = " = ") const {
-        return ParameterFormatter<DataType>(param_name, param_obj, separator);
+        const std::string & param_unit, const std::string & separator = " = ") const {
+        return ParameterFormatter<DataType>(param_name, param_obj, param_unit, separator);
       }
 
       /** \brief Helper method to get a value from a cell, returning it through an output argument (data_value).

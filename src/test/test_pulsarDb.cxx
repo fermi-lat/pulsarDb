@@ -892,39 +892,41 @@ class FormattedEphTester: public FormattedEph {
     virtual st_stream::OStream & write(st_stream::OStream & os) const { return os; }
 
     template <typename DataType>
-    void testFormat(const std::string & param_name, const DataType & param_obj) const {
+    void testFormat(const std::string & param_name, const DataType & param_obj, const std::string & param_unit) const {
       st_stream::OStream st_os(false);
 
       // Test format method without a separator specified.
       std::ostringstream oss1;
       st_os.connect(oss1);
-      st_os << format(param_name, param_obj);
+      st_os << format(param_name, param_obj, param_unit);
       st_os.disconnect(oss1);
       std::string result = oss1.str();
 
       std::ostringstream oss2;
       oss2.width(16); oss2 << param_name << " = " << param_obj;
+      if (!param_unit.empty()) oss2 << " " << param_unit;
       std::string expected = oss2.str();
 
       if (result != expected) {
-        m_test_app->err() << "FormattedEph::format(\"" << param_name << "\", " << param_obj <<
-          ") returned a formatter that writes out \"" << result << "\", not \"" << expected << "\"" << std::endl;
+        m_test_app->err() << "FormattedEph::format(\"" << param_name << "\", " << param_obj << "\", \"" << param_unit <<
+          "\") returned a formatter that writes out \"" << result << "\", not \"" << expected << "\"" << std::endl;
       }
 
       // Test format method with a separator specified.
       std::ostringstream oss3;
       st_os.connect(oss3);
-      st_os << format(param_name, param_obj, " : ");
+      st_os << format(param_name, param_obj, param_unit, " : ");
       st_os.disconnect(oss3);
       result = oss3.str();
 
       std::ostringstream oss4;
       oss4.width(16); oss4 << param_name << " : " << param_obj;
+      if (!param_unit.empty()) oss4 << " " << param_unit;
       expected = oss4.str();
 
       if (result != expected) {
-        m_test_app->err() << "FormattedEph::format(\"" << param_name << "\", " << param_obj <<
-          ", \":\") returned a formatter that writes out \"" << result << "\", not \"" << expected << "\"" << std::endl;
+        m_test_app->err() << "FormattedEph::format(\"" << param_name << "\", " << param_obj << "\", \"" << param_unit <<
+          "\", \":\") returned a formatter that writes out \"" << result << "\", not \"" << expected << "\"" << std::endl;
       }
     }
 
@@ -1085,21 +1087,21 @@ void PulsarDbTestApp::testFormattedEph() {
   FormattedEphTester tester(*this);
 
   // Test format method for basic data types.
-  float  float_value  = 1.1; tester.testFormat("float",  float_value);
-  double double_value = 2.2; tester.testFormat("double", double_value);
-  char   char_value   = 'c'; tester.testFormat("char",   char_value);
-  signed char  signed_char_value  = 's'; tester.testFormat("signed char",  signed_char_value);
-  signed short signed_short_value = -11; tester.testFormat("signed short", signed_short_value);
-  signed int   signed_int_value   = -22; tester.testFormat("signed int",   signed_int_value);
-  signed long  signed_long_value  = -33; tester.testFormat("signed long",  signed_long_value);
-  unsigned char  unsigned_char_value  = 'u'; tester.testFormat("unsigned char",  unsigned_char_value);
-  unsigned short unsigned_short_value = 11;  tester.testFormat("unsigned short", unsigned_short_value);
-  unsigned int   unsigned_int_value   = 22;  tester.testFormat("unsigned int",   unsigned_int_value);
-  unsigned long  unsigned_long_value  = 33;  tester.testFormat("unsigned long",  unsigned_long_value);
+  float  float_value  = 1.1; tester.testFormat("float",  float_value,  "unit for float");
+  double double_value = 2.2; tester.testFormat("double", double_value, "unit for double");
+  char   char_value   = 'c'; tester.testFormat("char",   char_value,   "unit for char");
+  signed char  signed_char_value  = 's'; tester.testFormat("signed char",  signed_char_value,  "unit for signed char");
+  signed short signed_short_value = -11; tester.testFormat("signed short", signed_short_value, "unit for signed short");
+  signed int   signed_int_value   = -22; tester.testFormat("signed int",   signed_int_value,   "unit for signed int");
+  signed long  signed_long_value  = -33; tester.testFormat("signed long",  signed_long_value,  "unit for signed long");
+  unsigned char  unsigned_char_value  = 'u'; tester.testFormat("unsigned char",  unsigned_char_value,  "unit for unsigned char");
+  unsigned short unsigned_short_value = 11;  tester.testFormat("unsigned short", unsigned_short_value, "unit for unsigned short");
+  unsigned int   unsigned_int_value   = 22;  tester.testFormat("unsigned int",   unsigned_int_value,   "unit for unsigned int");
+  unsigned long  unsigned_long_value  = 33;  tester.testFormat("unsigned long",  unsigned_long_value,  "unit for unsigned long");
 
   // Test format method for compound data types.
-  std::string string_value = "string value"; tester.testFormat("string", string_value);
-  AbsoluteTime abs_time("TDB", 51910, 12345.6789); tester.testFormat("absolute time", abs_time);
+  std::string string_value = "string value"; tester.testFormat("string", string_value, "unit for std::string");
+  AbsoluteTime abs_time("TDB", 51910, 12345.6789); tester.testFormat("absolute time", abs_time, "unit for unsigned AbsoluteTime");
 
   // Open a FITS extension to test reading column values.
   std::string filename(prependDataPath("column_samples.fits"));
@@ -1473,16 +1475,16 @@ class TextEph: public FormattedEph {
     TextEph() {}
     virtual ~TextEph() {}
 
-    void append(const std::string & par_name, const std::string & par_value) {
-      m_par_list.push_back(std::make_pair(par_name, par_value));
+    void append(const std::string & par_name, const std::string & par_value, const std::string & par_unit) {
+      m_par_list.push_back(std::make_pair(par_name, std::make_pair(par_value, par_unit)));
     }
 
     template <typename DataType>
-    void append(const std::string & par_name, const DataType & par_value) {
+    void append(const std::string & par_name, const DataType & par_value, const std::string & par_unit) {
       std::ostringstream oss;
       oss.precision(std::numeric_limits<double>::digits10);
       oss << par_value;
-      append(par_name, oss.str());
+      append(par_name, oss.str(), par_unit);
     }
 
     void clear() {
@@ -1496,18 +1498,19 @@ class TextEph: public FormattedEph {
 
         // Write parameter value.
         const std::string & par_name(itor->first);
-        const std::string & par_value(itor->second);
+        const std::string & par_value(itor->second.first);
+        const std::string & par_unit(itor->second.second);
         if (("Valid Since" == par_name) || ("Valid Until" == par_name)) {
-          os << format(par_name, par_value, " : ");
+          os << format(par_name, par_value, par_unit, " : ");
         } else {
-          os << format(par_name, par_value);
+          os << format(par_name, par_value, par_unit);
         }
       }
       return os;
     }
 
   private:
-    typedef std::list<std::pair<std::string, std::string> > plist_type;
+    typedef std::list<std::pair<std::string, std::pair<std::string, std::string> > > plist_type;
     plist_type m_par_list;
 };
 
@@ -1616,15 +1619,15 @@ void PulsarDbTestApp::testFrequencyEph() {
   eph.reset(new FrequencyEph("TDB", AbsoluteTime("TDB", 12345, 51840.), AbsoluteTime("TDB", 23456, 60480.),
     AbsoluteTime("TDB", 34567, 69120.), 11., 22., 33., 44., 55., 66.));
   TextEph t_eph;
-  t_eph.append("Valid Since", "12345.6 MJD (TDB)");
-  t_eph.append("Valid Until", "23456.7 MJD (TDB)");
-  t_eph.append("Epoch",       "34567.8 MJD (TDB)");
-  t_eph.append("RA",   "11");
-  t_eph.append("Dec",  "22");
-  t_eph.append("Phi0", "33");
-  t_eph.append("F0",   "44");
-  t_eph.append("F1",   "55");
-  t_eph.append("F2",   "66");
+  t_eph.append("Valid Since", "12345.6 MJD (TDB)", "");
+  t_eph.append("Valid Until", "23456.7 MJD (TDB)", "");
+  t_eph.append("Epoch",       "34567.8 MJD (TDB)", "");
+  t_eph.append("RA",   "11", "degrees");
+  t_eph.append("Dec",  "22", "degrees");
+  t_eph.append("Phi0", "33", "");
+  t_eph.append("F0",   "44", "s**(-1)");
+  t_eph.append("F1",   "55", "s**(-2)");
+  t_eph.append("F2",   "66", "s**(-3)");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.
@@ -1652,19 +1655,19 @@ void PulsarDbTestApp::testFrequencyEph() {
   record["F2"].set(5.5);
   eph.reset(new FrequencyEph(record, header));
   t_eph.clear();
-  t_eph.append("Valid Since", "54321 MJD (TDB)");
-  t_eph.append("Valid Until", "65433 MJD (TDB)"); // The end of 65432 == the begining of 65433.
-  t_eph.append("Epoch",       "76543.5 MJD (TDB)");
-  t_eph.append("RA",   "1.1");
-  t_eph.append("Dec",  "2.2");
+  t_eph.append("Valid Since", "54321 MJD (TDB)",   "");
+  t_eph.append("Valid Until", "65433 MJD (TDB)",   ""); // The end of 65432 == the begining of 65433.
+  t_eph.append("Epoch",       "76543.5 MJD (TDB)", "");
+  t_eph.append("RA",   "1.1", "degrees");
+  t_eph.append("Dec",  "2.2", "degrees");
   double dt = .864;
   double phi0 = -(3.3*dt + 4.4/2.*dt*dt + 5.5/6.*dt*dt*dt);
   while (phi0 < 0.) ++phi0;
   while (phi0 >= 1.) --phi0;
-  t_eph.append("Phi0", phi0);
-  t_eph.append("F0",   "3.3");
-  t_eph.append("F1",   "4.4");
-  t_eph.append("F2",   "5.5");
+  t_eph.append("Phi0", phi0, "");
+  t_eph.append("F0",   "3.3", "s**(-1)");
+  t_eph.append("F1",   "4.4", "s**(-2)");
+  t_eph.append("F2",   "5.5", "s**(-3)");
   checkEphParameter(getMethod() + "_fits", *eph, t_eph);
 }
 
@@ -1922,15 +1925,15 @@ void PulsarDbTestApp::testPeriodEph() {
   eph.reset(new PeriodEph("TDB", AbsoluteTime("TDB", 12345, 51840.), AbsoluteTime("TDB", 23456, 60480.),
     AbsoluteTime("TDB", 34567, 69120.), 11., 22., 33., 44., 55., 66.));
   TextEph t_eph;
-  t_eph.append("Valid Since", "12345.6 MJD (TDB)");
-  t_eph.append("Valid Until", "23456.7 MJD (TDB)");
-  t_eph.append("Epoch",       "34567.8 MJD (TDB)");
-  t_eph.append("RA",   "11");
-  t_eph.append("Dec",  "22");
-  t_eph.append("Phi0", "33");
-  t_eph.append("P0",   "44");
-  t_eph.append("P1",   "55");
-  t_eph.append("P2",   "66");
+  t_eph.append("Valid Since", "12345.6 MJD (TDB)", "");
+  t_eph.append("Valid Until", "23456.7 MJD (TDB)", "");
+  t_eph.append("Epoch",       "34567.8 MJD (TDB)", "");
+  t_eph.append("RA",   "11", "degrees");
+  t_eph.append("Dec",  "22", "degrees");
+  t_eph.append("Phi0", "33", "");
+  t_eph.append("P0",   "44", "s");
+  t_eph.append("P1",   "55", "");
+  t_eph.append("P2",   "66", "s**(-1)");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.
@@ -1958,20 +1961,20 @@ void PulsarDbTestApp::testPeriodEph() {
   record["P2"].set(5.5);
   eph.reset(new PeriodEph(record, header));
   t_eph.clear();
-  t_eph.append("Valid Since", "54321 MJD (TDB)");
-  t_eph.append("Valid Until", "65433 MJD (TDB)"); // The end of 65432 == the begining of 65433.
-  t_eph.append("Epoch",       "76543.5 MJD (TDB)");
-  t_eph.append("RA",   "1.1");
-  t_eph.append("Dec",  "2.2");
+  t_eph.append("Valid Since", "54321 MJD (TDB)",   "");
+  t_eph.append("Valid Until", "65433 MJD (TDB)",   ""); // The end of 65432 == the begining of 65433.
+  t_eph.append("Epoch",       "76543.5 MJD (TDB)", "");
+  t_eph.append("RA",   "1.1", "degrees");
+  t_eph.append("Dec",  "2.2", "degrees");
   double dt = .864;
   double sqrt_term = std::sqrt(2.*3.3*5.5 - 4.4*4.4);
   phi0 = -(2. / sqrt_term * std::atan(sqrt_term*dt/(2.*3.3+4.4*dt)));
   while (phi0 < 0.) ++phi0;
   while (phi0 >= 1.) --phi0;
-  t_eph.append("Phi0", phi0);
-  t_eph.append("P0",   "3.3");
-  t_eph.append("P1",   "4.4");
-  t_eph.append("P2",   "5.5");
+  t_eph.append("Phi0", phi0,  "");
+  t_eph.append("P0",   "3.3", "s");
+  t_eph.append("P1",   "4.4", "");
+  t_eph.append("P2",   "5.5", "s**(-1)");
   checkEphParameter(getMethod() + "_fits", *eph, t_eph);
 }
 
@@ -2520,40 +2523,40 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     AbsoluteTime("TDB", 34567, 69120.), 11., 22., 33., 44., 55., 66., AbsoluteTime("TDB", 45678, 77760.),
     freq_pars, 77., wave_sine, wave_cosine, glitch_list));
   TextEph t_eph;
-  t_eph.append("Valid Since",     "12345.6 MJD (TDB)");
-  t_eph.append("Valid Until",     "23456.7 MJD (TDB)");
-  t_eph.append("Position Epoch",  "34567.8 MJD (TDB)");
-  t_eph.append("RA",              "11");
-  t_eph.append("Dec",             "22");
-  t_eph.append("RA Velocity",     "33");
-  t_eph.append("Dec Velocity",    "44");
-  t_eph.append("Radial Velocity", "55");
-  t_eph.append("Annual Parallax", "66");
-  t_eph.append("Frequency Epoch", "45678.9 MJD (TDB)");
-  t_eph.append("Phi0",            "0.123456789");
-  t_eph.append("F0",              "1.23456789");
-  t_eph.append("F1",              "12.3456789");
-  t_eph.append("F2",              "123.456789");
-  t_eph.append("F3",              "1234.56789");
-  t_eph.append("F4",              "12345.6789");
-  t_eph.append("Wave Frequency",  "77");
-  t_eph.append("Sin1",  "0.1122334455");
-  t_eph.append("Cos1",  "0.9988776655");
-  t_eph.append("Sin2",  "1.122334455");
-  t_eph.append("Cos2",  "9.988776655");
-  t_eph.append("Sin3",  "11.22334455");
-  t_eph.append("Cos3",  "99.88776655");
-  t_eph.append("Cos4",  "998.8776655");
-  t_eph.append("Cos5",  "9988.776655");
-  t_eph.append("Glitch Epoch", "54321.1 MJD (TDB)");
-  t_eph.append("dPhi0", "0.987654321");
-  t_eph.append("dF0",   "9.87654321");
-  t_eph.append("dF1",   "98.7654321");
-  t_eph.append("Glitch Epoch", "65432.2 MJD (TDB)");
-  t_eph.append("Amplitude",  "0.00054321");
-  t_eph.append("Decay Time", "123.45");
-  t_eph.append("Amplitude",  "0.0056789");
-  t_eph.append("Decay Time", "54.321");
+  t_eph.append("Valid Since",     "12345.6 MJD (TDB)", "");
+  t_eph.append("Valid Until",     "23456.7 MJD (TDB)", "");
+  t_eph.append("Position Epoch",  "34567.8 MJD (TDB)", "");
+  t_eph.append("RA",              "11", "degrees");
+  t_eph.append("Dec",             "22", "degrees");
+  t_eph.append("RA Velocity",     "33", "10**(-3) arcsec / yr");
+  t_eph.append("Dec Velocity",    "44", "10**(-3) arcsec / yr");
+  t_eph.append("Radial Velocity", "55", "km / s");
+  t_eph.append("Annual Parallax", "66", "10**(-3) arcsec");
+  t_eph.append("Frequency Epoch", "45678.9 MJD (TDB)", "");
+  t_eph.append("Phi0",            "0.123456789", "");
+  t_eph.append("F0",              "1.23456789",  "s**(-1)");
+  t_eph.append("F1",              "12.3456789",  "s**(-2)");
+  t_eph.append("F2",              "123.456789",  "s**(-3)");
+  t_eph.append("F3",              "1234.56789",  "s**(-4)");
+  t_eph.append("F4",              "12345.6789",  "s**(-5)");
+  t_eph.append("Wave Frequency",  "77", "radians / s");
+  t_eph.append("Sin1",  "0.1122334455", "s");
+  t_eph.append("Cos1",  "0.9988776655", "s");
+  t_eph.append("Sin2",  "1.122334455",  "s");
+  t_eph.append("Cos2",  "9.988776655",  "s");
+  t_eph.append("Sin3",  "11.22334455",  "s");
+  t_eph.append("Cos3",  "99.88776655",  "s");
+  t_eph.append("Cos4",  "998.8776655",  "s");
+  t_eph.append("Cos5",  "9988.776655",  "s");
+  t_eph.append("Glitch Epoch", "54321.1 MJD (TDB)", "");
+  t_eph.append("dPhi0", "0.987654321", "");
+  t_eph.append("dF0",   "9.87654321",  "s**(-1)");
+  t_eph.append("dF1",   "98.7654321",  "s**(-2)");
+  t_eph.append("Glitch Epoch", "65432.2 MJD (TDB)", "");
+  t_eph.append("Amplitude",  "0.00054321", "s**(-1)");
+  t_eph.append("Decay Time", "123.45",     "days");
+  t_eph.append("Amplitude",  "0.0056789",  "s**(-1)");
+  t_eph.append("Decay Time", "54.321",     "days");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test glitch reporting capability, with the constructor with numerical arguments.
@@ -2646,16 +2649,16 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   record["GLITCH_DIMENSIONS"].set(pars);
   eph.reset(new HighPrecisionEph(record, header));
   t_eph.clear();
-  t_eph.append("Valid Since", "12345 MJD (TDB)");
-  t_eph.append("Valid Until", "23457 MJD (TDB)"); // The end of 23456 == the begining of 23457.
-  t_eph.append("Position Epoch",  "34567.8 MJD (TDB)");
-  t_eph.append("RA",              "1.1");
-  t_eph.append("Dec",             "2.2");
-  t_eph.append("RA Velocity",     "3.3");
-  t_eph.append("Dec Velocity",    "4.4");
-  t_eph.append("Radial Velocity", "5.5");
-  t_eph.append("Annual Parallax", "6.6");
-  t_eph.append("Frequency Epoch", "45678.9 MJD (TDB)");
+  t_eph.append("Valid Since", "12345 MJD (TDB)", "");
+  t_eph.append("Valid Until", "23457 MJD (TDB)", ""); // The end of 23456 == the begining of 23457.
+  t_eph.append("Position Epoch",  "34567.8 MJD (TDB)", "");
+  t_eph.append("RA",              "1.1", "degrees");
+  t_eph.append("Dec",             "2.2", "degrees");
+  t_eph.append("RA Velocity",     "3.3", "10**(-3) arcsec / yr");
+  t_eph.append("Dec Velocity",    "4.4", "10**(-3) arcsec / yr");
+  t_eph.append("Radial Velocity", "5.5", "km / s");
+  t_eph.append("Annual Parallax", "6.6", "10**(-3) arcsec");
+  t_eph.append("Frequency Epoch", "45678.9 MJD (TDB)", "");
   double dt = 8.64;
   double int_part = 0.;
   double phi_at_toa = 0.;
@@ -2677,30 +2680,30 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   double phi0 = -phi_at_toa;
   while (phi0 < 0.) ++phi0;
   while (phi0 >= 1.) --phi0;
-  t_eph.append("Phi0", phi0);
-  t_eph.append("F0",   "1.23456789");
-  t_eph.append("F1",   "12.3456789");
-  t_eph.append("F2",   "123.456789");
-  t_eph.append("F3",   "1234.56789");
-  t_eph.append("F4",   "12345.6789");
-  t_eph.append("Wave Frequency", "7.7");
-  t_eph.append("Sin1",  "0.1122334455");
-  t_eph.append("Cos1",  "0.9988776655");
-  t_eph.append("Sin2",  "1.122334455");
-  t_eph.append("Cos2",  "9.988776655");
-  t_eph.append("Sin3",  "11.22334455");
-  t_eph.append("Cos3",  "99.88776655");
-  t_eph.append("Cos4",  "998.8776655");
-  t_eph.append("Cos5",  "9988.776655");
-  t_eph.append("Glitch Epoch", "54321.1 MJD (TDB)");
-  t_eph.append("dPhi0", "0.987654321");
-  t_eph.append("dF0",   "9.87654321");
-  t_eph.append("dF1",   "98.7654321");
-  t_eph.append("Glitch Epoch", "65432.2 MJD (TDB)");
-  t_eph.append("Amplitude",  "0.00054321");
-  t_eph.append("Decay Time", "123.45");
-  t_eph.append("Amplitude",  "0.0056789");
-  t_eph.append("Decay Time", "54.321");
+  t_eph.append("Phi0", phi0, "");
+  t_eph.append("F0",   "1.23456789", "s**(-1)");
+  t_eph.append("F1",   "12.3456789", "s**(-2)");
+  t_eph.append("F2",   "123.456789", "s**(-3)");
+  t_eph.append("F3",   "1234.56789", "s**(-4)");
+  t_eph.append("F4",   "12345.6789", "s**(-5)");
+  t_eph.append("Wave Frequency", "7.7", "radians / s");
+  t_eph.append("Sin1",  "0.1122334455", "s");
+  t_eph.append("Cos1",  "0.9988776655", "s");
+  t_eph.append("Sin2",  "1.122334455",  "s");
+  t_eph.append("Cos2",  "9.988776655",  "s");
+  t_eph.append("Sin3",  "11.22334455",  "s");
+  t_eph.append("Cos3",  "99.88776655",  "s");
+  t_eph.append("Cos4",  "998.8776655",  "s");
+  t_eph.append("Cos5",  "9988.776655",  "s");
+  t_eph.append("Glitch Epoch", "54321.1 MJD (TDB)", "");
+  t_eph.append("dPhi0", "0.987654321", "");
+  t_eph.append("dF0",   "9.87654321",  "s**(-1)");
+  t_eph.append("dF1",   "98.7654321",  "s**(-2)");
+  t_eph.append("Glitch Epoch", "65432.2 MJD (TDB)", "");
+  t_eph.append("Amplitude",  "0.00054321", "s**(-1)");
+  t_eph.append("Decay Time", "123.45",     "days");
+  t_eph.append("Amplitude",  "0.0056789",  "s**(-1)");
+  t_eph.append("Decay Time", "54.321",     "days");
   checkEphParameter(getMethod() + "_fits", *eph, t_eph);
 
   // Test glitch reporting capability, with the constructor with a FITS record.
@@ -2941,18 +2944,18 @@ void PulsarDbTestApp::testSimpleDdEph() {
   // Test the constructor that takes numerical arguments.
   eph.reset(new SimpleDdEph("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8, 9.9, 11.1));
   TextEph t_eph;
-  t_eph.append("PB",        "12345.6789");
-  t_eph.append("PBDOT",     "1.1");
-  t_eph.append("A1",        "2.2");
-  t_eph.append("XDOT",      "3.3");
-  t_eph.append("ECC",       "4.4");
-  t_eph.append("ECCDOT",    "5.5");
-  t_eph.append("OM",        6.6 * SimpleDdEph::s_rad_per_deg);
-  t_eph.append("OMDOT",     7.7 * SimpleDdEph::s_rad_year_per_deg_sec);
-  t_eph.append("T0",        "12345.6");
-  t_eph.append("GAMMA",     "8.8");
-  t_eph.append("SHAPIRO_R", "9.9e-06");
-  t_eph.append("SHAPIRO_S", "11.1");
+  t_eph.append("PB",        "12345.6789",                              "s");
+  t_eph.append("PBDOT",     "1.1",                                     "");
+  t_eph.append("A1",        "2.2",                                     "lt-s");
+  t_eph.append("XDOT",      "3.3",                                     "lt-s / s");
+  t_eph.append("ECC",       "4.4",                                     "");
+  t_eph.append("ECCDOT",    "5.5",                                     "s**(-1)");
+  t_eph.append("OM",        6.6 * SimpleDdEph::s_rad_per_deg,          "radians");
+  t_eph.append("OMDOT",     7.7 * SimpleDdEph::s_rad_year_per_deg_sec, "radians / s");
+  t_eph.append("T0",        "12345.6 MJD (TDB)",                       "");
+  t_eph.append("GAMMA",     "8.8",                                     "s");
+  t_eph.append("SHAPIRO_R", "9.9e-06",                                 "s");
+  t_eph.append("SHAPIRO_S", "11.1",                                    "");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.
@@ -3110,16 +3113,16 @@ void PulsarDbTestApp::testBtModelEph() {
   // Test the constructor that takes numerical arguments.
   eph.reset(new BtModelEph("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8));
   TextEph t_eph;
-  t_eph.append("PB",        "12345.6789");
-  t_eph.append("PBDOT",     "1.1");
-  t_eph.append("A1",        "2.2");
-  t_eph.append("XDOT",      "3.3");
-  t_eph.append("ECC",       "4.4");
-  t_eph.append("ECCDOT",    "5.5");
-  t_eph.append("OM",        6.6 * BtModelEph::s_rad_per_deg);
-  t_eph.append("OMDOT",     7.7 * BtModelEph::s_rad_year_per_deg_sec);
-  t_eph.append("T0",        "12345.6");
-  t_eph.append("GAMMA",     "8.8");
+  t_eph.append("PB",        "12345.6789",                             "s");
+  t_eph.append("PBDOT",     "1.1",                                    "");
+  t_eph.append("A1",        "2.2",                                    "lt-s");
+  t_eph.append("XDOT",      "3.3",                                    "lt-s / s");
+  t_eph.append("ECC",       "4.4",                                    "");
+  t_eph.append("ECCDOT",    "5.5",                                    "s**(-1)");
+  t_eph.append("OM",        6.6 * BtModelEph::s_rad_per_deg,          "radians");
+  t_eph.append("OMDOT",     7.7 * BtModelEph::s_rad_year_per_deg_sec, "radians / s");
+  t_eph.append("T0",        "12345.6 MJD (TDB)",                      "");
+  t_eph.append("GAMMA",     "8.8",                                    "s");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.

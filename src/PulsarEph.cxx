@@ -34,7 +34,7 @@ namespace pulsarDb {
     } catch (const std::exception &) {
       time_string = getValidSince().represent(time_system_name, CalendarFmt);
     }
-    os << format("Valid Since", time_string, " : ") << std::endl;
+    os << format("Valid Since", time_string, "", " : ") << std::endl;
 
     // Write the stop time of the validity window.
     try {
@@ -42,7 +42,7 @@ namespace pulsarDb {
     } catch (const std::exception &) {
       time_string = getValidUntil().represent(time_system_name, CalendarFmt);
     }
-    os << format("Valid Until", time_string, " : ") << std::endl;
+    os << format("Valid Until", time_string, "", " : ") << std::endl;
 
     // Write subclass-specific parameters (delegated to subclass).
     writeModelParameter(os);

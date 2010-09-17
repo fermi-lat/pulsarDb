@@ -78,13 +78,13 @@ namespace pulsarDb {
     } catch (const std::exception &) {
       epoch_string = m_epoch.represent(m_system->getName(), CalendarFmt);
     } 
-    os << format("Epoch", epoch_string) << std::endl;
-    os << format("RA",    m_ra)         << std::endl;
-    os << format("Dec",   m_dec)        << std::endl;
-    os << format("Phi0",  m_phi0)       << std::endl;
-    os << format("F0",    m_f0)         << std::endl;
-    os << format("F1",    m_f1)         << std::endl;
-    os << format("F2",    m_f2);
+    os << format("Epoch", epoch_string, "")        << std::endl;
+    os << format("RA",    m_ra,         "degrees") << std::endl;
+    os << format("Dec",   m_dec,        "degrees") << std::endl;
+    os << format("Phi0",  m_phi0,       "")        << std::endl;
+    os << format("F0",    m_f0,         "s**(-1)") << std::endl;
+    os << format("F1",    m_f1,         "s**(-2)") << std::endl;
+    os << format("F2",    m_f2,         "s**(-3)");
   }
 
   double FrequencyEph::calcPulsePhase(const AbsoluteTime & ev_time, double phase_offset) const {
