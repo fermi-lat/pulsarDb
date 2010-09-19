@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Sep 18 23:31:35 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	FormattedEph.h 
+Log Message:
+Remove FormattedEph::hasNull and use tip::IColumn::getNull instead.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Sep 18 21:08:44 PDT 2010
 pulsarDb/data/outref
 
