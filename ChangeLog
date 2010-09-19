@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Sat Sep 18 21:08:43 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add new ephemeris types to ephemeris database.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Sep 18 21:08:42 PDT 2010
 pulsarDb/src
 
