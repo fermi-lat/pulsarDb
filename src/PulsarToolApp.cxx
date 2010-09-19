@@ -17,9 +17,11 @@
 #include "hoops/hoops.h"
 #include "hoops/hoops_exception.h"
 
+#include "pulsarDb/BtModelEph.h"
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/FrequencyEph.h"
+#include "pulsarDb/HighPrecisionEph.h"
 #include "pulsarDb/PeriodEph.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
@@ -325,7 +327,10 @@ namespace pulsarDb {
 
       // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
       database.registerPulsarEph<FrequencyEph>("FREQ");
+      database.registerPulsarEph<PeriodEph>("PER");
+      database.registerPulsarEph<HighPrecisionEph>("HP");
       database.registerOrbitalEph<SimpleDdEph>("DD");
+      database.registerOrbitalEph<BtModelEph>("BT");
 
       // Load the given ephemerides database(s).
       std::string psrdb_file = pars["psrdbfile"];

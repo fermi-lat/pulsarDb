@@ -682,15 +682,15 @@ void PulsarDbTestApp::testExpression() {
   database.load(m_in_file);
 
   // Filter using more complex criteria.
-  database.filterExpression("F2 != 0.");
+  database.filterExpression("OBSERVER_CODE == \"J\"");
 
   // Confirm that the correct number of ephemerides were found.
   int num_eph = database.getNumEph();
-  if (837 != num_eph)
-    err() << "found " << num_eph << " ephemerides with F2 != 0., not 837" << std::endl;
+  if (233 != num_eph)
+    err() << "found " << num_eph << " ephemerides with OBSERVER_CODE == \"J\", not 233" << std::endl;
 
   // Test saving this for basis of comparing future test output.
-  std::string outfile("f2not0_db.fits");
+  std::string outfile("obscodeJ_db.fits");
   remove(outfile.c_str());
   database.save(outfile, m_creator, m_author);
 
@@ -3208,7 +3208,10 @@ void PulsarDbTestApp::testChooser() {
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
   database.registerPulsarEph<FrequencyEph>("FREQ");
+  database.registerPulsarEph<PeriodEph>("PER");
+  database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
+  database.registerOrbitalEph<BtModelEph>("BT");
 
   std::string pulsar_name = "PSR J0139+5814";
 
@@ -3304,7 +3307,10 @@ void PulsarDbTestApp::testChooser() {
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
   database2.registerPulsarEph<FrequencyEph>("FREQ");
+  database2.registerPulsarEph<PeriodEph>("PER");
+  database2.registerPulsarEph<HighPrecisionEph>("HP");
   database2.registerOrbitalEph<SimpleDdEph>("DD");
+  database2.registerOrbitalEph<BtModelEph>("BT");
 
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
@@ -3440,7 +3446,10 @@ void PulsarDbTestApp::testEphComputer() {
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
   database.registerPulsarEph<FrequencyEph>("FREQ");
+  database.registerPulsarEph<PeriodEph>("PER");
+  database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
+  database.registerOrbitalEph<BtModelEph>("BT");
 
   // Filter a pulsar known to be present.
   database.filterName("PSr j0323+3944");
@@ -3527,7 +3536,10 @@ void PulsarDbTestApp::testEphComputer() {
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
   database2.registerPulsarEph<FrequencyEph>("FREQ");
+  database2.registerPulsarEph<PeriodEph>("PER");
+  database2.registerPulsarEph<HighPrecisionEph>("HP");
   database2.registerOrbitalEph<SimpleDdEph>("DD");
+  database2.registerOrbitalEph<BtModelEph>("BT");
 
   // Select a particular pulsar.
   database2.filterName("PSR J1834-0010");
@@ -3593,7 +3605,10 @@ void PulsarDbTestApp::testEphComputer() {
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
   database3.registerPulsarEph<FrequencyEph>("FREQ");
+  database3.registerPulsarEph<PeriodEph>("PER");
+  database3.registerPulsarEph<HighPrecisionEph>("HP");
   database3.registerOrbitalEph<SimpleDdEph>("DD");
+  database3.registerOrbitalEph<BtModelEph>("BT");
 
   // Load everything in this database at a time.
   computer2.load(database3);
@@ -3856,7 +3871,10 @@ void PulsarDbTestApp::testEphGetter() {
 
   // Register PulsarEph and OrbitalEph subclasses for various ephemeris models.
   database.registerPulsarEph<FrequencyEph>("FREQ");
+  database.registerPulsarEph<PeriodEph>("PER");
+  database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
+  database.registerOrbitalEph<BtModelEph>("BT");
 
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
