@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: hirayama  Sat Sep 18 21:08:44 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits j0323_db.fits noop_db.fits 
+	psrdb_all.fits psrdb_append.fits solar_db.fits 
+	testPulsarDbApp_par1.fits testPulsarDbApp_par2.fits 
+	testPulsarDbApp_par3.fits testPulsarDbApp_par4.fits 
+	testPulsarDbApp_par5.fits time_db.fits twice_db.fits 
+Log Message:
+Add new ephemeris types to ephemeris database.
+    *
+------------------------------------------------------------
 User: hirayama  Sat Sep 18 21:08:43 PDT 2010
 pulsarDb/src/test
 
