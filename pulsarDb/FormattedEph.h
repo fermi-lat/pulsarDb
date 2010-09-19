@@ -177,9 +177,6 @@ namespace pulsarDb {
       */
       template <typename DataType> bool hasNan(DataType /* data_array */, std::vector<bool> & /* nan_array */) const;
       template <typename DataType> bool hasNan(std::vector<DataType> data_array, std::vector<bool> & nan_array) const;
-
-      // TODO: Remove the following method once tip::TableCell::hasNull is implemented.
-      bool hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const;
   };
 
   template <typename DataType>
@@ -202,9 +199,10 @@ namespace pulsarDb {
       if (cell.isNull()) throw CellReadError("Field \"" + field_name + "\" is undefined");
     } else {
       std::vector<bool> null_array;
-      if (hasNull(cell, null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
-      // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
-      //if (cell.hasNull(null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
+      bool has_null = record.getExtensionData()->getColumn(field_index)->getNull(record.getIndex(), null_array);
+      if (has_null) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
+      // TODO: Replace the above with the below once tip::TableCell::getNull is implemented.
+      //if (cell.getNull(null_array)) throw CellReadError("Field \"" + field_name + "\" has an undefined element");
     }
 
     // Try to get the cell content.
@@ -273,9 +271,9 @@ namespace pulsarDb {
 
     // Check whether this cell contains a defined value.
     std::vector<bool> null_array;
-    hasNull(cell, null_array);
-    // TODO: Replace the above with the below once tip::TableCell::hasNull is implemented.
-    //cell.hasNull(null_array));
+    record.getExtensionData()->getColumn(field_index)->getNull(record.getIndex(), null_array);
+    // TODO: Replace the above with the below once tip::TableCell::getNull is implemented.
+    //cell.getNull(null_array));
     if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
 
     // Check whether the cell contains an Not-A-Number.
@@ -334,27 +332,6 @@ namespace pulsarDb {
 
     // Return the logical OR of the results.
     return has_nan;
-  }
-
-  // TODO: Remove the following method once tip::TableCell::hasNull is implemented.
-  inline bool FormattedEph::hasNull(const tip::TableCell & cell, std::vector<bool> & null_array) const {
-    std::vector<std::string> string_array;
-    cell.get(string_array);
-
-    // Resize the output array (null_array).
-    std::vector<std::string>::size_type array_size = string_array.size();
-    null_array.resize(array_size);
-    if (null_array.size() != array_size) throw std::runtime_error("Failed to allocate memory space for NULL flags");
-
-    // Check the array for undefined elements.
-    bool has_null = false;
-    for (std::vector<std::string>::size_type ii = 0; ii < array_size; ++ii) {
-      null_array[ii] = ("INDEF" == string_array[ii]);
-      has_null |= null_array[ii];
-    }
-
-    // Return the logical OR of the result.
-    return has_null;
   }
 
   inline st_stream::OStream & operator <<(st_stream::OStream & os, const FormattedEph & eph) { return eph.write(os); }
