@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Sep 20 20:51:03 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Ignore PCOUNT header keyword in finding a target extension.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Sep 20 20:44:26 PDT 2010
 pulsarDb/data/outref
 
