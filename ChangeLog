@@ -1,5 +1,13 @@
 ------------------------------------------------------------
 User: hirayama  Mon Sep 20 20:55:34 PDT 2010
+pulsarDb/data
+
+Added Files:
+	testpsrdb_crab.fits testpsrdb_text.fits 
+Log Message:
+    *
+------------------------------------------------------------
+User: hirayama  Mon Sep 20 20:55:34 PDT 2010
 pulsarDb/src/test
 
 Modified Files:
