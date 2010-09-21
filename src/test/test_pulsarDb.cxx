@@ -702,71 +702,22 @@ void PulsarDbTestApp::testAppend() {
   setMethod("testAppend");
   PulsarDbAppTester tester(*this);
 
-  // Load the same data base twice.
-  PulsarDb database(m_tpl_file);
-  database.load(m_in_file);
-  database.load(m_in_file);
+  std::auto_ptr<PulsarDb> database(0);
 
-  // Save the result for basis of comparing future test output.
-  std::string outfile("twice_db.fits");
-  remove(outfile.c_str());
-  database.save(outfile, m_creator, m_author);
+  // Open an existing FITS database, created by filtering by name.
+  database.reset(new PulsarDb(m_tpl_file));
+  database->load(prependDataPath("testpsrdb_crab.fits"));
 
-  // Check the result against its reference file in data/outref/ directory.
-  tester.checkOutputFits(outfile, prependOutrefPath(outfile));
+  // Append all tables in another database, originating from text files.
+  database->load(prependDataPath("testpsrdb_text.fits"));
 
-
-  // Load a FITS database with TELESCOP=FERMI.
-  std::string filename(prependDataPath("groD4-dc2v6.fits"));
-  try {
-    database.load(filename);
-  } catch (const std::exception & x) {
-    err() << "PulsarDb::load method threw an exception for FITS file \"" << filename << "\": " << std::endl << x.what() << std::endl;
-  }
-
-  // Load a TEXT database with TELESCOP=FERMI.
-  filename = prependDataPath("psrdb_spin_fermi.txt");
-  try {
-    database.load(filename);
-  } catch (const std::exception & x) {
-    err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << std::endl << x.what() << std::endl;
-  }
-}
-
-void PulsarDbTestApp::testTextPulsarDb() {
-  setMethod("testTextPulsarDb");
-  PulsarDbAppTester tester(*this);
-
-  // Ingest one of each type of table.
-  PulsarDb database(m_tpl_file);
-  database.load(prependDataPath("psrdb_spin.txt"));
-  database.load(prependDataPath("psrdb_binary.txt"));
-  database.load(prependDataPath("psrdb_remark.txt"));
-  database.load(prependDataPath("psrdb_obs.txt"));
-  database.load(prependDataPath("psrdb_name.txt"));
-
-  // Save all tables into one FITS file.
-  std::string filename1("psrdb_all.fits");
-  remove(filename1.c_str());
-  database.save(filename1, m_creator, m_author);
+  // Save all tables into a new FITS file.
+  std::string outfile1 = "psrdb_append.fits";
+  remove(outfile1.c_str());
+  database->save(outfile1, m_creator, m_author);
 
   // Check the result against its reference file in data/outref/ directory.
-  tester.checkOutputFits(filename1, prependOutrefPath(filename1));
-
-  // Copy an existing FITS database.
-  PulsarDb fits_psrdb(m_tpl_file);
-  fits_psrdb.load("crab_db.fits");
-
-  // Append all tables into the FITS database.
-  fits_psrdb.load(filename1);
-
-  // Save all tables into another FITS file.
-  std::string filename2 = "psrdb_append.fits";
-  remove(filename2.c_str());
-  fits_psrdb.save(filename2, m_creator, m_author);
-
-  // Check the result against its reference file in data/outref/ directory.
-  tester.checkOutputFits(filename2, prependOutrefPath(filename2));
+  tester.checkOutputFits(outfile1, prependOutrefPath(outfile1));
 
   // Test the getter of history records.
   std::list<std::string> expected_command;
@@ -779,13 +730,16 @@ void PulsarDbTestApp::testTextPulsarDb() {
   expected_ancestry.push_back("* Filter by pulsar name 'PsR b0531+21'");
   expected_ancestry.push_back("PULSARDB AUTHOR='Anonymous Tester' DATE=");
   expected_ancestry.push_back("* Load TEXTDB SPIN_PARAMETERS(FREQ) FILENAME='psrdb_spin.txt'");
+  expected_ancestry.push_back("* Load TEXTDB SPIN_PARAMETERS(PER) FILENAME='psrdb_spin_per.txt'");
+  expected_ancestry.push_back("* Load TEXTDB SPIN_PARAMETERS(HP) FILENAME='psrdb_spin_hp.txt'");
   expected_ancestry.push_back("* Load TEXTDB ORBITAL_PARAMETERS(DD) FILENAME='psrdb_binary.txt'");
+  expected_ancestry.push_back("* Load TEXTDB ORBITAL_PARAMETERS(BT) FILENAME='psrdb_binary_bt.txt'");
   expected_ancestry.push_back("* Load TEXTDB REMARKS FILENAME='psrdb_remark.txt'");
   expected_ancestry.push_back("* Load TEXTDB OBSERVERS FILENAME='psrdb_obs.txt'");
   expected_ancestry.push_back("* Load TEXTDB ALTERNATIVE_NAMES FILENAME='psrdb_name.txt'");
   std::list<std::string> result_command;
   std::list<std::string> result_ancestry;
-  fits_psrdb.getHistory(result_command, result_ancestry);
+  database->getHistory(result_command, result_ancestry);
 
   // Compare the command history.
   if (result_command.size() != expected_command.size()) {
@@ -820,6 +774,70 @@ void PulsarDbTestApp::testTextPulsarDb() {
       }
     }
   }
+
+  // Test loading the same data base twice.
+  database.reset(new PulsarDb(m_tpl_file));
+  database->load(m_in_file);
+  database->load(m_in_file);
+
+  // Save the result for basis of comparing future test output.
+  std::string outfile2("twice_db.fits");
+  remove(outfile2.c_str());
+  database->save(outfile2, m_creator, m_author);
+
+  // Check the result against its reference file in data/outref/ directory.
+  tester.checkOutputFits(outfile2, prependOutrefPath(outfile2));
+
+  // Test loading databases with TELESCOP=FERMI.
+  database.reset(new PulsarDb(m_tpl_file));
+
+  // Test loading a FITS database with TELESCOP=FERMI.
+  std::string filename(prependDataPath("groD4-dc2v6.fits"));
+  try {
+    database->load(filename);
+  } catch (const std::exception & x) {
+    err() << "PulsarDb::load method threw an exception for FITS file \"" << filename << "\": " << std::endl << x.what() << std::endl;
+  }
+
+  // Test loading a TEXT database with TELESCOP=FERMI.
+  filename = prependDataPath("psrdb_spin_fermi.txt");
+  try {
+    database->load(filename);
+  } catch (const std::exception & x) {
+    err() << "PulsarDb::load method threw an exception for TEXT file \"" << filename << "\": " << std::endl << x.what() << std::endl;
+  }
+
+  // Save the result for basis of comparing future test output.
+  std::string outfile3("psrdb_append_fermi.fits");
+  remove(outfile3.c_str());
+  database->save(outfile3, m_creator, m_author);
+
+  // Check the result against its reference file in data/outref/ directory.
+  tester.checkOutputFits(outfile3, prependOutrefPath(outfile3));
+}
+
+void PulsarDbTestApp::testTextPulsarDb() {
+  setMethod("testTextPulsarDb");
+  PulsarDbAppTester tester(*this);
+
+  // Ingest one of each type of table.
+  PulsarDb database(m_tpl_file);
+  database.load(prependDataPath("psrdb_spin.txt"));
+  database.load(prependDataPath("psrdb_spin_per.txt"));
+  database.load(prependDataPath("psrdb_spin_hp.txt"));
+  database.load(prependDataPath("psrdb_binary.txt"));
+  database.load(prependDataPath("psrdb_binary_bt.txt"));
+  database.load(prependDataPath("psrdb_remark.txt"));
+  database.load(prependDataPath("psrdb_obs.txt"));
+  database.load(prependDataPath("psrdb_name.txt"));
+
+  // Save all tables into one FITS file.
+  std::string filename1("psrdb_all.fits");
+  remove(filename1.c_str());
+  database.save(filename1, m_creator, m_author);
+
+  // Check the result against its reference file in data/outref/ directory.
+  tester.checkOutputFits(filename1, prependOutrefPath(filename1));
 
   // Test detection of error(s) in loading badly-formatted tables.
   PulsarDb bad_database(prependDataPath("test_TextPulsarDb.tpl"));
