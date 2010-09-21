@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Sep 20 20:54:03 PDT 2010
+pulsarDb/data
+
+Added Files:
+	psrdb_binary_bt.txt psrdb_spin_hp.txt psrdb_spin_per.txt 
+Log Message:
+Add text ephemeris files for new ephemeris types.
+    *
+------------------------------------------------------------
 User: hirayama  Mon Sep 20 20:51:03 PDT 2010
 pulsarDb/src
 
