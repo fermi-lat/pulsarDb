@@ -736,14 +736,15 @@ namespace pulsarDb {
         Header::KeySeq_t required_keyword;
         bool ephstyle_found = false;
         for (Header::ConstIterator key_itor = in_header.begin(); key_itor != in_header.end(); ++key_itor) {
-          // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2, and EXTVER.
+          // Ignore some header keywords: HISTORY, COMMENT, a blank name, CHECKSUM, DATASUM, DATE, CREATOR, NAXIS2, PCOUNT, and EXTVER.
           std::string keyword_name(key_itor->getName());
           if (!keyword_name.empty()) {
             for (std::string::iterator str_itor = keyword_name.begin(); str_itor != keyword_name.end(); ++str_itor) {
               *str_itor = std::toupper(*str_itor);
             }
             if (keyword_name != "HISTORY" && keyword_name != "COMMENT" && keyword_name != "CHECKSUM" && keyword_name != "DATASUM"
-              && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2" && keyword_name != "EXTVER")
+              && keyword_name != "DATE" && keyword_name != "CREATOR" && keyword_name != "NAXIS2" && keyword_name != "PCOUNT"
+              && keyword_name != "EXTVER")
               required_keyword.push_back(*key_itor);
 
             // Use EPHSTYLE header keyword as an indicator of the current format.
