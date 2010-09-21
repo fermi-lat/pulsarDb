@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: hirayama  Mon Sep 20 20:55:34 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	psrdb_all.fits psrdb_append.fits 
+Added Files:
+	psrdb_append_fermi.fits 
+Log Message:
+    *
+------------------------------------------------------------
+User: hirayama  Mon Sep 20 20:55:34 PDT 2010
 pulsarDb/data
 
 Added Files:
