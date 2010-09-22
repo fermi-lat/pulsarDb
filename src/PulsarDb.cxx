@@ -606,7 +606,6 @@ namespace pulsarDb {
         // Add the remark to the container.
         cont.push_back(eph_status);
       }
-
     }
   }
 
@@ -876,6 +875,10 @@ namespace pulsarDb {
               // Compare keyword values as string.
               bool value_identical = false;
               if (string_value_header == string_value_required) {
+                value_identical = true;
+
+              } else if ("TFORM" == name_required.substr(0, 5)) {
+                // TODO: Don'g ignore TFORM#, but handle TFORM#='PD(*)' properly.
                 value_identical = true;
 
               } else if ("TELESCOP" == name_required && ("FERMI" == string_value_header || "GLAST" == string_value_header) &&
