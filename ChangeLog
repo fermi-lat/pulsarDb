@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Sep 21 19:58:53 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add ephemerides in ephemeris extensions with EPHSTYLE=PER, HP, and BT.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Sep 21 19:58:53 PDT 2010
 pulsarDb/data/outref
 
 Modified Files:
