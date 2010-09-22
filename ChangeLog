@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hirayama  Wed Sep 22 16:25:09 PDT 2010
+pulsarDb/data
+
+Modified Files:
+	PulsarDb_spin_hp.tpl testpsrdb_crab.fits 
+	testpsrdb_dbmanip.fits testpsrdb_text.fits 
+Log Message:
+Remove dimensions from declarations of variable-length columns.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Sep 21 19:59:24 PDT 2010
 pulsarDb/src
 
