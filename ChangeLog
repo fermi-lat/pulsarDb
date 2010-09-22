@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Sep 21 19:59:24 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Temporarily ignore TFORM# header keyword in determining a target extension.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Sep 21 19:58:53 PDT 2010
 pulsarDb/src/test
 
