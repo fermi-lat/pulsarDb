@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Thu Sep 23 12:41:28 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Improve comparisons of TFORM header keyword values.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Sep 22 16:25:11 PDT 2010
 pulsarDb/data/outref
 
