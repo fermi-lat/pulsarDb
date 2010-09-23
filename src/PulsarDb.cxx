@@ -877,9 +877,30 @@ namespace pulsarDb {
               if (string_value_header == string_value_required) {
                 value_identical = true;
 
-              } else if ("TFORM" == name_required.substr(0, 5)) {
-                // TODO: Don'g ignore TFORM#, but handle TFORM#='PD(*)' properly.
-                value_identical = true;
+              } else if ("TFORM" == name_header.substr(0, 5)) {
+                // Note: Special handling is necessary for a variable-length vector column, because its TFORM# value
+                //       contains a hint on the maximum size of variable-length vector in the table, which needs to be
+                //       ignored to compare their data formats.
+
+                // Get a character denoting a data type from a candidate target extension.
+                static const std::string upper_alpha("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+                std::string::size_type pos_type_header = string_value_header.find_first_of(upper_alpha);
+                if (std::string::npos != pos_type_header) {
+                  const char & type_char_header = string_value_header[pos_type_header];
+
+                  // Check whether it is a variable-length vector column or not.
+                  if ('P' == type_char_header || 'Q' == type_char_header) {
+                    // Get the position of a character denoting a data type in the given keyword value.
+                    std::string::size_type pos_type_required = string_value_required.find_first_of(upper_alpha);
+
+                    // Extract two characters from each value and compare them.
+                    if (std::string::npos != pos_type_required) {
+                      const std::string type_string_header = string_value_header.substr(pos_type_header, 2);
+                      const std::string type_string_required = string_value_required.substr(pos_type_required, 2);
+                      if (type_string_header == type_string_required) value_identical = true;
+                    }
+                  }
+                }
 
               } else if ("TELESCOP" == name_required && ("FERMI" == string_value_header || "GLAST" == string_value_header) &&
                 ("FERMI" == string_value_required || "GLAST" == string_value_required)) {
