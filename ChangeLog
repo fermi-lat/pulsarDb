@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Sep 24 20:44:39 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par5.log 
+Log Message:
+Improve text expressions of physical units for human reading.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Sep 24 20:44:39 PDT 2010
 pulsarDb/src/test
 
 Modified Files:
