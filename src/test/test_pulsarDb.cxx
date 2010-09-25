@@ -4983,6 +4983,8 @@ void PulsarDbTestApp::testEphComputerApp() {
   test_name_cont.push_back("par13");
   test_name_cont.push_back("par14");
   test_name_cont.push_back("par15");
+  test_name_cont.push_back("par16");
+  test_name_cont.push_back("par17");
 
   // Prepare files to be used in the tests.
   std::string test_pulsardb = prependDataPath("testpsrdb_ephcomp.fits");
