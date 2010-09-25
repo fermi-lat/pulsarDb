@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Sep 24 18:51:58 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Replace pulsar database file for application tests.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Sep 23 12:41:28 PDT 2010
 pulsarDb/src
 
