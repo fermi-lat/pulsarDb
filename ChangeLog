@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Sep 24 21:18:04 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add/revive tests 16 and 17 for gtephem.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Sep 24 20:44:39 PDT 2010
 pulsarDb/data/outref
 
