@@ -13,11 +13,11 @@ gtephem: Orbital ephemeris chosen from database is:
 gtephem:               PB = 156479.326538 s
 gtephem:            PBDOT = 0
 gtephem:               A1 = 0.7233272 lt-s
-gtephem:             XDOT = 0 lt-s / s
+gtephem:             XDOT = 0 lt-s/s
 gtephem:              ECC = 0.0001612
 gtephem:           ECCDOT = 0 s**(-1)
 gtephem:               OM = 0 radians
-gtephem:            OMDOT = 0 radians / s
+gtephem:            OMDOT = 0 radians/s
 gtephem:               T0 = 52060.84100795 MJD (TDB)
 gtephem:            GAMMA = 0 s
 gtephem:        SHAPIRO_R = 0 s

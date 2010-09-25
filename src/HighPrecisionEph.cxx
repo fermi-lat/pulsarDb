@@ -184,12 +184,12 @@ namespace pulsarDb {
       pos_epoch_string = m_pos_epoch.represent(m_system->getName(), CalendarFmt);
     } 
     os << format("Position Epoch",  pos_epoch_string, "") << std::endl;
-    os << format("RA",              m_ra,             "degrees")              << std::endl;
-    os << format("Dec",             m_dec,            "degrees")              << std::endl;
-    os << format("RA Velocity",     m_ra_vel,         "10**(-3) arcsec / yr") << std::endl;
-    os << format("Dec Velocity",    m_dec_vel,        "10**(-3) arcsec / yr") << std::endl;
-    os << format("Radial Velocity", m_radial_vel,     "km / s")               << std::endl;
-    if (m_parallax > 0.) os << format("Annual Parallax", m_parallax, "10**(-3) arcsec") << std::endl;
+    os << format("RA",              m_ra,             "degrees")            << std::endl;
+    os << format("Dec",             m_dec,            "degrees")            << std::endl;
+    os << format("RA Velocity",     m_ra_vel,         "milliarcseconds/yr") << std::endl;
+    os << format("Dec Velocity",    m_dec_vel,        "milliarcseconds/yr") << std::endl;
+    os << format("Radial Velocity", m_radial_vel,     "km/s")               << std::endl;
+    if (m_parallax > 0.) os << format("Annual Parallax", m_parallax, "milliarcseconds") << std::endl;
 
     // Write the spin parameters.
     std::string freq_epoch_string;
@@ -223,7 +223,7 @@ namespace pulsarDb {
     wave_type::size_type num_elem_sine = m_wave_sine.size();
     wave_type::size_type num_elem_cosine = m_wave_cosine.size();
     if (num_elem_sine > 0 || num_elem_cosine > 0) {
-      os << std::endl << format("Wave Frequency", m_wave_omega, "radians / s");
+      os << std::endl << format("Wave Frequency", m_wave_omega, "radians/s");
       for (wave_type::size_type ii = 0; ii < std::max(num_elem_sine, num_elem_cosine); ++ii) {
         std::ostringstream oss;
         oss << ii + 1;
