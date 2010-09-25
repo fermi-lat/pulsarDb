@@ -3,12 +3,12 @@ gtephem: Spin ephemeris chosen from database is:
 gtephem:      Valid Since : 54358 MJD (TDB)
 gtephem:      Valid Until : 54369 MJD (TDB)
 gtephem:            Epoch = 54358 MJD (TDB)
-gtephem:               RA = 85.0482
-gtephem:              Dec = -69.3319
+gtephem:               RA = 85.0482 degrees
+gtephem:              Dec = -69.3319 degrees
 gtephem:             Phi0 = 0.0704932212831514
-gtephem:               F0 = 19.8341817288585
-gtephem:               F1 = -1.88699458167048e-10
-gtephem:               F2 = 0
+gtephem:               F0 = 19.8341817288585 s**(-1)
+gtephem:               F1 = -1.88699458167048e-10 s**(-2)
+gtephem:               F2 = 0 s**(-3)
 gtephem: Orbital ephemeris chosen from database is:
 gtephem:    None
 gtephem: --------------------------

@@ -3,24 +3,24 @@ gtephem: Spin ephemeris chosen from database is:
 gtephem:      Valid Since : 51671 MJD (TDB)
 gtephem:      Valid Until : 52532 MJD (TDB)
 gtephem:            Epoch = 52101 MJD (TDB)
-gtephem:               RA = 278.571942
-gtephem:              Dec = -0.180347
+gtephem:               RA = 278.571942 degrees
+gtephem:              Dec = -0.180347 degrees
 gtephem:             Phi0 = 0.122490413504243
-gtephem:               F0 = 1.9195541400136
-gtephem:               F1 = -5.27493e-17
-gtephem:               F2 = 0
+gtephem:               F0 = 1.9195541400136 s**(-1)
+gtephem:               F1 = -5.27493e-17 s**(-2)
+gtephem:               F2 = 0 s**(-3)
 gtephem: Orbital ephemeris chosen from database is:
-gtephem:               PB = 156479.326538
+gtephem:               PB = 156479.326538 s
 gtephem:            PBDOT = 0
-gtephem:               A1 = 0.7233272
-gtephem:             XDOT = 0
+gtephem:               A1 = 0.7233272 lt-s
+gtephem:             XDOT = 0 lt-s / s
 gtephem:              ECC = 0.0001612
-gtephem:           ECCDOT = 0
-gtephem:               OM = 0
-gtephem:            OMDOT = 0
-gtephem:               T0 = 52060.84100795
-gtephem:            GAMMA = 0
-gtephem:        SHAPIRO_R = 0
+gtephem:           ECCDOT = 0 s**(-1)
+gtephem:               OM = 0 radians
+gtephem:            OMDOT = 0 radians / s
+gtephem:               T0 = 52060.84100795 MJD (TDB)
+gtephem:            GAMMA = 0 s
+gtephem:        SHAPIRO_R = 0 s
 gtephem:        SHAPIRO_S = 0
 gtephem: --------------------------
 gtephem: Spin ephemeris estimated is:
