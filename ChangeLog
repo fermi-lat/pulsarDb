@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Sep 24 21:18:05 PDT 2010
+pulsarDb/data/outref
+
+Added Files:
+	testEphComputerApp_par16.log testEphComputerApp_par17.log 
+Log Message:
+Add/revive tests 16 and 17 for gtephem.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Sep 24 21:18:04 PDT 2010
 pulsarDb/src/test
 
