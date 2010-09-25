@@ -106,14 +106,14 @@ namespace pulsarDb {
   }
 
   void BtModelEph::writeModelParameter(st_stream::OStream & os) const {
-    os << format("PB",        m_pb,      "s")           << std::endl;
-    os << format("PBDOT",     m_pb_dot,  "")            << std::endl;
-    os << format("A1",        m_a1,      "lt-s")        << std::endl;
-    os << format("XDOT",      m_x_dot,   "lt-s / s")    << std::endl;
-    os << format("ECC",       m_ecc,     "")            << std::endl;
-    os << format("ECCDOT",    m_ecc_dot, "s**(-1)")     << std::endl;
-    os << format("OM",        m_om,      "radians")     << std::endl;
-    os << format("OMDOT",     m_om_dot,  "radians / s") << std::endl;
+    os << format("PB",        m_pb,      "s")         << std::endl;
+    os << format("PBDOT",     m_pb_dot,  "")          << std::endl;
+    os << format("A1",        m_a1,      "lt-s")      << std::endl;
+    os << format("XDOT",      m_x_dot,   "lt-s/s")    << std::endl;
+    os << format("ECC",       m_ecc,     "")          << std::endl;
+    os << format("ECCDOT",    m_ecc_dot, "s**(-1)")   << std::endl;
+    os << format("OM",        m_om,      "radians")   << std::endl;
+    os << format("OMDOT",     m_om_dot,  "radians/s") << std::endl;
     std::string t0_string;
     try {
       t0_string = m_t0.represent(m_system->getName(), MjdFmt);
