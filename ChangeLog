@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Sep 24 19:33:36 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par3.log testEphComputerApp_par5.log 
+Log Message:
+Include physical units in reference files for the unit test.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Sep 24 18:51:59 PDT 2010
 pulsarDb/data
 
