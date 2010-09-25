@@ -4985,14 +4985,15 @@ void PulsarDbTestApp::testEphComputerApp() {
   test_name_cont.push_back("par15");
 
   // Prepare files to be used in the tests.
-  std::string master_pulsardb = prependDataPath("master_pulsardb_v2.fits");
+  std::string test_pulsardb = prependDataPath("testpsrdb_ephcomp.fits");
   std::string leap_file = prependDataPath("gtephem_leapsec.fits");
   std::string remark_file = prependDataPath("gtephem_remark.txt");
   std::string summary_file = getMethod() + "_summary.txt";
   std::ofstream ofs_summary(summary_file.c_str());
-  ofs_summary << master_pulsardb << std::endl;
+  ofs_summary << test_pulsardb << std::endl;
   ofs_summary << remark_file << std::endl;
-  ofs_summary << prependDataPath("psrdb_user.fits") << std::endl;
+  ofs_summary << prependDataPath("testpsrdb_crab.fits") << std::endl; // Not strictly necessary for this test.
+  ofs_summary << prependDataPath("testpsrdb_text.fits") << std::endl; // Not strictly necessary for this test.
   ofs_summary.close();
 
   // Loop over parameter sets.
@@ -5023,7 +5024,7 @@ void PulsarDbTestApp::testEphComputerApp() {
     // Set test-specific parameters.
     if ("par1" == test_name) {
       // Test standard computation.
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
       pars["timeformat"] = "FERMI";
@@ -5032,7 +5033,7 @@ void PulsarDbTestApp::testEphComputerApp() {
 
     } else if ("par2" == test_name) {
       // Test strict=yes.
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212502400.0;
       pars["timeformat"] = "FERMI";
@@ -5044,7 +5045,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test chatter=3.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212502400.0;
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["chatter"] = 3;
       pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
@@ -5054,7 +5055,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test an orbital ephemeris.
       pars["psrname"] = "PSR J1834-0010";
       pars["reftime"] = 212502400.0;
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       log_file_ref = prependOutrefPath(log_file);
@@ -5063,7 +5064,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test chatter=3 with an orbital ephemeris.
       pars["psrname"] = "PSR J1834-0010";
       pars["reftime"] = 212502400.0;
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["chatter"] = 3;
       pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
@@ -5073,7 +5074,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test a reference time during a leap second.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 157766336.0;
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["timeformat"] = "FERMI";
       pars["timesys"] = "UTC";
       pars["leapsecfile"] = leap_file;
@@ -5083,7 +5084,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Create a reference output for testing ISO 8601 format.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = "54368.11169104166666666666"; // Need to be a string to preserve precision.
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["strict"] = "yes";
       pars["timeformat"] = "MJD";
       pars["timesys"] = "TDB";
@@ -5093,7 +5094,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test ISO 8601 calendar format.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = "2007-09-25T02:40:50.106";
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["strict"] = "yes";
       pars["timeformat"] = "ISO";
       pars["timesys"] = "TDB";
@@ -5103,7 +5104,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test ISO 8601 week-day format.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = "2007-W39-2T02:40:50.106";
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["strict"] = "yes";
       pars["timeformat"] = "ISO";
       pars["timesys"] = "TDB";
@@ -5113,7 +5114,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test ISO 8601 ordinal-day format.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = "2007-268T02:40:50.106";
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["strict"] = "yes";
       pars["timeformat"] = "ISO";
       pars["timesys"] = "TDB";
@@ -5139,7 +5140,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test detection of unknown pulsar name.
       pars["psrname"] = "No Such Pulsar";
       pars["reftime"] = 212380785.922;
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
 
@@ -5155,7 +5156,7 @@ void PulsarDbTestApp::testEphComputerApp() {
       // Test reporting no spin ephemeris available for a given solar system ephemeris.
       pars["psrname"] = "PSR B0540-69";
       pars["reftime"] = 212380785.922;
-      pars["psrdbfile"] = master_pulsardb;
+      pars["psrdbfile"] = test_pulsardb;
       pars["timeformat"] = "FERMI";
       pars["timesys"] = "TDB";
       pars["solareph"] = "JPL DE405";
