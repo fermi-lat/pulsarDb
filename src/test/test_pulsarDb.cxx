@@ -885,6 +885,7 @@ void PulsarDbTestApp::testTextPulsarDb() {
   basename_list.push_back("okdb_extraescape");
   basename_list.push_back("okdb_notallcolumn1");
   basename_list.push_back("okdb_notallcolumn2");
+  basename_list.push_back("okdb_emptyfield");
   for (std::list<std::string>::const_iterator itor = basename_list.begin(); itor != basename_list.end(); ++itor) {
     const std::string & basename(*itor);
     PulsarDb ok_database(prependDataPath("test_TextPulsarDb.tpl"));
