@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Mon Sep 27 20:37:03 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Allow empty fields in loading ephemerides from a text file.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Sep 24 21:18:05 PDT 2010
 pulsarDb/data/outref
 
