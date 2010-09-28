@@ -45,7 +45,7 @@ namespace {
       /** \brief Create an empty TextField object.
           \param scalar Indicate whether this object represents a scalar field or not.
        */
-      TextField(bool scalar = true): m_scalar(scalar), m_field(""), m_parsed_field(1, "") {}
+      TextField(bool scalar = true): m_scalar(scalar), m_field(""), m_parsed_field() {}
 
       /// \brief Return a logical true if this object represents a scalar field, and false if otherwise.
       bool isScalar() const { return m_scalar; }
@@ -74,6 +74,9 @@ namespace {
   void TextField::push_back(char c) {
     // Update the storage for the entire field value.
     m_field.push_back(c);
+
+    // Create the first element of the parsed field.
+    if (m_parsed_field.empty()) m_parsed_field.push_back("");
 
     // Update the array to store the parsed field.
     if (!m_scalar && ',' == c) m_parsed_field.push_back("");
@@ -140,17 +143,18 @@ namespace {
         }
       }
 
+      // Detect a start of a field.
+      if (!in_field && (!is_special || in_quote || in_vector)) {
+        // Add a new field at the end of the return container.
+        const TextField new_field(!in_vector);
+        parsed_line.push_back(new_field);
+
+        // Set the field flag.
+        in_field = true;
+      }
+
       // Handle non-special characters.
       if (!is_special) {
-        if (!in_field) {
-          // Add a new field at the end of the return container.
-          const TextField new_field(!in_vector);
-          parsed_line.push_back(new_field);
-
-          // Set the field flag.
-          in_field = true;
-        }
-
         // Add the character to the current field.
         parsed_line.back().push_back(*current);
 
