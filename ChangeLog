@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Mon Sep 27 20:37:04 PDT 2010
+pulsarDb/data/outref
+
+Added Files:
+	okdb_emptyfield.fits 
+Log Message:
+Allow empty fields in loading ephemerides from a text file.
+    *
+------------------------------------------------------------
+User: hirayama  Mon Sep 27 20:37:04 PDT 2010
 pulsarDb/data
 
 Added Files:
