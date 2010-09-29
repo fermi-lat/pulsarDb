@@ -2590,8 +2590,8 @@ void PulsarDbTestApp::testHighPrecisionEph() {
       " ephemeris remark(s), not 2." << std::endl;
   } else {
     std::list<std::string> report_list;
-    report_list.push_back("Remarked \"A glitch observed at 54321.1 MJD (TDB)\" since 54321.1 MJD (TDB) until 23456.7 MJD (TDB)");
-    report_list.push_back("Remarked \"A glitch observed at 65432.2 MJD (TDB)\" since 65432.2 MJD (TDB) until 23456.7 MJD (TDB)");
+    report_list.push_back("Remarked \"Glitch observed at 54321.1 MJD (TDB)\" since 54321.1 MJD (TDB) until 23456.7 MJD (TDB)");
+    report_list.push_back("Remarked \"Glitch observed at 65432.2 MJD (TDB)\" since 65432.2 MJD (TDB) until 23456.7 MJD (TDB)");
     std::list<std::string>::const_iterator str_itor = report_list.begin();
     int remark_number = 1;
     for (EphStatusCont::const_iterator rem_itor = remark_list.begin(); rem_itor != remark_list.end() && str_itor != report_list.end();
@@ -2737,8 +2737,8 @@ void PulsarDbTestApp::testHighPrecisionEph() {
       " ephemeris remark(s), not 2." << std::endl;
   } else {
     std::list<std::string> report_list;
-    report_list.push_back("Remarked \"A glitch observed at 54321.1 MJD (TDB)\" since 54321.1 MJD (TDB) until 23457 MJD (TDB)");
-    report_list.push_back("Remarked \"A glitch observed at 65432.2 MJD (TDB)\" since 65432.2 MJD (TDB) until 23457 MJD (TDB)");
+    report_list.push_back("Remarked \"Glitch observed at 54321.1 MJD (TDB)\" since 54321.1 MJD (TDB) until 23457 MJD (TDB)");
+    report_list.push_back("Remarked \"Glitch observed at 65432.2 MJD (TDB)\" since 65432.2 MJD (TDB) until 23457 MJD (TDB)");
     std::list<std::string>::const_iterator str_itor = report_list.begin();
     int remark_number = 1;
     for (EphStatusCont::const_iterator rem_itor = remark_list.begin(); rem_itor != remark_list.end() && str_itor != report_list.end();

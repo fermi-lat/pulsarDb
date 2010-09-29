@@ -573,7 +573,7 @@ namespace pulsarDb {
     // Add glitches to the internal container of ephemeris remarks.
     for (glitch_type::const_iterator glitch_itor = m_glitch_list.begin(); glitch_itor != m_glitch_list.end(); ++glitch_itor) {
       std::ostringstream oss;
-      oss << "A glitch observed at " << glitch_itor->m_epoch.represent("TDB", MjdFmt);
+      oss << "Glitch observed at " << glitch_itor->m_epoch.represent("TDB", MjdFmt);
       m_remark_cont.push_back(EphStatus(glitch_itor->m_epoch, m_until, Remarked, oss.str()));
     }
   }
