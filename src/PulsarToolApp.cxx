@@ -397,7 +397,7 @@ namespace pulsarDb {
       }
 
       // Load the selected pulsar ephemerides.
-      if (eph_style_uc == "DB") {
+      if (eph_style_uc == "DB" || (eph_style_uc != "FREQ" && eph_style_uc != "PER" && m_report_eph_status)) {
         // Load spin parameters.
         m_computer->loadPulsarEph(database);
         int num_pulsar_eph_loaded = m_computer->getNumPulsarEph();
@@ -416,7 +416,7 @@ namespace pulsarDb {
         os.prefix() << dashes << std::endl;
 
         // Thrown an exception if no ephemeris is loaded into the ephemeris computer.
-        if (0 == num_pulsar_eph_loaded) {
+        if (eph_style_uc == "DB" && 0 == num_pulsar_eph_loaded) {
           std::ostringstream os_err;
           if (0 == num_pulsar_eph_total) {
             os_err << "No spin ephemeris is in the database";
