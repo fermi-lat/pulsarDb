@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Sep 28 18:32:38 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Load spin ephemerides when ephemeris status is requested to be reported.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-18-04, operation: add
 Package: pulsarDb
