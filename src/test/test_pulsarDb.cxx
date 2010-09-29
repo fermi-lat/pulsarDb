@@ -4991,10 +4991,12 @@ void PulsarDbTestApp::testEphComputerApp() {
   std::string test_pulsardb = prependDataPath("testpsrdb_ephcomp.fits");
   std::string leap_file = prependDataPath("gtephem_leapsec.fits");
   std::string remark_file = prependDataPath("gtephem_remark.txt");
+  std::string glitch_file = prependDataPath("gtephem_glitch.txt");
   std::string summary_file = getMethod() + "_summary.txt";
   std::ofstream ofs_summary(summary_file.c_str());
   ofs_summary << test_pulsardb << std::endl;
   ofs_summary << remark_file << std::endl;
+  ofs_summary << glitch_file << std::endl;
   ofs_summary << prependDataPath("testpsrdb_crab.fits") << std::endl; // Not strictly necessary for this test.
   ofs_summary << prependDataPath("testpsrdb_text.fits") << std::endl; // Not strictly necessary for this test.
   ofs_summary.close();

@@ -10,3 +10,6 @@ gtephem:     2nd Derivative (Hz/s/s) : 0
 gtephem: WARNING: The following pulsar ephemeris status are reported.
 [1] Remarked "Test remark entry No. 2" since 54368 MJD (TDB) until 54369 MJD (TDB)
 [2] Remarked "Test remark entry No. 4" since 54357 MJD (TDB) until 54370 MJD (TDB)
+[3] Remarked "A glitch observed at 54022.22 MJD (TDB)" since 54022.22 MJD (TDB) until 54368 MJD (TDB)
+[4] Remarked "A glitch observed at 54033.33 MJD (TDB)" since 54033.33 MJD (TDB) until 54369 MJD (TDB)
+[5] Remarked "A glitch observed at 54367.88 MJD (TDB)" since 54367.88 MJD (TDB) until 54401 MJD (TDB)
