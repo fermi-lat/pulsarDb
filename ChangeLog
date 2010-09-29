@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Sep 28 18:57:28 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par15.log 
+Log Message:
+Improve glitch reporting messages.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Sep 28 18:57:28 PDT 2010
 pulsarDb/src/test
 
 Modified Files:
