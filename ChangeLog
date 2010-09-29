@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Sep 28 18:57:28 PDT 2010
+pulsarDb/src
+
+Modified Files:
+	HighPrecisionEph.cxx 
+Log Message:
+Improve glitch reporting messages.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Sep 28 18:33:18 PDT 2010
 pulsarDb/data/outref
 
