@@ -2,6 +2,7 @@ gtephem: ==========================
 gtephem: Pulsar ephemerides are loaded and/or filtered as follows:
 gtephem:    Load FITSDB AUTHOR='Masaharu Hirayama' DATE='2010-09-25T01:20:46'
 gtephem:    Load TEXTDB REMARKS FILENAME='gtephem_remark.txt'
+gtephem:    Load TEXTDB SPIN_PARAMETERS(HP) FILENAME='gtephem_glitch.txt'
 gtephem:    Load FITSDB AUTHOR='Anonymous Tester' DATE='2010-09-22T22:59:59'
 gtephem:    Load FITSDB AUTHOR='Anonymous Tester' DATE='2010-09-22T23:00:03'
 gtephem:    Filter by pulsar name 'PSR B0540-69'
@@ -32,10 +33,10 @@ gtephem:    * Load TEXTDB OBSERVERS FILENAME='psrdb_obs.txt'
 gtephem:    * Load TEXTDB ALTERNATIVE_NAMES FILENAME='psrdb_name.txt'
 gtephem: ==========================
 gtephem: Spin ephemerides in the database are summarized as follows:
-gtephem:    1193 spin ephemeri(de)s in total
-gtephem:    2 spin ephemeri(de)s for pulsar "PSR B0540-69"
+gtephem:    1197 spin ephemeri(de)s in total
+gtephem:    6 spin ephemeri(de)s for pulsar "PSR B0540-69"
 gtephem:    (Sub-selection by solar system ephemeris not requested)
-gtephem:    2 spin ephemeri(de)s loaded into memory
+gtephem:    6 spin ephemeri(de)s loaded into memory
 gtephem: ==========================
 gtephem: Orbital ephemerides in the database are summarized as follows:
 gtephem:    26 orbital ephemeri(de)s in total
