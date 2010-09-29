@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Sep 28 19:09:35 PDT 2010
+pulsarDb/data
+
+Modified Files:
+	test_TextPulsarDb.tpl 
+Log Message:
+Remove the size of variable-length vector columns from the FITS template for the unit test.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Sep 28 18:57:28 PDT 2010
 pulsarDb/data/outref
 
