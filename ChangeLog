@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: hirayama  Tue Sep 28 19:09:35 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	okdb_emptyfield.fits okdb_extraescape.fits 
+	okdb_extraquote.fits okdb_extraspace.fits 
+	okdb_notallcolumn1.fits okdb_notallcolumn2.fits 
+Log Message:
+Remove the size of variable-length vector columns from the FITS template for the unit test.
+    *
+------------------------------------------------------------
+User: hirayama  Tue Sep 28 19:09:35 PDT 2010
 pulsarDb/data
 
 Modified Files:
