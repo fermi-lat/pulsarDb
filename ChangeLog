@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Sep 28 18:33:17 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Test the glitch reporting mechanism.
+    *
+------------------------------------------------------------
 User: hirayama  Tue Sep 28 18:32:38 PDT 2010
 pulsarDb/src
 
