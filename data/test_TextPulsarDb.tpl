@@ -38,7 +38,7 @@ TFORM4       = '3J'                        / data format of field
 TTYPE5       = '3D_COLUMN'                 / name of field
 TFORM5       = '3D'                        / data format of field
 TTYPE6       = 'PJ_COLUMN'                 / name of field
-TFORM6       = 'PJ(16)'                    / data format of field
+TFORM6       = 'PJ'                        / data format of field
 TTYPE7       = 'PD_COLUMN'                 / name of field
-TFORM7       = 'PD(16)'                    / data format of field
+TFORM7       = 'PD'                        / data format of field
 END
