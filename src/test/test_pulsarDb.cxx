@@ -2077,7 +2077,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
 
   // Test pulse phase computation with the sine component of wave parameters, as well as frequency parameters.
   double wave_angle = 5.4321;
-  double wave_omega = wave_angle / elapsed;
+  double wave_omega = wave_angle / (elapsed / SecPerDay());
   HighPrecisionEph::wave_type wave_sine(20);
   nth_term = 1;
   for (HighPrecisionEph::wave_type::iterator itor = wave_sine.begin(); itor != wave_sine.end(); ++itor, ++nth_term) {
@@ -2190,7 +2190,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     nth_term = 1;
     for (HighPrecisionEph::wave_type::iterator itor = wave_sine.begin(); itor != wave_sine.end(); ++itor, ++nth_term) {
       double dsin_dt = 1.;
-      for (int ii = 0; ii < nth_derivative + 1; ++ii) dsin_dt *= wave_omega * nth_term;
+      for (int ii = 0; ii < nth_derivative + 1; ++ii) dsin_dt *= wave_omega / SecPerDay() * nth_term;
       switch (nth_derivative % 4){
       case 0: dsin_dt *= +std::cos(wave_angle * nth_term); break;
       case 1: dsin_dt *= -std::sin(wave_angle * nth_term); break;
@@ -2216,7 +2216,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
     nth_term = 1;
     for (HighPrecisionEph::wave_type::iterator itor = wave_cosine.begin(); itor != wave_cosine.end(); ++itor, ++nth_term) {
       double dcos_dt = 1.;
-      for (int ii = 0; ii < nth_derivative + 1; ++ii) dcos_dt *= wave_omega * nth_term;
+      for (int ii = 0; ii < nth_derivative + 1; ++ii) dcos_dt *= wave_omega / SecPerDay() * nth_term;
       switch (nth_derivative % 4){
       case 0: dcos_dt *= -std::sin(wave_angle * nth_term); break;
       case 1: dcos_dt *= -std::cos(wave_angle * nth_term); break;
@@ -2563,7 +2563,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   t_eph.append("F2",              "123.456789",  "s**(-3)");
   t_eph.append("F3",              "1234.56789",  "s**(-4)");
   t_eph.append("F4",              "12345.6789",  "s**(-5)");
-  t_eph.append("Wave Frequency",  "77", "radians/s");
+  t_eph.append("Wave Frequency",  "77", "radians/day");
   t_eph.append("Sin1",  "0.1122334455", "s");
   t_eph.append("Cos1",  "0.9988776655", "s");
   t_eph.append("Sin2",  "1.122334455",  "s");
@@ -2692,7 +2692,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   phi_at_toa += std::modf(1234.56789/24.*dt*dt*dt*dt, &int_part);
   phi_at_toa += std::modf(12345.6789/120.*dt*dt*dt*dt*dt, &int_part);
   double f0 = 1.23456789;
-  double omega_at_toa = 7.7 * dt;
+  double omega_at_toa = 7.7 * dt / SecPerDay();
   phi_at_toa += std::modf(.1122334455 * f0 * std::sin(1. * omega_at_toa), &int_part);
   phi_at_toa += std::modf(1.122334455 * f0 * std::sin(2. * omega_at_toa), &int_part);
   phi_at_toa += std::modf(11.22334455 * f0 * std::sin(3. * omega_at_toa), &int_part);
@@ -2710,7 +2710,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   t_eph.append("F2",   "123.456789", "s**(-3)");
   t_eph.append("F3",   "1234.56789", "s**(-4)");
   t_eph.append("F4",   "12345.6789", "s**(-5)");
-  t_eph.append("Wave Frequency", "7.7", "radians/s");
+  t_eph.append("Wave Frequency", "7.7", "radians/day");
   t_eph.append("Sin1",  "0.1122334455", "s");
   t_eph.append("Cos1",  "0.9988776655", "s");
   t_eph.append("Sin2",  "1.122334455",  "s");
