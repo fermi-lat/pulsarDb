@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 22 17:44:58 PDT 2010
+pulsarDb/data
+
+Modified Files:
+	PulsarDb_spin_hp.tpl testpsrdb_crab.fits 
+	testpsrdb_dbmanip_fermi.fits testpsrdb_dbmanip.fits 
+	testpsrdb_ephcomp.fits testpsrdb_text.fits 
+Log Message:
+Change the unit of WAVE_OMEGA from rad/s to rad/d.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-18-06, operation: add
 Package: pulsarDb
