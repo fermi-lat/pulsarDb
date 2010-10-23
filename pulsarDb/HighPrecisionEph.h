@@ -71,7 +71,7 @@ namespace pulsarDb {
           \param freq_epoch Reference epoch of frequency parameters (freq).
           \param freq_pars Pulse phase (dimensionless), pulse frequency in the units of s^(-1), and its time derivatives
                  in the units of s^(-2), s^(-3), etc., at the given epoch (freq_epoch).
-          \param wave_omega Fundamental frequency of sinusoidal timing residual in the units of radians per second.
+          \param wave_omega Fundamental frequency of sinusoidal timing residual in the units of radians per day.
           \param wave_sine List of the amplitudes of the sine components in seconds, whose i-th element is
                  the coefficient of the sine term for the i-th sinusoid.
           \param wave_cosine List of the amplitudes of the cosine components in seconds, whose i-th element is

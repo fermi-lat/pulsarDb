@@ -223,7 +223,7 @@ namespace pulsarDb {
     wave_type::size_type num_elem_sine = m_wave_sine.size();
     wave_type::size_type num_elem_cosine = m_wave_cosine.size();
     if (num_elem_sine > 0 || num_elem_cosine > 0) {
-      os << std::endl << format("Wave Frequency", m_wave_omega, "radians/s");
+      os << std::endl << format("Wave Frequency", m_wave_omega, "radians/day");
       for (wave_type::size_type ii = 0; ii < std::max(num_elem_sine, num_elem_cosine); ++ii) {
         std::ostringstream oss;
         oss << ii + 1;
@@ -326,11 +326,11 @@ namespace pulsarDb {
       const double & pulse_frequency = m_freq_pars[1];
 
       // Compute an elapsed time in seconds.
-      double dt = (ev_time - m_freq_epoch).computeDuration(m_system->getName(), "Sec");
+      double dt_wave = (ev_time - m_freq_epoch).computeDuration(m_system->getName(), "Day");
 
       // Compute sine and cosine terms and update the phase value to return.
       for (wave_type::size_type wave_index = 0; wave_index < std::max(m_wave_sine.size(), m_wave_cosine.size()); ++wave_index) {
-        double argument = m_wave_omega * (wave_index + 1) * dt;
+        double argument = m_wave_omega * (wave_index + 1) * dt_wave;
 
         // Add sine components.
         if (wave_index < m_wave_sine.size()) {
@@ -422,7 +422,7 @@ namespace pulsarDb {
 
       // Compute sine and cosine terms and update the phase value to return.
       for (wave_type::size_type wave_index = 0; wave_index < std::max(m_wave_sine.size(), m_wave_cosine.size()); ++wave_index) {
-        double wave_frequency = m_wave_omega * (wave_index + 1);
+        double wave_frequency = m_wave_omega / SecPerDay() * (wave_index + 1);
         double factor_wave = pulse_frequency * wave_frequency;
         for (int ii = 0; ii < derivative_order; ++ii) factor_wave *= wave_frequency;
         double argument = wave_frequency * dt;
