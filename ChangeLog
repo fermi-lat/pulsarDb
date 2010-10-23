@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: hirayama  Fri Oct 22 17:44:59 PDT 2010
+pulsarDb/data/outref
+
+Modified Files:
+	chooser_db.fits crab_db.fits j0323_db.fits noop_db.fits 
+	obscodeJ_db.fits psrdb_all.fits psrdb_append.fits 
+	psrdb_append_fermi.fits solar_db.fits 
+	testPulsarDbApp_par1.fits testPulsarDbApp_par2.fits 
+	testPulsarDbApp_par3.fits testPulsarDbApp_par4.fits 
+	testPulsarDbApp_par5.fits time_db.fits twice_db.fits 
+Log Message:
+Change the unit of WAVE_OMEGA from rad/s to rad/d.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Oct 22 17:44:58 PDT 2010
 pulsarDb/src/test
 
