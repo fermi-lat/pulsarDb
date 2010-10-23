@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Oct 22 17:44:58 PDT 2010
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Change the unit of WAVE_OMEGA from rad/s to rad/d.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Oct 22 17:44:58 PDT 2010
 pulsarDb/src
 
 Modified Files:
