@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Fri Oct 22 17:44:59 PDT 2010
+pulsarDb/pulsarDb
+
+Modified Files:
+	HighPrecisionEph.h 
+Log Message:
+Change the unit of WAVE_OMEGA from rad/s to rad/d.
+    *
+------------------------------------------------------------
+User: hirayama  Fri Oct 22 17:44:59 PDT 2010
 pulsarDb/data/outref
 
 Modified Files:
