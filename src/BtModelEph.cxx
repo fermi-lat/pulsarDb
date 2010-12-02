@@ -141,6 +141,11 @@ namespace pulsarDb {
   }
 
   ElapsedTime BtModelEph::calcOrbitalDelay(const AbsoluteTime & ev_time) const {
+    // Note: Use Eqs. 2.27, 2.30, and 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976), because the forward
+    //       conversion (from a pulsar proper time to an infinite-frequency barycenter arrival time) is needed
+    //       in this method, and Eqs. 5 and 6 in Tayler & Weisberg, ApJ 345, 434 (1989) form the inverse formula
+    //       which computes a pulsar proper time from an infinite-frequency barycenter arrival time.
+
     // Compute elapsed time from epoch of periastron in seconds.
     double delta_second = calcElapsedSecond(ev_time);
 
@@ -169,17 +174,12 @@ namespace pulsarDb {
     }
 
     // Compute time delays due to orbital motion.
-    double sin_omega = std::sin(omega);
-    double cos_omega = std::cos(omega);
-    double sin_anomaly = std::sin(eccen_anomaly);
-    double cos_anomaly = std::cos(eccen_anomaly);
-    double cos_omega_term = semiax * cos_omega * std::sqrt(1. - eccen * eccen);
-    double delay = semiax * sin_omega * (cos_anomaly - eccen) + (cos_omega_term + m_gamma) * sin_anomaly;
-    double factor = 1. - BtModelEph::s_two_pi / porb
-      * (cos_omega_term * cos_anomaly - semiax * sin_omega * sin_anomaly) / (1. - eccen * cos_anomaly);
+    double alpha = semiax * std::sin(omega);
+    double beta = semiax * std::cos(omega) * std::sqrt(1. - eccen * eccen);
+    double delay = alpha * (std::cos(eccen_anomaly) - eccen) + (beta + m_gamma) * std::sin(eccen_anomaly);
 
     // Return total delay.
-    return ElapsedTime(m_system->getName(), Duration(delay * factor, "Sec"));
+    return ElapsedTime(m_system->getName(), Duration(delay, "Sec"));
   }
 
 }
