@@ -2914,28 +2914,17 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
   Mjd mjd_test_values[][2] = {
-    { Mjd(45988, .00001172486599971307e+04),
-      Mjd(45988, .00001172823346967320e+04) },
-    { Mjd(45988, .00001519708822161192e+04),
-      Mjd(45988, .00001520057480382526e+04) },
-    { Mjd(45988, .00001866931044423836e+04),
-      Mjd(45988, .00001867233097334768e+04) },
-    { Mjd(45988, .00002214153266613721e+04),
-      Mjd(45988, .00002214303721880313e+04) },
-    { Mjd(45988, .00002561375488876365e+04),
-      Mjd(45988, .00002561254377882811e+04) },
-    { Mjd(45988, .00002908597711066250e+04),
-      Mjd(45988, .00002908532530402717e+04) },
-    { Mjd(45988, .00003255819933328894e+04),
-      Mjd(45988, .00003255877721779576e+04) },
-    { Mjd(45988, .00003603042155518779e+04),
-      Mjd(45988, .00003603213319299883e+04) },
-    { Mjd(45988, .00003950264377781423e+04),
-      Mjd(45988, .00003950526724878252e+04) },
-    { Mjd(45988, .00004297486599971307e+04),
-      Mjd(45988, .00004297811300504257e+04) },
-    { Mjd(45988, .00004644708822161192e+04),
-      Mjd(45988, .00004645058955188297e+04) }
+    { Mjd(45988, .1172486599971307), Mjd(45988, .1172823346967320) },
+    { Mjd(45988, .1519708822161192), Mjd(45988, .1520057480382526) },
+    { Mjd(45988, .1866931044423836), Mjd(45988, .1867233097334768) },
+    { Mjd(45988, .2214153266613721), Mjd(45988, .2214303721880313) },
+    { Mjd(45988, .2561375488876365), Mjd(45988, .2561254377882811) },
+    { Mjd(45988, .2908597711066250), Mjd(45988, .2908532530402717) },
+    { Mjd(45988, .3255819933328894), Mjd(45988, .3255877721779576) },
+    { Mjd(45988, .3603042155518779), Mjd(45988, .3603213319299883) },
+    { Mjd(45988, .3950264377781423), Mjd(45988, .3950526724878252) },
+    { Mjd(45988, .4297486599971307), Mjd(45988, .4297811300504257) },
+    { Mjd(45988, .4644708822161192), Mjd(45988, .4645058955188297) }
   };
 
   // Permitted difference is 100 ns.
@@ -3038,7 +3027,7 @@ void PulsarDbTestApp::testBtModelEph() {
     err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
 
   // Test orbital delay computations.
-  // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
+  // Note: Below the equations in Blandford et al. (ApJ 205, 580-591) are computed in reverse.
   // 1) Set constants.
   int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
   std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
@@ -3050,7 +3039,7 @@ void PulsarDbTestApp::testBtModelEph() {
     double par_OMDOT = 6.6;
     double par_GAMMA = 0.0011;
 
-    // 2) Set values to variables that appear in equations 8, 9, and 10.
+    // 2) Set values to variables that appear in equations 2.27, 2.30 and 2.31.
     double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
     double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
     double var_large_e = 60. / 180. * pi; // 60 degrees in radian (sin E = sqrt(3)/2, cos E = 1/2).
@@ -3058,21 +3047,20 @@ void PulsarDbTestApp::testBtModelEph() {
     double var_PB = 10. * 86400.; // 10 days in seconds.
 
     // 3) Compute orbital delay and true anomaly.
-    double delay = var_x * 1./2. * (1./2. - 0.6); // Equation 5, line 1.
-    delay += (var_x * std::sqrt(3.)/2. * 0.8 + par_GAMMA) * std::sqrt(3.)/2.; // Equation 5, line 2.
-    delay *= 1. - 2.*pi / var_PB * (var_x * std::sqrt(3.)/2. * 0.8 * 1./2. - var_x * 1./2. * std::sqrt(3.)/2.) // Equation 5, line 3.
-      / (1. - var_e * 1./2.); // Equation 5, line 4.
+    double alpha = var_x * 1./2.; // Equation 2.31, the first definition.
+    double beta = 0.8 * var_x * std::sqrt(3.)/2.; // Equation 2.31, the second definition.
+    double delay = alpha * (1./2. - 0.6) + (beta + par_GAMMA) * std::sqrt(3.)/2.; // Equation 2.30.
 
     // 4) Modify variables for additional turns of the binary system.
     var_large_e += 2. * pi * (*turn_itor);
 
     // 5) Compute back orbital parameters so as to reproduce values set in step 2.
-    double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / pi * var_PB; // Equation 6.
-    double par_PB = var_PB - par_PBDOT * elapsed / 2.; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
-    double par_A1 = var_x - par_XDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
-    double par_ECC = var_e - par_ECCDOT * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+    double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / pi * var_PB; // Equation 2.27, where sigma = -T0*2pi/var_PB.
+    double par_PB = var_PB - par_PBDOT * elapsed / 2.; // Equation 2.38.
+    double par_A1 = var_x - par_XDOT * elapsed; // Equation 2.38.
+    double par_ECC = var_e - par_ECCDOT * elapsed; // Equation 2.38.
     double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
-    double par_OM = var_w - var_wdot * elapsed; // Equation 2.38 in Blandford et al. (ApJ 205, 580-591).
+    double par_OM = var_w - var_wdot * elapsed; // Equation 2.38.
     par_OM *= 180. / pi; // radians to degrees.
     ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
 
@@ -3094,17 +3082,17 @@ void PulsarDbTestApp::testBtModelEph() {
 
   // MJD's: { {original-MJD, modulated-MJD}, ... }
   Mjd mjd_test_values[][2] = {
-    { Mjd(45988, .00001172486599971307e+04), Mjd(45988, .117282331130303) },
-    { Mjd(45988, .00001519708822161192e+04), Mjd(45988, .152005749258786) },
-    { Mjd(45988, .00001866931044423836e+04), Mjd(45988, .186723317282064) },
-    { Mjd(45988, .00002214153266613721e+04), Mjd(45988, .221430382515889) },
-    { Mjd(45988, .00002561375488876365e+04), Mjd(45988, .256125434462583) },
-    { Mjd(45988, .00002908597711066250e+04), Mjd(45988, .290853254561344) },
-    { Mjd(45988, .00003255819933328894e+04), Mjd(45988, .325587769293515) },
-    { Mjd(45988, .00003603042155518779e+04), Mjd(45988, .360321326055940) },
-    { Mjd(45988, .00003950264377781423e+04), Mjd(45988, .395052666042408) },
-    { Mjd(45988, .00004297486599971307e+04), Mjd(45988, .429781125461549) },
-    { Mjd(45988, .00004644708822161192e+04), Mjd(45988, .464505895077888) }
+    { Mjd(45988, .1172486599971307), Mjd(45988, .117282334454636) },
+    { Mjd(45988, .1519708822161192), Mjd(45988, .152005747963997) },
+    { Mjd(45988, .1866931044423836), Mjd(45988, .186723309730255) },
+    { Mjd(45988, .2214153266613721), Mjd(45988, .221430372200973) },
+    { Mjd(45988, .2561375488876365), Mjd(45988, .256125437773890) },
+    { Mjd(45988, .2908597711066250), Mjd(45988, .290853252365181) },
+    { Mjd(45988, .3255819933328894), Mjd(45988, .325587771318563) },
+    { Mjd(45988, .3603042155518779), Mjd(45988, .360321331166131) },
+    { Mjd(45988, .3950264377781423), Mjd(45988, .395052671940559) },
+    { Mjd(45988, .4297486599971307), Mjd(45988, .429781129741675) },
+    { Mjd(45988, .4644708822161192), Mjd(45988, .464505895402304) }
   };
 
   // Permitted difference is 100 ns.
