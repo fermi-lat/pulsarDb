@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Tue Dec  7 18:51:56 PST 2010
+pulsarDb/data
+
+Removed Files:
+	groD4-dc2v3.fits groD4-dc2v4.fits groD4-dc2v4r1.fits 
+	groD4-dc2v4r2.fits groD4-dc2v5.fits groD4-dc2v6.fits 
+	master_pulsardb_v2.fits psrdb_user.fits 
+Log Message:
+Remove unused test files.
+    *
+------------------------------------------------------------
 User: hirayama  Thu Dec  2 14:58:27 PST 2010
 pulsarDb/src/test
 
