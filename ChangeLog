@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Wed Dec  8 18:01:20 PST 2010
+pulsarDb/data/outref
+
+Modified Files:
+	testEphComputerApp_par4.log testEphComputerApp_par5.log 
+Log Message:
+Add orbital ephemeris computation to gtephem output.
+    *
+------------------------------------------------------------
+User: hirayama  Wed Dec  8 18:01:20 PST 2010
 pulsarDb/src
 
 Modified Files:
