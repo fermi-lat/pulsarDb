@@ -13,6 +13,9 @@
 
 #include "timeSystem/AbsoluteTime.h"
 #include "timeSystem/CalendarFormat.h"
+#include "timeSystem/Duration.h"
+#include "timeSystem/ElapsedTime.h"
+#include "timeSystem/IntFracUtility.h"
 #include "timeSystem/MjdFormat.h"
 #include "timeSystem/SourcePosition.h"
 #include "timeSystem/TimeSystem.h"
@@ -85,48 +88,56 @@ namespace pulsarDb {
     std::string dashes(26, '-');
     m_os.info(3) << prefix << dashes << std::endl;
 
-    // Report the best spin ephemeris.
-    bool found_pulsar_eph = false;
-    m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl;
+    // Choose the best ephemeris for the given time.
+    const PulsarEph * chosen_pulsar_eph(0);
     try {
-      const PulsarEph & eph(computer.choosePulsarEph(abs_ref_time));
-      m_os.info(3) << eph << std::endl;
-      found_pulsar_eph = true;
+      chosen_pulsar_eph = &(computer.choosePulsarEph(abs_ref_time));
     } catch (const std::exception &) {
-      m_os.info(3) << prefix << "   None" << std::endl;
+      chosen_pulsar_eph = 0;
     }
 
-    // Report the best binary ephemeris.
-    m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl;
+    // Choose the best ephemeris for the given time.
+    const OrbitalEph * chosen_orbital_eph(0);
     try {
-      const OrbitalEph & eph(computer.chooseOrbitalEph(abs_ref_time));
-      m_os.info(3) << eph << std::endl;
+      chosen_orbital_eph = &(computer.chooseOrbitalEph(abs_ref_time));
     } catch (const std::exception &) {
-      m_os.info(3) << prefix << "   None" << std::endl;
+      chosen_orbital_eph = 0;
+    }
+
+    // Report the chosen spin and orbital ephemerides.
+    std::string no_eph_available("   None");
+    m_os.info(3) << prefix << "Spin ephemeris chosen from database is:" << std::endl;
+    if (chosen_pulsar_eph) {
+      m_os.info(3) << *chosen_pulsar_eph << std::endl;
+    } else {
+      m_os.info(3) << prefix << no_eph_available << std::endl;
+    }
+    m_os.info(3) << prefix << "Orbital ephemeris chosen from database is:" << std::endl;
+    if (chosen_orbital_eph) {
+      m_os.info(3) << *chosen_orbital_eph << std::endl;
+    } else {
+      m_os.info(3) << prefix << no_eph_available << std::endl;
     }
 
     // Set off the optional output.
     m_os.info(3) << prefix << dashes << std::endl;
 
     // Compose a string expression of the given time.
-    std::string time_string;
+    std::string ref_time_string;
     try {
-      time_string = abs_ref_time.represent(time_sys_parsed, timeSystem::MjdFmt);
+      ref_time_string = abs_ref_time.represent(time_sys_parsed, timeSystem::MjdFmt);
     } catch (const std::exception &) {
-      time_string = abs_ref_time.represent(time_sys_parsed, timeSystem::CalendarFmt);
+      ref_time_string = abs_ref_time.represent(time_sys_parsed, timeSystem::CalendarFmt);
     }
 
-    // Calculate spin ephemeris for the given reference time, if at least a spin ephemeris was found above, and report the result.
+    // Calculate spin ephemeris for the given reference time, and report the result.
     m_os.out() << prefix << "Spin ephemeris estimated is:" << std::endl;
-    m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << time_string << std::endl;
-    if (!found_pulsar_eph) {
+    m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << ref_time_string << std::endl;
+    if (0 == chosen_pulsar_eph) {
       // Report no spin ephemeris is found.
       m_os.out().prefix().width(30); m_os.out() << "Ephemeris Data : " << "Not Available" << std::endl;
 
     } else {
-      // Choose the best ephemeris for the given time.
-      const PulsarEph & chosen_eph = computer.choosePulsarEph(abs_ref_time);
-
       // Compute extrapolated ephemeris.
       timeSystem::SourcePosition src_pos(0., 0.);
       double phi0 = 0.;
@@ -135,14 +146,14 @@ namespace pulsarDb {
       double f2 = 0.;
       bool computed_ok = false;
       try {
-        src_pos = chosen_eph.calcPosition(abs_ref_time);
-        phi0 = chosen_eph.calcPulsePhase(abs_ref_time);
-        f0 = chosen_eph.calcFrequency(abs_ref_time, 0);
-        f1 = chosen_eph.calcFrequency(abs_ref_time, 1);
-        f2 = chosen_eph.calcFrequency(abs_ref_time, 2);
+        src_pos = chosen_pulsar_eph->calcPosition(abs_ref_time);
+        phi0 = chosen_pulsar_eph->calcPulsePhase(abs_ref_time);
+        f0 = chosen_pulsar_eph->calcFrequency(abs_ref_time, 0);
+        f1 = chosen_pulsar_eph->calcFrequency(abs_ref_time, 1);
+        f2 = chosen_pulsar_eph->calcFrequency(abs_ref_time, 2);
         computed_ok = true;
       } catch (const std::exception & x) {
-        m_os.err() << prefix << "Unexpected problem computing ephemeris." << std::endl << x.what() << std::endl;
+        m_os.err() << prefix << "Unexpected error occurred in ephemeris computations." << std::endl << x.what() << std::endl;
       }
 
       // Compute RA and Dec.
@@ -167,11 +178,59 @@ namespace pulsarDb {
         m_os.out().prefix().width(30); m_os.out() << "1st Derivative (Hz/s) : " << f1 << std::endl;
         m_os.out().prefix().width(30); m_os.out() << "2nd Derivative (Hz/s/s) : " << f2 << std::endl;
       }
+    }
 
-      // Report ephemeris status between reference time and reference epoch of chosen ephemeris.
+
+    // Calculate the orbital position of the pulsar for the given reference time, and report the result.
+    if (chosen_orbital_eph) {
+      m_os.out() << prefix << "Orbital position estimated is:" << std::endl;
+      m_os.out().prefix().width(30); m_os.out() << "Reference Time : " << ref_time_string << std::endl;
+
+      // Compute the orbital position and related quantities.
+      double orbital_phase = 0.;
+      timeSystem::ElapsedTime orbital_delay("TDB", timeSystem::Duration(0., "Sec"));
+      timeSystem::AbsoluteTime abs_mod_time = abs_ref_time;
+      bool computed_ok = false;
+      try {
+        orbital_phase = chosen_orbital_eph->calcOrbitalPhase(abs_ref_time);
+        orbital_delay = chosen_orbital_eph->calcOrbitalDelay(abs_ref_time);
+        chosen_orbital_eph->modulateBinary(abs_mod_time);
+        computed_ok = true;
+      } catch (const std::exception & x) {
+        m_os.err() << prefix << "Unexpected error occurred in computing the orbital position." << std::endl << x.what() << std::endl;
+      }
+
+      // Compose a string expression of the modulated time.
+      std::string mod_time_string;
+      try {
+        mod_time_string = abs_mod_time.represent(time_sys_parsed, timeSystem::MjdFmt);
+      } catch (const std::exception &) {
+        mod_time_string = abs_mod_time.represent(time_sys_parsed, timeSystem::CalendarFmt);
+      }
+
+      // Parse the orbital delay and compose a string expression of it.
+      const std::string orbital_delay_unit = orbital_delay.getSystem().getName() + " second";
+      long orbital_delay_int = 0;
+      double orbital_delay_frac = 0.;
+      orbital_delay.getDuration("Sec", orbital_delay_int, orbital_delay_frac);
+      const timeSystem::IntFracUtility & utility(timeSystem::IntFracUtility::getUtility());
+      std::string orbital_delay_second = utility.format(orbital_delay_int, orbital_delay_frac);
+
+      // Print computed position.
+      if (computed_ok) {
+        m_os.out().precision(std::numeric_limits<double>::digits10);
+        m_os.out().prefix().width(30); m_os.out() << "Orbital Phase : " << orbital_phase << std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Orbital Delay (" + orbital_delay_unit + ") : " << orbital_delay_second <<
+          std::endl;
+        m_os.out().prefix().width(30); m_os.out() << "Barycenter Arrival Time : " << mod_time_string << std::endl;
+      }
+    }
+
+    // Report ephemeris status between the given reference time and the reference epoch of the chosen pulsar ephemeris.
+    if (chosen_pulsar_eph) {
       std::set<EphStatusCodeType> code_to_report;
       code_to_report.insert(Remarked);
-      reportEphStatus(m_os.warn(), abs_ref_time, chosen_eph.getEpoch(), code_to_report);
+      reportEphStatus(m_os.warn(), abs_ref_time, chosen_pulsar_eph->getEpoch(), code_to_report);
     }
   }
 
