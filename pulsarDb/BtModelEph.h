@@ -30,7 +30,7 @@ namespace tip {
 namespace pulsarDb {
 
   /** \class BtModelEph
-      \brief Class that represents an orbital ephemeris based on the BT model.
+      \brief Class that represents an orbital ephemeris based on the BT model by Blandford & Teuolsky, ApJ 205, 580 (1976).
   */
   class BtModelEph : public OrbitalEph {
     public:
@@ -46,14 +46,14 @@ namespace pulsarDb {
       /** \brief Construct a BtModelEph object from parameter values.
           \param time_system_name Name of time system in which this orbital ephemeris is defined.
           \param pb Orbital period in seconds.
-          \param pb_dot First time derivative of the orbital period (dimension-less).
+          \param pb_dot First time derivative of the orbital period (dimensionless).
           \param a1 Projected semi-major axis in light-seconds.
           \param x_dot First time derivative of the projected semi-major axis in light-seconds per second.
-          \param ecc Orbital eccentricity (dimension-less).
+          \param ecc Orbital eccentricity (dimensionless).
           \param ecc_dot First time derivative of eccentricity in inverse of seconds.
           \param om Longitude of periastron in degrees.
           \param om_dot First Time derivative of periastron longitude in degrees per Julian year (365.25 days).
-          \param t0 Barycentric time of periastron.
+          \param t0 Time of periastron.
           \param gamma Time-dilation and gravitational redshift parameter in seconds.
       */
       BtModelEph(const std::string & time_system_name, double pb, double pb_dot, double a1, double x_dot, double ecc, double ecc_dot,
@@ -71,7 +71,7 @@ namespace pulsarDb {
       /// \brief Return a time system in which binary demodulation is performed.
       virtual const timeSystem::TimeSystem & getSystem() const { return *m_system; }
 
-      /// \brief Return the T0 parameter value, which is the barycentric time of periastron.
+      /// \brief Return the T0 parameter value, which is the time of periastron.
       virtual const timeSystem::AbsoluteTime & t0() const { return m_t0; }
 
       /** \brief Compute an orbital phase of a given time, and return it.
@@ -97,7 +97,7 @@ namespace pulsarDb {
       virtual void writeModelParameter(st_stream::OStream & os) const;
 
     private:
-      /** \brief Compute the number of elapsed seconds since the barycentric time of periastron (T0 parameter), and return it.
+      /** \brief Compute the number of elapsed seconds since the time of periastron (T0 parameter), and return it.
           \param at Absolute time for which the number of elapsed seconds is to be computed.
       */
       inline double calcElapsedSecond(const timeSystem::AbsoluteTime & at) const {
