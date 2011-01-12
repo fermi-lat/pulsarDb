@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jan 11 18:38:14 PST 2011
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Correct/improve comments for clarity (cosmetic).
+    *
+------------------------------------------------------------
 User: hirayama  Tue Jan 11 18:38:13 PST 2011
 pulsarDb/src
 
