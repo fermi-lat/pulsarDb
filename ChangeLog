@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jan 11 18:38:13 PST 2011
+pulsarDb/data
+
+Modified Files:
+	PulsarDb_orbital_bt.tpl PulsarDb_orbital_dd.tpl 
+	PulsarDb_spin_freq.tpl PulsarDb_spin_hp.tpl 
+	PulsarDb_spin_per.tpl 
+Log Message:
+Correct/improve comments for clarity (cosmetic).
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-20-00, operation: add
 Package: pulsarDb
