@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: hirayama  Tue Jan 11 18:38:13 PST 2011
+pulsarDb/src
+
+Modified Files:
+	BtModelEph.cxx SimpleDdEph.cxx 
+Log Message:
+Correct/improve comments for clarity (cosmetic).
+    *
+------------------------------------------------------------
+User: hirayama  Tue Jan 11 18:38:13 PST 2011
 pulsarDb/pulsarDb
 
 Modified Files:
