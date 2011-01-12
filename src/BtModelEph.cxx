@@ -131,9 +131,11 @@ namespace pulsarDb {
     double delta_second = calcElapsedSecond(ev_time);
 
     // Compute orbital period.
+    // --- Eq. 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double porb = m_pb + m_pb_dot * delta_second / 2.0;
 
     // Compute the complete phase.
+    // --- The right-hand side of Eq. 2.27 in Blandford & Teuolsky, ApJ 205, 580 (1976), divided by two pi
     double phase = delta_second / porb;
 
     // Express phase as a value between 0. and 1., after adding a global phase offset.
@@ -143,28 +145,34 @@ namespace pulsarDb {
   ElapsedTime BtModelEph::calcOrbitalDelay(const AbsoluteTime & ev_time) const {
     // Note: Use Eqs. 2.27, 2.30, and 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976), because the forward
     //       conversion (from a pulsar proper time to an infinite-frequency barycenter arrival time) is needed
-    //       in this method, and Eqs. 5 and 6 in Tayler & Weisberg, ApJ 345, 434 (1989) form the inverse formula
+    //       in this method, and Eqs. 5 and 6 in Taylor & Weisberg, ApJ 345, 434 (1989) form the inverse formula
     //       which computes a pulsar proper time from an infinite-frequency barycenter arrival time.
 
     // Compute elapsed time from epoch of periastron in seconds.
     double delta_second = calcElapsedSecond(ev_time);
 
     // Compute orbital period.
+    // --- Eq. 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double porb = m_pb + m_pb_dot * delta_second / 2.0;
 
     // Compute projected semimajor axis.
+    // --- Eq. 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double semiax = m_a1 + m_x_dot * delta_second;
 
     // Compute eccentricity.
+    // --- Eq. 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double eccen = m_ecc + m_ecc_dot * delta_second;
 
     // Compute periastron longitude.
+    // --- Eq. 2.38 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double omega = m_om + m_om_dot * delta_second;
 
     // Calculate mean anomaly.
+    // --- The right-hand side of Eq. 2.27 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double mean_anomaly = BtModelEph::s_two_pi * delta_second / porb;
 
     // Solve Kepler's equasion.
+    // --- Eq. 2.27 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double eccen_anomaly = 0.0; // eccentric anomaly
     int status = atKepler(mean_anomaly, eccen, &eccen_anomaly);
 
@@ -174,11 +182,13 @@ namespace pulsarDb {
     }
 
     // Compute time delays due to orbital motion.
+    // --- Eqs. 2.30 and 2.31 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     double alpha = semiax * std::sin(omega);
     double beta = semiax * std::cos(omega) * std::sqrt(1. - eccen * eccen);
     double delay = alpha * (std::cos(eccen_anomaly) - eccen) + (beta + m_gamma) * std::sin(eccen_anomaly);
 
     // Return total delay.
+    // --- Eq. 2.30 in Blandford & Teuolsky, ApJ 205, 580 (1976)
     return ElapsedTime(m_system->getName(), Duration(delay, "Sec"));
   }
 

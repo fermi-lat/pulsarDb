@@ -2851,7 +2851,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not .2224" << std::endl;
 
   // Test orbital delay computations.
-  // Note: Below the equations in Talyor et al. (ApJ, 345, 434-450) are computed in reverse.
+  // Note: Below the equations in Taylor et al. (ApJ, 345, 434-450) are computed in reverse.
   int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
   std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
   for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {

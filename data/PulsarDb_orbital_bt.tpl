@@ -45,7 +45,7 @@ TLMAX8       = 360.0                       / maximum value
 TTYPE9       = 'OMDOT'                     / first time derivative of periastron longitude
 TFORM9       = 'D'                         / data format of field: 8-byte DOUBLE
 TUNIT9       = 'deg / yr'                  / physical unit of field
-TTYPE10      = 'T0'                        / barycentric time (TDB scale) of periastron in MJD
+TTYPE10      = 'T0'                        / time of periastron in MJD (TDB)
 TFORM10      = 'D'                         / data format of field: 8-byte DOUBLE
 TUNIT10      = 'd'                         / physical unit of field
 TTYPE11      = 'GAMMA'                     / time-dilation and gravitational redshift parameter
@@ -53,6 +53,6 @@ TFORM11      = 'D'                         / data format of field: 8-byte DOUBLE
 TUNIT11      = 's'                         / physical unit of field
 TTYPE12      = 'OBSERVER_CODE'             / source of orbital parameter information
 TFORM12      = '4A'                        / data format of field: character
-TTYPE13      = 'SOLAR_SYSTEM_EPHEMERIS'    / name of solar system ephemeris used for barycentric quantities ("JPL DE200" or "JPL DE405")
+TTYPE13      = 'SOLAR_SYSTEM_EPHEMERIS'    / name of solar system ephemeris used for barycentric corrections ("JPL DE200" or "JPL DE405")
 TFORM13      = '32A'                       / data format of field: character
 END

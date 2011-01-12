@@ -51,7 +51,7 @@ namespace pulsarDb {
       */
       void demodulateBinary(timeSystem::AbsoluteTime & ev_time) const;
 
-      /// \brief Return the T0 parameter value, which is the barycentric time of periastron.
+      /// \brief Return the T0 parameter value, which is the time of periastron.
       virtual const timeSystem::AbsoluteTime & t0() const = 0;
 
       /** \brief Compute an orbital phase of a given time, and return it.

@@ -138,9 +138,11 @@ namespace pulsarDb {
     double delta_second = calcElapsedSecond(ev_time);
 
     // Compute the time difference as a fraction of the period.
+    // --- The term that appears twice in Eq. 12 in Taylor & Weisberg, ApJ 345, 434 (1989), divided by two pi.
     double delta_period = delta_second / m_pb;
 
     // Compute the complete phase.
+    // --- The right-hand side of Eq. 12 in Taylor & Weisberg, ApJ 345, 434 (1989), divided by two pi.
     double phase = delta_period * (1. - delta_period * m_pb_dot / 2.0);
 
     // Express phase as a value between 0. and 1., after adding a global phase offset.
@@ -152,11 +154,13 @@ namespace pulsarDb {
     double delta_second = calcElapsedSecond(ev_time);
 
     // Calculate mean anomaly.
+    // --- The right-hand side of Eq. 12 in Taylor & Weisberg, ApJ 345, 434 (1989)
     double delta_period = delta_second / m_pb;
     double mean_anomaly = SimpleDdEph::s_two_pi * delta_period
       * (1. - delta_period * m_pb_dot / 2.0);
 
     // Solve Kepler's equasion.
+    // --- Eq. 12 in Taylor & Weisberg, ApJ 345, 434 (1989)
     double eccen = m_ecc + m_ecc_dot * delta_second; // eccentricity
     double eccen_anomaly = 0.0; // eccentric anomaly
     int status = atKepler(mean_anomaly, eccen, &eccen_anomaly);
@@ -167,6 +171,7 @@ namespace pulsarDb {
     }
 
     // Convert eccentric anomaly to true anomaly.
+    // --- Eq. 13 in Taylor & Weisberg, ApJ 345, 434 (1989)
     double true_anomaly = 2.0 * std::atan(std::sqrt((1.0+eccen)/(1.0-eccen))
         * std::tan(eccen_anomaly/2.0));
     true_anomaly += SimpleDdEph::s_two_pi * floor((eccen_anomaly - true_anomaly)/ SimpleDdEph::s_two_pi);
@@ -174,6 +179,7 @@ namespace pulsarDb {
     while ((eccen_anomaly - true_anomaly) > SimpleDdEph::s_one_pi) true_anomaly += SimpleDdEph::s_two_pi;
 
     // Compute periastron longitude.
+    // --- Eq. 14 in Taylor & Weisberg, ApJ 345, 434 (1989)
     double omega = m_om
       + m_om_dot * true_anomaly * m_pb / SimpleDdEph::s_two_pi;
 
@@ -181,6 +187,7 @@ namespace pulsarDb {
     double semiax = m_a1 + m_x_dot * delta_second;
 
     // Compute time delays due to orbital motion.
+    // --- Eqs. 8, 9, and 10 in Taylor & Weisberg, ApJ 345, 434 (1989)
     double roemer_frac = std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
       + std::sqrt(1.0 - eccen*eccen) * std::cos(omega) * std::sin(eccen_anomaly);
     double roemer = semiax * roemer_frac;
@@ -189,6 +196,7 @@ namespace pulsarDb {
       * std::log(1.0 - eccen*std::cos(eccen_anomaly) - m_shapiro_s*roemer_frac);
 
     // Return total delay.
+    // --- Eq. 7 in Taylor & Weisberg, ApJ 345, 434 (1989)
     return ElapsedTime(m_system->getName(), Duration(roemer + einstein + shapiro, "Sec"));
   }
 
