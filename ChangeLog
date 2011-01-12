@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jan 11 18:39:39 PST 2011
+pulsarDb/pulsarDb
+
+Added Files:
+	Ell1ModelEph.h MssModelEph.h 
+Log Message:
+Add orbital models (ELL1 and MSS).
+    *
+------------------------------------------------------------
 User: hirayama  Tue Jan 11 18:39:38 PST 2011
 pulsarDb/data
 
