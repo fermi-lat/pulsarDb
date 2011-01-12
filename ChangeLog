@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Tue Jan 11 18:39:38 PST 2011
+pulsarDb/data
+
+Added Files:
+	PulsarDb_orbital_ell1.tpl PulsarDb_orbital_mss.tpl 
+Log Message:
+Add orbital models (ELL1 and MSS).
+    *
+------------------------------------------------------------
 User: hirayama  Tue Jan 11 18:38:14 PST 2011
 pulsarDb/src/test
 
