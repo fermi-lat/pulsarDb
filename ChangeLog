@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 14 20:44:51 PST 2011
+pulsarDb/src
+
+Modified Files:
+	MssModelEph.cxx 
+Log Message:
+Correct aberration delay computation.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 14 20:44:12 PST 2011
 pulsarDb/src
 
