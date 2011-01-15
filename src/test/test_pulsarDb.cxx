@@ -19,12 +19,14 @@
 #include <vector>
 
 #include "pulsarDb/BtModelEph.h"
+#include "pulsarDb/Ell1ModelEph.h"
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/EphComputerApp.h"
 #include "pulsarDb/EphStatus.h"
 #include "pulsarDb/FrequencyEph.h"
 #include "pulsarDb/HighPrecisionEph.h"
+#include "pulsarDb/MssModelEph.h"
 #include "pulsarDb/OrbitalEph.h"
 #include "pulsarDb/PdotCanceler.h"
 #include "pulsarDb/PeriodEph.h"
@@ -364,6 +366,12 @@ class PulsarDbTestApp : public PulsarTestApp {
     /// \brief Test BtModelEph class (a subclass of OrbitalEph class).
     virtual void testBtModelEph();
 
+    /// \brief Test Ell1ModelEph class (a subclass of OrbitalEph class).
+    virtual void testEll1ModelEph();
+
+    /// \brief Test MssModelEph class (a subclass of OrbitalEph class).
+    virtual void testMssModelEph();
+
     /// \brief Test PdotCanceler class.
     virtual void testPdotCanceler();
 
@@ -476,6 +484,8 @@ void PulsarDbTestApp::runTest() {
   testHighPrecisionEph();
   testSimpleDdEph();
   testBtModelEph();
+  testEll1ModelEph();
+  testMssModelEph();
   testPdotCanceler();
 
   // Test ephemeris manipulation.
@@ -2828,10 +2838,10 @@ void PulsarDbTestApp::testHighPrecisionEph() {
 void PulsarDbTestApp::testSimpleDdEph() {
   setMethod("testSimpleDdEph");
 
+  // Prepare variables for testing ephemeris computations.
   AbsoluteTime t0("TDB", 51910, 123.456789);
   std::auto_ptr<SimpleDdEph> eph(new SimpleDdEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.));
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
-
   double epsilon = 1.e-8;
 
   // Test time system getter.
@@ -2842,33 +2852,37 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // Test orbital phase computations.
   double phase = eph->calcOrbitalPhase(ev_time);
-  if (std::fabs(phase/.099 - 1.) > epsilon)
-    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not .099" << std::endl;
+  double phase_expected = .099;
+  if (std::fabs(phase/phase_expected - 1.) > epsilon) {
+    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
+  }
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = eph->calcOrbitalPhase(ev_time, 0.1234);
-  if (std::fabs(phase/.2224 - 1.) > epsilon)
-    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not .2224" << std::endl;
+  phase_expected += 0.1234;
+  if (std::fabs(phase/phase_expected - 1.) > epsilon) {
+    err() << "SimpleDdEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
+  }
 
   // Test orbital delay computations.
-  // Note: Below the equations in Taylor et al. (ApJ, 345, 434-450) are computed in reverse.
+  // Note: Below the equations in Taylor et al. (ApJ, 345, 434-450, 1989) are computed in reverse.
   int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
   std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
   for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {
     // 1) Set constants.
-    double pi = 3.14159265358979323846;
     double par_PB = 10. * 86400.; // 10 days in seconds.
-    double par_XDOT = -0.44;
-    double par_ECCDOT = -0.00055;
-    double par_OMDOT = 6.6;
+    double max_elapsed = par_PB * (std::fabs(*turn_itor) + 1.);
+    double par_XDOT = -0.44 / max_elapsed;
+    double par_ECCDOT = -0.00055 / max_elapsed;
+    double par_OMDOT = 6.6 / max_elapsed;
     double par_GAMMA = 0.0011;
     double par_SHAPIRO_R = 0.0022; // in micro-seconds.
     double par_SHAPIRO_S = 0.0033;
 
     // 2) Set values to variables that appear in equations 8, 9, and 10.
     double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
-    double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
-    double var_u = 60. / 180. * pi; // 60 degrees in radian (sin u = sqrt(3)/2, cos u = 1/2, tan u/2 = sqrt(3)/3).
+    double var_w = 30. / 180. * M_PI; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+    double var_u = 60. / 180. * M_PI; // 60 degrees in radian (sin u = sqrt(3)/2, cos u = 1/2, tan u/2 = sqrt(3)/3).
     double var_x = 10.; // 10 light-seconds.
     double var_r = par_SHAPIRO_R * 1.e-6; // micro-seconds to seconds.
 
@@ -2879,18 +2893,18 @@ void PulsarDbTestApp::testSimpleDdEph() {
     double true_anomaly = 2. * std::atan(2. * std::sqrt(3.)/3.); // Equation 13.
 
     // 4) Modify variables for additional turns of the binary system.
-    var_u += 2. * pi * (*turn_itor);
-    true_anomaly += 2. * pi * (*turn_itor);
+    var_u += 2. * M_PI * (*turn_itor);
+    true_anomaly += 2. * M_PI * (*turn_itor);
 
     // 5) Compute back orbital parameters so as to reproduce values set in step 2.
-    double elapsed = var_u / 2. / pi * par_PB; // Equation 12.
-    double par_PBDOT = 0.6 * std::sqrt(3.)/2. / pi * (par_PB/elapsed) * (par_PB/elapsed); // Equation 12.
+    double elapsed = var_u / 2. / M_PI * par_PB; // Equation 12.
+    double par_PBDOT = 0.6 * std::sqrt(3.)/2. / M_PI * (par_PB/elapsed) * (par_PB/elapsed); // Equation 12.
     double par_A1 = var_x - par_XDOT * elapsed;
     double par_ECC = var_e - par_ECCDOT * elapsed;
-    double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
-    double var_k = var_wdot / 2. / pi * par_PB;
+    double var_wdot = par_OMDOT / 180.0 * M_PI / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+    double var_k = var_wdot / 2. / M_PI * par_PB;
     double par_OM = var_w - var_k * true_anomaly; // Equation 14.
-    par_OM *= 180. / pi; // radians to degrees.
+    par_OM *= 180. / M_PI; // radians to degrees.
     ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
 
     // 6) Create an ephemeris object and test its calcOrbitalDelay method.
@@ -2938,7 +2952,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph->modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by SimpleDdEph was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
@@ -2949,26 +2963,28 @@ void PulsarDbTestApp::testSimpleDdEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph->demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by SimpleDdEph was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
 
   // Test the constructor that takes numerical arguments.
+  const double rad_per_deg = M_PI / 180.;
+  const double rad_year_per_deg_sec = rad_per_deg / (365.25 * 86400.);
   eph.reset(new SimpleDdEph("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8, 9.9, 11.1));
   TextEph t_eph;
-  t_eph.append("PB",        "12345.6789",                              "s");
-  t_eph.append("PBDOT",     "1.1",                                     "");
-  t_eph.append("A1",        "2.2",                                     "lt-s");
-  t_eph.append("XDOT",      "3.3",                                     "lt-s/s");
-  t_eph.append("ECC",       "4.4",                                     "");
-  t_eph.append("ECCDOT",    "5.5",                                     "s**(-1)");
-  t_eph.append("OM",        6.6 * SimpleDdEph::s_rad_per_deg,          "radians");
-  t_eph.append("OMDOT",     7.7 * SimpleDdEph::s_rad_year_per_deg_sec, "radians/s");
-  t_eph.append("T0",        "12345.6 MJD (TDB)",                       "");
-  t_eph.append("GAMMA",     "8.8",                                     "s");
-  t_eph.append("SHAPIRO_R", "9.9e-06",                                 "s");
-  t_eph.append("SHAPIRO_S", "11.1",                                    "");
+  t_eph.append("PB",        "12345.6789",               "s");
+  t_eph.append("PBDOT",     "1.1",                      "");
+  t_eph.append("A1",        "2.2",                      "lt-s");
+  t_eph.append("XDOT",      "3.3",                      "lt-s/s");
+  t_eph.append("ECC",       "4.4",                      "");
+  t_eph.append("ECCDOT",    "5.5",                      "s**(-1)");
+  t_eph.append("OM",        6.6 * rad_per_deg,          "radians");
+  t_eph.append("OMDOT",     7.7 * rad_year_per_deg_sec, "radians/s");
+  t_eph.append("T0",        "12345.6 MJD (TDB)",        "");
+  t_eph.append("GAMMA",     "8.8",                      "s");
+  t_eph.append("SHAPIRO_R", "9.9e-06",                  "s");
+  t_eph.append("SHAPIRO_S", "11.1",                     "");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.
@@ -3000,12 +3016,12 @@ void PulsarDbTestApp::testSimpleDdEph() {
 } 
 
 void PulsarDbTestApp::testBtModelEph() {
-  setMethod("BtModelDdEph");
+  setMethod("testBtModelDdEph");
 
+  // Prepare variables for testing ephemeris computations.
   AbsoluteTime t0("TDB", 51910, 123.456789);
   std::auto_ptr<BtModelEph> eph(new BtModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0.));
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
-
   double epsilon = 1.e-8;
 
   // Test time system getter.
@@ -3017,34 +3033,36 @@ void PulsarDbTestApp::testBtModelEph() {
   // Test orbital phase computations.
   double phase = eph->calcOrbitalPhase(ev_time);
   double phase_expected = 100./1010.;
-  if (std::fabs(phase/phase_expected - 1.) > epsilon)
+  if (std::fabs(phase/phase_expected - 1.) > epsilon) {
     err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
+  }
 
   // Test orbital phase computations, with a non-zero global phase offset.
   phase = eph->calcOrbitalPhase(ev_time, 0.1234);
   phase_expected += 0.1234;
-  if (std::fabs(phase/phase_expected - 1.) > epsilon)
+  if (std::fabs(phase/phase_expected - 1.) > epsilon) {
     err() << "BtModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
+  }
 
   // Test orbital delay computations.
-  // Note: Below the equations in Blandford et al. (ApJ 205, 580-591) are computed in reverse.
-  // 1) Set constants.
+  // Note: Below the equations in Blandford et al. (ApJ 205, 580-591, 1976) are computed in reverse.
   int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
   std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
   for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {
-    double pi = 3.14159265358979323846;
-    double par_PBDOT = -0.33;
-    double par_XDOT = -0.44;
-    double par_ECCDOT = -0.00055;
-    double par_OMDOT = 6.6;
+    // 1) Set constants.
+    double var_PB = 10. * 86400.; // 10 days in seconds.
+    double max_elapsed = var_PB * (std::fabs(*turn_itor) + 1.);
+    double par_PBDOT = -0.33 * 86400. / max_elapsed;
+    double par_XDOT = -0.44 / max_elapsed;
+    double par_ECCDOT = -0.00055 / max_elapsed;
+    double par_OMDOT = 6.6 / max_elapsed;
     double par_GAMMA = 0.0011;
 
     // 2) Set values to variables that appear in equations 2.27, 2.30 and 2.31.
     double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8.
-    double var_w = 30. / 180. * pi; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
-    double var_large_e = 60. / 180. * pi; // 60 degrees in radian (sin E = sqrt(3)/2, cos E = 1/2).
+    double var_w = 30. / 180. * M_PI; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+    double var_large_e = 60. / 180. * M_PI; // 60 degrees in radian (sin E = sqrt(3)/2, cos E = 1/2).
     double var_x = 10.; // 10 light-seconds.
-    double var_PB = 10. * 86400.; // 10 days in seconds.
 
     // 3) Compute orbital delay and true anomaly.
     double alpha = var_x * 1./2.; // Equation 2.31, the first definition.
@@ -3052,16 +3070,16 @@ void PulsarDbTestApp::testBtModelEph() {
     double delay = alpha * (1./2. - 0.6) + (beta + par_GAMMA) * std::sqrt(3.)/2.; // Equation 2.30.
 
     // 4) Modify variables for additional turns of the binary system.
-    var_large_e += 2. * pi * (*turn_itor);
+    var_large_e += 2. * M_PI * (*turn_itor);
 
     // 5) Compute back orbital parameters so as to reproduce values set in step 2.
-    double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / pi * var_PB; // Equation 2.27, where sigma = -T0*2pi/var_PB.
+    double elapsed = (var_large_e - var_e * std::sqrt(3.)/2.) / 2. / M_PI * var_PB; // Equation 2.27, where sigma = -T0*2pi/var_PB.
     double par_PB = var_PB - par_PBDOT * elapsed / 2.; // Equation 2.38.
     double par_A1 = var_x - par_XDOT * elapsed; // Equation 2.38.
     double par_ECC = var_e - par_ECCDOT * elapsed; // Equation 2.38.
-    double var_wdot = par_OMDOT / 180.0 * pi / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+    double var_wdot = par_OMDOT / 180.0 * M_PI / 365.25 / 86400.; // degrees-per-year to radian-per-second.
     double par_OM = var_w - var_wdot * elapsed; // Equation 2.38.
-    par_OM *= 180. / pi; // radians to degrees.
+    par_OM *= 180. / M_PI; // radians to degrees.
     ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
 
     // 6) Create an ephemeris object and test its calcOrbitalDelay method.
@@ -3106,7 +3124,7 @@ void PulsarDbTestApp::testBtModelEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph->modulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by BtModelEph was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
@@ -3117,24 +3135,26 @@ void PulsarDbTestApp::testBtModelEph() {
     AbsoluteTime original_tdb_mjd(tdb_mjd);
     eph->demodulateBinary(tdb_mjd);
     if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
-      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " was computed to be " <<
+      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by BtModelEph was computed to be " <<
         tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
     }
   }
 
   // Test the constructor that takes numerical arguments.
+  const double rad_per_deg = M_PI / 180.;
+  const double rad_year_per_deg_sec = rad_per_deg / (365.25 * 86400.);
   eph.reset(new BtModelEph("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8));
   TextEph t_eph;
-  t_eph.append("PB",        "12345.6789",                             "s");
-  t_eph.append("PBDOT",     "1.1",                                    "");
-  t_eph.append("A1",        "2.2",                                    "lt-s");
-  t_eph.append("XDOT",      "3.3",                                    "lt-s/s");
-  t_eph.append("ECC",       "4.4",                                    "");
-  t_eph.append("ECCDOT",    "5.5",                                    "s**(-1)");
-  t_eph.append("OM",        6.6 * BtModelEph::s_rad_per_deg,          "radians");
-  t_eph.append("OMDOT",     7.7 * BtModelEph::s_rad_year_per_deg_sec, "radians/s");
-  t_eph.append("T0",        "12345.6 MJD (TDB)",                      "");
-  t_eph.append("GAMMA",     "8.8",                                    "s");
+  t_eph.append("PB",        "12345.6789",               "s");
+  t_eph.append("PBDOT",     "1.1",                      "");
+  t_eph.append("A1",        "2.2",                      "lt-s");
+  t_eph.append("XDOT",      "3.3",                      "lt-s/s");
+  t_eph.append("ECC",       "4.4",                      "");
+  t_eph.append("ECCDOT",    "5.5",                      "s**(-1)");
+  t_eph.append("OM",        6.6 * rad_per_deg,          "radians");
+  t_eph.append("OMDOT",     7.7 * rad_year_per_deg_sec, "radians/s");
+  t_eph.append("T0",        "12345.6 MJD (TDB)",        "");
+  t_eph.append("GAMMA",     "8.8",                      "s");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.
@@ -3160,6 +3180,420 @@ void PulsarDbTestApp::testBtModelEph() {
   record["T0"].set(12345.6);
   record["GAMMA"].set(8.8);
   eph.reset(new BtModelEph(record, header));
+  checkEphParameter(getMethod() + "_fits", *eph, t_eph);
+}
+
+void PulsarDbTestApp::testEll1ModelEph() {
+  setMethod("testEll1ModelDdEph");
+
+  // Prepare variables for testing ephemeris computations.
+  AbsoluteTime tasc("TDB", 51910, 123.456789);
+  std::auto_ptr<Ell1ModelEph> eph(new Ell1ModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., tasc, 0., 0.));
+  AbsoluteTime ev_time("TDB", 51910, 223.456789);
+  double epsilon = 1.e-8;
+
+  // Test time system getter.
+  std::string sys_name = eph->getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "Ell1ModelEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
+  // Test orbital phase computations.
+  double pb = 1000.;
+  double pbdot = .2;
+  double ecc = 3.45678912e-3;
+  double eccdot = 4.56789123e-6;
+  double omega = 123.456789 / 180. * M_PI;
+  double omdot = 2.34567891e-3 / 180. * M_PI;
+
+  // Try three cases for zero and non-zero eccentricity parameters.
+  // Note: For consistency in parametrization, omega or omdot must be zero when ecc or eccdot is zero (0).
+  //       See the comments in the implementation of Ell1ModelEph class for more explanations.
+  for (int ii=0; ii<3; ii++) {
+    if (ii > 0) ecc = omdot = 0.;
+    if (ii > 1) eccdot = omega = 0.;
+
+    double nb = 2. * M_PI / pb; // Eq. A4 in Lange, et al. (MNRAS 326, 274)
+    double nbdot = - pbdot / pb * nb;
+    double nbbar = nb + omdot - nbdot * omega / (nb + omdot); // Eq. A11 in Lange, et al. (MNRAS 326, 274)
+    double elapsed_second = 100.;
+    double phase_expected = (nbbar + nbdot / 2.0 * elapsed_second) * elapsed_second / (2. * M_PI);
+
+    double eps1 = ecc * std::sin(omega); // Eq. A8 in Lange, et al. (MNRAS 326, 274)
+    double eps1dot = eccdot * std::sin(omega) + ecc * std::cos(omega) * omdot; // Eq. A14 in Lange, et al. (MNRAS 326, 274)
+    double eps2 = ecc * std::cos(omega); // Eq. A8 in Lange, et al. (MNRAS 326, 274)
+    double eps2dot = eccdot * std::cos(omega) - ecc * std::sin(omega) * omdot; // Eq. A15 in Lange, et al. (MNRAS 326, 274)
+    eph.reset(new Ell1ModelEph("TDB", pb, pbdot, 0., 0., eps1, eps1dot, eps2, eps2dot, tasc, 0., 0.));
+    double phase = eph->calcOrbitalPhase(ev_time);
+    if (std::fabs(phase/phase_expected - 1.) > epsilon) {
+      err() << "Ell1ModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << " (ECC=" <<
+        ecc << ", ECCDOT=" << eccdot << ")" << std::endl;
+    }
+
+    // Test orbital phase computations, with a non-zero global phase offset.
+    phase = eph->calcOrbitalPhase(ev_time, 0.1234);
+    phase_expected += 0.1234;
+    if (std::fabs(phase/phase_expected - 1.) > epsilon) {
+      err() << "Ell1ModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << " (ECC=" <<
+        ecc << ", ECCDOT=" << eccdot << ")" << std::endl;
+    }
+  }
+
+  // Test orbital delay computations.
+  // Note: Below the equations in Lange, et al. (MNRAS 326, 274, 2001) are computed in reverse.
+  int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
+  std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
+  for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {
+    // 1) Set constants.
+    double par_PB = 10. * 86400.; // 10 days in seconds.
+    double max_elapsed = par_PB * (std::fabs(*turn_itor) + 1.);
+    double par_XDOT = -0.44 / max_elapsed;
+    double par_EPS1DOT = 5.5e-6 / max_elapsed;
+    double par_EPS2DOT = 6.6e-6 / max_elapsed;
+    double par_SHAPIRO_R = 0.0022; // in micro-seconds.
+    double par_SHAPIRO_S = 0.0033;
+
+    // 2) Set values to variables that appear in equations A6 and A16.
+    double var_eta = 7.7e-3;
+    double var_kappa = 8.8e-3;
+    double var_large_phi = 60. / 180. * M_PI; // 60 degrees in radian (sin phi = sin 2*phi = sqrt(3)/2, cos 2*phi = -1/2).
+    double var_x = 10.; // 10 light-seconds.
+    double var_r = par_SHAPIRO_R * 1.e-6; // micro-seconds to seconds.
+
+    // 3) Compute orbital delay.
+    double delay = var_x * (std::sqrt(3.)/2. + var_kappa / 2. * std::sqrt(3.)/2. + var_eta / 4.); // Equation A6.
+    delay += -2. * var_r * std::log(1. - par_SHAPIRO_S*std::sqrt(3.)/2.); // Equation A16.
+
+    // 4) Modify variables for additional turns of the binary system.
+    var_large_phi += 2. * M_PI * (*turn_itor);
+
+    // 5) Compute back orbital parameters so as to reproduce values set in step 2.
+    double var_nb = 2. * M_PI / par_PB; // Equation A4.
+    double elapsed = 1.001 * var_large_phi / var_nb; // First term of Equation A9.
+    double par_EPS1 = var_eta - par_EPS1DOT * elapsed; // Equation A10.
+    double par_EPS2 = var_kappa - par_EPS2DOT * elapsed; // Equation A10.
+    double var_e0_squared = par_EPS1 * par_EPS1 + par_EPS2 * par_EPS2; // Derived from equation A8.
+    double var_w0 = std::atan2(par_EPS1, par_EPS2); // Derived from equation A8.
+    if (var_w0 < 0.) var_w0 += 2. * M_PI;
+    double var_wdot = (par_EPS1DOT * par_EPS2 - par_EPS2DOT * par_EPS1) / var_e0_squared; // Derived from equation A8.
+    double var_nbdot = (var_large_phi - (var_nb + var_wdot) * elapsed)
+      / (elapsed * (elapsed / 2. - var_w0 / (var_nb + var_wdot))); // Derived from equation A9.
+    double par_PBDOT = - var_nbdot / var_nb * par_PB; // Derived from equation A4.
+    double par_A1 = var_x - par_XDOT * elapsed; // Equation A10.
+    ev_time = tasc + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+    // 6) Create an ephemeris object and test its calcOrbitalDelay method.
+    eph.reset(new Ell1ModelEph("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_EPS1, par_EPS1DOT, par_EPS2, par_EPS2DOT, tasc,
+      par_SHAPIRO_R, par_SHAPIRO_S));
+    ElapsedTime delay_result = eph->calcOrbitalDelay(ev_time);
+    ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
+    Duration delay_tolerance(std::numeric_limits<double>::epsilon() * 86400. * 100., "Sec");
+    if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
+      err() << "Ell1ModelEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " after " << *turn_itor <<
+        " turn(s), not equivalent to " << delay_expected << " as expected." << std::endl;
+  }
+
+  // Test binary modulation and demodulation.
+  // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA)
+  // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101e-3, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295)
+  // and all other parameters set to 0.0 (zero).
+  // Note: The following conversions were made by hand.
+  //   EPS1 = ECC * sin(OM) = -3.9786059746415216e-4
+  //   EPS1DOT = ECCDOT * sin(OM) + ECC * cos(OM) * OMDOT = -1.10277737e-12
+  //   EPS2 = ECC * cos(OM) = -4.7176013872421223e-4
+  //   EPS2DOT = ECCDOT * cos(OM) - ECC * sin(OM) * OMDOT = -9.3003123e-13
+  //   TASC = T0 - OM / (2*pi/PB + OMDOT) = T0 - 17065.15319093980494836272 seconds
+  AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
+  AbsoluteTime abs_tasc = abs_t0 - ElapsedTime("TDB", Duration(17065.15319093980494836272, "Sec"));
+  eph.reset(new Ell1ModelEph("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, -3.9786059746415216e-4, -1.10277737e-12,
+    -4.7176013872421223e-4, -9.3003123e-13, abs_tasc, 0.0, 0.0));
+
+  // MJD's: { {original-MJD, modulated-MJD}, ... }
+  Mjd mjd_test_values[][2] = {
+    { Mjd(45988, .1172486599971307), Mjd(45988, .117274986866046) },
+    { Mjd(45988, .1519708822161192), Mjd(45988, .151995444036652) },
+    { Mjd(45988, .1866931044423836), Mjd(45988, .186705113506475) },
+    { Mjd(45988, .2214153266613721), Mjd(45988, .221409499721483) },
+    { Mjd(45988, .2561375488876365), Mjd(45988, .256116442226323) },
+    { Mjd(45988, .2908597711066250), Mjd(45988, .290832661977126) },
+    { Mjd(45988, .3255819933328894), Mjd(45988, .325560792708099) },
+    { Mjd(45988, .3603042155518779), Mjd(45988, .360298227751942) },
+    { Mjd(45988, .3950264377781423), Mjd(45988, .395038283532021) },
+    { Mjd(45988, .4297486599971307), Mjd(45988, .429773139267359) },
+    { Mjd(45988, .4644708822161192), Mjd(45988, .464497254754357) }
+  };
+
+  // Permitted difference is 100 ns.
+  double delta = 100. * 1.e-9;
+  ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
+
+  setPrecision(24);
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
+    eph->modulateBinary(tdb_mjd);
+    if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by Ell1ModelEph was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
+    }
+  }
+
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
+    eph->demodulateBinary(tdb_mjd);
+    if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
+      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by Ell1ModelEph was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
+    }
+  }
+
+  // Test the constructor that takes numerical arguments.
+  eph.reset(new Ell1ModelEph("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, AbsoluteTime("TDB", 12345, 51840.), 8.8, 9.9));
+  TextEph t_eph;
+  t_eph.append("PB",        "12345.6789",        "s");
+  t_eph.append("PBDOT",     "1.1",               "");
+  t_eph.append("A1",        "2.2",               "lt-s");
+  t_eph.append("XDOT",      "3.3",               "lt-s/s");
+  t_eph.append("EPS1",       "4.4",              "");
+  t_eph.append("EPS1DOT",   "5.5",               "s**(-1)");
+  t_eph.append("EPS2",      "6.6",               "");
+  t_eph.append("EPS2DOT",   "7.7",               "s**(-1)");
+  t_eph.append("TASC",      "12345.6 MJD (TDB)", "");
+  t_eph.append("SHAPIRO_R", "8.8e-06",           "s");
+  t_eph.append("SHAPIRO_S", "9.9",               "");
+  checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
+
+  // Test the constructor that takes a FITS record.
+  std::string test_tpl("test_Ell1ModelEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_orbital_ell1.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  tip::Header & header(table->getHeader());
+  table->setNumRecords(1);
+  tip::Table::Record record(table.get(), 0);
+  record["PB"].set(12345.6789);
+  record["PBDOT"].set(1.1);
+  record["A1"].set(2.2);
+  record["XDOT"].set(3.3);
+  record["EPS1"].set(4.4);
+  record["EPS1DOT"].set(5.5);
+  record["EPS2"].set(6.6);
+  record["EPS2DOT"].set(7.7);
+  record["TASC"].set(12345.6);
+  record["SHAPIRO_R"].set(8.8);
+  record["SHAPIRO_S"].set(9.9);
+  eph.reset(new Ell1ModelEph(record, header));
+  checkEphParameter(getMethod() + "_fits", *eph, t_eph);
+}
+
+void PulsarDbTestApp::testMssModelEph() {
+  setMethod("testMssModelDdEph");
+
+  // Prepare variables for testing ephemeris computations.
+  AbsoluteTime t0("TDB", 51910, 123.456789);
+  std::auto_ptr<MssModelEph> eph(new MssModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 0., 0., 0., 0.));
+  AbsoluteTime ev_time("TDB", 51910, 223.456789);
+  double epsilon = 1.e-8;
+
+  // Test time system getter.
+  std::string sys_name = eph->getSystem().getName();
+  if ("TDB" != sys_name) {
+    err() << "MssModelEph::getSystem returned \"" << sys_name << "\", not \"TDB\"" << std::endl;
+  }
+
+  // Test orbital phase computations.
+  double phase = eph->calcOrbitalPhase(ev_time);
+  double phase_expected = .099;
+  if (std::fabs(phase/phase_expected - 1.) > epsilon) {
+    err() << "MssModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
+  }
+
+  // Test orbital phase computations, with a non-zero global phase offset.
+  phase = eph->calcOrbitalPhase(ev_time, 0.1234);
+  phase_expected += 0.1234;
+  if (std::fabs(phase/phase_expected - 1.) > epsilon) {
+    err() << "MssModelEph::calcOrbitalPhase produced phase == " << phase << ", not " << phase_expected << std::endl;
+  }
+
+  // Test orbital delay computations.
+  // Note: Below the equations in Wex (MNRAS 298, 67-77, 1998) and Taylor et al. (ApJ, 345, 434-450, 1989) are computed in reverse.
+  int turn_array[] = {0, 1, -1, 2, -2, 5, -5, 20, -20, 100, -100};
+  std::list<int> turn_list(turn_array, turn_array + sizeof(turn_array)/sizeof(int));
+  for (std::list<int>::const_iterator turn_itor = turn_list.begin(); turn_itor != turn_list.end(); ++turn_itor) {
+    // 1) Set constants.
+    double par_PB = 10. * 86400.; // 10 days in seconds.
+    double max_elapsed = par_PB * (std::fabs(*turn_itor) + 1.);
+    double par_XDOT = -0.44 / max_elapsed;
+    double par_X2DOT = 0.3355 / max_elapsed / max_elapsed;
+    double par_ECCDOT = -0.00055 / max_elapsed;
+    double par_OMDOT = 6.6 / max_elapsed;
+    double par_OM2DOT = 5.577 / max_elapsed / max_elapsed;
+    double par_DELTA_R = 0.05;
+    double par_DELTA_THETA = 1./3.;
+    double par_GAMMA = 0.0011;
+    double par_SHAPIRO_R = 0.0022; // in micro-seconds.
+    double par_SHAPIRO_S = 0.0033;
+    double par_ABERRATION_A = 0.00000432198765;
+    double par_ABERRATION_B = 0.00000321987654;
+
+    // 2) Set values to variables that appear in equations 8, 9, and 10 in Taylor et al. (1989).
+    double var_e = 0.6; // 1-e^2 = 0.64, sqrt(1-e^2) = 0.8, e*(1+delta_r) = 0.63, sqrt(1-e^2*(1+delta_theta)^2) = 0.6.
+    double var_w = 30. / 180. * M_PI; // 30 degrees in radian (sin w = 1/2, cos w = sqrt(3)/2).
+    double var_u = 60. / 180. * M_PI; // 60 degrees in radian (sin u = sqrt(3)/2, cos u = 1/2, tan u/2 = sqrt(3)/3).
+    double var_x = 10.; // 10 light-seconds.
+    double var_r = par_SHAPIRO_R * 1.e-6; // micro-seconds to seconds.
+
+    // 3) Compute orbital delay and true anomaly.
+    double delay = var_x * 1./2. * (1./2. - 0.63) + var_x * 0.6 * 3./4.; // Equation 8 in Taylor et al. (1989).
+    delay += par_GAMMA * std::sqrt(3.)/2.; // Equation 9 in Taylor et al. (1989).
+    delay += -2. * var_r * std::log(1. - 0.6*1./2. - par_SHAPIRO_S*(1./2.*(1./2. - 0.6) + 0.8*3./4.)); // Equation 10 in Taylor et al. (1989).
+    double true_anomaly = 2. * std::atan(2. * std::sqrt(3.)/3.); // Equation 13 in Taylor et al. (1989).
+    delay += par_ABERRATION_A * (std::sin(var_w + true_anomaly) + 0.6 * 1./2.); // Equation 11 in Taylor et al. (1989).
+    delay += par_ABERRATION_B * (std::cos(var_w + true_anomaly) + 0.6 * std::sqrt(3.)/2.); // Equation 11 in Taylor et al. (1989).
+
+    // 4) Modify variables for additional turns of the binary system.
+    var_u += 2. * M_PI * (*turn_itor);
+    true_anomaly += 2. * M_PI * (*turn_itor);
+
+    // 5) Compute back orbital parameters so as to reproduce values set in step 2.
+    double elapsed = var_u / 2. / M_PI * par_PB; // Equation 12.
+    double par_PBDOT = 0.6 * std::sqrt(3.)/2. / M_PI * (par_PB/elapsed) * (par_PB/elapsed); // Equation 12.
+    double var_xi = par_XDOT / 2. / M_PI * par_PB; // Equation 64 in Wex (1998).
+    double par_A1 = var_x - var_xi * true_anomaly - par_X2DOT / 2. * elapsed * elapsed; // Equations 64 and 73 in Wex (1998).
+    double par_ECC = var_e - par_ECCDOT * elapsed;
+    double var_wdot = par_OMDOT / 180.0 * M_PI / 365.25 / 86400.; // degrees-per-year to radian-per-second.
+    double var_k = var_wdot / 2. / M_PI * par_PB; // Equation 65 in Wex (1998).
+    double var_w2dot = par_OM2DOT / 180.0 * M_PI / 365.25 / 86400. / 365.25 / 86400.; // degrees-per-year2 to radian-per-second2.
+    double par_OM = var_w - var_k * true_anomaly - var_w2dot / 2. * elapsed * elapsed; // Equations 65 and 74 in Wex (1998).
+    par_OM *= 180. / M_PI; // radians to degrees.
+    ev_time = t0 + ElapsedTime("TDB", Duration(elapsed, "Sec"));
+
+    // 6) Create an ephemeris object and test its calcOrbitalDelay method.
+    eph.reset(new MssModelEph("TDB", par_PB, par_PBDOT, par_A1, par_XDOT, par_X2DOT, par_ECC, par_ECCDOT, par_OM, par_OMDOT,
+      par_OM2DOT, t0, par_DELTA_R, par_DELTA_THETA, par_GAMMA, par_SHAPIRO_R, par_SHAPIRO_S, par_ABERRATION_A, par_ABERRATION_B));
+    ElapsedTime delay_result = eph->calcOrbitalDelay(ev_time);
+    ElapsedTime delay_expected("TDB", Duration(delay, "Sec"));
+    Duration delay_tolerance(std::numeric_limits<double>::epsilon() * 86400. * 100., "Sec");
+    if (!delay_result.getDuration().equivalentTo(delay_expected.getDuration(), delay_tolerance))
+      err() << "MssModelEph::calcOrbitalDelay(" << ev_time << ") returned " << delay_result << " after " << *turn_itor <<
+        " turn(s), not equivalent to " << delay_expected << " as expected." << std::endl;
+  }
+
+  // Test binary modulation and demodulation.
+  // Binary parameters: (PB, PBDOT, A1, XDOT, ECC, ECCDOT, OM, OMDOT, T0, GAMMA)
+  // = (27906.980897, -2.43e-12, 2.3417598, 0.0, 0.61713101e-3, 0.0, 220.142729, 4.22662, 45888.1172487, 0.004295)
+  // and all other parameters set to 0.0 (zero).
+  AbsoluteTime abs_t0("TDB", Mjd(45888, .1172487));
+  eph.reset(new MssModelEph("TDB", 27906.980897, -2.43e-12, 2.3417598, 0.0, 0.0, 0.61713101, 0.0, 220.142729, 4.22662, 0.0,
+    abs_t0, 0.0, 0.0, 0.004295, 0.0, 0.0, 0.0, 0.0));
+
+  // MJD's: { {original-MJD, modulated-MJD}, ... }
+  Mjd mjd_test_values[][2] = {
+    { Mjd(45988, .1172486599971307), Mjd(45988, .117282334337111) },
+    { Mjd(45988, .1519708822161192), Mjd(45988, .152005747822377) },
+    { Mjd(45988, .1866931044423836), Mjd(45988, .186723309695442) },
+    { Mjd(45988, .2214153266613721), Mjd(45988, .221430372328996) },
+    { Mjd(45988, .2561375488876365), Mjd(45988, .25612543777892 ) },
+    { Mjd(45988, .2908597711066250), Mjd(45988, .2908532526978  ) },
+    { Mjd(45988, .3255819933328894), Mjd(45988, .32558777169579 ) },
+    { Mjd(45988, .3603042155518779), Mjd(45988, .360321331412386) },
+    { Mjd(45988, .3950264377781423), Mjd(45988, .39505267200415 ) },
+    { Mjd(45988, .4297486599971307), Mjd(45988, .429781129654144) },
+    { Mjd(45988, .4644708822161192), Mjd(45988, .464505895254603) }
+  };
+
+  // Permitted difference is 100 ns.
+  double delta = 100. * 1.e-9;
+  ElapsedTime tolerance("TDB", Duration(delta, "Sec"));
+
+  setPrecision(24);
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
+    eph->modulateBinary(tdb_mjd);
+    if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
+      err() << "Binary modulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by MssModelEph was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
+    }
+  }
+
+  for (std::size_t ii = 0; ii != sizeof(mjd_test_values)/sizeof(Mjd[2]); ++ii) {
+    AbsoluteTime tdb_mjd("TDB", mjd_test_values[ii][1]);
+    AbsoluteTime expected_tdb_mjd("TDB", mjd_test_values[ii][0]);
+    AbsoluteTime original_tdb_mjd(tdb_mjd);
+    eph->demodulateBinary(tdb_mjd);
+    if (!tdb_mjd.equivalentTo(expected_tdb_mjd, tolerance)) {
+      err() << "Binary demodulation of " << original_tdb_mjd.represent("TDB", MjdFmt) << " by MssModelEph was computed to be " <<
+        tdb_mjd.represent("TDB", MjdFmt) << ", not " << expected_tdb_mjd.represent("TDB", MjdFmt) << ", as expected." << std::endl;
+    }
+  }
+
+  // Test the constructor that takes numerical arguments.
+  const double rad_per_deg = M_PI / 180.;
+  const double rad_year_per_deg_sec = rad_per_deg / (365.25 * 86400.);
+  const double rad_year2_per_deg_sec2 = rad_year_per_deg_sec / (365.25 * 86400.);
+  eph.reset(new MssModelEph("TDB", 12345.6789, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, AbsoluteTime("TDB", 12345, 51840.),
+    11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7));
+  TextEph t_eph;
+  t_eph.append("PB",           "12345.6789",                 "s");
+  t_eph.append("PBDOT",        "1.1",                        "");
+  t_eph.append("A1",           "2.2",                        "lt-s");
+  t_eph.append("XDOT",         "3.3",                        "lt-s/s");
+  t_eph.append("X2DOT",        "4.4",                        "lt-s/s**2");
+  t_eph.append("ECC",          "5.5",                        "");
+  t_eph.append("ECCDOT",       "6.6",                        "s**(-1)");
+  t_eph.append("OM",           7.7 * rad_per_deg,            "radians");
+  t_eph.append("OMDOT",        8.8 * rad_year_per_deg_sec,   "radians/s");
+  t_eph.append("OM2DOT",       9.9 * rad_year2_per_deg_sec2, "radians/s**2");
+  t_eph.append("T0",           "12345.6 MJD (TDB)",          "");
+  t_eph.append("DELTA_R",      "11.1",                       "");
+  t_eph.append("DELTA_THETA",  "22.2",                       "");
+  t_eph.append("GAMMA",        "33.3",                       "s");
+  t_eph.append("SHAPIRO_R",    "44.4e-06",                   "s");
+  t_eph.append("SHAPIRO_S",    "55.5",                       "");
+  t_eph.append("ABERRATION_A", "66.6",                       "s");
+  t_eph.append("ABERRATION_B", "77.7",                       "s");
+  checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
+
+  // Test the constructor that takes a FITS record.
+  std::string test_tpl("test_MssModelEph.tpl");
+  remove(test_tpl.c_str());
+  std::ofstream ofs(test_tpl.c_str());
+  ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
+  ofs << "\\include " << prependDataPath("PulsarDb_orbital_mss.tpl") << std::endl;
+  ofs.close();
+  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
+  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  tip::Header & header(table->getHeader());
+  table->setNumRecords(1);
+  tip::Table::Record record(table.get(), 0);
+  record["PB"].set(12345.6789);
+  record["PBDOT"].set(1.1);
+  record["A1"].set(2.2);
+  record["XDOT"].set(3.3);
+  record["X2DOT"].set(4.4);
+  record["ECC"].set(5.5);
+  record["ECCDOT"].set(6.6);
+  record["OM"].set(7.7);
+  record["OMDOT"].set(8.8);
+  record["OM2DOT"].set(9.9);
+  record["T0"].set(12345.6);
+  record["DELTA_R"].set(11.1);
+  record["DELTA_THETA"].set(22.2);
+  record["GAMMA"].set(33.3);
+  record["SHAPIRO_R"].set(44.4);
+  record["SHAPIRO_S"].set(55.5);
+  record["ABERRATION_A"].set(66.6);
+  record["ABERRATION_B"].set(77.7);
+  eph.reset(new MssModelEph(record, header));
   checkEphParameter(getMethod() + "_fits", *eph, t_eph);
 }
 
@@ -3224,6 +3658,7 @@ void PulsarDbTestApp::testChooser() {
   database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
   database.registerOrbitalEph<BtModelEph>("BT");
+  // TODO: Add ELL1 and MSS models.
 
   std::string pulsar_name = "PSR J0139+5814";
 
@@ -3323,6 +3758,7 @@ void PulsarDbTestApp::testChooser() {
   database2.registerPulsarEph<HighPrecisionEph>("HP");
   database2.registerOrbitalEph<SimpleDdEph>("DD");
   database2.registerOrbitalEph<BtModelEph>("BT");
+  // TODO: Add ELL1 and MSS models.
 
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
@@ -3462,6 +3898,7 @@ void PulsarDbTestApp::testEphComputer() {
   database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
   database.registerOrbitalEph<BtModelEph>("BT");
+  // TODO: Add ELL1 and MSS models.
 
   // Filter a pulsar known to be present.
   database.filterName("PSr j0323+3944");
@@ -3552,6 +3989,7 @@ void PulsarDbTestApp::testEphComputer() {
   database2.registerPulsarEph<HighPrecisionEph>("HP");
   database2.registerOrbitalEph<SimpleDdEph>("DD");
   database2.registerOrbitalEph<BtModelEph>("BT");
+  // TODO: Add ELL1 and MSS models.
 
   // Select a particular pulsar.
   database2.filterName("PSR J1834-0010");
@@ -3621,6 +4059,7 @@ void PulsarDbTestApp::testEphComputer() {
   database3.registerPulsarEph<HighPrecisionEph>("HP");
   database3.registerOrbitalEph<SimpleDdEph>("DD");
   database3.registerOrbitalEph<BtModelEph>("BT");
+  // TODO: Add ELL1 and MSS models.
 
   // Load everything in this database at a time.
   computer2.load(database3);
@@ -3887,6 +4326,7 @@ void PulsarDbTestApp::testEphGetter() {
   database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
   database.registerOrbitalEph<BtModelEph>("BT");
+  // TODO: Add ELL1 and MSS models.
 
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
