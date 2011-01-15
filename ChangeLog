@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 14 20:44:12 PST 2011
+pulsarDb/src
+
+Modified Files:
+	Ell1ModelEph.cxx 
+Log Message:
+Fix a bug in computing an orbital delay. Refactor internal method. Remove an unnecessary comment.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 14 20:44:11 PST 2011
 pulsarDb/pulsarDb
 
