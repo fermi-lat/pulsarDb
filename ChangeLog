@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 14 21:07:39 PST 2011
+pulsarDb/src
+
+Modified Files:
+	MssModelEph.cxx 
+Log Message:
+Remove a TODO item (decided not to do).
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 14 20:47:19 PST 2011
 pulsarDb/src/test
 
