@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri Jan 14 20:47:19 PST 2011
+pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+Add tests for Ell1ModelEph and MssModelEph classes. Improve tests of orbital delay computations by using more realistic test parameters. Use M_PI in place of a locally defined variable. Improve error messages and comments.
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 14 20:44:51 PST 2011
 pulsarDb/src
 
