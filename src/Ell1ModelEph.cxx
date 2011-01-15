@@ -85,11 +85,8 @@ namespace pulsarDb {
     // Compute elapsed time from epoch of periastron in seconds.
     double elapsed_second = calcElapsedSecond(ev_time);
 
-    // Compute orbital parameters for the Roemer delay.
-    double eta = 0.;
-    double kappa = 0.;
-    double large_phi = 0.;
-    calcRoemerParameter(elapsed_second, eta, kappa, large_phi);
+    // Compute orbital phase multiplied by two pi.
+    double large_phi = calcLargePhi(elapsed_second);
 
     // Compute the complete phase.
     double phase = large_phi / Ell1ModelEph::s_two_pi;
@@ -102,43 +99,40 @@ namespace pulsarDb {
     // Compute elapsed time from epoch of periastron in seconds.
     double elapsed_second = calcElapsedSecond(ev_time);
 
-    // Compute orbital parameters for the Roemer delay.
-    double eta = 0.;
-    double kappa = 0.;
-    double large_phi = 0.;
-    calcRoemerParameter(elapsed_second, eta, kappa, large_phi);
-
     // Compute projected semimajor axis.
-    // --- Eq. A10 in Ch. Lange, et al., MNRAS 326, 274 (2001)
+    // --- Eq. A10 in Lange, et al., MNRAS 326, 274 (2001)
     double semiax = m_a1 + m_x_dot * elapsed_second;
 
+    // Compute the first Laplace-Lagrange parameter, eta, at the given event time.
+    // --- Eq. A10 in Lange, et al., MNRAS 326, 274 (2001)
+    double eta = m_eps1 + m_eps1_dot * elapsed_second;
+
+    // Compute the second Laplace-Lagrange parameter, kappa, at the given event time.
+    // --- Eq. A10 in Lange, et al., MNRAS 326, 274 (2001)
+    double kappa = m_eps2 + m_eps2_dot * elapsed_second;
+
+    // Compute orbital phase multiplied by two pi.
+    double large_phi = calcLargePhi(elapsed_second);
+
     // Compute time delays due to orbital motion.
-    // --- Eqs. A6 and A16 in Ch. Lange, et al., MNRAS 326, 274 (2001)
+    // --- Eqs. A6 and A16 in Lange, et al., MNRAS 326, 274 (2001)
     double roemer = semiax * (std::sin(large_phi) + kappa / 2.0 * std::sin(2.0*large_phi) - eta / 2.0 * std::cos(2.0*large_phi));
     double shapiro = - 2.0 * m_shapiro_r * std::log(1.0 - m_shapiro_s*std::sin(large_phi));
 
     // Return total delay.
-    // --- Eq. A1 in Ch. Lange, et al., MNRAS 326, 274 (2001), with the Shapiro delay added
+    // --- Eq. A1 in Lange, et al., MNRAS 326, 274 (2001), with the Shapiro delay added
     return ElapsedTime(m_system->getName(), Duration(roemer + shapiro, "Sec"));
   }
 
-  void Ell1ModelEph::calcRoemerParameter(double elapsed_second, double & eta, double & kappa, double & large_phi) const {
-    // Rename the Laplace-Lagrange parameters, to follow notations in Ch. Lange, et al., MNRAS 326, 274 (2001).
+  double Ell1ModelEph::calcLargePhi(double elapsed_second) const {
+    // Rename the Laplace-Lagrange parameters, to follow notations in Lange, et al., MNRAS 326, 274 (2001).
     const double & eta_zero = m_eps1;
     const double & eta_dot  = m_eps1_dot;
     const double & kappa_zero = m_eps2;
     const double & kappa_dot  = m_eps2_dot;
 
-    // Compute the first Laplace-Lagrange parameter, eta, at the given event time.
-    // --- Eq. A10 in Ch. Lange, et al., MNRAS 326, 274 (2001)
-    eta = eta_zero + eta_dot * elapsed_second;
-
-    // Compute the second Laplace-Lagrange parameter, kappa, at the given event time.
-    // --- Eq. A10 in Ch. Lange, et al., MNRAS 326, 274 (2001)
-    kappa = kappa_zero + kappa_dot * elapsed_second;
-
     // Compute the periastron longitude at the epoch, omega_0, and its time derivative, omega_dot.
-    // --- Drived from Eq. A8 in Ch. Lange, et al., MNRAS 326, 274 (2001)
+    // --- Drived from Eq. A8 in Lange, et al., MNRAS 326, 274 (2001)
     double omega_zero = 0.;
     double omega_dot = 0.;
     if (eta_zero != 0. || kappa_zero != 0.) {
@@ -147,7 +141,7 @@ namespace pulsarDb {
       if (omega_zero < 0.0) omega_zero += Ell1ModelEph::s_two_pi;
 
       // Compute the time derivative of the periastron longitude from the Laplace-Lagrange parameters.
-      omega_dot = (eta_dot * kappa_zero - kappa_dot * eta) / (eta_zero * eta_zero + kappa_zero * kappa_zero);
+      omega_dot = (eta_dot * kappa_zero - kappa_dot * eta_zero) / (eta_zero * eta_zero + kappa_zero * kappa_zero);
 
     } else {
       // Note: In this case, eta_zero = kappa_zero = 0.0, hence eta and kappa at an arbitrary time lie
@@ -174,18 +168,21 @@ namespace pulsarDb {
 
     // Compute the original orbital angular frequency and its time derivative.
     // Note: An orbital angular frequency is the reciprocal of an orbital period, multiplied by two pi.
-    // --- Eq. A4 in Ch. Lange, et al., MNRAS 326, 274 (2001).
+    // --- Eq. A4 in Lange, et al., MNRAS 326, 274 (2001).
     double nb = Ell1ModelEph::s_two_pi / m_pb;
     double nb_dot = - m_pb_dot / m_pb * nb;
 
     // Compute the apparent orbital angular frequency, and its time derivative.
-    // --- Eqs. A11, A12, and A13 in Ch. Lange, et al., MNRAS 326, 274 (2001)
+    // --- Eqs. A11, A12, and A13 in Lange, et al., MNRAS 326, 274 (2001)
     double nb_bar = nb + omega_dot - nb_dot * omega_zero / (nb + omega_dot);
     double nb_bar_dot = nb_dot;
 
     // Compute the orbital phase measured from the time of the ascending node, multiplied by two pi.
-    // --- Eq. A9 in Ch. Lange, et al., MNRAS 326, 274 (2001)
-    large_phi = (nb_bar + nb_bar_dot / 2.0 * elapsed_second) * elapsed_second;
+    // --- Eq. A9 in Lange, et al., MNRAS 326, 274 (2001)
+    double large_phi = (nb_bar + nb_bar_dot / 2.0 * elapsed_second) * elapsed_second;
+
+    // Return the computed result.
+    return large_phi;
   }
 
 }
