@@ -23,7 +23,6 @@ namespace tip {
   class Header;
 }
 
-// TODO: Move this function (atKepler) to the base class (OrbitalEph).
 namespace {
 
 //======================================================================
