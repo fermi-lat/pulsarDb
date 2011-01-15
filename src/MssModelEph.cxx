@@ -23,6 +23,7 @@ namespace tip {
   class Header;
 }
 
+// TODO: Move this function (atKepler) to the base class (OrbitalEph).
 namespace {
 
 //======================================================================
@@ -214,8 +215,8 @@ namespace pulsarDb {
     double shapiro = - 2.0 * m_shapiro_r * std::log(1.0 - eccen*std::cos(eccen_anomaly)
       - m_shapiro_s * (std::sin(omega) * (std::cos(eccen_anomaly) - eccen)
       + std::sqrt(1.0 - eccen*eccen) * std::cos(omega) * std::sin(eccen_anomaly)));
-    double aberration = m_aberration_a * (std::sin(omega + eccen_anomaly) + eccen * std::sin(omega))
-      + m_aberration_b * (std::cos(omega + eccen_anomaly) + eccen * std::cos(omega));
+    double aberration = m_aberration_a * (std::sin(omega + true_anomaly) + eccen * std::sin(omega))
+      + m_aberration_b * (std::cos(omega + true_anomaly) + eccen * std::cos(omega));
 
     // Return total delay.
     // --- Eq. 7 in Taylor & Weisberg, ApJ 345, 434 (1989)
