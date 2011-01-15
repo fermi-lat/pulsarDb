@@ -51,7 +51,6 @@ namespace pulsarDb {
           \param eps2 Eccentricity multiplied by the cosine of the periastron longitude (dimensionless).
           \param eps2_dot First time derivative of eps2 in inverse of seconds.
           \param tasc Time of ascending node.
-          \param gamma Time-dilation and gravitational redshift parameter in seconds.
           \param shapiro_r Range parameter of Shapiro delay in binary system in microseconds.
           \param shapiro_s Shape parameter of Shapiro delay in binary system (dimensionless).
       */
@@ -103,14 +102,12 @@ namespace pulsarDb {
         return (at - m_tasc).computeDuration(m_system->getName(), "Sec");
       }
 
-      /** \brief Compute orbital parameters that appear in the Roemer delay (Delta_R) of Eq. A6 in Ch. Lange, et al.,
-                 MNRAS 326, 274 (2001), in the unit of radians.
+      /** \brief Compute the orbital phase measured from the time of the ascending node, multiplied by two pi, and
+                 return it in the unit of radians. The return value is the quantity denoted by a capital phi in
+                 Eq. A9 in Lange, et al., MNRAS 326, 274 (2001).
           \param elapsed_second The number of elapsed seconds for which the orbital parameters are to be computed.
-          \param eta Eccentricity multiplied by the sine of the periastron longitude at the given time (output).
-          \param kappa Eccentricity multiplied by the cosine of the periastron longitude at the given time (output).
-          \param large_phi Orbital phase measured from the time of the ascending node, multiplied by two pi.
       */
-      void calcRoemerParameter(double elapsed_second, double & eta, double & kappa, double & large_phi) const;
+      double calcLargePhi(double elapsed_second) const;
 
       const timeSystem::TimeSystem * m_system;
       double m_pb, m_pb_dot;
