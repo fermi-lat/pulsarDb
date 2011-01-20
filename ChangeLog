@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: hirayama  Wed Jan 19 20:16:46 PST 2011
+pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl testpsrdb_crab.fits testpsrdb_dbmanip.fits 
+	testpsrdb_dbmanip_fermi.fits testpsrdb_ephcomp.fits 
+	testpsrdb_text.fits 
+Log Message:
+Add two orbital models (ELL1 and MSS).
+    *
+------------------------------------------------------------
 User: hirayama  Fri Jan 14 21:07:39 PST 2011
 pulsarDb/src
 
