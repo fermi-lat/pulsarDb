@@ -18,10 +18,12 @@
 #include "hoops/hoops_exception.h"
 
 #include "pulsarDb/BtModelEph.h"
+#include "pulsarDb/Ell1ModelEph.h"
 #include "pulsarDb/EphChooser.h"
 #include "pulsarDb/EphComputer.h"
 #include "pulsarDb/FrequencyEph.h"
 #include "pulsarDb/HighPrecisionEph.h"
+#include "pulsarDb/MssModelEph.h"
 #include "pulsarDb/PeriodEph.h"
 #include "pulsarDb/PulsarDb.h"
 #include "pulsarDb/PulsarEph.h"
@@ -331,6 +333,8 @@ namespace pulsarDb {
       database.registerPulsarEph<HighPrecisionEph>("HP");
       database.registerOrbitalEph<SimpleDdEph>("DD");
       database.registerOrbitalEph<BtModelEph>("BT");
+      database.registerOrbitalEph<Ell1ModelEph>("ELL1");
+      database.registerOrbitalEph<MssModelEph>("MSS");
 
       // Load the given ephemerides database(s).
       std::string psrdb_file = pars["psrdbfile"];
