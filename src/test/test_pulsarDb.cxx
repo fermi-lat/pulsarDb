@@ -671,8 +671,8 @@ void PulsarDbTestApp::testSolarEph() {
 
   // Make sure the test data has expected size (ORBITAL_PARAMETERS extension).
   num_eph = database.getNumEph(false);
-  if (5 != num_eph)
-    err() << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " orbital ephemerides, not 5" << std::endl;
+  if (7 != num_eph)
+    err() << "after filterSolarEph(\"JPL DE405\") there are " << num_eph << " orbital ephemerides, not 7" << std::endl;
 
   // Save the result for basis of comparing future test output.
   std::string outfile("solar_db.fits");
@@ -738,6 +738,12 @@ void PulsarDbTestApp::testAppend() {
   expected_ancestry.push_back("* Load FITSDB AUTHOR='Masaharu Hirayama' DATE=");
   expected_ancestry.push_back("* Filter by pulsar name 'CRab'");
   expected_ancestry.push_back("* Filter by pulsar name 'PsR b0531+21'");
+  expected_ancestry.push_back("PULSARDB AUTHOR='Masaharu Hirayama' DATE=");
+  expected_ancestry.push_back("* Load FITSDB AUTHOR='Masaharu Hirayama' DATE=");
+  expected_ancestry.push_back("* Load TEXTDB ORBITAL_PARAMETERS(ELL1) FILENAME='testpsrdb_binary_ell1.t");
+  expected_ancestry.push_back("xt'");
+  expected_ancestry.push_back("* Load TEXTDB ORBITAL_PARAMETERS(MSS) FILENAME='testpsrdb_binary_mss.txt");
+  expected_ancestry.push_back("'");
   expected_ancestry.push_back("PULSARDB AUTHOR='Masaharu Hirayama' DATE=");
   expected_ancestry.push_back("* Load FITSDB AUTHOR='' DATE=");
   expected_ancestry.push_back("* Load TEXTDB SPIN_PARAMETERS(PER) FILENAME='testpsrdb_spin_per.txt'");
@@ -3658,7 +3664,8 @@ void PulsarDbTestApp::testChooser() {
   database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
   database.registerOrbitalEph<BtModelEph>("BT");
-  // TODO: Add ELL1 and MSS models.
+  database.registerOrbitalEph<Ell1ModelEph>("ELL1");
+  database.registerOrbitalEph<MssModelEph>("MSS");
 
   std::string pulsar_name = "PSR J0139+5814";
 
@@ -3758,7 +3765,8 @@ void PulsarDbTestApp::testChooser() {
   database2.registerPulsarEph<HighPrecisionEph>("HP");
   database2.registerOrbitalEph<SimpleDdEph>("DD");
   database2.registerOrbitalEph<BtModelEph>("BT");
-  // TODO: Add ELL1 and MSS models.
+  database2.registerOrbitalEph<Ell1ModelEph>("ELL1");
+  database2.registerOrbitalEph<MssModelEph>("MSS");
 
   OrbitalEphCont orbital_cont;
   database2.filterName("PSR J1834-0010");
@@ -3898,7 +3906,8 @@ void PulsarDbTestApp::testEphComputer() {
   database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
   database.registerOrbitalEph<BtModelEph>("BT");
-  // TODO: Add ELL1 and MSS models.
+  database.registerOrbitalEph<Ell1ModelEph>("ELL1");
+  database.registerOrbitalEph<MssModelEph>("MSS");
 
   // Filter a pulsar known to be present.
   database.filterName("PSr j0323+3944");
@@ -3989,7 +3998,8 @@ void PulsarDbTestApp::testEphComputer() {
   database2.registerPulsarEph<HighPrecisionEph>("HP");
   database2.registerOrbitalEph<SimpleDdEph>("DD");
   database2.registerOrbitalEph<BtModelEph>("BT");
-  // TODO: Add ELL1 and MSS models.
+  database2.registerOrbitalEph<Ell1ModelEph>("ELL1");
+  database2.registerOrbitalEph<MssModelEph>("MSS");
 
   // Select a particular pulsar.
   database2.filterName("PSR J1834-0010");
@@ -4059,7 +4069,8 @@ void PulsarDbTestApp::testEphComputer() {
   database3.registerPulsarEph<HighPrecisionEph>("HP");
   database3.registerOrbitalEph<SimpleDdEph>("DD");
   database3.registerOrbitalEph<BtModelEph>("BT");
-  // TODO: Add ELL1 and MSS models.
+  database3.registerOrbitalEph<Ell1ModelEph>("ELL1");
+  database3.registerOrbitalEph<MssModelEph>("MSS");
 
   // Load everything in this database at a time.
   computer2.load(database3);
@@ -4068,9 +4079,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading all data from pulsar database, there were " << computer2.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1155 as expected." << std::endl;
 
-  if (21 != computer2.getNumOrbitalEph())
+  if (25 != computer2.getNumOrbitalEph())
     err() << "After loading all data from pulsar database, there were " << computer2.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 21 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 25 as expected." << std::endl;
 
   if (26 != computer2.getNumEphRemark())
     err() << "After loading all data from pulsar database, there were " << computer2.getNumEphRemark() <<
@@ -4101,9 +4112,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading orbital ephemerides, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1155 as expected." << std::endl;
 
-  if (21 != computer3.getNumOrbitalEph())
+  if (25 != computer3.getNumOrbitalEph())
     err() << "After loading orbital ephemerides, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 21 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 25 as expected." << std::endl;
 
   if (14 != computer3.getNumEphRemark())
     err() << "After loading orbital ephemerides, there were " << computer3.getNumEphRemark() <<
@@ -4116,9 +4127,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading ephemeris remarks, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1155 as expected." << std::endl;
 
-  if (21 != computer3.getNumOrbitalEph())
+  if (25 != computer3.getNumOrbitalEph())
     err() << "After loading ephemeris remarks, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 21 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 25 as expected." << std::endl;
 
   if (26 != computer3.getNumEphRemark())
     err() << "After loading ephemeris remarks, there were " << computer3.getNumEphRemark() <<
@@ -4136,9 +4147,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1156 as expected." << std::endl;
 
-  if (21 != computer3.getNumOrbitalEph())
+  if (25 != computer3.getNumOrbitalEph())
     err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 21 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 25 as expected." << std::endl;
 
   if (26 != computer3.getNumEphRemark())
     err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumEphRemark() <<
@@ -4151,9 +4162,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading one orbital ephemeris, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1156 as expected." << std::endl;
 
-  if (22 != computer3.getNumOrbitalEph())
+  if (26 != computer3.getNumOrbitalEph())
     err() << "After loading one orbital ephemeris, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 22 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 26 as expected." << std::endl;
 
   if (26 != computer3.getNumEphRemark())
     err() << "After loading one orbital ephemeris, there were " << computer3.getNumEphRemark() <<
@@ -4166,9 +4177,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading one ephemeris remark, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1156 as expected." << std::endl;
 
-  if (22 != computer3.getNumOrbitalEph())
+  if (26 != computer3.getNumOrbitalEph())
     err() << "After loading one ephemeris remark, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 22 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 26 as expected." << std::endl;
 
   if (27 != computer3.getNumEphRemark())
     err() << "After loading one ephemeris remark, there were " << computer3.getNumEphRemark() <<
@@ -4182,9 +4193,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading non-remark ephemeris status, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1156 as expected." << std::endl;
 
-  if (22 != computer3.getNumOrbitalEph())
+  if (26 != computer3.getNumOrbitalEph())
     err() << "After loading non-remark ephemeris status, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 22 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 26 as expected." << std::endl;
 
   if (27 != computer3.getNumEphRemark())
     err() << "After loading non-remark ephemeris status, there were " << computer3.getNumEphRemark() <<
@@ -4204,9 +4215,9 @@ void PulsarDbTestApp::testEphComputer() {
     err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumPulsarEph() <<
       " spin pulsar ephemeri(de)s, not 1157 as expected." << std::endl;
 
-  if (22 != computer3.getNumOrbitalEph())
+  if (26 != computer3.getNumOrbitalEph())
     err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumOrbitalEph() <<
-      " orbital ephemeri(de)s, not 22 as expected." << std::endl;
+      " orbital ephemeri(de)s, not 26 as expected." << std::endl;
 
   if (29 != computer3.getNumEphRemark())
     err() << "After loading one spin pulsar ephemeris, there were " << computer3.getNumEphRemark() <<
@@ -4290,7 +4301,7 @@ void PulsarDbTestApp::testEphComputer() {
 
   // Test time system summary with filled ephemeris computer.
   expected_spin = "TDB(1156) TT(1)";
-  expected_orbital = "TAI(1) TDB(22) TT(1)";
+  expected_orbital = "TAI(1) TDB(26) TT(1)";
   expected_pdot = "TAI";
   computer5.summarizeTimeSystem(result_spin, result_orbital, result_pdot);
   if (result_spin != expected_spin) {
@@ -4326,7 +4337,8 @@ void PulsarDbTestApp::testEphGetter() {
   database.registerPulsarEph<HighPrecisionEph>("HP");
   database.registerOrbitalEph<SimpleDdEph>("DD");
   database.registerOrbitalEph<BtModelEph>("BT");
-  // TODO: Add ELL1 and MSS models.
+  database.registerOrbitalEph<Ell1ModelEph>("ELL1");
+  database.registerOrbitalEph<MssModelEph>("MSS");
 
   PulsarEphCont pulsar_eph_cont;
   database.getEph(pulsar_eph_cont);
@@ -4337,7 +4349,7 @@ void PulsarDbTestApp::testEphGetter() {
 
   OrbitalEphCont orbital_eph_cont;
   database.getEph(orbital_eph_cont);
-  std::size_t expected_orbital = 21;
+  std::size_t expected_orbital = 25;
   if (orbital_eph_cont.size() != expected_orbital) 
     err() << "PulsarDb::getEph(OrbitalEphCont &) got " << orbital_eph_cont.size() << " ephemerides, not " <<
       expected_orbital << ", as expected." << std::endl;

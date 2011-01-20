@@ -5,6 +5,8 @@
 \include PulsarDb_spin_hp.tpl
 \include PulsarDb_orbital_dd.tpl
 \include PulsarDb_orbital_bt.tpl
+\include PulsarDb_orbital_ell1.tpl
+\include PulsarDb_orbital_mss.tpl
 
 XTENSION     = 'BINTABLE'                  / binary table extension
 BITPIX       = 8                           / 8-bit bytes
