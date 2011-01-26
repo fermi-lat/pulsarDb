@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Jan 26 14:54:48 PST 2011
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Improve an error message for clarity (cosmetic).
+    *
+------------------------------------------------------------
 User: hirayama  Wed Jan 19 20:16:47 PST 2011
 pulsarDb/data/outref
 
