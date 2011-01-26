@@ -563,7 +563,7 @@ namespace pulsarDb {
       abs_origin = parseTime(origin_time_format, origin_time_sys, origin_time, parsed_time_format, parsed_time_sys, m_reference_handler);
 
     } else {
-      throw std::runtime_error("Unsupported time origin " + str_origin);
+      throw std::runtime_error("Unsupported time origin \"" + str_origin + "\" was specified");
     }
 
     // Initialize time correction with the time origin just computed.
