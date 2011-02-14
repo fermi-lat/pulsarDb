@@ -2,11 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.63 2010/04/09 16:24:48 hirayama Exp $
+$Id: release.notes,v 1.64 2010/05/04 21:45:13 hirayama Exp $
 
 \verbatim
 * EOH *
 
+ pulsarDb-09-00-00 14-Feb-2011 hirayama Add new spin models (PER and HP) and orbital (BT, ELL1, and MSS). Support proper motion in barycentric corrections. Add remark reporting mechanism to PulsarEph (for glitches). Support vector-valued columns in the text D4 format. Add parallax and orbital delays to an gtephem output. Fix bugs in header keyword matching. Clean up the code for minor improvements.
  pulsarDb-08-05-09 04-May-2010 hirayama Improve Doxygen comments.
  pulsarDb-08-05-08 09-Apr-2010 hirayama Support unsorted GTI's. Add the code to support BT model. Improve the unit tests for orbital models.
  pulsarDb-08-05-07 18-Mar-2010 hirayama Minor changes in the unit test for robustness and clarity.
