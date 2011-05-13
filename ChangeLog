@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri May 13 16:17:34 PDT 2011
+pulsarDb/data
+
+Modified Files:
+	okdb_emptyfield.txt 
+Log Message:
+Stop setting an empty string to a character string field, to make the unit test robust.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Apr 27 17:58:05 PDT 2011
 pulsarDb/src
 
