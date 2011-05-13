@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Id: SConscript,v 1.32 2010/05/04 21:45:13 hirayama Exp $
+# $Id: SConscript,v 1.33 2011/02/14 23:27:09 hirayama Exp $
 # Authors: James Peachey <James.Peachey-1@nasa.gov>
-# Version: pulsarDb-09-00-00
+# Version: pulsarDb-09-00-01
 Import('baseEnv')
 Import('listFiles')
 progEnv = baseEnv.Clone()
