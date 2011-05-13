@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Fri May 13 16:17:35 PDT 2011
+pulsarDb/data/outref
+
+Modified Files:
+	okdb_emptyfield.fits 
+Log Message:
+Stop setting an empty string to a character string field, to make the unit test robust.
+    *
+------------------------------------------------------------
 User: hirayama  Fri May 13 16:17:34 PDT 2011
 pulsarDb/data
 
