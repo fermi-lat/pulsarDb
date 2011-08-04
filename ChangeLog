@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug  3 17:24:15 PDT 2011
+pulsarDb/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Increase the size of text buffer for reading a text pulsar database file.
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-24-00, operation: add
 Package: pulsarDb
