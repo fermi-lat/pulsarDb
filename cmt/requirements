@@ -9,8 +9,10 @@ use st_stream *
 use timeSystem *
 use tip *
 
+macro_append pulsarDb_cppflags "" Linux "-g -O0 "
 #macro_append pulsarDbcppflags "" Linux "-g -Wall --pedantic -O0 "
 #macro_append pulsarDb_linkopts "" Linux "-g -O0 "
+macro_append pulsarDb_linkopts "" Linux "-L/usr/lib/gcc/i386-redhat-linux/3.4.6 "
 
 apply_pattern ST_library option=-no_share
 apply_pattern ST_pfiles

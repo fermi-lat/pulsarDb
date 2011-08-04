@@ -981,7 +981,7 @@ namespace pulsarDb {
     if (!in_table) throw std::runtime_error("Could not open file \"" + in_file + "\"");
 
     // Create a text buffer.
-    static const std::size_t s_line_size = 2048;
+    static const std::size_t s_line_size = 65536;
     char buf[s_line_size];
 
     Table * target_table(0);
