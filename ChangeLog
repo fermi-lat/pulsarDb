@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: hirayama  Wed Aug  3 17:24:16 PDT 2011
+pulsarDb/src
+
+Modified Files:
+	PulsarDb.cxx 
+Log Message:
+Increase the size of text buffer for reading a text pulsar database file.
+    *
+------------------------------------------------------------
 User: hirayama  Wed Aug  3 17:24:15 PDT 2011
 pulsarDb/cmt
 
