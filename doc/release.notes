@@ -2,11 +2,12 @@
     \brief Pulsar database access package.
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
-$Id: release.notes,v 1.66 2011/05/13 23:21:54 hirayama Exp $
+$Id: release.notes,v 1.67 2011/08/11 02:41:00 hirayama Exp $
 
 \verbatim
 * EOH *
 
+ pulsarDb-09-00-03 08-Feb-2012 jchiang do not use tip::IFileSvc::createMemFile to enable cfitsio upgrade
  pulsarDb-09-00-02 10-Aug-2011 hirayama Increase the size of text buffer for reading a text pulsar database file.
  pulsarDb-09-00-01 13-May-2011 hirayama Modify a test case to make it robust.
  pulsarDb-09-00-00 14-Feb-2011 hirayama Add new spin models (PER and HP) and orbital (BT, ELL1, and MSS). Support proper motion in barycentric corrections. Add remark reporting mechanism to PulsarEph (for glitches). Support vector-valued columns in the text D4 format. Add parallax and orbital delays to an gtephem output. Fix bugs in header keyword matching. Clean up the code for minor improvements.
