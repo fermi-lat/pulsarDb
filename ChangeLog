@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jchiang  Wed Feb  8 10:51:05 PST 2012
+ScienceTools-scons/pulsarDb/src/test
+
+Modified Files:
+	test_pulsarDb.cxx 
+Log Message:
+changes to avoid in-memory file to enable upgrade to newer version of cfitsio
+    *
+------------------------------------------------------------
 User: jchiang  Wed Feb  8 10:51:04 PST 2012
 ScienceTools-scons/pulsarDb/src
 
