@@ -191,16 +191,19 @@ namespace pulsarDb {
     m_tpl_file(tpl_file), m_tip_file(), m_all_table(), m_spin_par_table(), m_orbital_par_table(), m_eph_remark_table(),
     m_obs_code_table(), m_psr_name_table(), m_spin_factory_cont(), m_orbital_factory_cont(), m_command_history(),
     m_ancestry_record() {
-    // Create a FITS file in memory that holds ephemeris data, using a unique name.
+    // Create a FITS file that holds ephemeris data, using a unique name.
     std::ostringstream oss;
-    oss << "pulsardb" << this << ".fits";
-    m_tip_file = IFileSvc::instance().createMemFile(oss.str(), m_tpl_file);
+    static int i_file = 0; // Used to ensure unique names.
+    oss << "pulsardb" << this << "_" << i_file << ".fits";
+    i_file++;
+    IFileSvc::instance().createFile(oss.str(), m_tpl_file);
+    m_tip_file = IFileSvc::instance().openFile(oss.str());
 
-    // Get summary of extensions in the memory FITS file.
+    // Get summary of extensions in the FITS file.
     FileSummary file_summary;
     IFileSvc::instance().getFileSummary(m_tip_file.getName(), file_summary);
 
-    // If memory FITS file is empty, throw exception.
+    // If FITS file is empty, throw exception.
     FileSummary::const_iterator ext_itor = file_summary.begin();
     if (file_summary.end() == ext_itor) throw std::runtime_error("Given FITS template produces an empty FITS file");
 
@@ -464,7 +467,7 @@ namespace pulsarDb {
   }
 
   void PulsarDb::save(const std::string & out_file, const std::string & creator, const std::string & author, bool clobber) const {
-    // Copy the entire contents of the memory FITS file to an output file.
+    // Copy the entire contents of the FITS file to an output file.
     m_tip_file.copyFile(out_file, clobber);
 
     // Construct a character string representing file creation time in UTC.
