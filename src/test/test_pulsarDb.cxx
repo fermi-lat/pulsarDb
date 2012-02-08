@@ -3,6 +3,9 @@
     \authors Masaharu Hirayama, GSSC,
              James Peachey, HEASARC/GSSC
 */
+
+/// $Header$
+
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -1677,7 +1680,6 @@ void PulsarDbTestApp::testFrequencyEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_spin_freq.tpl") << std::endl;
   ofs.close();
-//   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
@@ -1987,7 +1989,6 @@ void PulsarDbTestApp::testPeriodEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_spin_per.tpl") << std::endl;
   ofs.close();
-//   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
@@ -2637,7 +2638,6 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_spin_hp.tpl") << std::endl;
   ofs.close();
-//  tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
@@ -3012,7 +3012,6 @@ void PulsarDbTestApp::testSimpleDdEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_orbital_dd.tpl") << std::endl;
   ofs.close();
-//   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
@@ -3186,7 +3185,6 @@ void PulsarDbTestApp::testBtModelEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_orbital_bt.tpl") << std::endl;
   ofs.close();
-//   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
@@ -3399,7 +3397,6 @@ void PulsarDbTestApp::testEll1ModelEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_orbital_ell1.tpl") << std::endl;
   ofs.close();
-//   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
@@ -3600,7 +3597,6 @@ void PulsarDbTestApp::testMssModelEph() {
   ofs << "\\include " << prependDataPath("PulsarDb_primary.tpl") << std::endl;
   ofs << "\\include " << prependDataPath("PulsarDb_orbital_mss.tpl") << std::endl;
   ofs.close();
-//   tip::TipFile tip_file = tip::IFileSvc::instance().createMemFile(getMethod() + ".fits", test_tpl);
 
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
