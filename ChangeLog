@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 TAG
+Tag name: ScienceTools-09-31-01, operation: add
+Package: pulsarDb
+User: glastrm  Thu Jan  3 16:52:01 2013
+Files:
+  pulsarDb/.cvsignore  1.1
+  pulsarDb/ChangeLog  1.1146
+  pulsarDb/pulsarDbLib.py  1.2
+  pulsarDb/SConscript  1.36
+  pulsarDb/cmt/requirements  1.8
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: ScienceTools-09-31-00, operation: add
 Package: pulsarDb
 User: jchiang  Tue Dec 18 17:01:12 2012
