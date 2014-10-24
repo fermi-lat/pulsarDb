@@ -477,6 +477,17 @@ namespace pulsarDb {
 
       // Load ephemeris remarks.
       if (m_report_eph_status) m_computer->loadEphRemark(database);
+
+      // Delete PulsarDB m_tip_file if chatter is less than 4.
+      int chatterLvl = pars["chatter"];
+      if (chatterLvl < 4) {
+        try{
+          database.removeInterimFile();
+        } 
+        catch(std::runtime_error & e) {
+          std::cout << "ERROR: " << e.what() << std::endl;
+        }
+      }
     }
   }
 

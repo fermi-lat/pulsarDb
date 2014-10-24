@@ -695,6 +695,15 @@ namespace pulsarDb {
     return binary_indicated;
   }
 
+  void PulsarDb::removeInterimFile() {
+    if (IFileSvc::instance().fileExists(m_tip_file.getName())) {
+      std::remove( m_tip_file.getName().c_str() );
+    }
+    else {
+      throw std::runtime_error("File not found: " + m_tip_file.getName() + ". Cannot Remove Interim File");
+    }
+  }
+
   void PulsarDb::loadFits(const std::string & in_file) {
     // Get summary of extensions in input file.
     FileSummary in_summary;
