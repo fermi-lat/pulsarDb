@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: asercion  Fri Oct 24 11:39:34 PDT 2014
+pulsarDb/src
+
+Modified Files:
+	PulsarToolApp.cxx 
+Log Message:
+Remove extra database files if chatter level less than 4
+    *
+------------------------------------------------------------
 User: asercion  Fri Oct 24 11:39:09 PDT 2014
 pulsarDb/src
 
