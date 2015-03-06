@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: jchiang  Fri Mar  6 14:56:26 PST 2015
+ScienceTools-scons/pulsarDb/data
+
+Modified Files:
+	PulsarDb.tpl PulsarDb_orbital_bt.tpl PulsarDb_orbital_dd.tpl 
+	PulsarDb_orbital_ell1.tpl PulsarDb_orbital_mss.tpl 
+	PulsarDb_primary.tpl PulsarDb_spin_freq.tpl 
+	PulsarDb_spin_hp.tpl PulsarDb_spin_per.tpl 
+	test_TextPulsarDb.tpl test_pulsarDb.tpl 
+	test_pulsarDb_badorbital.tpl test_pulsarDb_badspin.tpl 
+	test_pulsarDb_g0g1g2g1.tpl test_pulsarDb_g2g1g0g1.tpl 
+	test_pulsarDb_g2g1g2g0.tpl timeformat_glast.tpl 
+Log Message:
+fix CHECKSUM and DATASUM keyword values in .tpl files so that cfitsio 3.37 can be used
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-10-00-02, operation: add
 Package: pulsarDb
