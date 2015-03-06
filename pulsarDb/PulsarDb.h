@@ -207,6 +207,8 @@ namespace pulsarDb {
       */
       virtual bool isBinary(const std::string & pulsar_name) const;
 
+     void removeInterimFile();
+
     private:
       /** \brief Load ephemerides and related information from the given FITS file.
           \param in_file The name of the input FITS file.
