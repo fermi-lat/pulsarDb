@@ -1,6 +1,6 @@
 # -*- python -*-
-# $Id: SConscript,v 1.36 2012/02/08 20:45:34 jchiang Exp $
-# Authors: James Peachey <James.Peachey-1@nasa.gov>
+# $Id: SConscript,v 1.37 2015/03/06 22:57:05 jchiang Exp $
+# Authors: James Peachey <James.Peachey-1@nasa.gov>, Joe Asercion <joseph.a.asercion@nasa.gov>
 # Version: pulsarDb-09-00-04
 Import('baseEnv')
 Import('listFiles')
