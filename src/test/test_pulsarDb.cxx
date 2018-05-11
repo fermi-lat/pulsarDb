@@ -3587,7 +3587,7 @@ void PulsarDbTestApp::testMssModelEph() {
   t_eph.append("SHAPIRO_R",    "44.4e-06",                   "s");
   t_eph.append("SHAPIRO_S",    "55.5",                       "");
   t_eph.append("ABERRATION_A", "66.6",                       "s");
-  t_eph.append("ABERRATION_B", "77.7",                       "s");
+  t_eph.append("ABERRATION_B", "77.7",                       "s\n");
   checkEphParameter(getMethod() + "_numeric", *eph, t_eph);
 
   // Test the constructor that takes a FITS record.
