@@ -1,0 +1,39 @@
+gtephem: --------------------------
+gtephem: Spin ephemeris chosen from database is:
+gtephem:      Valid Since : 51671 MJD (TDB)
+gtephem:      Valid Until : 52532 MJD (TDB)
+gtephem:            Epoch = 52101 MJD (TDB)
+gtephem:               RA = 278.571942 degrees
+gtephem:              Dec = -0.180347 degrees
+gtephem:             Phi0 = 0.122490413504243
+gtephem:               F0 = 1.9195541400136 s**(-1)
+gtephem:               F1 = -5.27493e-17 s**(-2)
+gtephem:               F2 = 0 s**(-3)
+gtephem: Orbital ephemeris chosen from database is:
+gtephem:               PB = 156479.326538 s
+gtephem:            PBDOT = 0
+gtephem:               A1 = 0.7233272 lt-s
+gtephem:             XDOT = 0 lt-s/s
+gtephem:              ECC = 0.0001612
+gtephem:           ECCDOT = 0 s**(-1)
+gtephem:               OM = 0 radians
+gtephem:            OMDOT = 0 radians/s
+gtephem:               T0 = 52060.84100795 MJD (TDB)
+gtephem:            GAMMA = 0 s
+gtephem:        SHAPIRO_R = 0 s
+gtephem:        SHAPIRO_S = 0
+gtephem: --------------------------
+gtephem: Spin ephemeris estimated is:
+gtephem:              Reference Time : 54369.519261388888889 MJD (TDB)
+gtephem:    Right Ascension (degree) : 278.571942
+gtephem:        Declination (degree) : -0.180347
+gtephem:     Distance (light-second) : Unknown
+gtephem:                 Pulse Phase : 0.756609678268433
+gtephem:        Pulse Frequency (Hz) : 1.91955412967473
+gtephem:       1st Derivative (Hz/s) : -5.27493e-17
+gtephem:     2nd Derivative (Hz/s/s) : 0
+gtephem: Orbital position estimated is:
+gtephem:              Reference Time : 54369.519261388888889 MJD (TDB)
+gtephem:               Orbital Phase : 0.735810220143094
+gtephem:  Orbital Delay (TDB second) : -0.720443890211754
+gtephem:     Barycenter Arrival Time : 54369.519253050417937 MJD (TDB)
