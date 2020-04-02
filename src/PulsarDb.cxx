@@ -267,7 +267,7 @@ namespace pulsarDb {
     bool is_fits = true;
     try {
       // Try opening a primary extension of a FITS file.
-      std::auto_ptr<const Extension> ext(IFileSvc::instance().readExtension(in_file, "0"));
+      std::unique_ptr<const Extension> ext(IFileSvc::instance().readExtension(in_file, "0"));
     } catch (const TipException &) {
       is_fits = false;
     }
@@ -500,7 +500,7 @@ namespace pulsarDb {
       // Open this extension by extension number.
       std::ostringstream oss;
       oss << ext_number;
-      std::auto_ptr<Extension> ext(IFileSvc::instance().editExtension(out_file, oss.str()));
+      std::unique_ptr<Extension> ext(IFileSvc::instance().editExtension(out_file, oss.str()));
       Header & header(ext->getHeader());
 
       // Write extra info in HISTORY keywords of the primary header.
@@ -719,7 +719,7 @@ namespace pulsarDb {
 
       if (0 == ext_number) {
         // Collect database info from the primary header.
-        std::auto_ptr<const Extension> in_extension(IFileSvc::instance().readExtension(in_file, ext_number_string));
+        std::unique_ptr<const Extension> in_extension(IFileSvc::instance().readExtension(in_file, ext_number_string));
         const Header & in_header(in_extension->getHeader());
 
         // Append this loading action to the command history.
@@ -744,7 +744,7 @@ namespace pulsarDb {
 
       } else {
         // Open this table to load the contents.
-        std::auto_ptr<const Table> in_table(IFileSvc::instance().readTable(in_file, ext_number_string));
+        std::unique_ptr<const Table> in_table(IFileSvc::instance().readTable(in_file, ext_number_string));
 
         // Collect header keyword to require.
         const Header & in_header(in_table->getHeader());

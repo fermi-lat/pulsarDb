@@ -127,7 +127,7 @@ namespace pulsarDb {
         tip::IFileSvc::instance().createFile(oss.str(), tpl_file);
         tip::TipFile tip_file = tip::IFileSvc::instance().openFile(oss.str());
 
-        std::auto_ptr<EventTimeHandler> glast_time_handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS"));
+        std::unique_ptr<EventTimeHandler> glast_time_handler(GlastTimeHandler::createInstance(tip_file.getName(), "EVENTS"));
         if (glast_time_handler.get()) {
           abs_time = glast_time_handler->parseTimeString(time_value, time_system_rat);
         } else {

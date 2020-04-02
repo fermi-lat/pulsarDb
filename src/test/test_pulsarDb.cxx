@@ -715,7 +715,7 @@ void PulsarDbTestApp::testAppend() {
   setMethod("testAppend");
   PulsarDbAppTester tester(*this);
 
-  std::auto_ptr<PulsarDb> database(0);
+  std::unique_ptr<PulsarDb> database(nullptr);
 
   // Open an existing FITS database, created by filtering by name.
   database.reset(new PulsarDb(m_tpl_file));
@@ -1148,7 +1148,7 @@ void PulsarDbTestApp::testFormattedEph() {
 
   // Open a FITS extension to test reading column values.
   std::string filename(prependDataPath("column_samples.fits"));
-  std::auto_ptr<const tip::Table> table(tip::IFileSvc::instance().readTable(filename, "SCALAR"));
+  std::unique_ptr<const tip::Table> table(tip::IFileSvc::instance().readTable(filename, "SCALAR"));
 
   // Set test constants.
   bool content_1L = true;
@@ -1569,7 +1569,7 @@ void PulsarDbTestApp::testFrequencyEph() {
   double epsilon = 1.e-8;
 
   // Create a frequency ephemeris.
-  std::auto_ptr<FrequencyEph> eph(new FrequencyEph("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6));
+  std::unique_ptr<FrequencyEph> eph(new FrequencyEph("TDB", since, until, epoch, 22., 45., 0.11, 1.125e-2, -2.25e-4, 6.75e-6));
 
   // Test time system getter.
   std::string sys_name = eph->getSystem().getName();
@@ -1684,7 +1684,7 @@ void PulsarDbTestApp::testFrequencyEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -1827,7 +1827,7 @@ void PulsarDbTestApp::testPeriodEph() {
   double p0 = 1.23456789;
   double p1 = 9.87654321e-5;
   double p2 = 1.357902468e-10;
-  std::auto_ptr<PeriodEph> eph(new PeriodEph("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2));
+  std::unique_ptr<PeriodEph> eph(new PeriodEph("TDB", since, until, epoch, ra, dec, phi0, p0, p1, p2));
 
   // Test time system getter.
   std::string sys_name = eph->getSystem().getName();
@@ -1881,7 +1881,7 @@ void PulsarDbTestApp::testPeriodEph() {
   double time_since_epoch = 1000.;
   double step_size = 100.;
   AbsoluteTime abs_time = epoch + ElapsedTime("TDB", Duration(time_since_epoch, "Sec"));
-  std::auto_ptr<SimplePeriodEph> s_eph(new SimplePeriodEph(phi0, p0, p1, p2));
+  std::unique_ptr<SimplePeriodEph> s_eph(new SimplePeriodEph(phi0, p0, p1, p2));
   epsilon = 1.e-3; // Note: Need a loose tolerance because SimplePeriodEph::calcFrequency is not that precise.
   double result = 0.;
   double expected = 0.;
@@ -1993,7 +1993,7 @@ void PulsarDbTestApp::testPeriodEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -2044,7 +2044,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   ev_time = epoch + ElapsedTime("TDB", Duration(elapsed, "Sec"));
 
   // Create a high-precision ephemeris.
-  std::auto_ptr<HighPrecisionEph> eph(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
+  std::unique_ptr<HighPrecisionEph> eph(new HighPrecisionEph("TDB", since, until, epoch, 0., 0., 0., 0., 0., -1.,
     epoch, freq_empty, 1., wave_empty, wave_empty, glitch_empty));
 
   // Test time system getter.
@@ -2642,7 +2642,7 @@ void PulsarDbTestApp::testHighPrecisionEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -2858,7 +2858,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
 
   // Prepare variables for testing ephemeris computations.
   AbsoluteTime t0("TDB", 51910, 123.456789);
-  std::auto_ptr<SimpleDdEph> eph(new SimpleDdEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.));
+  std::unique_ptr<SimpleDdEph> eph(new SimpleDdEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0., 0., 0.));
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
   double epsilon = 1.e-8;
 
@@ -3016,7 +3016,7 @@ void PulsarDbTestApp::testSimpleDdEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -3041,7 +3041,7 @@ void PulsarDbTestApp::testBtModelEph() {
 
   // Prepare variables for testing ephemeris computations.
   AbsoluteTime t0("TDB", 51910, 123.456789);
-  std::auto_ptr<BtModelEph> eph(new BtModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0.));
+  std::unique_ptr<BtModelEph> eph(new BtModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., t0, 0.));
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
   double epsilon = 1.e-8;
 
@@ -3189,7 +3189,7 @@ void PulsarDbTestApp::testBtModelEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -3212,7 +3212,7 @@ void PulsarDbTestApp::testEll1ModelEph() {
 
   // Prepare variables for testing ephemeris computations.
   AbsoluteTime tasc("TDB", 51910, 123.456789);
-  std::auto_ptr<Ell1ModelEph> eph(new Ell1ModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., tasc, 0., 0.));
+  std::unique_ptr<Ell1ModelEph> eph(new Ell1ModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., tasc, 0., 0.));
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
   double epsilon = 1.e-8;
 
@@ -3401,7 +3401,7 @@ void PulsarDbTestApp::testEll1ModelEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -3425,7 +3425,7 @@ void PulsarDbTestApp::testMssModelEph() {
 
   // Prepare variables for testing ephemeris computations.
   AbsoluteTime t0("TDB", 51910, 123.456789);
-  std::auto_ptr<MssModelEph> eph(new MssModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 0., 0., 0., 0.));
+  std::unique_ptr<MssModelEph> eph(new MssModelEph("TDB", 1000., .2, 0., 0., 0., 0., 0., 0., 0., 0., t0, 0., 0., 0., 0., 0., 0., 0.));
   AbsoluteTime ev_time("TDB", 51910, 223.456789);
   double epsilon = 1.e-8;
 
@@ -3601,7 +3601,7 @@ void PulsarDbTestApp::testMssModelEph() {
   tip::IFileSvc::instance().createFile(getMethod() + ".fits", test_tpl);
   tip::TipFile tip_file = tip::IFileSvc::instance().openFile(getMethod() + ".fits");
 
-  std::auto_ptr<tip::Table> table(tip_file.editTable("1"));
+  std::unique_ptr<tip::Table> table(tip_file.editTable("1"));
   tip::Header & header(table->getHeader());
   table->setNumRecords(1);
   tip::Table::Record record(table.get(), 0);
@@ -4527,7 +4527,7 @@ class BogusOrbitalEph: public BogusOrbitalEphBase {
 void PulsarDbTestApp::testMultipleEphModel() {
   setMethod("testMultipleEphModel");
 
-  std::auto_ptr<PulsarDb> database(0);
+  std::unique_ptr<PulsarDb> database(nullptr);
 
   // Test rejection of a template file w/o EPHSTYLE in SPIN_PARAMETERS extension.
   std::string tpl_file = prependDataPath("test_pulsarDb_badspin.tpl");
@@ -5711,7 +5711,7 @@ void PulsarDbTestApp::testLoadingFits(const std::string & test_subject, PulsarDb
     // Open an extension.
     std::ostringstream oss;
     oss << ext_number;
-    std::auto_ptr<tip::Table> table(file_svc.editTable(filename, oss.str()));
+    std::unique_ptr<tip::Table> table(file_svc.editTable(filename, oss.str()));
 
     // Put the integer number in STRING_VALUE column.
     table->setNumRecords(1);

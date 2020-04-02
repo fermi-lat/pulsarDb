@@ -75,7 +75,7 @@ namespace pulsarDb {
     timeSystem::AbsoluteTime abs_ref_time = parseTime(time_format, time_sys, ref_time, time_format_parsed, time_sys_parsed);
 
     // Set up EphComputer for ephemeris computations.
-    std::auto_ptr<EphChooser> chooser(0);
+    std::unique_ptr<EphChooser> chooser(nullptr);
     if (strict) {
       chooser.reset(new StrictEphChooser);
     } else {
