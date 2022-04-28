@@ -46,11 +46,15 @@ target_link_libraries(test_pulsarDb PRIVATE pulsarDb)
 # Installation
 ###############################################################
 install(DIRECTORY pulsarDb DESTINATION ${FERMI_INSTALL_INCLUDEDIR})
-install(DIRECTORY data/ DESTINATION ${FERMI_INSTALL_REFDATADIR}/pulsarDb)
 install(DIRECTORY pfiles/ DESTINATION ${FERMI_INSTALL_PFILESDIR})
+install(DIRECTORY data/outref DESTINATION ${FERMI_INSTALL_DATADIR}/pulsarDb)
+install(
+  DIRECTORY data/ DESTINATION ${FERMI_INSTALL_REFDATADIR}/pulsarDb
+  PATTERN "outref" EXCLUDE
+)
 
 install(
-  TARGETS pulsarDb gtephem test_pulsarDb
+  TARGETS pulsarDb gtephem gtpulsardb test_pulsarDb
   EXPORT fermiTargets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION lib
