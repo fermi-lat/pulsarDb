@@ -48,10 +48,7 @@ target_link_libraries(test_pulsarDb PRIVATE pulsarDb)
 install(DIRECTORY pulsarDb DESTINATION ${FERMI_INSTALL_INCLUDEDIR})
 install(DIRECTORY pfiles/ DESTINATION ${FERMI_INSTALL_PFILESDIR})
 install(DIRECTORY data/outref DESTINATION ${FERMI_INSTALL_DATADIR}/pulsarDb)
-install(
-  DIRECTORY data/ DESTINATION ${FERMI_INSTALL_REFDATADIR}/pulsarDb
-  PATTERN "outref" EXCLUDE
-)
+install(DIRECTORY data/ DESTINATION ${FERMI_INSTALL_REFDATADIR}/pulsarDb)
 
 install(
   TARGETS pulsarDb gtephem gtpulsardb test_pulsarDb
