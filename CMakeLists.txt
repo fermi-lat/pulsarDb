@@ -1,6 +1,6 @@
 ##### Library ######
 add_library(
-  pulsarDb STATIC
+  pulsarDb 
   src/BtModelEph.cxx
   src/Ell1ModelEph.cxx
   src/EphChooser.cxx
