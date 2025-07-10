@@ -31,6 +31,8 @@ target_include_directories(
 )
 
 ###### Executables ######
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 add_executable(gtephem src/gtephem/gtephem.cxx)
 add_executable(gtpulsardb src/gtpulsardb/gtpulsardb.cxx)
 
