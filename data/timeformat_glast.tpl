@@ -25,7 +25,7 @@ MJDREFF     = 7.428703703703703D-4           / Fractional part of MJD correspond
 OBSERVER    = 'Peter Michelson'              / GLAST/LAT PI
 FILENAME    =                                / name of this file
 ORIGIN      = 'LISOC'                        / name of organization making file
-CREATOR     =                                / software and version creating file
+CREATOR  = 'APP_NAME Fermitools 2.4.1' / software and version creating file
 VERSION     = 1                              / release version of the file
 END
 
