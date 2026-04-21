@@ -33,10 +33,8 @@ target_include_directories(
 ###### Executables ######
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-add_executable(gtephem src/gtephem/gtephem.cxx)
 add_executable(gtpulsardb src/gtpulsardb/gtpulsardb.cxx)
 
-target_link_libraries(gtephem PRIVATE pulsarDb)
 target_link_libraries(gtpulsardb PRIVATE pulsarDb)
 
 ###### Tests ######
@@ -53,7 +51,7 @@ install(DIRECTORY data/outref DESTINATION ${FERMI_INSTALL_DATADIR}/pulsarDb)
 install(DIRECTORY data/ DESTINATION ${FERMI_INSTALL_REFDATADIR}/pulsarDb)
 
 install(
-  TARGETS pulsarDb gtephem gtpulsardb test_pulsarDb
+  TARGETS pulsarDb gtpulsardb test_pulsarDb
   EXPORT fermiTargets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION lib
